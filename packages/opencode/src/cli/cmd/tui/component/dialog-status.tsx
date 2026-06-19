@@ -68,6 +68,7 @@ export function DialogStatus() {
           <text fg={theme.textMuted}>
             Project {"       "}
             {project.instance.path().directory.replace(Global.Path.home, "~")}
+            {sync.data.vcs?.branch ? <span style={{ fg: theme.textMuted }}>:{sync.data.vcs.branch}</span> : null}
           </text>
         </Show>
       </box>

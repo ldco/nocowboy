@@ -56,7 +56,9 @@ export function Footer() {
 
   return (
     <box flexDirection="row" justifyContent="space-between" gap={1} flexShrink={0}>
-      <text fg={theme.textMuted}>{directory()}</text>
+      {/* nocowboy_change start */}
+      {false && <text fg={theme.textMuted}>{directory()}</text>}
+      {/* nocowboy_change end */}
       <box gap={2} flexDirection="row" flexShrink={0}>
         {/* nocowboy_change start */}
         <RemoteIndicator

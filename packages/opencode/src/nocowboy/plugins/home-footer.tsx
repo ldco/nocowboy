@@ -8,7 +8,6 @@
  */
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/tui"
 import { createMemo, createSignal, Match, onCleanup, onMount, Show, Switch } from "solid-js"
-import { Global } from "@opencode-ai/core/global"
 
 const id = "internal:kilo-home-footer"
 
@@ -48,19 +47,6 @@ function RemoteIndicator(props: { api: TuiPluginApi; kilo: boolean }) {
 // ---------------------------------------------------------------------------
 // Sub-components (mirror upstream home/footer with kilo additions)
 // ---------------------------------------------------------------------------
-
-function Directory(props: { api: TuiPluginApi }) {
-  const theme = () => props.api.theme.current
-  const dir = createMemo(() => {
-    const d = props.api.state.path.directory || process.cwd()
-    const out = d.replace(Global.Path.home, "~")
-    const branch = props.api.state.vcs?.branch
-    if (branch) return out + ":" + branch
-    return out
-  })
-
-  return <text fg={theme().textMuted}>{dir()}</text>
-}
 
 function Mcp(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
@@ -117,7 +103,6 @@ function View(props: { api: TuiPluginApi }) {
       flexShrink={0}
       gap={2}
     >
-      <Directory api={props.api} />
       <box gap={1} flexDirection="row" flexShrink={0}>
         <RemoteIndicator api={props.api} kilo={kilo()} />
         <Mcp api={props.api} />
