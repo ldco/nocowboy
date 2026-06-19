@@ -1,5 +1,6 @@
 import { For, createSignal, createContext, useContext, createMemo, type Accessor, type Setter } from "solid-js"
 import { readFileSync, existsSync } from "node:fs"
+import { execSync } from "node:child_process"
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import { icons } from "@/nocowboy/icons"
@@ -18,18 +19,27 @@ function shortPath(p: string): string {
   return rel
 }
 
-function findGitHead(): string {
-  const dirs = [process.cwd(), resolve(process.cwd(), ".."), resolve(process.cwd(), "../.."), resolve(process.cwd(), "../../..")]
-  for (const d of dirs) {
+function gitInfo(): { branch: string; ahead: number; behind: number } {
+  let gitDir = ""
+  for (const d of [process.cwd(), resolve(process.cwd(), ".."), resolve(process.cwd(), "../.."), resolve(process.cwd(), "../../..")]) {
     const p = resolve(d, ".git/HEAD")
-    if (!existsSync(p)) continue
-    try {
-      const head = readFileSync(p, "utf-8").trim()
-      const m = head.match(/ref: refs\/heads\/(.+)/)
-      if (m) return m[1] ?? ""
-    } catch {}
+    if (existsSync(p)) { gitDir = d; break }
   }
-  return ""
+  if (!gitDir) return { branch: "", ahead: 0, behind: 0 }
+  let branch = ""
+  try {
+    const head = readFileSync(resolve(gitDir, ".git/HEAD"), "utf-8").trim()
+    const m = head.match(/ref: refs\/heads\/(.+)/)
+    if (m) branch = m[1] ?? ""
+  } catch {}
+  let ahead = 0, behind = 0
+  try {
+    const rev = execSync(`git rev-list --count master..origin/master 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
+    behind = parseInt(rev.trim(), 10) || 0
+    const rev2 = execSync(`git rev-list --count origin/master..master 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
+    ahead = parseInt(rev2.trim(), 10) || 0
+  } catch {}
+  return { branch, ahead, behind }
 }
 
 export type Screen = string
@@ -74,7 +84,7 @@ export function TopBar() {
   const { theme } = useTheme()
   const fullPath = projectRoot
   const pathDisplay = shortPath(fullPath)
-  const branch = findGitHead()
+  const git = gitInfo()
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
@@ -87,7 +97,7 @@ export function TopBar() {
         {" "}{pathDisplay}
       </text>
       <text fg={theme.success}>
-        {branch ? ` ${icons.branch}${branch}` : ""}
+        {git.branch ? ` ${icons.branch}${git.branch}${git.ahead > 0 ? ` ⇡${git.ahead}` : ""}${git.behind > 0 ? ` ⇢${git.behind}` : ""}` : ""}
       </text>
       <text fg={theme.textDim}>
         {"  Score: --  Tokens: 0  Cost: $0.00  "}
