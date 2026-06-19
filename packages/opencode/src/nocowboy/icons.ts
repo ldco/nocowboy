@@ -2,7 +2,7 @@ export const icons = {
   // Navigation (simple Unicode, no emoji)
   chat: "▶",
   api: "➤",
-  git: "⎇",
+  git: "",
   db: "☰",
   files: "⊞",
   edit: "✎",
@@ -14,7 +14,7 @@ export const icons = {
   connected: "●",
   disconnected: "○",
   score: "★",
-  branch: "⎇",
+  branch: "",
 
   // Actions
   copy: "⊡",
