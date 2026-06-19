@@ -14,7 +14,6 @@ const buttons = [
   { key: "db",     label: "DB" },
   { key: "files",   label: "Files" },
   { key: "edit",    label: "Edit" },
-  { key: "commands",label: "Commands" },
   { key: "settings",label: "Settings" },
   { key: "info",    label: "Info" },
   { key: "history", label: "History" },

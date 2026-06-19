@@ -1,6 +1,6 @@
 import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid" // nocowboy_change
 import { TopBar, BottomBar, ScreenProvider, useScreen } from "@/nocowboy/components/nocowboy-bars"
-import { CommandsScreen } from "@/nocowboy/components/commands-screen"
+// CommandsScreen removed
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
@@ -467,9 +467,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         title: "Commands",
         category: "System",
         hidden: false,
-        run: () => {
-          useScreen().setScreen("commands")
-        },
+        run: () => command.show(),
       },
       {
         name: "session.list",
@@ -957,16 +955,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                 {plugin()}
               </Show>
               <Show when={useScreen().screen() !== "chat"}>
-                <Show when={useScreen().screen() === "commands"}>
-                  <CommandsScreen />
-                </Show>
-                <Show when={useScreen().screen() !== "commands"}>
-                  <box flexGrow={1} alignItems="center" justifyContent="center">
-                    <text fg={useTheme().theme.textDim}>
-                      {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
-                    </text>
-                  </box>
-                </Show>
+              <box flexGrow={1} alignItems="center" justifyContent="center">
+                <text fg={useTheme().theme.textDim}>
+                  {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
+                </text>
+              </box>
               </Show>
             </box>
             <BottomBar />
