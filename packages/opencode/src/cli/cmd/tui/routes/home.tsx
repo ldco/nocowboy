@@ -63,9 +63,7 @@ export function Home() {
   return (
     <box flexDirection="column" flexGrow={1}>
       <box flexShrink={0} flexDirection="row" paddingX={2}>
-        <TuiPluginRuntime.Slot name="home_logo" mode="replace">
-          <Logo />
-        </TuiPluginRuntime.Slot>
+        {/* logo removed — will add ASCII logo later */}
       </box>
       <box flexGrow={1} minHeight={0} />
       <box width="100%" paddingX={2}>
