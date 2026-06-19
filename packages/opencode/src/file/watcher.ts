@@ -156,10 +156,9 @@ export const layer = Layer.effect(
     )
 
     return Service.of({
-      init: () =>
-        Effect.fn("FileWatcher.init")(function* () {
-          yield* InstanceState.get(state)
-        }) as unknown as Effect.Effect<void>,
+      init: Effect.fn("FileWatcher.init")(function* () {
+        yield* InstanceState.get(state)
+      }) as unknown as () => Effect.Effect<void>,
     })
   }),
 )
