@@ -367,7 +367,7 @@ export function generateSystem(colors: TerminalColors, pick: "dark" | "light"): 
 
   const diff_alpha = isDark ? 0.22 : 0.14
   const diff_context_bg = grays[2]
-  const primary = ansi.cyan
+  const primary = RGBA.fromHex("#ff6800")
   const secondary = ansi.magenta
 
   return {
