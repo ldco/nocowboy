@@ -5,8 +5,8 @@ import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Auth } from "../../src/auth"
 import { Bus } from "../../src/bus"
 import type { Config } from "../../src/config/config"
-import { clearInFlightCache } from "../../src/kilo-sessions/inflight-cache"
-import { KiloSessions } from "../../src/kilo-sessions/kilo-sessions"
+import { clearInFlightCache } from "../../src/nocowboy-sessions/inflight-cache"
+import { Sessions } from "../../src/nocowboy-sessions/sessions"
 import { ProjectID } from "../../src/project/schema"
 import { Session } from "../../src/session/session"
 import { SessionID } from "../../src/session/schema"
@@ -17,7 +17,7 @@ const it = testEffect(CrossSpawnSpawner.defaultLayer)
 
 function layer(overrides: Partial<Config.Interface> = {}) {
   return Layer.merge(
-    KiloSessions.layer.pipe(
+    Sessions.layer.pipe(
       Layer.provideMerge(Bus.layer),
       Layer.provide(TestConfig.layer(overrides)),
       Layer.provide(Session.defaultLayer),
@@ -36,7 +36,7 @@ it.instance("initializes once per instance through Config.Service", () => {
   let reads = 0
 
   return Effect.gen(function* () {
-    const sessions = yield* KiloSessions.Service
+    const sessions = yield* Sessions.Service
     yield* sessions.init()
     yield* sessions.init()
     expect(reads).toBe(1)
@@ -76,7 +76,7 @@ it.instance("bootstraps session ingest from KILO_API_KEY without stored auth", (
   process.env.KILO_API_KEY = "env-token"
   reset("env-token")
 
-  return Effect.promise(() => KiloSessions.bootstrap("session-env")).pipe(
+  return Effect.promise(() => Sessions.bootstrap("session-env")).pipe(
     Effect.andThen(() => Effect.sync(() => expect(calls).toEqual(["Bearer env-token", "Bearer env-token"]))),
     Effect.ensuring(
       Effect.sync(() => {
@@ -116,7 +116,7 @@ it.instance("prefers stored auth over KILO_API_KEY for session ingest", () => {
   return Effect.gen(function* () {
     const auth = yield* Auth.Service
     yield* auth.set("kilo", { type: "api", key: "stored-token" })
-    yield* Effect.promise(() => KiloSessions.bootstrap("session-auth"))
+    yield* Effect.promise(() => Sessions.bootstrap("session-auth"))
     expect(calls).toEqual(["Bearer stored-token", "Bearer stored-token"])
   }).pipe(
     Effect.ensuring(
@@ -155,7 +155,7 @@ it.instance("does not duplicate created-session subscribers when init is repeate
   return Effect.gen(function* () {
     const auth = yield* Auth.Service
     const bus = yield* Bus.Service
-    const sessions = yield* KiloSessions.Service
+    const sessions = yield* Sessions.Service
     yield* auth.set("kilo", { type: "api", key: "test-token" })
     yield* sessions.init()
     yield* sessions.init()

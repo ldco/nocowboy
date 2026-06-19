@@ -23,7 +23,7 @@ import { ServerAuth } from "@/server/auth"
 import { buildRunMessage } from "@/nocowboy/cli/cmd/run-message" // nocowboy_change
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
-import { createNocowboyClient, type NocowboyClient, type ToolPart } from "@nocowboy/sdk/v2"
+import { createNocowboyClient, type KiloClient, type ToolPart } from "@nocowboy/sdk/v2"
 import { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -36,7 +36,7 @@ import { KiloRunAuto } from "@/nocowboy/cli/run-auto" // nocowboy_change
 import { KiloRunDaemon } from "@/nocowboy/cli/cmd/run" // nocowboy_change
 
 const runtimeTask = import("./run/runtime")
-type ModelInput = Parameters<NocowboyClient["session"]["prompt"]>[0]["model"]
+type ModelInput = Parameters<KiloClient["session"]["prompt"]>[0]["model"]
 
 function pick(value: string | undefined): ModelInput | undefined {
   if (!value) return undefined
@@ -398,7 +398,7 @@ export const RunCommand = effectCmd({
         return message.slice(0, 50) + (message.length > 50 ? "..." : "")
       }
 
-      async function session(sdk: NocowboyClient): Promise<SessionInfo | undefined> {
+      async function session(sdk: KiloClient): Promise<SessionInfo | undefined> {
         // nocowboy_change start - import cloud session before local lookup
         if (args.session && args["cloud-fork"]) {
           const id = await importCloudSession(sdk, args.session).catch(() => undefined)
@@ -504,7 +504,7 @@ export const RunCommand = effectCmd({
         }
       }
 
-      async function share(sdk: NocowboyClient, sessionID: string) {
+      async function share(sdk: KiloClient, sessionID: string) {
         const cfg = await sdk.config.get()
         if (!cfg.data) return
         if (cfg.data.share !== "auto" && !flags.autoShare && !args.share) return
@@ -520,7 +520,7 @@ export const RunCommand = effectCmd({
       }
 
       async function createFreshSession(
-        sdk: NocowboyClient,
+        sdk: KiloClient,
         input: { agent: string | undefined; model: ModelInput | undefined; variant: string | undefined },
       ): Promise<SessionInfo> {
         const result = await sdk.session.create({
@@ -547,7 +547,7 @@ export const RunCommand = effectCmd({
         }
       }
 
-      async function current(sdk: NocowboyClient): Promise<string> {
+      async function current(sdk: KiloClient): Promise<string> {
         if (!args.attach) {
           return directory ?? root
         }
@@ -590,7 +590,7 @@ export const RunCommand = effectCmd({
         return name
       }
 
-      async function attachAgent(sdk: NocowboyClient) {
+      async function attachAgent(sdk: KiloClient) {
         if (!args.agent) return undefined
         const name = args.agent
 
@@ -630,7 +630,7 @@ export const RunCommand = effectCmd({
         return name
       }
 
-      async function pickAgent(sdk: NocowboyClient) {
+      async function pickAgent(sdk: KiloClient) {
         if (!args.agent) return undefined
         if (args.attach) {
           return attachAgent(sdk)
@@ -639,7 +639,7 @@ export const RunCommand = effectCmd({
         return localAgent()
       }
 
-      async function execute(sdk: NocowboyClient) {
+      async function execute(sdk: KiloClient) {
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
@@ -667,7 +667,7 @@ export const RunCommand = effectCmd({
         // to stdout/UI. `client` is passed explicitly because attach mode may
         // rebind the SDK to the session's directory after the subscription is
         // created, and replies issued from inside the loop must use that client.
-        async function loop(client: NocowboyClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
+        async function loop(client: KiloClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
           const toggles = new Map<string, boolean>()
           const MAX_RETRIES = 3 // nocowboy_change
           let retries = 0 // nocowboy_change

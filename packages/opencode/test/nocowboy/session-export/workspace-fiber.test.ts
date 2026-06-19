@@ -1,5 +1,6 @@
 import { describe, test, expect } from "bun:test"
-import { startBaselineFiber, startDeltaFiber } from "@/kilocode/session-export/workspace-fiber"
+import { startBaselineFiber, startDeltaFiber } from "@/nocowboy/session-export/workspace-fiber"
+import type { ExportEvent } from "@/nocowboy/session-export/events"
 
 describe("workspace fiber", () => {
   test("emits stable consistency when token arrives in time", async () => {

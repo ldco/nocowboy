@@ -1,11 +1,11 @@
-import { createNocowboyClient, type NocowboyClient } from "@nocowboy/sdk/v2"
+import { createNocowboyClient, type KiloClient } from "@nocowboy/sdk/v2"
 import { Filesystem } from "@/util/filesystem"
 import { DaemonClient } from "@/nocowboy/daemon/client"
 
 export namespace KiloRunDaemon {
   export type Input = {
     directory?: string
-    execute: (client: NocowboyClient) => Promise<void>
+    execute: (client: KiloClient) => Promise<void>
   }
 
   export async function attach(input: Input) {
