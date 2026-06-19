@@ -96,7 +96,7 @@ export function TopBar() {
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
-      <text fg={theme.highlight} flexShrink={0}> {icons.logo}</text>
+      <text fg={theme.highlight} bold flexShrink={0}> noCowboy</text>
       <text
         fg={theme.text}
         flexGrow={1}
@@ -108,10 +108,10 @@ export function TopBar() {
         {branch ? ` ${icons.branch}${branch}${status}` : ""}
       </text>
       <text fg={theme.textDim}>
-        {"  Score: --  Tokens: 0  Cost: $0.00"}
+        {"  Score: --  Tokens: 0  Cost: $0.00  "}
       </text>
-      <text fg={theme.error} paddingLeft={1} paddingRight={1}>
-        {icons.disconnected}
+      <text fg="#ff0000" paddingRight={1}>
+        ●
       </text>
     </box>
   )
