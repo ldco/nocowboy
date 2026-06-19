@@ -63,9 +63,6 @@ export function Home() {
 
   return (
     <box flexDirection="column" flexGrow={1}>
-      <box flexShrink={0} flexDirection="row" paddingX={2}>
-        {/* logo removed — will add ASCII logo later */}
-      </box>
       <box flexGrow={1} minHeight={0} />
       <box width="100%" paddingX={2}>
         <TuiPluginRuntime.Slot
@@ -87,7 +84,7 @@ export function Home() {
                     paddingRight={1}
                     onMouseDown={(e: any) => { e?.preventDefault?.() }}
                   >
-                    [🎙️Voice]
+                    [Voice]
                   </text>
                   <TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />
                 </box>

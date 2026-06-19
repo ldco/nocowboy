@@ -1421,7 +1421,7 @@ export function Session() {
                               paddingRight={1}
                               onMouseDown={(e: any) => { e?.preventDefault?.(); /* TODO: ostt.ai STT */ }}
                             >
-                              [🎙️Voice]
+                              [Voice]
                             </text>
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
