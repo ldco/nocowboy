@@ -36,7 +36,7 @@ export function Tips(props: { tip?: string }) {
 
   return (
     <box flexDirection="row" maxWidth="100%">
-      <text flexShrink={0} style={{ fg: theme.warning }}>
+      <text flexShrink={0} style={{ fg: theme.text }}>
         ● Tip{" "}
       </text>
       <text flexShrink={1}>

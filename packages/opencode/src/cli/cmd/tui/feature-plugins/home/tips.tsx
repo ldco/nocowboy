@@ -25,9 +25,11 @@ function View(props: { api: TuiPluginApi; hidden: boolean; show: boolean; connec
 
   return (
     <box width="100%" maxWidth={75} alignItems="center" paddingTop={3} flexShrink={1}>
+      {false && (
       <Show when={props.show}>
         <Tips api={props.api} connected={props.connected} />
       </Show>
+      )}
     </box>
   )
 }

@@ -66,6 +66,7 @@ import { ArgsProvider, useArgs, type Args } from "./context/args"
 import open from "open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app" // nocowboy_change
+import { InfoScreen } from "@/nocowboy/cli/cmd/tui/info-screen" // nocowboy_change
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
@@ -955,11 +956,16 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                 {plugin()}
               </Show>
               <Show when={useScreen().screen() !== "chat"}>
+              <Show when={useScreen().screen() === "info"}>{/* nocowboy_change start */}
+                <InfoScreen />
+              </Show>{/* nocowboy_change end */}
+              <Show when={useScreen().screen() !== "info"}>
               <box flexGrow={1} alignItems="center" justifyContent="center">
                 <text fg={useTheme().theme.textMuted}>
                   {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
                 </text>
               </box>
+              </Show>
               </Show>
             </box>
             <BottomBar />

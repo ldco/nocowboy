@@ -67,8 +67,7 @@ function View(props: { api: TuiPluginApi }) {
       flexShrink={0}
       gap={2}
     >
-      <Directory api={props.api} />
-      <Mcp api={props.api} />
+      {false && <Mcp api={props.api} />}
       <box flexGrow={1} />
       <Version api={props.api} />
     </box>
