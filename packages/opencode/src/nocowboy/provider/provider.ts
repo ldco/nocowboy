@@ -51,7 +51,7 @@ export const KILO_MODEL_SCHEMA_EXTENSIONS = {
 
 export function patchModelsDevModel(providerID: string, source: any) {
   return {
-    variants: providerID === "kilo" || providerID === "nocowboy" ? (source.variants ?? {}) : {},
+    variants: providerID === "nocowboy" ? (source.variants ?? {}) : {},
     recommendedIndex: source.recommendedIndex,
     prompt: source.prompt,
     isFree: source.isFree,
