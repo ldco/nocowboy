@@ -74,7 +74,7 @@ export function Home() {
           ref={bind}
         >
           {/* nocowboy_change — same styled input as session */}
-          <box border borderStyle="rounded" borderColor="#ff6800" padding={1}>
+          <box border borderStyle="rounded" borderColor="#ff6800">
             <Prompt
               ref={bind}
               workspaceID={project.workspace.current()}

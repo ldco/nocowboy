@@ -1404,7 +1404,6 @@ export function Session() {
                       border
                       borderStyle="rounded"
                       borderColor="#ff6800"
-                      padding={1}
                     >
                       <Prompt
                         visible={visible()}
