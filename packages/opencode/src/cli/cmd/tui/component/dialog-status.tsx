@@ -5,7 +5,7 @@ import { useDialog } from "@tui/ui/dialog"
 import { useSync } from "@tui/context/sync"
 import { useProject } from "@tui/context/project"
 import { For, Match, Switch, Show, createMemo } from "solid-js"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion, InstallationLocal } from "@opencode-ai/core/installation/version"
 import { Global } from "@opencode-ai/core/global" // nocowboy_change
 
 export type DialogStatusProps = {}
@@ -55,7 +55,9 @@ export function DialogStatus() {
         </text>
       </box>
       {/* nocowboy_change start */}
-      <text fg={theme.textMuted}>NoCowboy v{InstallationVersion}</text>
+      <Show when={!InstallationLocal}>
+        <text fg={theme.textMuted}>NoCowboy v{InstallationVersion}</text>
+      </Show>
       {/* nocowboy_change end */}
       {/* nocowboy_change start */}
       <box>

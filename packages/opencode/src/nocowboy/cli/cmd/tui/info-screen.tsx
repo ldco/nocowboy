@@ -3,7 +3,7 @@ import { useTheme } from "@tui/context/theme"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion, InstallationLocal } from "@opencode-ai/core/installation/version"
 import { Global } from "@opencode-ai/core/global"
 
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
@@ -23,7 +23,7 @@ export function InfoScreen() {
     }
     const v = sync.data.globalConfig as any
     if (v?.directory) items.push({ label: "Config", value: v.directory.replace(Global.Path.home, "~") })
-    items.push({ label: "Version", value: InstallationVersion })
+    if (!InstallationLocal) items.push({ label: "Version", value: InstallationVersion })
     return items
   })
 
