@@ -1,6 +1,6 @@
 import fs from "fs/promises"
 import path from "path"
-import { parseModelsSnapshot } from "../../src/kilocode/provider/models-snapshot-shape"
+import { parseModelsSnapshot } from "../../src/nocowboy/provider/models-snapshot-shape"
 
 export const MODELS_SNAPSHOT_PATH = path.resolve(import.meta.dir, "../../src/provider/models-snapshot.json")
 

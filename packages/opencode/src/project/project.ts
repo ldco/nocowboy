@@ -169,7 +169,7 @@ export const layer: Layer.Layer<
         }),
       )
 
-    const fakeVcs = Schema.decodeUnknownSync(Schema.optional(ProjectVcs))(Flag.NOCOWBOY_FAKE_VCS)
+    const fakeVcs = Schema.decodeUnknownSync(Schema.optional(ProjectVcs))(Flag.KILO_FAKE_VCS)
 
     const resolveGitPath = (cwd: string, name: string) => {
       if (!name) return cwd

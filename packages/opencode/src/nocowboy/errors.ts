@@ -14,8 +14,9 @@ const KILO_ERROR_CODE_VALUES = Object.values(KILO_ERROR_CODES) as string[]
  * Check if an error is a Kilo-specific error (has a known Kilo error code in responseBody).
  * Currently all Kilo errors are non-retryable, but this may change in the future.
  */
-export function isNocowboyError(error: ReturnType<NamedError["toObject"]>): boolean {
-  return parseKiloErrorCode(error) !== undefined
+export function isNocowboyError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false
+  return parseKiloErrorCode(error as ReturnType<NamedError["toObject"]>) !== undefined
 }
 
 /**

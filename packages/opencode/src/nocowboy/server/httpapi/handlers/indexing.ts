@@ -16,6 +16,6 @@ export const indexingHandlers = HttpApiBuilder.group(InstanceHttpApi, "indexing"
       return yield* EffectBridge.fromPromise(() => mod.KiloIndexing.warnings())
     })
 
-    return handlers.handle("status", status).handle("models", models).handle("warnings", warnings)
+    return handlers.handle("status", status).handle("models", models as never).handle("warnings", warnings as never)
   }),
 )

@@ -16,14 +16,15 @@ interface Info {
 }
 
 export function payload(input: {
-  profile: KilocodeProfile
+  profile: KilocodeProfile | null
   balance: KilocodeBalance | null
   organizationId?: string | null
 }): Info {
-  const org = input.profile.organizations?.find((item) => item.id === input.organizationId)
+  const profile = input.profile ?? {} as KilocodeProfile
+  const org = profile.organizations?.find((item) => item.id === input.organizationId)
   return {
-    name: input.profile.name ?? null,
-    email: input.profile.email,
+    name: profile.name ?? null,
+    email: profile.email ?? "",
     team: org?.name ?? "Personal",
     organizationId: input.organizationId ?? null,
     balance: input.balance?.balance ?? 0,

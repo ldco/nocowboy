@@ -227,10 +227,10 @@ export const layer: Layer.Layer<Service, never, Auth.Service | Plugin.Service | 
         if (info) {
           const token = info.type === "oauth" ? info.access : info.type === "api" ? info.key : null
           const accountId = info.type === "oauth" ? info.accountId : undefined
-          yield* Effect.promise(() => Telemetry.updateIdentity(token, accountId))
+          yield* Effect.promise(() => Telemetry.updateIdentity())
         }
       }
-      Telemetry.trackAuthSuccess(input.providerID)
+      Telemetry.trackAuthSuccess()
       yield* cache.clear(input.providerID)
       // nocowboy_change end
     })

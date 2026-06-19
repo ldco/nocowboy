@@ -364,7 +364,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
 
       if (
         parts?.data.parts?.some(
-          (part) =>
+          (part: any) =>
             part.type === "compaction" ||
             // Auto-compaction resumes via a synthetic user text part. Treat only
             // that marked followup as agent-initiated so manual prompts stay user-initiated.

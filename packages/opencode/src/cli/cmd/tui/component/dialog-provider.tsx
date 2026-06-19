@@ -193,15 +193,7 @@ export function createDialogProviderOptions() {
               }
               if (result.data?.method === "auto") {
                 // nocowboy_change start
-                const ncProvider = NocowboyProvider.renderAutoMethod({
-                  providerID,
-                  title: method.label,
-                  index,
-                  authorization: result.data!,
-                  useSDK,
-                  useTheme,
-                  DialogModel,
-                })
+                const ncProvider = KiloProvider.renderAutoMethod()
                 if (ncProvider) {
                   dialog.replace(ncProvider)
                 } else {

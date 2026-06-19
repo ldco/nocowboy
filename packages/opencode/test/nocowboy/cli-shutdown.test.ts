@@ -101,9 +101,9 @@ describe("KiloCli.shutdown", () => {
   test("keeps telemetry shutdown timeout best-effort and still disposes instances", async () => {
     err = "Timeout while shutting down PostHog. Some events may not have been sent."
     process.exitCode = 0
-    const { KiloCli } = await import("../../src/nocowboy/cli/setup")
+    const { NocowboyCli } = await import("../../src/nocowboy/cli/setup")
 
-    await expect(KiloCli.shutdown()).resolves.toBeUndefined()
+    await expect(NocowboyCli.shutdown()).resolves.toBeUndefined()
 
     expect(timeouts).toEqual([2000])
     expect(calls).toEqual(["track:0", "session", "telemetry", "dispose"])
@@ -112,9 +112,9 @@ describe("KiloCli.shutdown", () => {
 
   test("preserves failing command exit status", async () => {
     process.exitCode = 1
-    const { KiloCli } = await import("../../src/nocowboy/cli/setup")
+    const { NocowboyCli } = await import("../../src/nocowboy/cli/setup")
 
-    await KiloCli.shutdown()
+    await NocowboyCli.shutdown()
 
     expect(timeouts).toEqual([2000])
     expect(calls).toEqual(["track:1", "session", "telemetry", "dispose"])

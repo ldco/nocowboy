@@ -97,12 +97,12 @@ export namespace ModesMigrator {
    * organization admins can intentionally override built-in agents.
    */
   export function convertOrganizationMode(mode: OrganizationMode): ConfigAgent.Info {
-    const cfg = mode.config
+    const cfg = (mode as any).config ?? {}
     const prompt = [cfg.roleDefinition, cfg.customInstructions].filter(Boolean).join("\n\n")
     const groups = cfg.groups ?? []
     if (groups.length === 0) {
       console.warn(
-        `[ModesMigrator] Organization mode "${mode.slug}" has no groups configured — all tool permissions will be denied`,
+        `[ModesMigrator] Organization mode "${mode.id}" has no groups configured — all tool permissions will be denied`,
       )
     }
 
@@ -122,7 +122,7 @@ export namespace ModesMigrator {
   export function convertOrganizationModes(modes: OrganizationMode[]): Record<string, ConfigAgent.Info> {
     const result: Record<string, ConfigAgent.Info> = {}
     for (const mode of modes) {
-      result[mode.slug] = convertOrganizationMode(mode)
+      result[mode.id] = convertOrganizationMode(mode)
     }
     return result
   }

@@ -101,7 +101,7 @@ export namespace KiloTask {
   }
 
   const saved = Effect.fn("KiloTask.savedModel")(function* (name: string) {
-    if (Flag.NOCOWBOY_CLIENT !== "cli") return undefined
+    if (Flag.KILO_CLIENT !== "cli") return undefined
     const file = path.join(Global.Path.state, "model.json")
     const state = yield* Effect.tryPromise({
       try: () =>

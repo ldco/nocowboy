@@ -13,7 +13,7 @@
 //         → OpenTUI split-footer renderer writes to terminal
 import type { KeyEvent, Renderable } from "@opentui/core"
 import type { Binding } from "@opentui/keymap"
-import type { NocowboyClient, PermissionRequest, QuestionAnswer, QuestionRequest, ToolPart } from "@nocowboy/sdk/v2"
+import type { KiloClient, PermissionRequest, QuestionAnswer, QuestionRequest, ToolPart } from "@nocowboy/sdk/v2"
 
 export type RunFilePart = {
   type: "file"
@@ -22,14 +22,15 @@ export type RunFilePart = {
   mime: string
 }
 
-type PromptModel = Parameters<NocowboyClient["session"]["prompt"]>[0]["model"]
-type PromptInput = Parameters<NocowboyClient["session"]["prompt"]>[0]
+type PromptModel = Parameters<KiloClient["session"]["prompt"]>[0]["model"]
+
+type PromptInput = Parameters<KiloClient["session"]["prompt"]>[0]
 
 export type RunPromptPart = NonNullable<PromptInput["parts"]>[number]
 
-export type RunCommand = NonNullable<Awaited<ReturnType<NocowboyClient["command"]["list"]>>["data"]>[number]
+export type RunCommand = NonNullable<Awaited<ReturnType<KiloClient["command"]["list"]>>["data"]>[number]
 
-export type RunProvider = NonNullable<Awaited<ReturnType<NocowboyClient["provider"]["list"]>>["data"]>["all"][number]
+export type RunProvider = NonNullable<Awaited<ReturnType<KiloClient["provider"]["list"]>>["data"]>["all"][number]
 
 export type RunPrompt = {
   text: string
@@ -40,14 +41,14 @@ export type RunPrompt = {
   }
 }
 
-export type RunAgent = NonNullable<Awaited<ReturnType<NocowboyClient["app"]["agents"]>>["data"]>[number]
+export type RunAgent = NonNullable<Awaited<ReturnType<KiloClient["app"]["agents"]>>["data"]>[number]
 
-type RunResourceMap = NonNullable<Awaited<ReturnType<NocowboyClient["experimental"]["resource"]["list"]>>["data"]>
+type RunResourceMap = NonNullable<Awaited<ReturnType<KiloClient["experimental"]["resource"]["list"]>>["data"]>
 
 export type RunResource = RunResourceMap[string]
 
-export type RunInput = {
-  sdk: NocowboyClient
+export interface RunInput {
+  sdk: KiloClient
   directory: string
   sessionID: string
   sessionTitle?: string

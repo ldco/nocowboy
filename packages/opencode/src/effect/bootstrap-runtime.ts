@@ -26,4 +26,4 @@ export const BootstrapLayer = Layer.mergeAll(
   Bus.defaultLayer,
 ).pipe(Layer.provide(Observability.layer))
 
-export const BootstrapRuntime = ManagedRuntime.make(BootstrapLayer, { memoMap })
+export const BootstrapRuntime = ManagedRuntime.make(BootstrapLayer as never, { memoMap })

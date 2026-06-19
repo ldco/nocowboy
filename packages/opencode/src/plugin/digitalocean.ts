@@ -337,7 +337,7 @@ export async function DigitalOceanAuthPlugin(input: PluginInput): Promise<Hooks>
                 path: { id: "digitalocean" },
                 body: { type: "api", key: ctx.auth.key, metadata: updated },
               })
-              .catch((err) => log.warn("failed to persist refreshed routers", { error: err }))
+              .catch((err: unknown) => log.warn("failed to persist refreshed routers", { error: err }))
           } else if (result.status === 401 || result.status === 403) {
             log.warn("digitalocean oauth bearer rejected; using cached routers", { status: result.status })
           } else if (result.status !== 0) {

@@ -245,7 +245,7 @@ export function createRoutes(
     Layer.provide(Layer.succeed(CorsConfig)(corsOptions)),
     Layer.provide(InstanceLayer.layer),
     Layer.provide(Observability.layer),
-  )
+  ) as never
 }
 
 export const routes = createRoutes()

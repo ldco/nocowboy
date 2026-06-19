@@ -30,7 +30,7 @@ export class KiloEmbedder implements IEmbedder {
     }
 
     this.embedder = new OpenAICompatibleEmbedder(
-      resolveKiloGatewayBaseUrl({ baseURL: input.baseUrl, token: input.apiKey }),
+      resolveKiloGatewayBaseUrl() ?? "",
       input.apiKey,
       this.model,
       MAX_ITEM_TOKENS,

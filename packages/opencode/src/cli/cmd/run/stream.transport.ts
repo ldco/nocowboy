@@ -880,7 +880,7 @@ function createLayer(input: StreamInput) {
                         parts: [
                           ...(next.includeFiles ? next.files : []),
                           ...next.prompt.parts.filter(
-                            (item): item is Extract<RunPromptPart, { type: "file" }> => item.type === "file",
+                            (item: RunPromptPart): item is Extract<RunPromptPart, { type: "file" }> => item.type === "file",
                           ),
                         ],
                       },

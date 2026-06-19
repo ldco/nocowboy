@@ -63,7 +63,7 @@ export const layer: Layer.Layer<
     const http = HttpClient.filterStatusOk(withTransientReadRetry(yield* HttpClient.HttpClient))
     const globalFiles = [
       // nocowboy_change start - prefer KILO_CONFIG_DIR profile when set
-      ...(Flag.NOCOWBOY_CONFIG_DIR ? [path.join(Flag.NOCOWBOY_CONFIG_DIR, "AGENTS.md")] : []),
+      ...(Flag.KILO_CONFIG_DIR ? [path.join(Flag.KILO_CONFIG_DIR, "AGENTS.md")] : []),
       // nocowboy_change end
       path.join(global.config, "AGENTS.md"),
       ...(!flags.disableClaudeCodePrompt ? [path.join(global.home, ".claude", "CLAUDE.md")] : []),
@@ -81,13 +81,13 @@ export const layer: Layer.Layer<
 
     const relative = Effect.fnUntraced(function* (instruction: string) {
       const ctx = yield* InstanceState.context
-      if (!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
+      if (!Flag.KILO_DISABLE_PROJECT_CONFIG) {
         return yield* fs
           .globUp(instruction, ctx.directory, ctx.worktree)
           .pipe(Effect.catch(() => Effect.succeed([] as string[])))
       }
       // nocowboy_change - prefer KILO_CONFIG_DIR profile when set, else fall back to global.config
-      const root = Flag.NOCOWBOY_CONFIG_DIR ?? global.config
+      const root = Flag.KILO_CONFIG_DIR ?? global.config
       return yield* fs.globUp(instruction, root, root).pipe(Effect.catch(() => Effect.succeed([] as string[]))) // nocowboy_change
     })
 
@@ -124,7 +124,7 @@ export const layer: Layer.Layer<
       }
 
       // The first project-level match wins so we don't stack AGENTS.md/CLAUDE.md from every ancestor.
-      if (!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
+      if (!Flag.KILO_DISABLE_PROJECT_CONFIG) {
         for (const file of instructionFiles) {
           const matches = yield* fs
             .findUp(file, ctx.directory, ctx.worktree)

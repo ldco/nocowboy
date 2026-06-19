@@ -30,7 +30,7 @@ export const KiloPlugin = PluginV2.define({
       }),
       "aisdk.sdk": Effect.fn(function* (evt) {
         if (evt.model.providerID !== id) return
-        evt.sdk = createKilo(evt.options)
+        evt.sdk = createKilo()
       }),
     }
   }),

@@ -18,7 +18,7 @@ process.chdir(dir)
 
 import { Script } from "@opencode-ai/script"
 import pkg from "../package.json"
-import { LanceDBRuntime } from "../src/kilocode/lancedb" // kilocode_change
+import { LanceDBRuntime } from "../src/nocowboy/lancedb" // kilocode_change
 
 // Load migrations from migration directories
 const migrationDirs = (

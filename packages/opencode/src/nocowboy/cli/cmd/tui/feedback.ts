@@ -37,7 +37,7 @@ export function submitFeedback(rating: "up" | "down", dialog: DialogContext, ctx
     return
   }
   const providerID = lastAssistant.providerID
-  const payload: Telemetry.FeedbackProperties = {
+  const payload: Record<string, unknown> = {
     providerID,
     modelID: lastAssistant.modelID,
     rating,
@@ -49,7 +49,7 @@ export function submitFeedback(rating: "up" | "down", dialog: DialogContext, ctx
     payload.messageID = lastAssistant.id
     payload.parentMessageID = lastAssistant.parentID
   }
-  Telemetry.trackFeedback(payload)
+  Telemetry.trackFeedback()
   ctx.toast.show({
     message: rating === "up" ? "Thanks for the feedback!" : "Thanks — we'll use this to improve.",
     variant: "success",

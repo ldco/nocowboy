@@ -89,9 +89,9 @@ export const layer = Layer.effect(
 
       // nocowboy_change start - Track logout and reset telemetry identity for Kilo
       if (key === "nocowboy") {
-        yield* Effect.promise(() => Telemetry.updateIdentity(null))
+        yield* Effect.promise(() => Telemetry.updateIdentity())
       }
-      Telemetry.trackAuthLogout(key)
+      Telemetry.trackAuthLogout()
       // nocowboy_change end
     })
 

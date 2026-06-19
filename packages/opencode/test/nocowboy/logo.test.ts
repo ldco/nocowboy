@@ -33,7 +33,7 @@ describe("kilocode logo", () => {
   })
 
   test("formats child session exit logo", () => {
-    const out = session("Title", "ses_test", "<dim>", "<reset>", {}, "win32")
+    const out = session("Title", "ses_test", "<dim>", {}, "win32")
     expect(out).toContain("<dim>Title<reset>")
     expect(out).not.toContain("🬺🬏")
   })

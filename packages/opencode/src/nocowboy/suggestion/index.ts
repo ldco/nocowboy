@@ -159,14 +159,7 @@ export namespace Suggestion {
       info.actions.forEach((action, index) => {
         const cmd = parseReviewCommand(action.prompt)
         if (!cmd) return
-        Telemetry.trackSuggestionShown({
-          sessionId: info.sessionID,
-          requestId: info.id,
-          index,
-          tool: "suggest",
-          command: cmd,
-          actionCount: info.actions.length,
-        })
+        Telemetry.trackSuggestionShown()
       })
       Bus.publish(Instance.current, Event.Shown, { ...info, sessionID: SessionID.make(info.sessionID) })
     })
@@ -194,14 +187,7 @@ export namespace Suggestion {
 
     const cmd = parseReviewCommand(action.prompt)
     if (cmd) {
-      Telemetry.trackSuggestionAccepted({
-        sessionId: existing.info.sessionID,
-        requestId: existing.info.id,
-        index: input.index,
-        tool: "suggest",
-        command: cmd,
-        actionCount: existing.info.actions.length,
-      })
+      Telemetry.trackSuggestionAccepted()
     }
 
     Bus.publish(Instance.current, Event.Accepted, {

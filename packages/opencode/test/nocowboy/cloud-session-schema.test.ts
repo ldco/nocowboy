@@ -33,6 +33,6 @@ describe("cloud session HTTP schema", () => {
       ],
     }
 
-    expect(Schema.encodeUnknownSync(CloudSessionData)(input)).toEqual(input)
+    expect(Schema.encodeUnknownSync(CloudSessionData as any)(input)).toEqual(input)
   })
 })

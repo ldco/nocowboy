@@ -628,7 +628,7 @@ export async function XaiAuthPlugin(input: PluginInput, options: XaiAuthPluginOp
                           expires: refreshedExpires,
                         },
                       })
-                      .catch((err) => log.warn("failed to persist refreshed xai tokens", { error: err }))
+                      .catch((err: unknown) => log.warn("failed to persist refreshed xai tokens", { error: err }))
                     return { access: tokens.access_token, refresh: refreshedRefresh, expires: refreshedExpires }
                   })
                   .finally(() => {

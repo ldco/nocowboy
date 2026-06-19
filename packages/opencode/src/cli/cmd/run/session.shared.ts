@@ -63,10 +63,10 @@ function fileSource(
 function prompt(msg: SessionMessages[number]): RunPrompt {
   const parts: RunPrompt["parts"] = []
   let text = msg.parts
-    .filter((part): part is Extract<SessionMessages[number]["parts"][number], { type: "text" }> => {
+    .filter((part: any): part is Extract<SessionMessages[number]["parts"][number], { type: "text" }> => {
       return part.type === "text" && !part.synthetic
     })
-    .map((part) => part.text)
+    .map((part: any) => part.text)
     .join("")
   let cursor = Bun.stringWidth(text)
   const used: Array<{ start: number; end: number }> = []
@@ -145,7 +145,7 @@ function turn(msg: SessionMessages[number]): Turn | undefined {
 export function createSession(messages: SessionMessages): RunSession {
   return {
     first: messages.length === 0,
-    turns: messages.flatMap((msg) => {
+    turns: messages.flatMap((msg: any) => {
       const item = turn(msg)
       return item ? [item] : []
     }),

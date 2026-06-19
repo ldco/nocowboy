@@ -228,13 +228,13 @@ function KiloModelSelect(props: SubDialogProps) {
     log.info("Kilo embedding model resource changed", {
       state: catalog.state,
       models: cfg?.models.length ?? 0,
-      current: currentKiloModel(cfg, indexing.model),
+      current: currentKiloModel(cfg as any, indexing.model),
       defaultModel: cfg?.defaultModel || undefined,
       scope: props.scope,
     })
   })
-  const options = createMemo(() => kiloModelOptions(catalog()))
-  const current = createMemo(() => currentKiloModel(catalog(), indexing.model))
+  const options = createMemo(() => kiloModelOptions(catalog() as any))
+  const current = createMemo(() => currentKiloModel(catalog() as any, indexing.model))
 
   return (
     <DialogSelect

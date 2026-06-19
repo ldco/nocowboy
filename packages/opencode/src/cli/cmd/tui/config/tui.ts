@@ -196,7 +196,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   const directories = yield* ConfigPaths.directories(ctx.directory)
   yield* Effect.promise(() => migrateTuiConfig({ directories, cwd: ctx.directory }))
 
-  const projectFiles = Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG ? [] : yield* ConfigPaths.files("tui", ctx.directory)
+  const projectFiles = Flag.KILO_DISABLE_PROJECT_CONFIG ? [] : yield* ConfigPaths.files("tui", ctx.directory)
 
   const acc: Acc = {
     result: {},
@@ -209,8 +209,8 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   }
 
   // 2. Explicit KILO_TUI_CONFIG override, if set.
-  if (Flag.NOCOWBOY_TUI_CONFIG) {
-    const configFile = Flag.NOCOWBOY_TUI_CONFIG
+  if (Flag.KILO_TUI_CONFIG) {
+    const configFile = Flag.KILO_TUI_CONFIG
     yield* mergeFile(acc, configFile)
     log.debug("loaded custom tui config", { path: configFile })
   }
@@ -226,12 +226,12 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // nocowboy_change start - also load tui.json from .kilo/.kilocode
   const dirs = unique(directories).filter(
     (dir) =>
-      dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
+      dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === Flag.KILO_CONFIG_DIR,
   )
   // nocowboy_change end
 
   for (const dir of dirs) {
-    // if (!dir.endsWith(".opencode") && dir !== Flag.NOCOWBOY_CONFIG_DIR) continue // nocowboy_change
+    // if (!dir.endsWith(".opencode") && dir !== Flag.KILO_CONFIG_DIR) continue // nocowboy_change
     for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
       yield* mergeFile(acc, file)
     }
@@ -265,7 +265,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   }
 
   // nocowboy_change start - inject Kilo default plugins to keep TUI aligned with server config
-  KilocodeDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
+  KilocodeDefaultPlugins.apply(result, { disabled: Flag.KILO_DISABLE_DEFAULT_PLUGINS, log })
   info.plugin = result.plugin
   // nocowboy_change end
 

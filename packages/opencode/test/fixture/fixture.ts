@@ -15,7 +15,7 @@ import { context as instanceContext, type InstanceContext } from "../../src/proj
 import { InstanceRuntime } from "../../src/project/instance-runtime"
 import { InstanceStore } from "../../src/project/instance-store"
 import { TestLLMServer } from "../lib/llm-server"
-import { remove as cleanup } from "../kilocode/cleanup" // kilocode_change
+import { remove as cleanup } from "../nocowboy/cleanup" // kilocode_change
 
 const noopBootstrap = Layer.succeed(InstanceBootstrap.Service, InstanceBootstrap.Service.of({ run: Effect.void }))
 export const testInstanceStoreLayer = InstanceStore.defaultLayer.pipe(Layer.provide(noopBootstrap))

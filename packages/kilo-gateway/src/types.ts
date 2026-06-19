@@ -1,6 +1,6 @@
-export interface Organization { id: string; name: string }
-export interface KilocodeProfile { id: string; email?: string; name?: string }
-export interface KilocodeBalance { credits?: number; usage?: number }
+export interface Organization { id: string; name: string; role?: string }
+export interface KilocodeProfile { id: string; email?: string; name?: string; organizations?: Organization[] }
+export interface KilocodeBalance { credits?: number; usage?: number; balance?: number }
 export interface KiloProviderOptions { apiKey?: string; model?: string; baseUrl?: string }
 export interface KiloMetadata { [key: string]: unknown }
 export type LanguageModelV3 = { id: string; name: string; provider: string; capabilities?: string[] }

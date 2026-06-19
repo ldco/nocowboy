@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { MessageV2 } from "../../src/session/message-v2"
-import { KILO_ERROR_CODES, isKiloError, parseKiloErrorCode } from "../../src/nocowboy/kilo-errors"
+import { KILO_ERROR_CODES, isNocowboyError as isKiloError, parseKiloErrorCode } from "../../src/nocowboy/errors"
 import { SessionRetry } from "../../src/session/retry"
 import { NamedError } from "@opencode-ai/core/util/error"
 

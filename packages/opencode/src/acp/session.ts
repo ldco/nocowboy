@@ -1,15 +1,15 @@
 import { RequestError, type McpServer } from "@agentclientprotocol/sdk"
 import type { ACPSessionState } from "./types"
 import * as Log from "@opencode-ai/core/util/log"
-import type { NocowboyClient } from "@nocowboy/sdk/v2"
+import type { KiloClient } from "@nocowboy/sdk/v2"
 
 const log = Log.create({ service: "acp-session-manager" })
 
 export class ACPSessionManager {
   private sessions = new Map<string, ACPSessionState>()
-  private sdk: NocowboyClient
+  private sdk: KiloClient
 
-  constructor(sdk: NocowboyClient) {
+  constructor(sdk: KiloClient) {
     this.sdk = sdk
   }
 
@@ -25,7 +25,7 @@ export class ACPSessionManager {
         },
         { throwOnError: true },
       )
-      .then((x) => x.data!)
+      .then((x: any) => x.data!)
 
     const sessionId = session.id
     const resolvedModel = model
@@ -57,7 +57,7 @@ export class ACPSessionManager {
         },
         { throwOnError: true },
       )
-      .then((x) => x.data!)
+      .then((x: any) => x.data!)
 
     const resolvedModel = model
 

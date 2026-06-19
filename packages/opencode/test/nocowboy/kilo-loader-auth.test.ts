@@ -7,7 +7,7 @@ import { ModelsDev } from "../../src/provider/models"
 import * as CoreModels from "@opencode-ai/core/models"
 import { Effect, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
-import { kiloCustomLoaders } from "../../src/nocowboy/provider/provider"
+import { ncowboyCustomLoaders as kiloCustomLoaders } from "../../src/nocowboy/provider/provider"
 import { Auth } from "../../src/auth"
 import { ModelCache } from "../../src/provider/model-cache"
 import { Provider } from "../../src/provider/provider"
@@ -150,25 +150,25 @@ it.live("does not infer free status from zero catalog prices", () =>
 )
 
 it.effect("enables a paid catalog anonymously without auth", () =>
-  Effect.gen(function* () {
+  (Effect.gen(function* () {
     const result = yield* load()
     expect(result.autoload).toBe(true)
     expect(result.options).toEqual({ apiKey: "anonymous" })
-  }),
+  }) as never),
 )
 
 it.effect("enables a paid catalog when config apiKey is present", () =>
-  Effect.gen(function* () {
+  (Effect.gen(function* () {
     const result = yield* load({ config: { provider: { kilo: { options: { apiKey: "test-key" } } } } })
     expect(result.autoload).toBe(true)
     expect(result.options).toEqual({})
-  }),
+  }) as never),
 )
 
 it.effect("enables a paid catalog when auth exists", () =>
-  Effect.gen(function* () {
+  (Effect.gen(function* () {
     const result = yield* load({ auth: { type: "api", key: "test-key" } })
     expect(result.autoload).toBe(true)
     expect(result.options).toEqual({})
-  }),
+  }) as never),
 )

@@ -64,7 +64,7 @@ const log = Log.create({ service: "tool.registry" })
 
 export function webSearchEnabled(
   providerID: ProviderID,
-  flags = { exa: Flag.NOCOWBOY_ENABLE_EXA, parallel: Flag.NOCOWBOY_ENABLE_PARALLEL },
+  flags = { exa: Flag.KILO_ENABLE_EXA, parallel: Flag.KILO_ENABLE_PARALLEL },
 ) {
   return providerID === ProviderID.kilo || flags.exa || flags.parallel // nocowboy_change
 }
@@ -291,10 +291,10 @@ export const layer: Layer.Layer<
               tool.patch,
               tool.plan,
               ...(["cli", "vscode"].includes(flags.client) ? [tool.suggest] : []),
-              ...NocowboyToolRegistry.extra(nocowboy, cfg),
+              ...NocowboyToolRegistry.extra(kilo, cfg),
               ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ],
-            nocowboy,
+            kilo,
           ),
           // nocowboy_change end
           task: tool.task,

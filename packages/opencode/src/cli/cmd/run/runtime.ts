@@ -403,9 +403,9 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
 
         footer.event({
           type: "catalog",
-          agents,
-          resources,
-          commands,
+          agents: agents as never,
+          resources: resources as never,
+          commands: commands as never,
         })
       }
 

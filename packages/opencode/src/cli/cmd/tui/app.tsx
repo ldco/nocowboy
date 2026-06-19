@@ -956,7 +956,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
               </Show>
               <Show when={useScreen().screen() !== "chat"}>
               <box flexGrow={1} alignItems="center" justifyContent="center">
-                <text fg={useTheme().theme.textDim}>
+                <text fg={useTheme().theme.textMuted}>
                   {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
                 </text>
               </box>

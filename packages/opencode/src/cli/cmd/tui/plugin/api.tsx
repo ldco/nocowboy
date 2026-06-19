@@ -96,9 +96,16 @@ function routeCurrent(route: ReturnType<typeof useRoute>): TuiPluginApi["route"]
   }
 
 
+  return { name: "home" }
 }
 function mapOption<Value>(item: TuiDialogSelectOption<Value>): SelectOption<Value> {
   return {
+    title: item.title,
+    value: item.value,
+    description: item.description,
+    footer: item.footer,
+    category: item.category,
+    disabled: item.disabled,
     onSelect: () => item.onSelect?.(),
   }
 }
@@ -209,16 +216,16 @@ export function createTuiApi(input: Input): TuiPluginApi {
     app: appApi(),
     attention: input.attention,
     // Keep deprecated `api.command` working for v1 plugins; remove in v2.
-    command: createCommandShim(input.keymap, input.dialog, input.tuiConfig.keybinds),
+    command: createCommandShim(input.keymap as never, input.dialog, input.tuiConfig.keybinds as never),
     keys: {
       formatSequence(parts) {
         return Keymap.formatKeySequence(parts, input.tuiConfig)
       },
-      formatBindings(bindings) {
+      formatBindings(bindings: any) {
         return Keymap.formatKeyBindings(bindings, input.tuiConfig)
       },
     },
-    keymap: input.keymap,
+    keymap: input.keymap as never,
     route: {
       register(list) {
         return routeRegister(input.routes, list, input.bump)
@@ -311,7 +318,7 @@ export function createTuiApi(input: Input): TuiPluginApi {
       },
     },
     get tuiConfig() {
-      return input.tuiConfig
+      return input.tuiConfig as never
     },
     kv: {
       get(key, fallback) {

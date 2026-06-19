@@ -38,7 +38,7 @@ export const WebCommand = effectCmd({
   // ambient project InstanceContext needed at startup.
   instance: false, // nocowboy_change
   handler: Effect.fn("Cli.web")(function* (args) {
-    if (!Flag.NOCOWBOY_SERVER_PASSWORD) {
+    if (!Flag.KILO_SERVER_PASSWORD) {
       UI.println(UI.Style.TEXT_WARNING_BOLD + "!  NOCOWBOY_SERVER_PASSWORD is not set; server is unsecured.")
     }
     const opts = yield* resolveNetworkOptions(args)

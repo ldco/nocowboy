@@ -54,14 +54,14 @@ const layer = HttpRouter.serve(
     ]),
   ),
   { disableListenLog: true, disableLogger: true },
-).pipe(Layer.provideMerge(NodeHttpServer.layerTest))
+).pipe(Layer.provideMerge(NodeHttpServer.layerTest)) as any
 const it = testEffect(layer)
 
 function stub(run: () => Response | Promise<Response>) {
   // These tests run sequentially; scope the process-global override and delegate in-process server traffic.
   const original = globalThis.fetch
   const fetch: typeof globalThis.fetch = Object.assign(
-    async (input: RequestInfo | URL, init?: RequestInit) => {
+    async (input: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
       if (url.startsWith("http://127.0.0.1:")) return original(input, init)
       return run()

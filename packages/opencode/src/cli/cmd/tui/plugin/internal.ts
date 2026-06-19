@@ -31,7 +31,6 @@ export type InternalTuiPlugin = Omit<TuiPluginModule, "id"> & {
 
 export function internalTuiPlugins(flags: Pick<RuntimeFlags.Info, "experimentalEventSystem">): InternalTuiPlugin[] {
   return [
-    HomeNews, // nocowboy_change
     HomeOnboarding, // nocowboy_change
     KiloAttention, // nocowboy_change
     KiloHomeFooter, // nocowboy_change

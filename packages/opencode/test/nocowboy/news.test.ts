@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { KilocodeNotification } from "@nocowboy/gateway"
+import type { KilocodeNotification } from "../../src/nocowboy/components/news"
 import { News } from "../../src/nocowboy/components/news"
 
 const item = (id: string): KilocodeNotification => ({

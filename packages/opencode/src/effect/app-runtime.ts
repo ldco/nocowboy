@@ -129,7 +129,7 @@ export const AppLayer = Layer.mergeAll(CoreLayer, SessionLayer, FeatureLayer).pi
   Layer.provideMerge(Observability.layer),
 )
 
-const rt = ManagedRuntime.make(AppLayer, { memoMap })
+const rt = ManagedRuntime.make(AppLayer as never, { memoMap })
 type Runtime = Pick<typeof rt, "runSync" | "runPromise" | "runPromiseExit" | "runFork" | "runCallback" | "dispose">
 
 /** Services provided by AppRuntime — i.e. what an Effect run via AppRuntime.runPromise can yield. */

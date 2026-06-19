@@ -32,7 +32,7 @@ export const CodebaseSearchTool = Tool.define(
             always: ["*"],
             metadata: { query: params.query },
           })
-          Telemetry.trackToolUsed("codebase_search", ctx.sessionID) // nocowboy_change
+          Telemetry.trackToolUsed() // nocowboy_change
 
           const apiKey = process.env["MORPH_API_KEY"]
 

@@ -80,6 +80,6 @@ export const defaultLayer: Layer.Layer<Service> = layer.pipe(
     Snapshot.defaultLayer,
     Vcs.defaultLayer,
   ]),
-)
+) as never
 
 export * as InstanceBootstrap from "./bootstrap"

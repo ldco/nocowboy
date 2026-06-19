@@ -31,6 +31,7 @@ describe("profile CLI formatting", () => {
     expect(
       payload({
         profile: {
+          id: "profile-1",
           name: "User One",
           email: "one@example.com",
           organizations: [{ id: "org-1", name: "Team One", role: "admin" }],
@@ -60,7 +61,7 @@ describe("profile CLI formatting", () => {
       await handle({
         json: false,
         getAuth: async () => ({ type: "oauth", refresh: "refresh", access: "token", expires: 1 }),
-        getProfile: async () => ({ email: "one@example.com", name: "User One" }),
+        getProfile: async () => ({ id: "profile-1", email: "one@example.com", name: "User One" }),
         getBalance: async () => ({ balance: 4 }),
       })
     } finally {
