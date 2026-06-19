@@ -91,10 +91,10 @@ export function TopBar() {
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
       <text fg={theme.highlight} bold> noCowboy</text>
-      <text fg={theme.text} flexGrow={1}>
+      <text fg={theme.text}>
         {` \uf116${pathDisplay} \uf1d2`}
       </text>
-      <text fg={theme.success}>
+      <text fg={theme.success} flexGrow={1}>
         {` \uf126${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}`}
       </text>
       <text fg={theme.textDim}>
