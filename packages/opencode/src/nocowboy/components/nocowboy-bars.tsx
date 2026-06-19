@@ -5,8 +5,7 @@ import { fileURLToPath } from "node:url"
 import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
 import { Clipboard } from "@tui/util/clipboard"
-import { useSync } from "@tui/context/sync"
-import { useRoute } from "@tui/context/route"
+// useRoute removed
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(__dirname, "../../../../..")
@@ -73,25 +72,9 @@ export function setScreenFromModule(s: Screen): void { globalSetScreen?.(s) }
 
 export function TopBar() {
   const { theme } = useTheme()
-  const sync = useSync()
-  const route = useRoute()
   const fullPath = projectRoot
   const pathDisplay = shortPath(fullPath)
   const branch = findGitHead()
-
-  // Read usage from current session
-  const usage = createMemo(() => {
-    const sid = route.data.type === "session" ? (route.data as any).sessionID : undefined
-    const status: any = sid ? (sync as any).data.session_status?.[sid] : undefined
-    if (!status) return ""
-    const tokens = status.tokens?.input ?? 0
-    const limit = status.model?.limit?.context ?? 128000
-    const pct = limit ? `${Math.round((tokens / limit) * 100)}%` : undefined
-    const cost = status.cost ?? 0
-    const tokenStr = tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}K` : `${tokens}`
-    const parts = [`${tokenStr} (${pct ?? "0%"})`, cost > 0 ? `$${cost.toFixed(2)}` : undefined].filter(Boolean)
-    return parts.join(" · ")
-  })
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
@@ -107,7 +90,7 @@ export function TopBar() {
         {branch ? ` ${icons.branch}${branch}` : ""}
       </text>
       <text fg={theme.textDim}>
-        {usage() ? `  ${usage()}  ` : ""}
+        {"  Score: --  Tokens: 0  Cost: $0.00  "}
       </text>
       <text fg="#ff0000" paddingRight={1}>
         ●
