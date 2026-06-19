@@ -27609,13 +27609,13 @@ export const snapshot = {
       },
     },
   },
-  kilo: {
-    id: "kilo",
+  nocowboy: {
+    id: "nocowboy",
     env: ["KILO_API_KEY"],
     npm: "@ai-sdk/openai-compatible",
-    api: "https://api.kilo.ai/api/gateway",
-    name: "Kilo Gateway",
-    doc: "https://kilo.ai",
+    api: "",
+    name: "NoCowboy",
+    doc: "",
     models: {
       "rekaai/reka-edge": {
         id: "rekaai/reka-edge",
@@ -28375,9 +28375,9 @@ export const snapshot = {
         cost: { input: 0.5, output: 3, cache_read: 0.05, cache_write: 0.08333333333333334 },
         limit: { context: 1048576, output: 65536 },
       },
-      "kilo-auto/balanced": {
-        id: "kilo-auto/balanced",
-        name: "Kilo Auto Balanced",
+      "nocowboy-auto/balanced": {
+        id: "nocowboy-auto/balanced",
+        name: "NoCowboy Auto Balanced",
         attachment: false,
         reasoning: true,
         tool_call: true,
@@ -28389,9 +28389,9 @@ export const snapshot = {
         cost: { input: 0.6, output: 3 },
         limit: { context: 204800, output: 131072 },
       },
-      "kilo-auto/frontier": {
-        id: "kilo-auto/frontier",
-        name: "Kilo Auto Frontier",
+      "nocowboy-auto/frontier": {
+        id: "nocowboy-auto/frontier",
+        name: "NoCowboy Auto Frontier",
         attachment: true,
         reasoning: true,
         tool_call: true,
@@ -28403,9 +28403,9 @@ export const snapshot = {
         cost: { input: 5, output: 25 },
         limit: { context: 1000000, output: 128000 },
       },
-      "kilo-auto/small": {
-        id: "kilo-auto/small",
-        name: "Kilo Auto Small",
+      "nocowboy-auto/small": {
+        id: "nocowboy-auto/small",
+        name: "NoCowboy Auto Small",
         attachment: true,
         reasoning: true,
         tool_call: true,
@@ -28417,9 +28417,9 @@ export const snapshot = {
         cost: { input: 0.05, output: 0.4 },
         limit: { context: 400000, output: 128000 },
       },
-      "kilo-auto/free": {
-        id: "kilo-auto/free",
-        name: "Kilo Auto Free",
+      "nocowboy-auto/free": {
+        id: "nocowboy-auto/free",
+        name: "NoCowboy Auto Free",
         attachment: false,
         reasoning: true,
         tool_call: true,
