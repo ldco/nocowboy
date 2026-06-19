@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { createKiloClient } from "@nocowboy/sdk/v2/client"
+import { createNocowboyClient } from "@nocowboy/sdk/v2/client"
 import { provideTestInstance } from "../fixture/fixture"
 import { Server } from "../../src/server/server"
 import { Session } from "../../src/session/session"
@@ -159,7 +159,7 @@ describe("Session.fork task detachment", () => {
           await sessions.updatePart(taskPart({ messageID: assistant, sessionID: parent.id, childSessionID: child.id }))
           const before = await sessions.list()
 
-          const client = createKiloClient({
+          const client = createNocowboyClient({
             baseUrl: "http://localhost",
             directory: tmp.path,
             fetch: ((request: Request) => Server.Default().app.fetch(request)) as unknown as typeof fetch,

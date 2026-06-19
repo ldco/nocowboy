@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
-import { SessionExport } from "@/kilocode/session-export"
-import { getKillSwitchReason, resetEligibility } from "@/kilocode/session-export/eligibility"
+import { SessionExport } from "@/nocowboy/session-export"
+import { getKillSwitchReason, resetEligibility } from "@/nocowboy/session-export/eligibility"
 
 describe("SessionExport worker respawn", () => {
   let feature: string | undefined

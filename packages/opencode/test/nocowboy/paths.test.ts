@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test"
-import { KilocodePaths } from "../../src/nocowboy/paths"
+import { NocowboyPaths } from "../../src/nocowboy/paths"
 import { tmpdir } from "../fixture/fixture"
 import path from "path"
 import fs from "fs/promises"
@@ -15,7 +15,7 @@ async function withHome<T>(home: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
-describe("KilocodePaths", () => {
+describe("NocowboyPaths", () => {
   describe("skillDirectories", () => {
     test("discovers skills from .kilo/skills/", async () => {
       await using tmp = await tmpdir({
@@ -33,7 +33,7 @@ description: A test skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -46,7 +46,7 @@ description: A test skill
     test("returns empty array when no .kilo/skills/ exists", async () => {
       await using tmp = await tmpdir()
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -87,7 +87,7 @@ description: Nested skill
 
       // Run from nested directory, should find both
       const nestedPath = path.join(tmp.path, "packages", "nested")
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: nestedPath,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -108,7 +108,7 @@ description: Nested skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -139,7 +139,7 @@ description: Symlinked skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -165,7 +165,7 @@ description: A legacy skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -190,7 +190,7 @@ description: A legacy skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,
@@ -212,7 +212,7 @@ description: A legacy skill
       })
 
       const result = await withHome(tmp.path, () =>
-        KilocodePaths.skillDirectories({
+        NocowboyPaths.skillDirectories({
           projectDir: path.join(tmp.path, "repo"),
           worktreeRoot: path.join(tmp.path, "repo"),
         }),
@@ -252,7 +252,7 @@ description: Second skill
         },
       })
 
-      const result = await KilocodePaths.skillDirectories({
+      const result = await NocowboyPaths.skillDirectories({
         projectDir: tmp.path,
         worktreeRoot: tmp.path,
         skipGlobalPaths: true,

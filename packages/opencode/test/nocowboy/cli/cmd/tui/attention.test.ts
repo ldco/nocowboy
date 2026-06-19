@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import Attention from "@/kilocode/plugins/attention"
+import Attention from "@/nocowboy/plugins/attention"
 import type { Event, Session, SessionNetworkWait, SuggestionRequest } from "@nocowboy/sdk/v2"
 import type { TuiAttentionNotifyInput } from "@nocowboy/plugin/tui"
 import { createTuiPluginApi } from "../../../../fixture/tui-plugin"

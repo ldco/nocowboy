@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { compressZstd, decompressZstd } from "@/kilocode/session-export/worker/zstd"
+import { compressZstd, decompressZstd } from "@/nocowboy/session-export/worker/zstd"
 
 describe("zstd", () => {
   test("roundtrips bytes", async () => {

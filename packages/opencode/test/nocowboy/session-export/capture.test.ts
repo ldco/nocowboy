@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { Capture } from "@/kilocode/session-export/capture"
-import { resetEligibility } from "@/kilocode/session-export/eligibility"
+import { Capture } from "@/nocowboy/session-export/capture"
+import { resetEligibility } from "@/nocowboy/session-export/eligibility"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { MessageID, SessionID } from "@/session/schema"
 import type { MessageV2 } from "@/session/message-v2"

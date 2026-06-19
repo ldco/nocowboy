@@ -1,8 +1,8 @@
 import { describe, expect, spyOn, test } from "bun:test"
 import { Npm } from "@opencode-ai/core/npm"
 import type { ConfigPlugin } from "@/config/plugin"
-import { hasAtomicChatPlugin } from "@/kilocode/atomic-chat-feature"
-import { KilocodeDefaultPlugins } from "@/kilocode/config/default-plugins"
+import { hasAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature"
+import { KilocodeDefaultPlugins } from "@/nocowboy/config/default-plugins"
 import { PluginLoader } from "@/plugin/loader"
 
 const atomic = "@nocowboy/plugin-atomic-chat"

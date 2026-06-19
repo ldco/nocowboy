@@ -3,11 +3,11 @@ import path from "path"
 import { describe, expect, test } from "bun:test"
 import { ConfigProtection } from "../../../src/nocowboy/permission/config-paths"
 import { Global } from "@opencode-ai/core/global"
-import { KilocodePaths } from "../../../src/nocowboy/paths"
+import { NocowboyPaths } from "../../../src/nocowboy/paths"
 
 describe("ConfigProtection.isRequest", () => {
   const config = path.resolve(Global.Path.config)
-  const legacy = KilocodePaths.globalDirs().map((d) => path.resolve(d))
+  const legacy = NocowboyPaths.globalDirs().map((d) => path.resolve(d))
 
   // --- external_directory: bash-originated (empty metadata) ---
 

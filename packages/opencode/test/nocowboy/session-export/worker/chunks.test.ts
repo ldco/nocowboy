@@ -2,8 +2,8 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Storage } from "@/kilocode/session-export/worker/storage"
-import { Chunker } from "@/kilocode/session-export/worker/chunks"
+import { Storage } from "@/nocowboy/session-export/worker/storage"
+import { Chunker } from "@/nocowboy/session-export/worker/chunks"
 
 describe("Chunker", () => {
   let dir: string

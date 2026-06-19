@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { SessionExport } from "@/kilocode/session-export"
+import { SessionExport } from "@/nocowboy/session-export"
 
 test("agent info export omits prompt options and permissions", () => {
   const info = SessionExport.agentInfo({

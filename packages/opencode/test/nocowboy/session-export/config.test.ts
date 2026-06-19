@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { Config } from "@/kilocode/session-export/config"
+import { Config } from "@/nocowboy/session-export/config"
 
 describe("session-export Config", () => {
   test("exposes hardcoded limits matching the spec", () => {

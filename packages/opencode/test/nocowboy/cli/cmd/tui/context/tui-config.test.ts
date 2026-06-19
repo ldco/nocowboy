@@ -8,8 +8,8 @@ import { createEffect, createRoot } from "solid-js"
 import { createBindingLookup } from "@opentui/keymap/extras"
 import { TuiKeybind } from "@/cli/cmd/tui/config/keybind"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
-import { KiloTuiConfig } from "@/kilocode/cli/cmd/tui/context/tui-config"
-import { KiloTerminalTitle } from "@/kilocode/cli/cmd/tui/terminal-title"
+import { KiloTuiConfig } from "@/nocowboy/cli/cmd/tui/context/tui-config"
+import { KiloTerminalTitle } from "@/nocowboy/cli/cmd/tui/terminal-title"
 
 function cfg(input: Partial<TuiConfig.Info>): TuiConfig.Info {
   return input as TuiConfig.Info

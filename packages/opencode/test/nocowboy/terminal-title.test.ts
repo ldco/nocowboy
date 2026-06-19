@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test"
-import { KiloTerminalTitle } from "../../src/nocowboy/cli/cmd/tui/terminal-title"
+import { TerminalTitle } from "../../src/nocowboy/cli/cmd/tui/terminal-title"
 
 const base = "Kilo CLI"
 
-function data(input: Partial<KiloTerminalTitle.Data> = {}): KiloTerminalTitle.Data {
+function data(input: Partial<TerminalTitle.Data> = {}): TerminalTitle.Data {
   return {
     session: [{ id: "parent", title: "Build status" }],
     session_status: {},
@@ -17,32 +17,32 @@ function data(input: Partial<KiloTerminalTitle.Data> = {}): KiloTerminalTitle.Da
   }
 }
 
-describe("KiloTerminalTitle", () => {
+describe("TerminalTitle", () => {
   test("format_noneStyle_hidesStatusIcon", () => {
-    expect(KiloTerminalTitle.format({ base, title: "Build status", indicator: "working" })).toBe(
+    expect(TerminalTitle.format({ base, title: "Build status", indicator: "working" })).toBe(
       "Kilo CLI | Build status",
     )
   })
 
   test("format_noIndicator_returnsBaseTitle", () => {
-    expect(KiloTerminalTitle.format({ base, indicator: "none", icon: "unicode" })).toBe("Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "none", icon: "unicode" })).toBe("Kilo CLI")
   })
 
   test("format_unicodeStyle_usesUnicodeIcons", () => {
-    expect(KiloTerminalTitle.format({ base, indicator: "working", icon: "unicode" })).toBe("◔ Kilo CLI")
-    expect(KiloTerminalTitle.format({ base, indicator: "attention", icon: "unicode" })).toBe("⚠ Kilo CLI")
-    expect(KiloTerminalTitle.format({ base, indicator: "finished", icon: "unicode" })).toBe("✓ Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "working", icon: "unicode" })).toBe("◔ Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "attention", icon: "unicode" })).toBe("⚠ Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "finished", icon: "unicode" })).toBe("✓ Kilo CLI")
   })
 
   test("format_emojiStyle_usesEmojiIcons", () => {
-    expect(KiloTerminalTitle.format({ base, indicator: "working", icon: "emojis" })).toBe("💭 Kilo CLI")
-    expect(KiloTerminalTitle.format({ base, indicator: "attention", icon: "emojis" })).toBe("🔶 Kilo CLI")
-    expect(KiloTerminalTitle.format({ base, indicator: "finished", icon: "emojis" })).toBe("✅ Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "working", icon: "emojis" })).toBe("💭 Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "attention", icon: "emojis" })).toBe("🔶 Kilo CLI")
+    expect(TerminalTitle.format({ base, indicator: "finished", icon: "emojis" })).toBe("✅ Kilo CLI")
   })
 
   test("format_longSessionTitle_truncatesToExistingLimit", () => {
     expect(
-      KiloTerminalTitle.format({
+      TerminalTitle.format({
         base,
         title: "12345678901234567890123456789012345678901234567890",
         indicator: "working",
@@ -53,7 +53,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_newIdleSession_hasNoIndicator", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data(),
@@ -64,7 +64,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_busySession_isWorking", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data({ session_status: { parent: { type: "busy" } } }),
@@ -76,7 +76,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_pendingPermission_overridesBusy", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data({
@@ -90,7 +90,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_childQuestion_marksParentAttention", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data({
@@ -107,7 +107,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_latestAssistantPlanExit_marksAttention", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data({
@@ -123,7 +123,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_latestUserAfterPlanExit_clearsPlanExitAttention", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data({
@@ -144,7 +144,7 @@ describe("KiloTerminalTitle", () => {
 
   test("session_doneIdleSession_isFinished", () => {
     expect(
-      KiloTerminalTitle.session({
+      TerminalTitle.session({
         base,
         id: "parent",
         data: data(),

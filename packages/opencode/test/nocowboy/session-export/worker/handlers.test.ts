@@ -2,17 +2,17 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Storage } from "@/kilocode/session-export/worker/storage"
-import { Chunker } from "@/kilocode/session-export/worker/chunks"
-import { Scrubber } from "@/kilocode/session-export/worker/scrub"
-import { handleEvent } from "@/kilocode/session-export/worker/handlers"
+import { Storage } from "@/nocowboy/session-export/worker/storage"
+import { Chunker } from "@/nocowboy/session-export/worker/chunks"
+import { Scrubber } from "@/nocowboy/session-export/worker/scrub"
+import { handleEvent } from "@/nocowboy/session-export/worker/handlers"
 import type {
   CompactionCaptured,
   LlmRequestCompleted,
   LlmRequestStarted,
   WorkspaceBaselineCompleted,
   WorkspaceDeltaCaptured,
-} from "@/kilocode/session-export/events"
+} from "@/nocowboy/session-export/events"
 
 describe("handlers", () => {
   let dir: string

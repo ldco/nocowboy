@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { createSequencer } from "@/kilocode/session-export/sequence"
+import { createSequencer } from "@/nocowboy/session-export/sequence"
 
 describe("session export sequencer", () => {
   test("persists the next event sequence by session", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { KilocodeMcpConfig } from "@/kilocode/cli/cmd/mcp"
+import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp"
 
 const added = `{
   "permission": {

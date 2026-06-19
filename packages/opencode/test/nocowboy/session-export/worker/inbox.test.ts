@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { Inbox } from "@/kilocode/session-export/worker/inbox"
+import { Inbox } from "@/nocowboy/session-export/worker/inbox"
 
 describe("Inbox", () => {
   test("tracks byte size and reports overflow once per session", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { Buffer } from "node:buffer"
-import * as PowerShell from "@/kilocode/shell/shell"
+import * as PowerShell from "@/nocowboy/shell/shell"
 import { Shell } from "@/shell/shell"
 
 const command = `Write-Output "こんにちは 😀"; Write-Output '$value'; Write-Output \`tick\`

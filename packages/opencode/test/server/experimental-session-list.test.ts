@@ -7,7 +7,7 @@ import { InstanceRef } from "../../src/effect/instance-ref"
 import * as Log from "@opencode-ai/core/util/log"
 import { resetDatabase } from "../fixture/db"
 import { tmpdir, withTestInstance } from "../fixture/fixture"
-import { RemoteSender } from "../../src/kilo-sessions/remote-sender"
+import { RemoteSender } from "../../src/nocowboy-sessions/remote-sender"
 import { Effect } from "effect"
 
 beforeEach(() => {

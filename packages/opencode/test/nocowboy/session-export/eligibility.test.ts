@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { isEligible, setKillSwitch, resetEligibility, type OrgState } from "@/kilocode/session-export/eligibility"
+import { isEligible, setKillSwitch, resetEligibility, type OrgState } from "@/nocowboy/session-export/eligibility"
 
 const base = {
   model: {

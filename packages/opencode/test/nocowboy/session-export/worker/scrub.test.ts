@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { scrubString, isHighRiskPath, Scrubber, secretlintSecrets } from "@/kilocode/session-export/worker/scrub"
+import { scrubString, isHighRiskPath, Scrubber, secretlintSecrets } from "@/nocowboy/session-export/worker/scrub"
 
 describe("scrubber", () => {
   test("redacts AWS access key id", () => {

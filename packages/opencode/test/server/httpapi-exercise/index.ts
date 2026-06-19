@@ -35,7 +35,7 @@ import { coverageResult, parseOptions, routeKey, routeKeys, selectedScenarios } 
 import { runScenario } from "./runner"
 import { runtime } from "./runtime"
 import { type Scenario } from "./types"
-import { kiloScenarios } from "../../kilocode/server/httpapi-exercise-scenarios" // kilocode_change
+import { kiloScenarios } from "../../nocowboy/server/httpapi-exercise-scenarios" // kilocode_change
 
 void (await import("@opencode-ai/core/util/log")).init({ print: false })
 

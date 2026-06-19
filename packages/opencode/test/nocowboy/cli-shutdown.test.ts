@@ -52,7 +52,7 @@ mock.module("@/project/instance-runtime", () => ({
   },
 }))
 
-mock.module("@/kilocode/session-export", () => ({
+mock.module("@/nocowboy/session-export", () => ({
   SessionExport: {
     async shutdown() {
       calls.push("session")
@@ -60,16 +60,16 @@ mock.module("@/kilocode/session-export", () => ({
   },
 }))
 
-mock.module("@/kilocode/help-command", () => ({
+mock.module("@/nocowboy/help-command", () => ({
   createHelpCommand: () => ({ command: "help", handler() {} }),
 }))
 
 for (const path of [
-  "@/kilocode/cli/cmd/console",
-  "@/kilocode/cli/cmd/roll-call",
-  "@/kilocode/cli/cmd/profile",
-  "@/kilocode/cli/cmd/daemon",
-  "@/kilocode/cli/dev-setup",
+  "@/nocowboy/cli/cmd/console",
+  "@/nocowboy/cli/cmd/roll-call",
+  "@/nocowboy/cli/cmd/profile",
+  "@/nocowboy/cli/cmd/daemon",
+  "@/nocowboy/cli/dev-setup",
   "@/cli/cmd/remote",
   "@/cli/cmd/config",
 ]) {

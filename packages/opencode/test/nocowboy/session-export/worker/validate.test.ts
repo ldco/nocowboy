@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { parseMessage } from "@/kilocode/session-export/worker/validate"
+import { parseMessage } from "@/nocowboy/session-export/worker/validate"
 
 describe("session export worker validation", () => {
   test("rejects init messages without a database path", () => {

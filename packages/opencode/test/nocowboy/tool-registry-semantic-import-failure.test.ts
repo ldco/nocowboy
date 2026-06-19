@@ -1,7 +1,7 @@
 import { describe, expect, spyOn, test } from "bun:test"
 import { Effect, Schema } from "effect"
 import * as Log from "@opencode-ai/core/util/log"
-import { KiloToolRegistry } from "../../src/nocowboy/tool/registry"
+import { NocowboyToolRegistry } from "../../src/nocowboy/tool/registry"
 import { Agent } from "../../src/agent/agent"
 import * as Truncate from "../../src/tool/truncate"
 import type * as Tool from "../../src/tool/tool"
@@ -22,7 +22,7 @@ describe("kilocode tool registry semantic tool import failure", () => {
         directory: tmp.path,
         fn: () =>
           Effect.runPromise(
-            KiloToolRegistry.build(infos(), deps, {
+            NocowboyToolRegistry.build(infos(), deps, {
               indexing: async () => ({
                 KiloIndexing: {
                   ready: () => true,

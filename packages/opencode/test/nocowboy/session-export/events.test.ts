@@ -6,8 +6,8 @@ import type {
   LlmRequestCompleted,
   LlmRequestStarted,
   SessionDegraded,
-} from "@/kilocode/session-export/events"
-import type { BatchEnvelope } from "@/kilocode/session-export/envelope"
+} from "@/nocowboy/session-export/events"
+import type { BatchEnvelope } from "@/nocowboy/session-export/envelope"
 
 describe("event types", () => {
   test("envelope shape is well-formed", () => {

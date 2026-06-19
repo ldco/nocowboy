@@ -7,7 +7,7 @@ import * as Log from "@opencode-ai/core/util/log"
 import { resetDatabase } from "../fixture/db"
 import { TestInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
-import { preparePluginDependencies } from "../kilocode/plugin-dependencies" // kilocode_change
+import { preparePluginDependencies } from "../nocowboy/plugin-dependencies" // kilocode_change
 
 void Log.init({ print: false })
 

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
-import { getActiveOrg, resetOrgSource, setOrgSource } from "@/kilocode/session-export/eligibility"
+import { getActiveOrg, resetOrgSource, setOrgSource } from "@/nocowboy/session-export/eligibility"
 
 const env = process.env.KILO_ORG_ID
 

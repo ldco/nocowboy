@@ -3,7 +3,7 @@ import type { Model } from "@/provider/provider"
 import { ProviderTransform } from "@/provider/transform"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { SessionID } from "@/session/schema"
-import { KiloSessionPrompt } from "@/kilocode/session/prompt"
+import { KiloSessionPrompt } from "@/nocowboy/session/prompt"
 
 function model(id: string, reasoning = true): Model {
   return {

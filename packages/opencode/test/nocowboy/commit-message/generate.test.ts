@@ -1,5 +1,5 @@
 import { describe, expect, test, mock, beforeEach, spyOn } from "bun:test"
-import type { GitContext } from "@/kilocode/commit-message/types"
+import type { GitContext } from "@/nocowboy/commit-message/types"
 import type { Provider } from "@/provider/provider"
 
 // Mock dependencies before importing the module under test.

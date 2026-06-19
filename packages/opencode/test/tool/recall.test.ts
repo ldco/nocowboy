@@ -10,7 +10,7 @@ import { resetDatabase } from "../fixture/db"
 import { provideTestInstance, tmpdir } from "../fixture/fixture"
 import type { Tool } from "../../src/tool/tool"
 import { SessionID, MessageID } from "../../src/session/schema"
-import { RemoteSender } from "../../src/kilo-sessions/remote-sender"
+import { RemoteSender } from "../../src/nocowboy-sessions/remote-sender"
 
 beforeEach(() => {
   spyOn(RemoteSender, "create").mockReturnValue({ handle() {}, dispose() {} })

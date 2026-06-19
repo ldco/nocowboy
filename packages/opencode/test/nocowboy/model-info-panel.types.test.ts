@@ -1,5 +1,5 @@
 import type { Model as SDKModel } from "@nocowboy/sdk/v2"
-import { ModelInfoPanel } from "@/kilocode/components/model-info-panel"
+import { ModelInfoPanel } from "@/nocowboy/components/model-info-panel"
 
 type Assert<T extends true> = T
 type Props = Parameters<typeof ModelInfoPanel>[0]

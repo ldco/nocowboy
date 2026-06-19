@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { Effect, Stream } from "effect"
-import { KiloLLM } from "@/kilocode/session/llm"
+import { KiloLLM } from "@/nocowboy/session/llm"
 import type { LLM } from "@/session/llm"
 
 describe("kilocode.session.llm.text", () => {

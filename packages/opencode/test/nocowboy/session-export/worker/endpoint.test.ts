@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { defaultEndpoint, resolveEndpoint } from "@/kilocode/session-export/worker/endpoint"
+import { defaultEndpoint, resolveEndpoint } from "@/nocowboy/session-export/worker/endpoint"
 
 describe("session export endpoint", () => {
   test("rejects plaintext custom endpoints by default", () => {

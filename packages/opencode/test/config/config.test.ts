@@ -32,7 +32,7 @@ import { Filesystem } from "@/util/filesystem"
 import { ConfigPlugin } from "@/config/plugin"
 import { Npm } from "@opencode-ai/core/npm"
 import { isIndexingPlugin } from "@nocowboy/indexing/detect" // kilocode_change
-import { isAtomicChatPlugin } from "@/kilocode/atomic-chat-feature" // kilocode_change
+import { isAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature" // kilocode_change
 
 const emptyAccount = Layer.mock(Account.Service)({
   active: () => Effect.succeed(Option.none()),

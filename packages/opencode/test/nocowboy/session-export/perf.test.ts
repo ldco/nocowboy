@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { Capture } from "@/kilocode/session-export/capture"
+import { Capture } from "@/nocowboy/session-export/capture"
 
 describe("session export performance budget", () => {
   const worker = { postMessage: () => {}, terminate: () => {} } as unknown as Worker
