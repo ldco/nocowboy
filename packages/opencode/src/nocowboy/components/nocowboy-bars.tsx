@@ -88,7 +88,7 @@ export function TopBar() {
   const fullPath = projectRoot
   const pathDisplay = shortPath(fullPath)
   const [tick, setTick] = createSignal(0)
-  onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10000); onCleanup(() => clearInterval(id)) })
+  onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10_000); onCleanup(() => clearInterval(id)) })
   const git = createMemo(() => { tick(); return gitInfo() })
 
   return (

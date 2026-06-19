@@ -3,6 +3,8 @@ import { useTheme } from "@tui/context/theme"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
+import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { Global } from "@opencode-ai/core/global"
 
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
@@ -14,10 +16,14 @@ export function InfoScreen() {
   const rows = createMemo(() => {
     const items: { label: string; value: string }[] = []
     const dir = project.data.instance.path.directory
-    if (dir) items.push({ label: "Directory", value: dir })
+    if (dir) {
+      let display = dir.replace(Global.Path.home, "~")
+      if (sync.data.vcs?.branch) display += ":" + sync.data.vcs.branch
+      items.push({ label: "Directory", value: display })
+    }
     const v = sync.data.globalConfig as any
-    if (v?.directory) items.push({ label: "Config", value: v.directory })
-    items.push({ label: "Version", value: "local" })
+    if (v?.directory) items.push({ label: "Config", value: v.directory.replace(Global.Path.home, "~") })
+    items.push({ label: "Version", value: InstallationVersion })
     return items
   })
 

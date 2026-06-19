@@ -1,7 +1,5 @@
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { createMemo, Show } from "solid-js"
-import { Tips } from "./tips-view"
 import { useBindings } from "../../keymap"
 
 const id = "internal:home-tips"
@@ -31,15 +29,7 @@ const tui: TuiPlugin = async (api) => {
     order: 100,
     slots: {
       home_bottom() {
-        const hidden = createMemo(() => api.kv.get("tips_hidden", false))
-        const first = createMemo(() => api.state.session.count() === 0)
-        const connected = createMemo(() =>
-          api.state.provider.some(
-            (item) => item.id !== "opencode" || Object.values(item.models).some((model) => model.cost?.input !== 0),
-          ),
-        )
-        const show = createMemo(() => !hidden()) // nocowboy_change - always show tips regardless of first-time status
-        return <View api={api} hidden={hidden()} show={show()} connected={connected()} />
+        return <View api={api} hidden={true} show={false} connected={false} />
       },
     },
   })
