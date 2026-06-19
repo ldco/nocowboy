@@ -3,6 +3,7 @@ import { For } from "solid-js"
 // ScoreWidget removed — belongs on Info/Screen page
 // Logo removed — will add ASCII later
 import { createEffect, createSignal, onMount } from "solid-js"
+import { useTheme } from "@tui/context/theme"
 import { useProject } from "../context/project"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -78,7 +79,19 @@ export function Home() {
             <Prompt
               ref={bind}
               workspaceID={project.workspace.current()}
-              right={<TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />}
+              right={
+                <box flexDirection="row">
+                  <text
+                    fg={useTheme().theme.highlight}
+                    paddingLeft={1}
+                    paddingRight={1}
+                    onMouseDown={(e: any) => { e?.preventDefault?.() }}
+                  >
+                    [🎙️Voice]
+                  </text>
+                  <TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />
+                </box>
+              }
               placeholders={placeholder}
             />
           </box>
