@@ -55,44 +55,50 @@ const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) 
   live.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
     test.skip(name, () => run(value, liveLayer), opts)
 
+  const runInstance = <A, E>(value: Effect.Effect<A, E, unknown>) =>
+    Effect.runPromise(value.pipe(Effect.scoped, Effect.provide(liveLayer)) as Effect.Effect<A, E, never>)
+
   const instance = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope.Scope> | (() => Effect.Effect<A, E2, unknown>),
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
+    const wrapped = typeof value === "function" ? value() : value
     return test(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }
 
   instance.only = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope.Scope> | (() => Effect.Effect<A, E2, unknown>),
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
+    const wrapped = typeof value === "function" ? value() : value
     return test.only(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }
 
   instance.skip = <A, E2>(
     name: string,
-    value: Body<A, E2, R | TestInstance | Scope.Scope>,
+    value: Body<A, E2, R | TestInstance | Scope.Scope> | (() => Effect.Effect<A, E2, unknown>),
     options?: InstanceOptions | number | TestOptions,
     opts?: number | TestOptions,
   ) => {
     const args = instanceArgs(options, opts)
+    const wrapped = typeof value === "function" ? value() : value
     return test.skip(
       name,
-      () => run(body(value).pipe(withTmpdirInstance(args.instanceOptions)), liveLayer),
+      () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
     )
   }

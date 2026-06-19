@@ -309,7 +309,7 @@ export namespace KilocodeConfig {
       const kilo = auth["kilo"]
       if (kilo?.type === "oauth" && kilo.access && kilo.accountId) {
         const modes = await fetchOrganizationModes(kilo.access, kilo.accountId)
-        if (modes.length > 0) {
+        if (modes && modes.length > 0) {
           const agents = ModesMigrator.convertOrganizationModes(modes)
           log.debug("loaded organization custom modes", {
             count: modes.length,

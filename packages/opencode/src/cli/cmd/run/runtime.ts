@@ -148,7 +148,7 @@ async function resolveExitTitle(
     .get({
       sessionID: state.sessionID,
     })
-    .then((x) => x.data?.title)
+    .then((x: { data?: { title?: string } }) => x.data?.title)
     .catch(() => undefined)
 }
 
@@ -236,7 +236,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         findFiles: (query) =>
           ctx.sdk.find
             .files({ query, directory: ctx.directory })
-            .then((x) => x.data ?? [])
+            .then((x: { data?: string[] }) => x.data ?? [])
             .catch(() => []),
         agents: [],
         resources: [],
@@ -386,15 +386,15 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         const [agents, resources, commands] = await Promise.all([
           ctx.sdk.app
             .agents({ directory: ctx.directory })
-            .then((x) => x.data ?? [])
+            .then((x: { data?: Array<unknown> }) => x.data ?? [])
             .catch(() => []),
           ctx.sdk.experimental.resource
             .list({ directory: ctx.directory })
-            .then((x) => Object.values(x.data ?? {}))
+            .then((x: { data?: Record<string, unknown> }) => Object.values(x.data ?? {}))
             .catch(() => []),
           ctx.sdk.command
             .list({ directory: ctx.directory })
-            .then((x) => x.data ?? [])
+            .then((x: { data?: Array<unknown> }) => x.data ?? [])
             .catch(() => []),
         ])
         if (footer.isClosed) {
@@ -414,7 +414,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         .then(loadCatalog)
         .catch(() => {})
 
-      if (Flag.NOCOWBOY_SHOW_TTFD) {
+      if (Flag.KILO_SHOW_TTFD) {
         footer.append({
           kind: "system",
           text: `startup ${Math.max(0, Math.round(performance.now() - start))}ms`,
