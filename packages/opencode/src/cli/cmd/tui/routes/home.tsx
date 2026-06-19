@@ -79,12 +79,12 @@ export function Home() {
               right={
                 <box flexDirection="row">
                   <text
-                    fg={useTheme().theme.highlight}
+                    fg={useTheme().theme.textMuted}
                     paddingLeft={1}
                     paddingRight={1}
                     onMouseDown={(e: any) => { e?.preventDefault?.() }}
                   >
-                    [Voice]
+                    [🎙Voice]
                   </text>
                   <TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />
                 </box>
