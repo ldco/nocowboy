@@ -115,23 +115,23 @@ const layer = Layer.effect(
       directory: string,
       model: RunInput["model"],
     ) {
-      const connected = yield* Effect.promise(() =>
+      const connected = yield* Effect.promise<RunProvider[] | undefined>(() =>
         sdk.config
           .providers({ directory })
-          .then((item) => item.data?.providers)
+          .then((item: { data?: { providers: RunProvider[] } }) => item.data?.providers)
           .catch(() => undefined),
       )
-      const providers = yield* Effect.promise(() =>
+      const providers = yield* Effect.promise<RunProvider[]>(() =>
         connected
           ? Promise.resolve(connected)
           : sdk.provider
               .list()
-              .then((item) => item.data?.all ?? [])
+              .then((item: { data?: { all: RunProvider[] } }) => item.data?.all ?? [])
               .catch(() => []),
       )
       const limits = Object.fromEntries(
         providers.flatMap((provider) =>
-          Object.entries(provider.models ?? {}).flatMap(([modelID, info]) => {
+          Object.entries(provider.models ?? {}).flatMap(([modelID, info]: [string, NonNullable<RunProvider["models"]>[string]]) => {
             const limit = info?.limit?.context
             if (typeof limit !== "number" || limit <= 0) {
               return []

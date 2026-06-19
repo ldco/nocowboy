@@ -3,9 +3,9 @@ import { $ } from "bun"
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import type { ExportEvent } from "@/kilocode/session-export/events"
-import { Capture } from "@/kilocode/session-export/capture"
-import { createWorkspaceProvider } from "@/kilocode/session-export/workspace-provider"
+import type { ExportEvent } from "@/nocowboy/session-export/events"
+import { Capture } from "@/nocowboy/session-export/capture"
+import { createWorkspaceProvider } from "@/nocowboy/session-export/workspace-provider"
 
 describe("session export worker e2e", () => {
   const dirs: string[] = []

@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import { afterEach, mock, spyOn } from "bun:test"
 import { Effect } from "effect"
-import { RemoteSender } from "../../../src/kilo-sessions/remote-sender"
-import type { RemoteWS } from "../../../src/kilo-sessions/remote-ws"
-import type { RemoteProtocol } from "../../../src/kilo-sessions/remote-protocol"
+import { RemoteSender } from "../../../src/nocowboy-sessions/remote-sender"
+import type { RemoteWS } from "../../../src/nocowboy-sessions/remote-ws"
+import type { RemoteProtocol } from "../../../src/nocowboy-sessions/remote-protocol"
 import type { SessionPrompt } from "../../../src/session/prompt"
 import { Question } from "../../../src/question"
 import { QuestionID } from "../../../src/question/schema"
@@ -479,7 +479,7 @@ describe("RemoteSender", () => {
       provide: async <R>(input: { directory: string; init?: Effect.Effect<void>; fn: () => R }) => input.fn(),
       question: {
         ...questions(),
-        reply: async (input) => {
+        reply: async (input: Parameters<Question.Interface["reply"]>[0]) => {
           calls.push(input)
         },
       },

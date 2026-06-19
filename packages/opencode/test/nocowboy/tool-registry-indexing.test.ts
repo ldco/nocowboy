@@ -3,9 +3,9 @@ import { Effect, Layer, Schema } from "effect"
 import * as Log from "@opencode-ai/core/util/log"
 import { Agent } from "../../src/agent/agent"
 import { KiloIndexing } from "../../src/nocowboy/indexing"
-import { KilocodeBootstrap } from "../../src/nocowboy/bootstrap"
-import { KiloSessions } from "../../src/kilo-sessions/kilo-sessions"
-import { KiloToolRegistry } from "../../src/nocowboy/tool/registry"
+import { NocowboyBootstrap } from "../../src/nocowboy/bootstrap"
+import { Sessions } from "../../src/nocowboy-sessions/sessions"
+import { NocowboyToolRegistry } from "../../src/nocowboy/tool/registry"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { ToolRegistry } from "../../src/tool/registry"
 import type * as Tool from "../../src/tool/tool"
@@ -179,16 +179,16 @@ describe("kilocode tool registry indexing", () => {
 
   test("enables semantic search from indexing configuration before the index is ready", () => {
     expect(
-      KiloToolRegistry.indexing({
+      NocowboyToolRegistry.indexing({
         indexing: { enabled: true },
       }),
     ).toBe(true)
     expect(
-      KiloToolRegistry.indexing({
+      NocowboyToolRegistry.indexing({
         indexing: { enabled: false },
       }),
     ).toBe(false)
-    expect(KiloToolRegistry.indexing({}, { indexing: { enabled: true } })).toBe(true)
+    expect(NocowboyToolRegistry.indexing({}, { indexing: { enabled: true } })).toBe(true)
   })
 
   test("conditionally includes Kilo registry extras", () => {
@@ -209,27 +209,27 @@ describe("kilocode tool registry indexing", () => {
 
     try {
       process.env["KILO_CLIENT"] = "cli"
-      expect(KiloToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual([
+      expect(NocowboyToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual([
         "semantic_search",
         "recall",
         "background_process",
       ])
-      expect(KiloToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
+      expect(NocowboyToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
         ["codebase_search", "semantic_search", "recall", "background_process"],
       )
 
       process.env["KILO_CLIENT"] = "vscode"
-      expect(KiloToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
+      expect(NocowboyToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
         ["codebase_search", "semantic_search", "recall", "background_process", "agent_manager"],
       )
-      expect(KiloToolRegistry.extra({ ...tools, semantic: undefined }, {}).map((tool) => tool.id)).toEqual([
+      expect(NocowboyToolRegistry.extra({ ...tools, semantic: undefined }, {}).map((tool) => tool.id)).toEqual([
         "recall",
         "background_process",
         "agent_manager",
       ])
 
       process.env["KILO_CLIENT"] = "desktop"
-      expect(KiloToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual(["semantic_search", "recall"])
+      expect(NocowboyToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual(["semantic_search", "recall"])
     } finally {
       if (prev === undefined) delete process.env["KILO_CLIENT"]
       if (prev !== undefined) process.env["KILO_CLIENT"] = prev
@@ -241,16 +241,16 @@ describe("kilocode tool registry indexing", () => {
     const err = new Error("indexing init failed")
     const calls: string[] = []
     const sessions = Layer.succeed(
-      KiloSessions.Service,
-      KiloSessions.Service.of({ init: () => Effect.sync(() => calls.push("sessions")) }),
+      Sessions.Service,
+      Sessions.Service.of({ init: () => Effect.sync(() => calls.push("sessions")) }),
     )
     const indexing = spyOn(KiloIndexing, "init").mockRejectedValue(err)
     const warn = spyOn(logger, "warn").mockImplementation(() => {})
 
     try {
       await Effect.runPromise(
-        KilocodeBootstrap.Service.use((svc) => svc.init()).pipe(
-          Effect.provide(KilocodeBootstrap.layer.pipe(Layer.provide(sessions))),
+        NocowboyBootstrap.Service.use((svc) => svc.init()).pipe(
+          Effect.provide(NocowboyBootstrap.layer.pipe(Layer.provide(sessions))),
           Effect.scoped,
         ),
       )

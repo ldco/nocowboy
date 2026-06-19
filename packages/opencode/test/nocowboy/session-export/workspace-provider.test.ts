@@ -4,7 +4,8 @@ import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises"
 import { tmpdir as osTmpdir } from "node:os"
 import { join } from "node:path"
 import { tmpdir } from "../../fixture/fixture"
-import { createWorkspaceProvider } from "@/kilocode/session-export/workspace-provider"
+import type { DeltaEntry, FileEntry } from "@/nocowboy/session-export/events"
+import { createWorkspaceProvider } from "@/nocowboy/session-export/workspace-provider"
 
 describe("workspace provider", () => {
   test("captures the repository root when started from a nested git directory", async () => {

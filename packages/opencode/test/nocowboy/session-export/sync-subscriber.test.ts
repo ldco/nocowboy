@@ -1,12 +1,13 @@
 import { describe, test, expect } from "bun:test"
-import { SyncSubscriber } from "@/kilocode/session-export/sync-subscriber"
+import { SyncSubscriber } from "@/nocowboy/session-export/sync-subscriber"
+import type { ExportEvent } from "@/nocowboy/session-export/events"
 
 describe("SyncSubscriber", () => {
   test("emits tool_executed for tool completion events on eligible sessions", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => true,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 0,
       syncSeq: () => 1,
@@ -35,7 +36,7 @@ describe("SyncSubscriber", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => false,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 0,
       syncSeq: () => 1,
@@ -53,7 +54,7 @@ describe("SyncSubscriber", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => true,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 0,
       syncSeq: () => 1,
@@ -82,11 +83,11 @@ describe("SyncSubscriber", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => true,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 0,
       syncSeq: () => 1,
-      getRootSessionId: (sessionId) => (sessionId === "sub_1" ? "root_1" : sessionId),
+      getRootSessionId: (sessionId: string) => (sessionId === "sub_1" ? "root_1" : sessionId),
     })
     sub.onSyncEvent({
       type: "message.part.updated",
@@ -119,7 +120,7 @@ describe("SyncSubscriber", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => true,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 10,
       syncSeq: () => 1,
@@ -146,7 +147,7 @@ describe("SyncSubscriber", () => {
     const posted: unknown[] = []
     const sub = new SyncSubscriber({
       isEligibleSession: () => true,
-      dispatch: (event) => posted.push(event),
+      dispatch: (event: ExportEvent) => posted.push(event),
       agentVersion: "v0",
       now: () => 0,
       syncSeq: () => 1,
