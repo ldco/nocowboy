@@ -1416,12 +1416,12 @@ export function Session() {
                         right={
                           <box flexDirection="row">
                             <text
-                              fg={theme.textMuted}
+                              fg={theme.highlight}
                               paddingLeft={1}
                               paddingRight={1}
                               onMouseDown={(e: any) => { e?.preventDefault?.(); /* TODO: ostt.ai STT */ }}
                             >
-                              ♫
+                              [🎙️Voice]
                             </text>
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
