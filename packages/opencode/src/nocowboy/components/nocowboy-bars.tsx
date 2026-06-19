@@ -34,10 +34,10 @@ function gitInfo(): { branch: string; ahead: number; behind: number } {
   } catch {}
   let ahead = 0, behind = 0
   try {
-    const rev = execSync(`git rev-list --count master..origin/master 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
-    behind = parseInt(rev.trim(), 10) || 0
-    const rev2 = execSync(`git rev-list --count origin/master..master 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
-    ahead = parseInt(rev2.trim(), 10) || 0
+    const fwd = execSync(`git rev-list --count @{upstream}..HEAD 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
+    ahead = parseInt(fwd.trim(), 10) || 0
+    const bwd = execSync(`git rev-list --count HEAD..@{upstream} 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
+    behind = parseInt(bwd.trim(), 10) || 0
   } catch {}
   return { branch, ahead, behind }
 }
