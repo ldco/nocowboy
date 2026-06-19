@@ -1,4 +1,4 @@
-import { For, createSignal, createContext, useContext, createMemo, type Accessor, type Setter } from "solid-js"
+import { For, createSignal, createContext, useContext, createMemo, onMount, onCleanup, type Accessor, type Setter } from "solid-js"
 import { readFileSync, existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolve, dirname } from "node:path"
@@ -84,7 +84,9 @@ export function TopBar() {
   const { theme } = useTheme()
   const fullPath = projectRoot
   const pathDisplay = shortPath(fullPath)
-  const git = gitInfo()
+  const [tick, setTick] = createSignal(0)
+  onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10000); onCleanup(() => clearInterval(id)) })
+  const git = createMemo(() => { tick(); return gitInfo() })
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
@@ -97,7 +99,7 @@ export function TopBar() {
         {" "}{pathDisplay}
       </text>
       <text fg={theme.success}>
-        {git.branch ? ` ${icons.branch}${git.branch}${git.ahead > 0 ? ` ⇡${git.ahead}` : ""}${git.behind > 0 ? ` ⇢${git.behind}` : ""}` : ""}
+        {git().branch ? ` ${icons.branch}${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}` : ""}
       </text>
       <text fg={theme.textDim}>
         {"  Score: --  Tokens: 0  Cost: $0.00  "}
