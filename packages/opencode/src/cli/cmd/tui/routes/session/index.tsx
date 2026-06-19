@@ -198,6 +198,7 @@ function use() {
 
 export function Session() {
   const route = useRouteData("session")
+  if (route.type !== "session") throw new Error("Expected session route")
   const { navigate } = useRoute()
   const sync = useSync()
   const event = useEvent()
@@ -434,7 +435,7 @@ export function Session() {
   // nocowboy_change start
   createEffect(() => {
     const title = Locale.truncate(session()?.title ?? "", 50)
-    return exit.message.set(banner(title, session()?.id, UI.Style.TEXT_DIM, UI.Style.TEXT_NORMAL))
+    return exit.message.set(banner(title, session()?.id ?? "", UI.Style.TEXT_DIM).join("\n"))
   })
 
   const [exitPress, setExitPress] = createSignal(0)

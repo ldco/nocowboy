@@ -85,6 +85,7 @@ describe("fetchKiloEmbeddingModelCatalog", () => {
       defaultModel: "",
       models: [],
       aliases: {},
+      issues: [],
     })
   })
 })

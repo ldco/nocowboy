@@ -19,11 +19,11 @@ export namespace Telemetry {
   export function trackPlanFollowup() {}
   export function trackSuggestionAccepted() {}
   export function trackSuggestionShown() {}
-  export function trackIndexingStarted() {}
-  export function trackIndexingCompleted() {}
-  export function trackIndexingFileCount() {}
-  export function trackIndexingBatchRetry() {}
-  export function trackIndexingError() {}
+  export function trackIndexingStarted(_data: { trigger: string; source: string; mode?: string; provider: string; vectorStore: string; modelId?: string }) {}
+  export function trackIndexingCompleted(_data: { trigger: string; source: string; mode: string; provider: string; vectorStore: string; modelId?: string; filesIndexed: number; filesDiscovered: number; totalBlocks: number; batchErrors: number }) {}
+  export function trackIndexingFileCount(_data: { source: string; mode: string; provider: string; vectorStore: string; modelId?: string; discovered: number; candidate: number }) {}
+  export function trackIndexingBatchRetry(_data: { source: string; mode: string; provider: string; vectorStore: string; modelId?: string; attempt: number; maxRetries: number; batchSize: number; error: string }) {}
+  export function trackIndexingError(_data: { source: string; trigger?: string; mode?: string; provider: string; vectorStore: string; modelId?: string; location: string; error: string; retryCount?: number; maxRetries?: number }) {}
   export function trackShareCreated() {}
   export function trackShareDeleted() {}
   export function trackMcpServerConnected() {}

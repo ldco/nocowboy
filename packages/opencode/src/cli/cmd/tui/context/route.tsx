@@ -15,6 +15,7 @@ export type SessionRoute = {
 
 // nocowboy_change start
 export type KiloClawRoute = {
+  type: "kilo-claw"
 }
 // nocowboy_change end
 

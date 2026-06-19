@@ -187,7 +187,7 @@ export function init() {
    * - Registers NoCowboy commands
    * - Registers the auto-approve toggle command
    */
-  Flag.NOCOWBOY_EXPERIMENTAL_DISABLE_COPY_ON_SELECT = true
+  Flag.KILO_EXPERIMENTAL_DISABLE_COPY_ON_SELECT = true
   const sync = useSync()
   const sdk = useSDK()
   const toast = useToast()

@@ -53,7 +53,7 @@ import type {
   AssistantMessage,
   Event,
   GlobalEvent,
-  NocowboyClient,
+  KiloClient,
   SessionMessageResponse,
   SyncEventMessagePartUpdated,
   ToolPart,
@@ -79,7 +79,7 @@ const DEFAULT_VARIANT_VALUE = "default"
 const log = Log.create({ service: "acp-agent" })
 
 async function getContextLimit(
-  sdk: NocowboyClient,
+  sdk: KiloClient,
   providerID: ProviderID,
   modelID: ModelID,
   directory: string,
@@ -99,7 +99,7 @@ async function getContextLimit(
 
 async function sendUsageUpdate(
   connection: AgentSideConnection,
-  sdk: NocowboyClient,
+  sdk: KiloClient,
   sessionID: string,
   directory: string,
 ): Promise<void> {
@@ -147,7 +147,7 @@ async function sendUsageUpdate(
     })
 }
 
-export function init({ sdk: _sdk }: { sdk: NocowboyClient }) {
+export function init({ sdk: _sdk }: { sdk: KiloClient }) {
   return {
     create: (connection: AgentSideConnection, fullConfig: ACPConfig) => {
       return new Agent(connection, fullConfig)
@@ -158,7 +158,7 @@ export function init({ sdk: _sdk }: { sdk: NocowboyClient }) {
 export class Agent implements ACPAgent {
   private connection: AgentSideConnection
   private config: ACPConfig
-  private sdk: NocowboyClient
+  private sdk: KiloClient
   private sessionManager: ACPSessionManager
   private eventAbort = new AbortController()
   private eventStarted = false
@@ -1754,14 +1754,14 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
   // returns earlier via `specified` (config.model) or the sorted providers list.
   if (providers.some((p) => p.id === "nocowboy")) {
     const freeModel = await fetchDefaultModel()
-    return { providerID: ProviderID.nocowboy, modelID: ModelID.make(freeModel) }
+    if (freeModel) return { providerID: ProviderID.kilo, modelID: ModelID.make(freeModel) }
   }
   // nocowboy_change end
   throw new Error("No models available")
 }
 
 async function lastUsedModel(
-  sdk: NocowboyClient,
+  sdk: KiloClient,
   directory: string,
   providers: Array<{ id: string; models: Record<string, unknown> }>,
 ): Promise<{ providerID: ProviderID; modelID: ModelID } | undefined> {

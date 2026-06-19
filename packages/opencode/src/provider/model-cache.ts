@@ -9,7 +9,7 @@ import * as Log from "@opencode-ai/core/util/log"
 
 type Models = Provider["models"]
 type KiloOptions = NonNullable<Parameters<typeof fetchKiloModels>[0]>
-type Options = { -readonly [K in keyof KiloOptions]?: KiloOptions[K] } & { apiKey?: string }
+type Options = { -readonly [K in keyof KiloOptions]?: KiloOptions[K] } & { apiKey?: string; baseURL?: string }
 type Failure = NonNullable<KiloModelsResult["error"]>
 type Result = { readonly models: Models; readonly error?: Failure }
 type View = { models?: Models; timestamp?: number }
@@ -119,22 +119,22 @@ export const layer: Layer.Layer<
 
       if (providerID === "nocowboy") {
         const item = config.provider?.[providerID]
-        if (item?.options?.apiKey) options.ncowboyToken = item.options.apiKey
-        if (item?.options?.ncowboyOrganizationId) options.ncowboyOrganizationId = item.options.ncowboyOrganizationId
+        if (item?.options?.apiKey) options.kilocodeToken = item.options.apiKey
+        if (item?.options?.kilocodeOrganizationId) options.kilocodeOrganizationId = item.options.kilocodeOrganizationId
 
         const info = yield* auth.get(providerID)
-        if (info?.type === "api") options.ncowboyToken = info.key
+        if (info?.type === "api") options.kilocodeToken = info.key
         if (info?.type === "oauth") {
-          options.ncowboyToken = info.access
-          if (info.accountId) options.ncowboyOrganizationId = info.accountId
+          options.kilocodeToken = info.access
+          if (info.accountId) options.kilocodeOrganizationId = info.accountId
         }
 
-        if (process.env.KILO_API_KEY) options.ncowboyToken = process.env.KILO_API_KEY
-        if (process.env.KILO_ORG_ID) options.ncowboyOrganizationId = process.env.KILO_ORG_ID
+        if (process.env.KILO_API_KEY) options.kilocodeToken = process.env.KILO_API_KEY
+        if (process.env.KILO_ORG_ID) options.kilocodeOrganizationId = process.env.KILO_ORG_ID
         log.debug("auth options resolved", {
           providerID,
-          hasToken: !!options.ncowboyToken,
-          hasOrganizationId: !!options.ncowboyOrganizationId,
+          hasToken: !!options.kilocodeToken,
+          hasOrganizationId: !!options.kilocodeOrganizationId,
         })
       }
 
@@ -178,7 +178,7 @@ export const layer: Layer.Layer<
 
     const key = (providerID: string, options?: Options) => {
       if (providerID === "nocowboy") {
-        return JSON.stringify([providerID, options?.baseURL, options?.ncowboyOrganizationId, options?.ncowboyToken])
+        return JSON.stringify([providerID, options?.baseURL, options?.kilocodeOrganizationId, options?.kilocodeToken])
       }
       if (providerID === "apertis") return JSON.stringify([providerID, options?.baseURL, options?.apiKey])
       return providerID

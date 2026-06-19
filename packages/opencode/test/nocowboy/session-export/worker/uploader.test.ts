@@ -2,9 +2,9 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Storage } from "@/kilocode/session-export/worker/storage"
-import { Uploader, backoffFor } from "@/kilocode/session-export/worker/uploader"
-import { Config } from "@/kilocode/session-export/config"
+import { Storage } from "@/nocowboy/session-export/worker/storage"
+import { Uploader, backoffFor } from "@/nocowboy/session-export/worker/uploader"
+import { Config } from "@/nocowboy/session-export/config"
 
 describe("Uploader", () => {
   let dir: string
@@ -45,11 +45,11 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (input, init) => {
+      fetch: async (input: string, init: RequestInit) => {
         calls.push({ input, init })
         return new Response("", { status: 204 })
       },
-      reportTelemetry: (msg) => telemetry.push(msg),
+      reportTelemetry: (msg: { kind: "telemetry"; name: string; props?: Record<string, unknown> }) => telemetry.push(msg),
       agentVersion: "v0",
       surface: "test",
     })
@@ -78,7 +78,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         calls.push(init)
         return new Response("", { status: 204 })
       },
@@ -98,7 +98,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         calls.push({ init })
         return new Response("", { status: 204 })
       },
@@ -136,7 +136,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         calls.push({ init })
         return new Response("", { status: 204 })
       },
@@ -170,7 +170,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         bodies.push(init.body as string)
         return new Response("", { status: 204 })
       },
@@ -204,7 +204,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         bodies.push(init.body as string)
         return new Response("", { status: 204 })
       },
@@ -255,7 +255,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         calls.push({ init })
         return new Response("", { status: 204 })
       },
@@ -297,7 +297,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         bodies.push(init.body as string)
         return new Response("", { status: 204 })
       },
@@ -345,7 +345,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         bodies.push(init.body as string)
         return new Response("", { status: 204 })
       },
@@ -422,7 +422,7 @@ describe("Uploader", () => {
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
-      fetch: async (_input, init) => {
+      fetch: async (_input: string, init: RequestInit) => {
         bodies.push(init.body as string)
         return new Response("", { status: 204 })
       },
@@ -492,7 +492,7 @@ describe("Uploader", () => {
       agentVersion: "v0",
       surface: "test",
       now: () => clock.now,
-      sleep: async (ms) => {
+      sleep: async (ms: number) => {
         waits.push(ms)
         clock.now += ms
       },

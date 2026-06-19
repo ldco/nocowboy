@@ -88,7 +88,7 @@ async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: Kilo
   const catalog = await fetchKiloEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
   const id = input.modelId ? (catalog.aliases[input.modelId] ?? input.modelId) : catalog.defaultModel
   const chosen = catalog.models.find((item) => item.id === id)
-  const fallback = catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel
+  const fallback = catalog.defaultModel ? (catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel) : undefined
   const found = chosen ?? catalog.models.find((item) => item.id === fallback)
 
   if (!found) {

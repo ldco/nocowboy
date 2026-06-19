@@ -1,5 +1,5 @@
 import type { McpServer } from "@agentclientprotocol/sdk"
-import type { NocowboyClient } from "@nocowboy/sdk/v2"
+import type { KiloClient } from "@nocowboy/sdk/v2"
 import type { ProviderID, ModelID } from "../provider/schema"
 
 export interface ACPSessionState {
@@ -16,7 +16,7 @@ export interface ACPSessionState {
 }
 
 export interface ACPConfig {
-  sdk: NocowboyClient
+  sdk: KiloClient
   defaultModel?: {
     providerID: ProviderID
     modelID: ModelID

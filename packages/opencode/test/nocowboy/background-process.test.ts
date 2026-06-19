@@ -1,6 +1,6 @@
 import { describe, expect } from "bun:test"
 import { Bus } from "@/bus"
-import { BackgroundProcess } from "@/kilocode/background-process"
+import { BackgroundProcess } from "@/nocowboy/background-process"
 import { SessionID } from "@/session/schema"
 import { Shell } from "@/shell/shell"
 import { Effect } from "effect"

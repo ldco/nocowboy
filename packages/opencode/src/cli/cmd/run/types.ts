@@ -13,7 +13,7 @@
 //         → OpenTUI split-footer renderer writes to terminal
 import type { KeyEvent, Renderable } from "@opentui/core"
 import type { Binding } from "@opentui/keymap"
-import type { NocowboyClient, PermissionRequest, QuestionRequest, ToolPart } from "@nocowboy/sdk/v2"
+import type { NocowboyClient, PermissionRequest, QuestionAnswer, QuestionRequest, ToolPart } from "@nocowboy/sdk/v2"
 
 export type RunFilePart = {
   type: "file"
@@ -255,11 +255,26 @@ export type FooterEvent =
       state: FooterSubagentState
     }
 
-export type PermissionReply = Parameters<NocowboyClient["permission"]["reply"]>[0]
+export type PermissionReply = {
+  requestID: string
+  directory?: string
+  workspace?: string
+  reply?: "once" | "always" | "reject"
+  message?: string
+}
 
-export type QuestionReply = Parameters<NocowboyClient["question"]["reply"]>[0]
+export type QuestionReply = {
+  requestID: string
+  directory?: string
+  workspace?: string
+  answers?: Array<QuestionAnswer>
+}
 
-export type QuestionReject = Parameters<NocowboyClient["question"]["reject"]>[0]
+export type QuestionReject = {
+  requestID: string
+  directory?: string
+  workspace?: string
+}
 
 type FooterBinding = Binding<Renderable, KeyEvent>
 

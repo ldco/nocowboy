@@ -15,7 +15,7 @@
 // The tick counter prevents stale idle events from resolving the wrong turn.
 // We also re-check live session status before resolving an idle event so a
 // delayed idle from an older turn cannot complete a newer busy turn.
-import type { GlobalEvent, NocowboyClient } from "@nocowboy/sdk/v2"
+import type { GlobalEvent, KiloClient } from "@nocowboy/sdk/v2"
 import { event as normalizeEvent, type Event } from "./event"
 import { Context, Deferred, Effect, Exit, Layer, Scope, Stream } from "effect"
 import { makeRuntime } from "@/effect/run-service"
@@ -63,7 +63,7 @@ type Trace = {
 }
 
 type StreamInput = {
-  sdk: NocowboyClient
+  sdk: KiloClient
   directory?: string
   sessionID: string
   thinking: boolean
@@ -401,9 +401,9 @@ function createLayer(input: StreamInput) {
         input.signal?.addEventListener("abort", halt, { once: true })
         yield* Effect.addFinalizer(() => closeScope())
 
-        const events = yield* Scope.provide(scope)(
+        const events: { stream: AsyncGenerator<GlobalEvent, unknown, unknown> } = yield* Scope.provide(scope)(
           Effect.acquireRelease(
-            Effect.promise(() =>
+            Effect.promise<{ stream: AsyncGenerator<GlobalEvent, unknown, unknown> }>(() =>
               input.sdk.global.event({
                 signal: abort.signal,
               }),
@@ -514,10 +514,10 @@ function createLayer(input: StreamInput) {
                 return
               }
 
-              const questions = yield* Effect.promise(() => input.sdk.question.list()).pipe(
-                Effect.map((item) => (item.data ?? []).filter((request) => request.sessionID === input.sessionID)),
-                Effect.orElseSucceed(() => []),
-              )
+              const questions = yield* Effect.promise(async () => {
+                const item = await input.sdk.question.list()
+                return (item.data ?? []).filter((request) => request.sessionID === input.sessionID)
+              }).pipe(Effect.orElseSucceed(() => []))
               if (state.data.questions.length > 0 || !state.data.tools.has(partID)) {
                 return
               }
@@ -548,15 +548,10 @@ function createLayer(input: StreamInput) {
         })
 
         const messages = (sessionID: string, limit: number) =>
-          Effect.promise(() =>
-            input.sdk.session.messages({
-              sessionID,
-              limit,
-            }),
-          ).pipe(
-            Effect.map((item) => item.data ?? []),
-            Effect.orElseSucceed(() => []),
-          )
+          Effect.promise(async () => {
+            const item = await input.sdk.session.messages({ sessionID, limit })
+            return item.data ?? []
+          }).pipe(Effect.orElseSucceed(() => []))
 
         const bootstrapSubagentHistory = Effect.fn("RunStreamTransport.bootstrapSubagentHistory")(function* (
           sessions: string[],
@@ -594,22 +589,18 @@ function createLayer(input: StreamInput) {
           const [messagesList, children, permissions, questions] = yield* Effect.all(
             [
               messages(input.sessionID, SUBAGENT_BOOTSTRAP_LIMIT),
-              Effect.promise(() =>
-                input.sdk.session.children({
-                  sessionID: input.sessionID,
-                }),
-              ).pipe(
-                Effect.map((item) => item.data ?? []),
-                Effect.orElseSucceed(() => []),
-              ),
-              Effect.promise(() => input.sdk.permission.list()).pipe(
-                Effect.map((item) => item.data ?? []),
-                Effect.orElseSucceed(() => []),
-              ),
-              Effect.promise(() => input.sdk.question.list()).pipe(
-                Effect.map((item) => item.data ?? []),
-                Effect.orElseSucceed(() => []),
-              ),
+              Effect.promise(async () => {
+                const item = await input.sdk.session.children({ sessionID: input.sessionID })
+                return item.data ?? []
+              }).pipe(Effect.orElseSucceed(() => [])),
+              Effect.promise(async () => {
+                const item = await input.sdk.permission.list()
+                return item.data ?? []
+              }).pipe(Effect.orElseSucceed(() => [])),
+              Effect.promise(async () => {
+                const item = await input.sdk.question.list()
+                return item.data ?? []
+              }).pipe(Effect.orElseSucceed(() => [])),
             ],
             {
               concurrency: "unbounded",
@@ -655,13 +646,11 @@ function createLayer(input: StreamInput) {
         })
 
         const idle = Effect.fn("RunStreamTransport.idle")((fallback: boolean) =>
-          Effect.promise(() => input.sdk.session.status()).pipe(
-            Effect.map((out) => {
-              const item = out.data?.[input.sessionID]
-              return !item || item.type === "idle"
-            }),
-            Effect.orElseSucceed(() => fallback),
-          ),
+          Effect.promise(async () => {
+            const out = await input.sdk.session.status()
+            const item = out.data?.[input.sessionID]
+            return !item || item.type === "idle"
+          }).pipe(Effect.orElseSucceed(() => fallback)),
         )
 
         const fail = Effect.fn("RunStreamTransport.fail")(function* (error: unknown) {
