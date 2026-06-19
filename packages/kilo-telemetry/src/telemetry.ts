@@ -1,6 +1,22 @@
 export interface TelemetryProperties { [key: string]: unknown }
 export type ReviewCommand = string
 
+export type LlmCompletionEvent = {
+  taskId: string
+  apiProvider: string
+  modelId: string
+  inputTokens: number
+  outputTokens: number
+  cacheReadTokens: number
+  cacheWriteTokens: number
+  cost: number
+  completionTime: number
+  mode?: string
+  feature?: string
+  command?: string
+  tool?: string
+}
+
 export namespace Telemetry {
   export async function init() {}
   export function setEnabled() {}
@@ -12,7 +28,7 @@ export namespace Telemetry {
   export function trackSessionStart() {}
   export function trackSessionEnd() {}
   export function trackSessionMessage() {}
-  export function trackLlmCompletion() {}
+  export function trackLlmCompletion(_data: LlmCompletionEvent) {}
   export function trackCommandUsed() {}
   export function trackToolUsed() {}
   export function trackAgentUsed() {}

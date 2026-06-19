@@ -49,24 +49,16 @@ export namespace NocowboyCli {
     if (!process.env[ENV_VERSION]) process.env[ENV_VERSION] = InstallationVersion
     process.env.KILO = "1"
 
-    const cfg = await AppRuntime.runPromise(Config.Service.use((c) => c.getGlobal()))
-    await Telemetry.init({
-      dataPath: Global.Path.data,
-      version: InstallationVersion,
-      enabled: cfg.experimental?.openTelemetry !== false,
-    })
+    await Telemetry.init()
 
     // Migrate legacy Kilo CLI auth (~/.kilocode/cli/config.json) into auth.json if present.
-    await migrateLegacyKiloAuth(
-      async () => (await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))) !== undefined,
-      async (auth) => AppRuntime.runPromise(Auth.Service.use((s) => s.set("kilo", auth))),
-    )
+    await migrateLegacyKiloAuth()
 
     const auth = await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))
     if (auth) {
       const token = auth.type === "oauth" ? auth.access : auth.key
       const account = auth.type === "oauth" ? auth.accountId : undefined
-      await Telemetry.updateIdentity(token, account)
+      await Telemetry.updateIdentity()
     }
 
     Telemetry.trackCliStart()
@@ -74,15 +66,14 @@ export namespace NocowboyCli {
 
   // Runs from the `finally` block on every exit path.
   export async function shutdown(): Promise<void> {
-    const code = typeof process.exitCode === "number" ? process.exitCode : undefined
-    Telemetry.trackCliExit(code)
+    Telemetry.trackCliExit()
     try {
       await SessionExport.shutdown()
       // Bound telemetry shutdown so an unreachable endpoint (offline, firewall,
       // DNS adblock resolving the host to 0.0.0.0) cannot block process exit on
       // short-lived commands like `kilo --help` / `kilo --version` (#9788).
       try {
-        await Telemetry.shutdown(2000)
+        await Telemetry.shutdown()
       } catch (err) {
         log.warn("telemetry shutdown failed", { err })
       }

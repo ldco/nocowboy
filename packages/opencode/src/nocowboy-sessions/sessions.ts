@@ -149,6 +149,22 @@ export namespace Sessions {
     }
   }
 
+  function toSDKModel(m: Provider.Model): SDK.Model {
+    return {
+      id: m.id,
+      providerID: m.providerID,
+      api: m.api,
+      name: m.name,
+      capabilities: m.capabilities,
+      cost: m.cost,
+      limit: m.limit,
+      status: m.status,
+      options: m.options,
+      headers: m.headers,
+      release_date: m.release_date,
+    }
+  }
+
   async function getClient(): Promise<Client | undefined> {
     return withInFlightCache(clientKey, ttlMs, async () => {
       const token = await ncowboyToken()
@@ -271,7 +287,7 @@ export namespace Sessions {
             const session = await Effect.runPromise(sessions.get(sessionID).pipe(Effect.orElseSucceed(() => null)))
             if (!session) return
             await ingest.sync(sessionID, [
-              { type: "kilo_meta", data: await meta(sessionID) },
+              { type: "nocowboy_meta", data: await meta(sessionID) },
               { type: "session", data: transport(session) },
             ])
           })
@@ -279,7 +295,7 @@ export namespace Sessions {
             await ingest.sync(evt.properties.info.sessionID, [{ type: "message", data: evt.properties.info }])
             if (evt.properties.info.role !== "user") return
             const mdl = await model(evt.properties.info.model.providerID, evt.properties.info.model.modelID)
-            await ingest.sync(evt.properties.info.sessionID, [{ type: "model", data: [mdl] }])
+            await ingest.sync(evt.properties.info.sessionID, [{ type: "model", data: [toSDKModel(mdl)] }])
           })
           yield* watch(MessageV2.Event.PartUpdated, (evt) =>
             ingest.sync(evt.properties.part.sessionID, [{ type: "part", data: evt.properties.part }]),
@@ -700,9 +716,9 @@ export namespace Sessions {
       messages.filter((m) => m.info.role === "user").map((m) => (m.info as SDK.UserMessage).model),
     )
 
-    await ingest.sync(sessionId, [
+    const data: IngestQueue.Data[] = [
       {
-        type: "kilo_meta",
+        type: "nocowboy_meta",
         data: await meta(sessionId),
       },
       {
@@ -711,22 +727,23 @@ export namespace Sessions {
       },
       ...messages.map((x) => ({
         type: "message" as const,
-        data: x.info,
+        data: x.info as SDK.Message,
       })),
-      ...messages.flatMap((x) => x.parts.map((y) => ({ type: "part" as const, data: y }))),
+      ...messages.flatMap((x) => x.parts.map((y) => ({ type: "part" as const, data: y as SDK.Part }))),
       {
         type: "session_diff",
         data: diffs,
       },
       {
         type: "model",
-        data: mdls,
+        data: mdls.map(toSDKModel),
       },
       {
         type: "session_status",
         data: { status: await deriveStatus(sessionId) },
       },
-    ])
+    ]
+    await ingest.sync(sessionId, data)
   }
 
   /** Normalize a git remote URL: strip credentials, query params, and hash. Returns undefined for unrecognized formats. */

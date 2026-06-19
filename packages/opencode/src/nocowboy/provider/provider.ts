@@ -12,6 +12,15 @@ import { ProviderID, ModelID } from "@/provider/schema"
 import { optionalOmitUndefined } from "@opencode-ai/core/schema"
 import { Effect, Schema } from "effect"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
+
+type KiloSDK = {
+  languageModel(modelId: string): LanguageModelV3
+  alibaba(modelId: string): LanguageModelV3
+  anthropic(modelId: string): LanguageModelV3
+  mistral(modelId: string): LanguageModelV3
+  openai(modelId: string): LanguageModelV3
+  openaiCompatible(modelId: string): LanguageModelV3
+}
 import { mapValues, omit, pickBy } from "remeda"
 
 /** Default timeout (ms) for provider HTTP requests (connection phase). */
@@ -147,13 +156,13 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
       return {
         autoload: Object.keys(input.models).length > 0,
         options,
-        async getModel(sdk: KiloProvider, modelID: string) {
-          const provider = input.models[modelID]?.ai_sdk_provider
-          if (provider === "alibaba") return sdk.alibaba(modelID)
-          if (provider === "anthropic") return sdk.anthropic(modelID)
-          if (provider === "mistral") return sdk.mistral(modelID)
-          if (provider === "openai") return sdk.openai(modelID)
-          if (provider === "openai-compatible") return sdk.openaiCompatible(modelID)
+        async getModel(sdk: KiloSDK, modelID: string) {
+          const p = input.models[modelID]?.ai_sdk_provider
+          if (p === "alibaba") return sdk.alibaba(modelID)
+          if (p === "anthropic") return sdk.anthropic(modelID)
+          if (p === "mistral") return sdk.mistral(modelID)
+          if (p === "openai") return sdk.openai(modelID)
+          if (p === "openai-compatible") return sdk.openaiCompatible(modelID)
           return sdk.languageModel(modelID)
         },
       }

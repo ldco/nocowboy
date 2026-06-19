@@ -192,7 +192,7 @@ export namespace PlanFollowup {
 
   async function resolveCodeModel(input: Pick<MessageV2.User, "model">) {
     const state =
-      Flag.NOCOWBOY_CLIENT === "cli"
+      Flag.KILO_CLIENT === "cli"
         ? await Bun.file(path.join(Global.Path.state, "model.json"))
             .text()
             .then((raw) => ModelState.safeParse(JSON.parse(raw)))
@@ -305,7 +305,7 @@ export namespace PlanFollowup {
           // main prompt input below the dock already routes typed text as a question
           // reply, so "Type your own answer" would be redundant (originally hidden in
           // 65566af7f8, flipped back during the v1.4.4 upstream merge).
-          custom: Flag.NOCOWBOY_CLIENT === "cli" || Flag.NOCOWBOY_CLIENT === "jetbrains",
+          custom: Flag.KILO_CLIENT === "cli" || Flag.KILO_CLIENT === "jetbrains",
           options: [
             {
               label: ANSWER_NEW_SESSION,
@@ -501,18 +501,18 @@ export namespace PlanFollowup {
 
     const answers = await prompt({ sessionID: input.sessionID, abort: input.abort, question: input.question })
     if (!answers) {
-      Telemetry.trackPlanFollowup(input.sessionID, "dismissed")
+      Telemetry.trackPlanFollowup()
       return "break"
     }
 
     const answer = answers[0]?.[0]?.trim()
     if (!answer) {
-      Telemetry.trackPlanFollowup(input.sessionID, "dismissed")
+      Telemetry.trackPlanFollowup()
       return "break"
     }
 
     if (answer === ANSWER_NEW_SESSION) {
-      Telemetry.trackPlanFollowup(input.sessionID, "new_session")
+      Telemetry.trackPlanFollowup()
       const ctx = Instance.current
       const file = PlanFile.resolve(PlanFile.latest(input.messages), ctx)
       await startNew({
@@ -526,7 +526,7 @@ export namespace PlanFollowup {
     }
 
     if (answer === ANSWER_CONTINUE) {
-      Telemetry.trackPlanFollowup(input.sessionID, "continue")
+      Telemetry.trackPlanFollowup()
       const code = await resolveCodeModel({
         model: user.model,
       })
@@ -540,7 +540,7 @@ export namespace PlanFollowup {
       return "continue"
     }
 
-    Telemetry.trackPlanFollowup(input.sessionID, "custom")
+    Telemetry.trackPlanFollowup()
     const msg = await inject({
       sessionID: input.sessionID,
       agent: "plan",
