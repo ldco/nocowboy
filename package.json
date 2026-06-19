@@ -103,7 +103,7 @@
     "type": "git",
     "url": "https://github.com/ldco/nocowboy"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "overrides": {
     "@opentui/core": "0.4.1"
   }
