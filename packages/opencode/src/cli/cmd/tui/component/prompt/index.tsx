@@ -354,9 +354,11 @@ export function Prompt(props: PromptProps) {
     const pct = model?.limit.context ? `${Math.round((tokens / model.limit.context) * 100)}%` : undefined
     const cost = session?.cost ?? 0
     const tokenStr = tokens >= 1000000 ? `${(tokens / 1000000).toFixed(2)}M` : tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}K` : `${tokens}`
+    const fmt = (n: number) => n.toLocaleString("en-US")
     return {
       context: pct ? `${tokenStr} (${pct})` : tokenStr,
       cost: cost > 0 ? money.format(cost) : undefined,
+      breakdown: `In: ${fmt(last.tokens.input)}  Out: ${fmt(last.tokens.output)}  Cache: ${fmt(last.tokens.cache.read + last.tokens.cache.write)}`,
     }
   })
 
@@ -1815,6 +1817,7 @@ export function Prompt(props: PromptProps) {
                       {(item) => (
                         <text fg={theme.textMuted} wrapMode="none">
                           {[item().context, item().cost].filter(Boolean).join(" · ")}
+                          {"  "}{item().breakdown}
                         </text>
                       )}
                     </Match>
