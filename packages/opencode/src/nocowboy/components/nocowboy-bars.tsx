@@ -15,7 +15,7 @@ function shortPath(p: string): string {
   const home = process.env.HOME || "/home/" + (process.env.USER || "user")
   let rel = p.startsWith(home) ? "~" + p.slice(home.length) : p
   const parts = rel.split("/")
-  if (parts.length > 3) return parts[0] + "/.../" + parts[parts.length - 1]
+  if (parts.length > 2) return parts.slice(-2).join("/")
   return rel
 }
 
@@ -90,16 +90,9 @@ export function TopBar() {
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
-      <text fg={theme.highlight} bold flexShrink={0}> noCowboy</text>
-      <text
-        fg={theme.text}
-        flexGrow={1}
-        onMouseDown={(evt: any) => { evt?.preventDefault?.(); Clipboard.copy(fullPath).catch(() => {}) }}
-      >
-        {" "}{pathDisplay}
-      </text>
-      <text fg={theme.success}>
-        {git().branch ? ` ${icons.branch}${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}` : ""}
+      <text fg={theme.highlight} bold> noCowboy</text>
+      <text fg={theme.text} flexGrow={1}>
+        {" "}\uf116{pathDisplay}\uf1d2 \uf126{git().branch}{git().ahead > 0 ? ` ⇡${git().ahead}` : ""}{git().behind > 0 ? ` ⇢${git().behind}` : ""}
       </text>
       <text fg={theme.textDim}>
         {"  Score: --  Tokens: 0  Cost: $0.00  "}
