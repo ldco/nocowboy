@@ -944,9 +944,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
             <TopBar />
             <box flexGrow={1} minHeight={0} flexDirection="column">
               <Show when={useScreen().screen() === "chat"}>
-                 {/* nocowboy_change — Session for both states: no layout shift */}
                  <Switch>
-                   <Match when={route.data.type === "home" || route.data.type === "session"}>
+                   <Match when={route.data.type === "home"}>
+                     <Home />
+                   </Match>
+                   <Match when={route.data.type === "session"}>
                      <Session />
                    </Match>
                  </Switch>
