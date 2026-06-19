@@ -1,12 +1,12 @@
 // nocowboy_change new file
-import { useTheme } from "@tui/context/theme"
+import { RGBA, TextAttributes } from "@opentui/core"
+
+const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
 export function Logo() {
-  const { theme } = useTheme()
-
   return (
     <box gap={1} paddingLeft={2}>
-      <text fg={theme.highlight} bold>
+      <text attributes={TextAttributes.BOLD} fg={brand}>
         NoCowboy
       </text>
     </box>

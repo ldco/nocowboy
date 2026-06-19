@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
+import { RGBA, TextAttributes } from "@opentui/core"
 import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
 import { Clipboard } from "@tui/util/clipboard"
@@ -80,6 +81,8 @@ export function useScreen(): ScreenCtx {
 let globalSetScreen: ((s: Screen) => void) | null = null
 export function setScreenFromModule(s: Screen): void { globalSetScreen?.(s) }
 
+const brandOrange = RGBA.fromInts(0xff, 0x68, 0x00)
+
 export function TopBar() {
   const { theme } = useTheme()
   const fullPath = projectRoot
@@ -90,14 +93,14 @@ export function TopBar() {
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
-      <text fg={theme.highlight} bold> noCowboy</text>
+      <text attributes={TextAttributes.BOLD} fg={brandOrange}> noCowboy</text>
       <text fg={theme.text}>
         {` ${pathDisplay} \uf1d2`}
       </text>
       <text fg={theme.success} flexGrow={1}>
         {` \uf126${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}`}
       </text>
-      <text fg={theme.textDim}>
+      <text fg={theme.textMuted}>
         {"  Score: --  Tokens: 0  Cost: $0.00  "}
       </text>
       <text fg="#ff0000" paddingRight={1}>
@@ -111,7 +114,7 @@ function Btn(props: { label: string; active: boolean; onClick: () => void }) {
   const { theme } = useTheme()
   return (
     <text
-      fg={props.active ? theme.highlight : theme.textDim}
+      fg={props.active ? brandOrange : theme.textMuted}
       paddingLeft={1}
       paddingRight={1}
       onMouseDown={(evt: any) => { evt?.preventDefault?.(); props.onClick() }}
