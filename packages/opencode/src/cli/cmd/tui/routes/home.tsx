@@ -1,7 +1,7 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { For } from "solid-js"
 // ScoreWidget removed — belongs on Info/Screen page
-import { Logo } from "@tui/component/logo"
+// Logo removed — will add ASCII later
 import { createEffect, createSignal, onMount } from "solid-js"
 import { useProject } from "../context/project"
 import { useSync } from "../context/sync"
