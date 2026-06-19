@@ -1,0 +1,11 @@
+#!/usr/bin/env bun
+import { spawnSync } from "child_process"
+import { fileURLToPath } from "url"
+import { dirname, resolve } from "path"
+
+const dir = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+process.exit(spawnSync(
+  process.argv0,
+  ["run", "--cwd", dir, "--conditions=browser", resolve(dir, "src/index.ts"), ...process.argv.slice(2)],
+  { stdio: "inherit", env: process.env },
+).status ?? 1)

@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "theme": "nocowboy-dark",
+    "shortcutPreset": "default",
+    "statusBar": true,
+    "autoCollapse": true
+  },
+  "shortcuts": {
+    "toggleAgents": "Ctrl+b",
+    "toggleSessions": "Ctrl+h",
+    "toggleGit": "Ctrl+g",
+    "toggleTerminal": "Ctrl+`",
+    "toggleFiles": "Ctrl+o",
+    "toggleThemes": "Ctrl+t",
+    "toggleSettings": "Ctrl+,",
+    "submitInput": "Enter",
+    "newLine": "Alt+Enter"
+  }
+}
