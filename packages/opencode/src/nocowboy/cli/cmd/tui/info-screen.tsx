@@ -1,12 +1,14 @@
-import { For, Show, createMemo } from "solid-js"
+import { For, Show, createMemo, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import type { AssistantMessage } from "@nocowboy/sdk/v2"
+import { TodoItem } from "@tui/component/todo-item"
 import { InstallationVersion, InstallationLocal } from "@opencode-ai/core/installation/version"
 import { Global } from "@opencode-ai/core/global"
+import * as Model from "@tui/util/model"
 
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
@@ -15,7 +17,38 @@ const money = new Intl.NumberFormat("en-US", {
   currency: "USD",
 })
 
-type Section = { label: string; value: string }
+function Entry(props: { label: string; value: string }) {
+  const { theme } = useTheme()
+  return (
+    <box flexDirection="row" gap={2}>
+      <text fg={theme.textMuted} minWidth={14}>{props.label}:</text>
+      <text fg={theme.text}>{props.value}</text>
+    </box>
+  )
+}
+
+function Section(props: { title: string; children: JSX.Element }) {
+  const { theme } = useTheme()
+  return (
+    <box paddingTop={1}>
+      <text fg={theme.text} paddingBottom={1}><b>{props.title}</b></text>
+      {props.children}
+    </box>
+  )
+}
+
+function Dot(props: { status: string; connectedColor: any; errorColor?: any }) {
+  const { theme } = useTheme()
+  const c = () => {
+    if (props.status === "connected") return props.connectedColor ?? theme.success
+    if (props.status === "failed" || props.status === "error") return props.errorColor ?? theme.error
+    if (props.status === "disabled") return theme.textMuted
+    if (props.status === "needs_auth") return theme.warning
+    if (props.status === "needs_client_registration") return theme.error
+    return theme.textMuted
+  }
+  return <text flexShrink={0} style={{ fg: c() }}>•</text>
+}
 
 export function InfoScreen() {
   const { theme } = useTheme()
@@ -26,73 +59,75 @@ export function InfoScreen() {
   const sessionID = createMemo(() =>
     route.data.type === "session" ? route.data.sessionID : null,
   )
-
   const session = createMemo(() => {
     const id = sessionID()
     return id ? sync.session.get(id) : null
   })
-
   const messages = createMemo(() => {
     const id = sessionID()
     return id ? (sync.data.message[id] ?? []) : []
   })
 
+  // --- Context widget ---
   const lastAssistant = createMemo(() =>
     messages().findLast((item): item is AssistantMessage =>
       item.role === "assistant" && item.tokens.output > 0,
     ),
   )
-
-  const tokens = createMemo(() => {
-    const msg = lastAssistant()
-    if (!msg) return 0
-    return msg.tokens.input + msg.tokens.output + msg.tokens.reasoning
-      + msg.tokens.cache.read + msg.tokens.cache.write
+  const contextData = createMemo(() => {
+    const last = lastAssistant()
+    if (!last) return { tokens: 0, percent: null, cost: 0 }
+    const tokens =
+      last.tokens.input + last.tokens.output + last.tokens.reasoning
+      + last.tokens.cache.read + last.tokens.cache.write
+    const providers = Model.index(sync.data.provider)
+    const model = providers.get(last.providerID)?.models[last.modelID]
+    const percent = model?.limit.context ? Math.round((tokens / model.limit.context) * 100) : null
+    return { tokens, percent, cost: session()?.cost ?? 0 }
   })
 
-  const cost = createMemo(() => session()?.cost ?? 0)
-
+  // --- Files widget ---
   const diffs = createMemo(() => {
     const id = sessionID()
     return id ? (sync.data.session_diff[id] ?? []) : []
   })
 
+  // --- Todo widget ---
   const todos = createMemo(() => {
     const id = sessionID()
     return id ? (sync.data.todo[id] ?? []) : []
   })
+  const showTodos = createMemo(() =>
+    todos().length > 0 && todos().some((item: any) => item.status !== "completed"),
+  )
 
-  const mcpServers = createMemo(() => Object.entries(sync.data.mcp ?? {}))
-  const lspServers = createMemo(() => sync.data.lsp ?? [])
-  const providers = createMemo(() => sync.data.provider ?? [])
-
-  const env = createMemo(() => {
-    const rows: Section[] = []
-    const dir = project.data.instance.path.directory
-    if (dir) {
-      let display = dir.replace(Global.Path.home, "~")
-      if (sync.data.vcs?.branch) display += ":" + sync.data.vcs.branch
-      rows.push({ label: "Directory", value: display })
-    }
-    const v = sync.data.globalConfig as any
-    if (v?.directory) rows.push({ label: "Config", value: v.directory.replace(Global.Path.home, "~") })
-    if (!InstallationLocal) rows.push({ label: "Version", value: InstallationVersion })
-    rows.push({ label: "Sessions", value: String(sync.data.session.length) })
-    rows.push({ label: "Providers", value: String(providers().length) })
-    return rows
+  // --- MCP widget ---
+  const mcpList = createMemo(() => Object.entries(sync.data.mcp ?? {}))
+  const mcpOn = createMemo(() => mcpList().filter(([_, v]: [string, any]) => v.status === "connected").length)
+  const mcpBad = createMemo(() =>
+    mcpList().filter(([_, v]: [string, any]) =>
+      v.status === "failed" || v.status === "needs_auth" || v.status === "needs_client_registration",
+    ).length,
+  )
+  const mcpStatusText = createMemo(() => {
+    if (mcpOn() === 0 && mcpBad() === 0) return ""
+    const parts: string[] = []
+    if (mcpOn() > 0) parts.push(`${mcpOn()} active`)
+    if (mcpBad() > 0) parts.push(`${mcpBad()} error${mcpBad() > 1 ? "s" : ""}`)
+    return " (" + parts.join(", ") + ")"
   })
 
-  const sessionRows = createMemo(() => {
-    const s = session()
-    if (!s) return [] as Section[]
-    return [
-      { label: "Session", value: s.title },
-      { label: "Messages", value: String(messages().length) },
-      { label: "Tokens", value: tokens().toLocaleString() },
-      { label: "Cost", value: money.format(cost()) },
-      { label: "Files changed", value: String(diffs().length) },
-      { label: "Todos", value: String(todos().length) },
-    ]
+  // --- LSP widget ---
+  const lspList = createMemo(() => sync.data.lsp ?? [])
+  const lspOff = createMemo(() => (sync.data.globalConfig as any)?.lsp === false)
+
+  // --- Footer path ---
+  const pathData = createMemo(() => {
+    const dir = project.data.instance.path.directory || process.cwd()
+    const out = dir.replace(Global.Path.home, "~")
+    const branch = sync.data.vcs?.branch
+    const text = branch ? out + ":" + branch : out
+    return text
   })
 
   return (
@@ -101,94 +136,106 @@ export function InfoScreen() {
         NoCowboy Info
       </text>
 
-      <text fg={theme.textMuted} paddingBottom={1}>Environment</text>
-      <For each={env()}>
-        {(row) => (
-          <box flexDirection="row" gap={2}>
-            <text fg={theme.textMuted} minWidth={14}>{row.label}:</text>
-            <text fg={theme.text}>{row.value}</text>
-          </box>
-        )}
-      </For>
+      {/* --- Context Widget --- */}
+      <Show when={sessionID()}>
+        <Section title="Context">
+          <Entry label="Tokens" value={contextData().tokens.toLocaleString()} />
+          <Entry label="Used" value={`${contextData().percent ?? 0}%`} />
+          <Entry label="Cost" value={money.format(contextData().cost)} />
+        </Section>
+      </Show>
 
-      <Show when={sessionRows().length > 0}>
-        <box paddingTop={1}>
-          <text fg={theme.textMuted} paddingBottom={1}>Session</text>
-          <For each={sessionRows()}>
-            {(row) => (
-              <box flexDirection="row" gap={2}>
-                <text fg={theme.textMuted} minWidth={14}>{row.label}:</text>
-                <text fg={theme.text}>{row.value}</text>
+      {/* --- Environment --- */}
+      <Section title="Environment">
+        <Entry label="Directory" value={pathData()} />
+        <Show when={sync.data.globalConfig}>
+          <Entry label="Config" value={String((sync.data.globalConfig as any)?.directory ?? "").replace(Global.Path.home, "~")} />
+        </Show>
+        <Show when={!InstallationLocal}>
+          <Entry label="Version" value={InstallationVersion} />
+        </Show>
+        <Entry label="Sessions" value={String(sync.data.session.length)} />
+        <Entry label="Providers" value={String(sync.data.provider.length)} />
+      </Section>
+
+      {/* --- Session info --- */}
+      <Show when={session()}>
+        <Section title="Session">
+          <Entry label="Title" value={session()!.title} />
+          <Entry label="Messages" value={String(messages().length)} />
+        </Section>
+      </Show>
+
+      {/* --- Modified Files --- */}
+      <Show when={diffs().length > 0}>
+        <Section title="Modified Files">
+          <For each={diffs()}>
+            {(d: any) => (
+              <box flexDirection="row" gap={1} justifyContent="space-between">
+                <text fg={theme.textMuted} wrapMode="none">{d.file ?? d.path}</text>
+                <box flexDirection="row" gap={1} flexShrink={0}>
+                  <Show when={d.additions}><text fg={theme.diffAdded}>+{d.additions}</text></Show>
+                  <Show when={d.deletions}><text fg={theme.diffRemoved}>-{d.deletions}</text></Show>
+                </box>
               </box>
             )}
           </For>
-        </box>
+        </Section>
+      </Show>
 
-        <Show when={diffs().length > 0}>
-          <text fg={theme.text} paddingTop={1} paddingBottom={1}>
-            <b>Modified Files</b>
-          </text>
-          <scrollbox maxHeight={8}>
-            <For each={diffs()}>
-              {(d: any) => (
-                <box gap={1}>
-                  <text fg={theme.success}>+{d.additions}</text>
-                  <text fg={theme.error}>-{d.deletions}</text>
-                  <text fg={theme.textMuted}>{d.file}</text>
-                </box>
-              )}
-            </For>
-          </scrollbox>
-        </Show>
+      {/* --- Todos --- */}
+      <Show when={showTodos()}>
+        <Section title="Todo">
+          <For each={todos()}>
+            {(t: any) => <TodoItem status={t.status} content={t.content} />}
+          </For>
+        </Section>
+      </Show>
 
-        <Show when={todos().length > 0}>
-          <text fg={theme.text} paddingTop={1} paddingBottom={1}>
-            <b>Todos</b>
-          </text>
-          <scrollbox maxHeight={8}>
-            <For each={todos()}>
-              {(t: any) => (
-                <text fg={t.status === "completed" ? theme.success : theme.textMuted}>
-                  {t.status === "completed" ? "✓" : "☐"} {t.content}
+      {/* --- MCP --- */}
+      <Show when={mcpList().length > 0}>
+        <Section title={"MCP" + mcpStatusText()}>
+          <For each={mcpList()}>
+            {([name, info]: [string, any]) => (
+              <box flexDirection="row" gap={1}>
+                <Dot status={info.status} connectedColor={theme.success} errorColor={theme.error} />
+                <text fg={theme.text} wrapMode="word">
+                  {name}{" "}
+                  <span style={{ fg: theme.textMuted }}>
+                    <Show when={info.status === "connected"}>Connected</Show>
+                    <Show when={info.status === "failed"}><i>{info.error ?? "Failed"}</i></Show>
+                    <Show when={info.status === "disabled"}>Disabled</Show>
+                    <Show when={info.status === "needs_auth"}>Needs auth</Show>
+                    <Show when={info.status === "needs_client_registration"}>Needs client ID</Show>
+                    <Show when={!["connected", "failed", "disabled", "needs_auth", "needs_client_registration"].includes(info.status)}>
+                      {info.status}
+                    </Show>
+                  </span>
                 </text>
-              )}
-            </For>
-          </scrollbox>
+              </box>
+            )}
+          </For>
+        </Section>
+      </Show>
+
+      {/* --- LSP --- */}
+      <Section title="LSP">
+        <Show when={lspList().length === 0}>
+          <text fg={theme.textMuted}>
+            {lspOff() ? "LSPs are disabled" : "LSPs will activate as files are read"}
+          </text>
         </Show>
-      </Show>
-
-      <Show when={mcpServers().length > 0}>
-        <text fg={theme.text} paddingTop={1} paddingBottom={1}>
-          <b>MCP Servers</b>
-        </text>
-        <For each={mcpServers()}>
-          {([name, info]: [string, any]) => (
-            <box gap={1}>
-              <text fg={info?.status === "connected" ? theme.success : theme.error}>
-                {info?.status === "connected" ? "●" : "○"}
-              </text>
-              <text fg={theme.textMuted}>{name}</text>
+        <For each={lspList()}>
+          {(item: any) => (
+            <box flexDirection="row" gap={1}>
+              <Dot status={item.status} connectedColor={theme.success} errorColor={theme.error} />
+              <text fg={theme.textMuted}>{item.id} {item.root ?? ""}</text>
             </box>
           )}
         </For>
-      </Show>
+      </Section>
 
-      <Show when={lspServers().length > 0}>
-        <text fg={theme.text} paddingTop={1} paddingBottom={1}>
-          <b>LSP Servers</b>
-        </text>
-        <For each={lspServers()}>
-          {(srv: any) => (
-            <box gap={1}>
-              <text fg={srv.status === "connected" ? theme.success : theme.error}>
-                {srv.status === "connected" ? "●" : "○"}
-              </text>
-              <text fg={theme.textMuted}>{srv.name ?? srv.id}</text>
-            </box>
-          )}
-        </For>
-      </Show>
-
+      {/* --- Footer: path + version --- */}
       <Show when={!session()}>
         <text fg={theme.textMuted} paddingTop={1}>
           Open a session to see session-specific data.
