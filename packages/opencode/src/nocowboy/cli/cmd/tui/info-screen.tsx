@@ -164,7 +164,6 @@ export function InfoScreen() {
       <Section title="Session">
         <Entry label="Name" value={session()?.title ?? "-"} />
         <Entry label="Messages" value={String(messages().length)} />
-        <Entry label="SessionID" value={sessionID() ?? "null"} />
       </Section>
 
       {/* --- Environment --- */}
@@ -242,6 +241,13 @@ export function InfoScreen() {
           )}
         </For>
       </Section>
+
+      {/* --- Footer --- */}
+      <box paddingTop={2}>
+        <text fg={theme.textMuted}>
+          <span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span>
+        </text>
+      </box>
     </box>
   )
 }
