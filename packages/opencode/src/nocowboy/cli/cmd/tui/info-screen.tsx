@@ -6,7 +6,7 @@ import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import type { AssistantMessage } from "@nocowboy/sdk/v2"
 import { TodoItem } from "@tui/component/todo-item"
-import { InstallationVersion, InstallationLocal } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { Global } from "@opencode-ai/core/global"
 import * as Model from "@tui/util/model"
 
@@ -56,9 +56,10 @@ export function InfoScreen() {
   const sync = useSync()
   const route = useRoute()
 
-  const sessionID = createMemo(() =>
-    route.data.type === "session" ? route.data.sessionID : null,
-  )
+  const sessionID = createMemo(() => {
+    if (route.data.type === "session") return route.data.sessionID
+    return (sync.data.session as any[])?.[0]?.id ?? null
+  })
   const session = createMemo(() => {
     const id = sessionID()
     return id ? sync.session.get(id) : null
@@ -76,7 +77,7 @@ export function InfoScreen() {
   )
   const contextData = createMemo(() => {
     const last = lastAssistant()
-    if (!last) return { tokens: 0, percent: null, cost: 0 }
+    if (!last) return { tokens: null, percent: null, cost: null }
     const tokens =
       last.tokens.input + last.tokens.output + last.tokens.reasoning
       + last.tokens.cache.read + last.tokens.cache.write
@@ -102,11 +103,19 @@ export function InfoScreen() {
   )
 
   // --- MCP widget ---
-  const mcpList = createMemo(() => Object.entries(sync.data.mcp ?? {}))
-  const mcpOn = createMemo(() => mcpList().filter(([_, v]: [string, any]) => v.status === "connected").length)
+  const mcpList = createMemo(() =>
+    Object.entries(sync.data.mcp ?? {})
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, item]: [string, any]) => ({
+        name,
+        status: item.status,
+        error: item.status === "failed" ? item.error : undefined,
+      })),
+  )
+  const mcpOn = createMemo(() => mcpList().filter((item) => item.status === "connected").length)
   const mcpBad = createMemo(() =>
-    mcpList().filter(([_, v]: [string, any]) =>
-      v.status === "failed" || v.status === "needs_auth" || v.status === "needs_client_registration",
+    mcpList().filter((item) =>
+      item.status === "failed" || item.status === "needs_auth" || item.status === "needs_client_registration",
     ).length,
   )
   const mcpStatusText = createMemo(() => {
@@ -118,53 +127,46 @@ export function InfoScreen() {
   })
 
   // --- LSP widget ---
-  const lspList = createMemo(() => sync.data.lsp ?? [])
-  const lspOff = createMemo(() => (sync.data.globalConfig as any)?.lsp === false)
+  const lspList = createMemo(() => (sync.data.lsp ?? []).map((item: any) => ({
+    id: item.id,
+    root: item.root,
+    status: item.status,
+  })))
+  const lspOff = createMemo(() => sync.data.config?.lsp === false)
 
   // --- Footer path ---
   const pathData = createMemo(() => {
     const dir = project.data.instance.path.directory || process.cwd()
     const out = dir.replace(Global.Path.home, "~")
     const branch = sync.data.vcs?.branch
-    const text = branch ? out + ":" + branch : out
-    return text
+    return branch ? out + ":" + branch : out
   })
 
   return (
     <box flexDirection="column" flexGrow={1} paddingX={4} paddingY={2}>
       <text attributes={TextAttributes.BOLD} fg={brand} paddingBottom={1}>
-        NoCowboy Info
+        NoCowboy Info {InstallationVersion}
       </text>
 
-      {/* --- Context Widget --- */}
-      <Show when={sessionID()}>
-        <Section title="Context">
-          <Entry label="Tokens" value={contextData().tokens.toLocaleString()} />
-          <Entry label="Used" value={`${contextData().percent ?? 0}%`} />
-          <Entry label="Cost" value={money.format(contextData().cost)} />
-        </Section>
-      </Show>
+      {/* --- Context / Tokens --- */}
+      <Section title="Context">
+        <Entry label="Tokens" value={contextData().tokens?.toLocaleString() ?? "--"} />
+        <Entry label="Used" value={`${contextData().percent ?? 0}%`} />
+        <Entry label="Cost" value={contextData().cost != null ? money.format(contextData().cost!) : "--"} />
+      </Section>
+
+      {/* --- Session --- */}
+      <Section title="Session">
+        <Entry label="Name" value={session()?.title ?? "-"} />
+        <Entry label="Messages" value={String(messages().length)} />
+      </Section>
 
       {/* --- Environment --- */}
       <Section title="Environment">
         <Entry label="Directory" value={pathData()} />
-        <Show when={sync.data.globalConfig}>
-          <Entry label="Config" value={String((sync.data.globalConfig as any)?.directory ?? "").replace(Global.Path.home, "~")} />
-        </Show>
-        <Show when={!InstallationLocal}>
-          <Entry label="Version" value={InstallationVersion} />
-        </Show>
         <Entry label="Sessions" value={String(sync.data.session.length)} />
         <Entry label="Providers" value={String(sync.data.provider.length)} />
       </Section>
-
-      {/* --- Session info --- */}
-      <Show when={session()}>
-        <Section title="Session">
-          <Entry label="Title" value={session()!.title} />
-          <Entry label="Messages" value={String(messages().length)} />
-        </Section>
-      </Show>
 
       {/* --- Modified Files --- */}
       <Show when={diffs().length > 0}>
@@ -196,19 +198,19 @@ export function InfoScreen() {
       <Show when={mcpList().length > 0}>
         <Section title={"MCP" + mcpStatusText()}>
           <For each={mcpList()}>
-            {([name, info]: [string, any]) => (
+            {(item: any) => (
               <box flexDirection="row" gap={1}>
-                <Dot status={info.status} connectedColor={theme.success} errorColor={theme.error} />
+                <Dot status={item.status} connectedColor={theme.success} errorColor={theme.error} />
                 <text fg={theme.text} wrapMode="word">
-                  {name}{" "}
+                  {item.name}{" "}
                   <span style={{ fg: theme.textMuted }}>
-                    <Show when={info.status === "connected"}>Connected</Show>
-                    <Show when={info.status === "failed"}><i>{info.error ?? "Failed"}</i></Show>
-                    <Show when={info.status === "disabled"}>Disabled</Show>
-                    <Show when={info.status === "needs_auth"}>Needs auth</Show>
-                    <Show when={info.status === "needs_client_registration"}>Needs client ID</Show>
-                    <Show when={!["connected", "failed", "disabled", "needs_auth", "needs_client_registration"].includes(info.status)}>
-                      {info.status}
+                    <Show when={item.status === "connected"}>Connected</Show>
+                    <Show when={item.status === "failed"}>{item.error ?? "Failed"}</Show>
+                    <Show when={item.status === "disabled"}>Disabled</Show>
+                    <Show when={item.status === "needs_auth"}>Needs auth</Show>
+                    <Show when={item.status === "needs_client_registration"}>Needs client ID</Show>
+                    <Show when={!["connected", "failed", "disabled", "needs_auth", "needs_client_registration"].includes(item.status)}>
+                      {item.status}
                     </Show>
                   </span>
                 </text>
@@ -234,13 +236,6 @@ export function InfoScreen() {
           )}
         </For>
       </Section>
-
-      {/* --- Footer: path + version --- */}
-      <Show when={!session()}>
-        <text fg={theme.textMuted} paddingTop={1}>
-          Open a session to see session-specific data.
-        </text>
-      </Show>
     </box>
   )
 }
