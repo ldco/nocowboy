@@ -75,20 +75,6 @@ function Mcp(props: { api: TuiPluginApi }) {
   )
 }
 
-function Version(props: { api: TuiPluginApi }) {
-  const theme = () => props.api.theme.current
-
-  return (
-    <box flexShrink={0}>
-      <text fg={theme().textMuted}>{props.api.app.version}</text>
-    </box>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Main footer view
-// ---------------------------------------------------------------------------
-
 function View(props: { api: TuiPluginApi }) {
   const kilo = createMemo(() => props.api.state.provider.some((p) => p.id === "kilo"))
 
@@ -108,7 +94,6 @@ function View(props: { api: TuiPluginApi }) {
         <Mcp api={props.api} />
       </box>
       <box flexGrow={1} />
-      <Version api={props.api} />
     </box>
   )
 }
