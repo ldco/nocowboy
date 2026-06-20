@@ -159,6 +159,7 @@ export function InfoScreen() {
       <Section title="Session">
         <Entry label="Name" value={session()?.title ?? "-"} />
         <Entry label="Messages" value={String(messages().length)} />
+        <Entry label="SessionID" value={sessionID() ?? "null"} />
       </Section>
 
       {/* --- Environment --- */}
