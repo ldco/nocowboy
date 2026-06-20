@@ -7,7 +7,7 @@ import { RGBA, TextAttributes } from "@opentui/core"
 import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
 import { Clipboard } from "@tui/util/clipboard"
-// useRoute removed
+import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(__dirname, "../../../../..")
@@ -139,6 +139,22 @@ export function BottomBar() {
           />
         )}
       </For>
+      <text flexGrow={1} />
+      <SidebarToggle />
     </box>
+  )
+}
+
+function SidebarToggle() {
+  const { theme } = useTheme()
+  return (
+    <text
+      fg={sidebarOpen() ? brandOrange : theme.textMuted}
+      paddingLeft={1}
+      paddingRight={1}
+      onMouseDown={(e: any) => { e?.preventDefault?.(); toggleSidebar() }}
+    >
+      {sidebarOpen() ? "◀ Sidebar" : "▶ Sidebar"}
+    </text>
   )
 }

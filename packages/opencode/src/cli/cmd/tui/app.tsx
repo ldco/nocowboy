@@ -5,7 +5,7 @@ import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
 import * as TuiAudio from "@tui/util/audio"
-import { createCliRenderer, MouseButton, TextAttributes, type CliRendererConfig } from "@opentui/core" // nocowboy_change
+import { createCliRenderer, MouseButton, TextAttributes, RGBA, type CliRendererConfig } from "@opentui/core" // nocowboy_change
 import { RouteProvider, useRoute } from "@tui/context/route"
 import {
   Switch,
@@ -59,6 +59,7 @@ import { ExitProvider, useExit } from "./context/exit"
 import { DialogSelect } from "./ui/dialog-select"
 import { Link } from "./ui/link"
 // nocowboy_change end
+import { Sidebar } from "@tui/routes/session/sidebar" // nocowboy_change
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
 import { Provider } from "@/provider/provider"
@@ -67,6 +68,7 @@ import open from "open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app" // nocowboy_change
 import { InfoScreen } from "@/nocowboy/cli/cmd/tui/info-screen" // nocowboy_change
+import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state" // nocowboy_change
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
@@ -124,6 +126,7 @@ const appBindingCommands = [
   "app.toggle.diffwrap",
   "app.toggle.paste_summary",
   "app.toggle.session_directory_filter",
+  "sidebar.toggle",
 ] as const
 
 function rendererConfig(_config: TuiConfig.Resolved): CliRendererConfig {
@@ -788,6 +791,15 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         },
       },
       {
+        name: "sidebar.toggle",
+        title: "Toggle sidebar",
+        category: "Session",
+        run: () => {
+          toggleSidebar()
+          dialog.clear()
+        },
+      },
+      {
         name: "app.toggle.session_directory_filter",
         title: kv.get("session_directory_filter_enabled", true)
           ? "Disable session directory filtering"
@@ -920,6 +932,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     return render({ params: route.data.data })
   })
 
+  const sidebarSessionID = createMemo(() => {
+    if (route.data.type === "session") return route.data.sessionID
+    return sync.data.session.find((s) => !s.parentID)?.id ?? ""
+  })
+
   return (
     <box
       width={dimensions().width}
@@ -943,32 +960,61 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         <box flexGrow={1} minHeight={0} flexDirection="column">
           <ScreenProvider>
             <TopBar />
-            <box flexGrow={1} minHeight={0} flexDirection="column">
-              <Show when={useScreen().screen() === "chat"}>
-                 <Switch>
-                   <Match when={route.data.type === "home"}>
-                     <Home />
-                   </Match>
-                   <Match when={route.data.type === "session"}>
-                     <Session />
-                   </Match>
-                 </Switch>
-                {plugin()}
-              </Show>
-              <Show when={useScreen().screen() !== "chat"}>
-              <Show when={useScreen().screen() === "info"}>{/* nocowboy_change start */}
-                <InfoScreen />
-              </Show>{/* nocowboy_change end */}
-              <Show when={useScreen().screen() !== "info"}>
-              <box flexGrow={1} alignItems="center" justifyContent="center">
-                <text fg={useTheme().theme.textMuted}>
-                  {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
-                </text>
+            <box flexGrow={1} minHeight={0} flexDirection="row">
+              <box flexGrow={1} minHeight={0} flexDirection="column">
+                <Show when={useScreen().screen() === "chat"}>
+                   <Switch>
+                    <Match when={route.data.type === "home"}>
+                      <Home />
+                    </Match>
+                    <Match when={route.data.type === "session"}>
+                      <Session />
+                    </Match>
+                  </Switch>
+                 {plugin()}
+                </Show>
+                <Show when={useScreen().screen() !== "chat"}>
+                <Show when={useScreen().screen() === "info"}>{/* nocowboy_change start */}
+                  <InfoScreen />
+                </Show>{/* nocowboy_change end */}
+                <Show when={useScreen().screen() !== "info"}>
+                <box flexGrow={1} alignItems="center" justifyContent="center">
+                  <text fg={useTheme().theme.textMuted}>
+                    {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
+                  </text>
+                </box>
+                </Show>
+                </Show>
               </box>
-              </Show>
+              <Show when={sidebarOpen() && (useScreen().screen() !== "chat" || route.data.type !== "session") && dimensions().width > 120}>
+                <Sidebar sessionID={sidebarSessionID()} />
               </Show>
             </box>
             <BottomBar />
+            <Show when={sidebarOpen() && (useScreen().screen() !== "chat" || route.data.type !== "session") && dimensions().width <= 120}>
+              <box
+                width={dimensions().width}
+                height={dimensions().height}
+                position="absolute"
+                zIndex={3000}
+                alignItems="flex-end"
+                backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
+                onMouseUp={() => toggleSidebar()}
+              >
+                <box
+                  onMouseUp={(e: any) => e?.stopPropagation?.()}
+                  backgroundColor={theme.backgroundPanel}
+                  width={42}
+                  height="100%"
+                >
+                  <Show when={sidebarSessionID()} fallback={
+                    <text fg={theme.textMuted} paddingTop={2} paddingLeft={2}>No active session</text>
+                  }>
+                    <Sidebar sessionID={sidebarSessionID()} overlay />
+                  </Show>
+                </box>
+              </box>
+            </Show>
           </ScreenProvider>
         </box>
         <TuiPluginRuntime.Slot name="app" />

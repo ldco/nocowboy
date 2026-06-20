@@ -93,6 +93,7 @@ import { formatTranscript } from "../../util/transcript"
 import { UI } from "@/cli/ui.ts"
 import { useTuiConfig } from "../../context/tui-config"
 // nocowboy_change start
+import { sidebarOpen as globalSidebarOpen } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 import { splitDiffHunks } from "@/nocowboy/tui/diff"
 import { session as banner } from "@/nocowboy/cli/logo"
 
@@ -289,8 +290,8 @@ export function Session() {
   const sidebarVisible = createMemo(() => {
     if (session()?.parentID) return false
     if (sidebarOpen()) return true
-    // NoCowboy: sidebar never auto-shows
-    if (sidebar() === "auto" && wide()) { return false }
+    if (globalSidebarOpen()) return true
+    if (sidebar() === "auto" && wide()) return false
     return false
   })
   const showTimestamps = createMemo(() => timestamps() === "show")
