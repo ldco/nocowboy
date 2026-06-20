@@ -1,4 +1,4 @@
-import { For, Show, createMemo, type JSX } from "solid-js"
+import { For, Show, createMemo, onMount, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { TextAttributes, RGBA } from "@opentui/core"
 import { useProject } from "@tui/context/project"
@@ -140,6 +140,11 @@ export function InfoScreen() {
     const out = dir.replace(Global.Path.home, "~")
     const branch = sync.data.vcs?.branch
     return branch ? out + ":" + branch : out
+  })
+
+  onMount(() => {
+    const id = sessionID()
+    if (id) sync.session.sync(id)
   })
 
   return (
