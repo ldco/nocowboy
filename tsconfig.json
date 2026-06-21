@@ -1,5 +1,15 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@tsconfig/bun/tsconfig.json",
-  "compilerOptions": {}
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid",
+    "noUncheckedIndexedAccess": false,
+    "customConditions": ["browser"],
+    "paths": {
+      "@/*": ["./packages/opencode/src/*"],
+      "@tui/*": ["./packages/opencode/src/cli/cmd/tui/*"],
+      "@test/*": ["./packages/opencode/test/*"]
+    }
+  }
 }
