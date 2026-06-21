@@ -1663,7 +1663,7 @@ export function Prompt(props: PromptProps) {
           height={1}
           /* nocowboy_change */ flexShrink={0}
           border={["left"]}
-          borderColor={borderHighlight()}
+          borderColor={theme.backgroundPanel} // nocowboy_change
           customBorderChars={{
             ...EmptyBorder,
             vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
