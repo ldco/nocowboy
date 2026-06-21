@@ -318,6 +318,13 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               <TuiPluginRuntime.Slot name="sidebar_content" session_id={props.sessionID} />
             </box>
           </scrollbox>
+          <box flexShrink={0} gap={1} paddingTop={1}> {/* nocowboy_change - footer only on info tab */}
+            <TuiPluginRuntime.Slot name="sidebar_footer" mode="single_winner" session_id={props.sessionID}>
+              <text fg={theme.textMuted}>
+                <span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span>
+              </text>
+            </TuiPluginRuntime.Slot>
+          </box>
         </Show>
       </Show>
 
@@ -344,13 +351,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       </Show>
 
       {/* Footer */}
-      <box flexShrink={0} gap={1} paddingTop={1}>
-        <TuiPluginRuntime.Slot name="sidebar_footer" mode="single_winner" session_id={props.sessionID}>
-          <text fg={theme.textMuted}>
-            <span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span>
-          </text>
-        </TuiPluginRuntime.Slot>
-      </box>
     </box>
   )
 }

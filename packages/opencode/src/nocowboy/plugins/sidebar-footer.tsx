@@ -50,7 +50,7 @@ function View(props: { api: TuiPluginApi }) {
           </box>
         </box>
       </Show>
-      <text fg={theme().textMuted} wrapMode="none">
+      <text fg={theme().textMuted} wrapMode="word">
         {path().parent}/{path().name}
       </text>
       <text fg={theme().textMuted}>
