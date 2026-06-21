@@ -14,7 +14,7 @@ import { GitLabPlugin } from "./gitlab"
 import { GooglePlugin } from "./google"
 import { GoogleVertexAnthropicPlugin, GoogleVertexPlugin } from "./google-vertex"
 import { GroqPlugin } from "./groq"
-import { KiloPlugin } from "./nocowboy"
+import { NoCowboyPlugin } from "./nocowboy"
 import { LLMGatewayPlugin } from "./llmgateway"
 import { MistralPlugin } from "./mistral"
 import { NvidiaPlugin } from "./nvidia"
@@ -48,7 +48,7 @@ export const ProviderPlugins = [
   GoogleVertexAnthropicPlugin,
   GoogleVertexPlugin,
   GroqPlugin,
-  KiloPlugin,
+  NoCowboyPlugin,
   LLMGatewayPlugin,
   MistralPlugin,
   NvidiaPlugin,

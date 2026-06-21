@@ -4,10 +4,10 @@ import { Effect } from "effect"
 import { PluginV2 } from "../../plugin"
 import { ProviderV2 } from "../../provider"
 
-const id = ProviderV2.ID.make("kilo")
+const id = ProviderV2.ID.make("nocowboy")
 
-export const KiloPlugin = PluginV2.define({
-  id: PluginV2.ID.make("kilo"),
+export const NoCowboyPlugin = PluginV2.define({
+  id: PluginV2.ID.make("nocowboy"),
   effect: Effect.gen(function* () {
     return {
       "provider.update": Effect.fn(function* (evt) {

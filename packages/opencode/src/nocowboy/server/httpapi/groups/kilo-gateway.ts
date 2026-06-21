@@ -97,9 +97,9 @@ const ClawStatusResponse = Schema.Struct({
   botName: Schema.optional(Schema.NullOr(Schema.String)),
 })
 
-export const KiloGatewayApi = HttpApi.make("kilo-gateway")
+export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
   .add(
-    HttpApiGroup.make("kilo-gateway")
+    HttpApiGroup.make("nocowboy-gateway")
       .add(
         HttpApiEndpoint.get("authStatus", KiloGatewayPaths.authStatus, {
           query: WorkspaceRoutingQuery,

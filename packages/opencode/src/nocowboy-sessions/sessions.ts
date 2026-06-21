@@ -16,7 +16,8 @@ import { clearInFlightCache, withInFlightCache } from "@/nocowboy-sessions/infli
 import type * as SDK from "@nocowboy/sdk/v2"
 import z from "zod"
 import { Context, Effect, Layer, Schema, Stream } from "effect"
-import { KILO_API_BASE } from "@nocowboy/gateway"
+// nocowboy_change - gateway removed
+const KILO_API_BASE = ""
 import { Config } from "@/config/config"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"

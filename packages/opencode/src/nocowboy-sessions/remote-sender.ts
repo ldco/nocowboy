@@ -50,8 +50,8 @@ function getRemotePromptInput() {
 function normalizeModel(model: string | undefined) {
   if (!model) return undefined
   return {
-    providerID: ProviderID.make("kilo"),
-    modelID: ModelID.make(model.startsWith("kilocode/") ? model.slice("kilocode/".length) : model),
+    providerID: ProviderID.make("nocowboy"),
+    modelID: ModelID.make(model.startsWith("nocowboy/") ? model.slice("nocowboy/".length) : model),
   }
 }
 
