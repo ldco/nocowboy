@@ -247,7 +247,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={historyScrollbox} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={(r: any) => (historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
