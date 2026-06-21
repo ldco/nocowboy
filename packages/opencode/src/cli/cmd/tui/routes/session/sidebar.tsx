@@ -231,7 +231,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                         when={workspace()}
                         fallback={<WorkspaceLabel type="unknown" name={session()!.workspaceID!} status="error" icon />}
                       >
-                        {(item) => (
+                        {(item: any) => (
                           <WorkspaceLabel
                             type={item().type}
                             name={item().name}
