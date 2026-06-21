@@ -13,6 +13,7 @@ import { RGBA, TextAttributes } from "@opentui/core"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
+import { DialogProvider } from "../../component/dialog-provider" // nocowboy_change
 
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
@@ -88,28 +89,47 @@ function HistoryTab(props: {
 function SettingsTab() {
   const { theme } = useTheme()
   const sync = useSync()
+  const dialog = useDialog()
+  const [search, setSearch] = createSignal("")
+
+  const allProviders = createMemo(() => {
+    const next = sync.data.provider_next
+    if (!next?.all) return []
+    const q = search().toLowerCase()
+    const items = next.all as { id: string; name: string }[]
+    return q ? items.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q)) : items
+  })
 
   const connected = createMemo(() => {
     const next = sync.data.provider_next
-    if (!next?.all) return []
-    return next.all.filter((p: any) => next.connected?.includes(p.id))
+    if (!next?.connected) return new Set<string>()
+    return new Set(next.connected as string[])
   })
 
   return (
     <box flexDirection="column" gap={1}>
-      <text attributes={TextAttributes.BOLD} fg={theme.text}>
-        Connected Providers
+      <text attributes={TextAttributes.BOLD} fg={theme.text} paddingBottom={1}>
+        Providers
       </text>
-      <Show when={connected().length > 0} fallback={<text fg={theme.textMuted}>No providers configured</text>}>
-        <For each={connected()}>
-          {(p: any) => (
-            <box flexDirection="row" gap={1}>
-              <text fg={theme.success}>•</text>
-              <text fg={theme.textMuted} wrapMode="none">{p.name}</text>
-            </box>
+      <input
+        onInput={(val: string) => setSearch(val)}
+        placeholder="Search providers..."
+        placeholderColor={theme.textMuted}
+        cursorColor={theme.primary}
+      />
+      <scrollbox flexGrow={1}>
+        <For each={allProviders()}>
+          {(p: { id: string; name: string }) => (
+            <text
+              onMouseDown={() => dialog.replace(() => <DialogProvider />)}
+              wrapMode="none"
+            >
+              <span style={{ fg: connected().has(p.id) ? theme.success : theme.textMuted }}>•</span>
+              {" "}{p.name}
+            </text>
           )}
         </For>
-      </Show>
+      </scrollbox>
     </box>
   )
 }
