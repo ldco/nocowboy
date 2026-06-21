@@ -1640,7 +1640,7 @@ export function Prompt(props: PromptProps) {
                             <text
                               onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }} // nocowboy_change
                             >
-                              <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
+                              <span style={{ fg: fadeColor(theme.accent, variantMetaAlpha()), bold: true }}>
                                 {local.model.variant.current()}
                               </span>
                             </text>
