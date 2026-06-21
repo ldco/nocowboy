@@ -1,4 +1,4 @@
-import { fetchKiloEmbeddingModelCatalog, resolveKiloGatewayBaseUrl } from "@nocowboy/gateway"
+import { fetchNoCowboyEmbeddingModelCatalog as fetchEmbeddingModelCatalog, resolveNoCowboyGatewayBaseUrl as resolveGatewayBaseUrl } from "@nocowboy/gateway"
 import type { Config, IndexingConfig, KiloEmbeddingModelCatalog } from "@nocowboy/sdk/v2"
 import * as Log from "@opencode-ai/core/util/log"
 import { createMemo, type Accessor } from "solid-js"
@@ -8,9 +8,9 @@ export type IndexingScope = "global" | "project"
 const log = Log.create({ service: "indexing-model-catalog" })
 
 export async function loadKiloEmbeddingModels(onError?: (message: string) => void) {
-  const endpoint = new URL("embedding-models", resolveKiloGatewayBaseUrl()).toString()
+  const endpoint = new URL("embedding-models", resolveGatewayBaseUrl()).toString()
   log.info("loading Kilo embedding model catalog", { endpoint })
-  const catalog = await fetchKiloEmbeddingModelCatalog({
+  const catalog = await fetchEmbeddingModelCatalog({
     onError: (issue) => {
       log.warn("failed to load Kilo embedding model catalog", {
         code: issue.code,

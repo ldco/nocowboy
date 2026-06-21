@@ -1,7 +1,5 @@
-// gateway removed - stubs inlined
-const resolveKiloGatewayBaseUrl = () => undefined as string | undefined
-const HEADER_FEATURE = "X-KILOCODE-FEATURE"
-const HEADER_ORGANIZATIONID = "X-KILOCODE-ORGANIZATIONID"
+import { resolveNoCowboyGatewayBaseUrl } from "@nocowboy/gateway"
+import { HEADER_FEATURE, HEADER_NOCOWBOY_ORGANIZATIONID } from "@nocowboy/gateway"
 import { MAX_ITEM_TOKENS } from "../constants"
 import type { EmbedderInfo, EmbeddingResponse, IEmbedder } from "../interfaces/embedder"
 import { Log } from "../../util/log"
@@ -28,11 +26,11 @@ export class KiloEmbedder implements IEmbedder {
     this.model = input.modelId
     const headers: Record<string, string> = {
       [HEADER_FEATURE]: KILO_INDEXING_FEATURE,
-      ...(input.organizationId ? { [HEADER_ORGANIZATIONID]: input.organizationId } : {}),
+      ...(input.organizationId ? { [HEADER_NOCOWBOY_ORGANIZATIONID]: input.organizationId } : {}),
     }
 
     this.embedder = new OpenAICompatibleEmbedder(
-      resolveKiloGatewayBaseUrl() ?? "",
+      resolveNoCowboyGatewayBaseUrl() ?? "",
       input.apiKey,
       this.model,
       MAX_ITEM_TOKENS,

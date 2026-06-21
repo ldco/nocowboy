@@ -5,7 +5,7 @@ import { toIndexingConfigInput, type IndexingConfig } from "@nocowboy/indexing/c
 import { hasIndexingPlugin } from "@nocowboy/indexing/detect"
 import { IndexingStatus, disabledIndexingStatus } from "@nocowboy/indexing/status"
 import { Telemetry } from "@nocowboy/telemetry"
-import { fetchKiloEmbeddingModelCatalog } from "@nocowboy/gateway"
+import { fetchNoCowboyEmbeddingModelCatalog as fetchEmbeddingModelCatalog } from "@nocowboy/gateway"
 import { Instance } from "@/nocowboy/instance"
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
@@ -85,7 +85,7 @@ function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloI
 async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloIndexingAuth) {
   if (input.embedderProvider !== "kilo") return input
 
-  const catalog = await fetchKiloEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
+  const catalog = await fetchEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
   const id = input.modelId ? (catalog.aliases[input.modelId] ?? input.modelId) : catalog.defaultModel
   const chosen = catalog.models.find((item) => item.id === id)
   const fallback = catalog.defaultModel ? (catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel) : undefined
@@ -472,13 +472,13 @@ export namespace KiloIndexing {
     try {
       const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
       const auth = await kiloAuth(cfg)
-      const catalog = await fetchKiloEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
+      const catalog = await fetchEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
       if (catalog.models.length > 0 || (!auth.baseUrl && !auth.apiKey)) return catalog
-      const fallback = await fetchKiloEmbeddingModelCatalog()
+      const fallback = await fetchEmbeddingModelCatalog()
       return fallback.models.length > 0 ? fallback : catalog
     } catch (err) {
       log.warn("falling back to public Kilo embedding model catalog", { err })
-      return fetchKiloEmbeddingModelCatalog()
+      return fetchEmbeddingModelCatalog()
     }
   }
 

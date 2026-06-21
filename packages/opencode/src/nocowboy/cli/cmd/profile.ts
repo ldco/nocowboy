@@ -3,7 +3,7 @@ import { cmd } from "../../../cli/cmd/cmd"
 import { UI } from "../../../cli/ui"
 import { Auth, type Info as AuthInfo } from "../../../auth"
 import { makeRuntime } from "../../../effect/run-service"
-import { fetchBalance, fetchProfile, type KilocodeBalance, type KilocodeProfile } from "@nocowboy/gateway"
+import { fetchBalance, fetchProfile, type NoCowboyBalance as GatewayBalance, type NoCowboyProfile as GatewayProfile } from "@nocowboy/gateway"
 
 const runtime = makeRuntime(Auth.Service, Auth.defaultLayer)
 
@@ -16,11 +16,11 @@ interface Info {
 }
 
 export function payload(input: {
-  profile: KilocodeProfile | null
-  balance: KilocodeBalance | null
+  profile: GatewayProfile | null
+  balance: GatewayBalance | null
   organizationId?: string | null
 }): Info {
-  const profile = input.profile ?? {} as KilocodeProfile
+  const profile = input.profile ?? {} as GatewayProfile
   const org = profile.organizations?.find((item) => item.id === input.organizationId)
   return {
     name: profile.name ?? null,
@@ -44,8 +44,8 @@ export function format(info: Info): string {
 interface Args {
   json: boolean
   getAuth?: (providerID: string) => Promise<AuthInfo | undefined>
-  getProfile?: (token: string) => Promise<KilocodeProfile>
-  getBalance?: (token: string, organizationId?: string) => Promise<KilocodeBalance | null>
+  getProfile?: (token: string) => Promise<GatewayProfile>
+  getBalance?: (token: string, organizationId?: string) => Promise<GatewayBalance | null>
   error?: (msg: string) => void
   exit?: (code: number) => void
 }

@@ -3,7 +3,7 @@ import * as Log from "@opencode-ai/core/util/log"
 import { Global } from "@opencode-ai/core/global"
 import { InstallationBuildKind, InstallationVersion } from "@opencode-ai/core/installation/version"
 import { Telemetry } from "@nocowboy/telemetry"
-import { migrateLegacyKiloAuth, ENV_FEATURE, ENV_VERSION } from "@nocowboy/gateway"
+import { migrateLegacyNoCowboyAuth as migrateLegacyAuth, ENV_FEATURE, ENV_VERSION } from "@nocowboy/gateway"
 import { AppRuntime } from "@/effect/app-runtime"
 import { Config } from "@/config/config"
 import { Auth } from "@/auth"
@@ -51,8 +51,8 @@ export namespace NocowboyCli {
 
     await Telemetry.init()
 
-    // Migrate legacy Kilo CLI auth (~/.kilocode/cli/config.json) into auth.json if present.
-    await migrateLegacyKiloAuth()
+    // Migrate legacy auth (~/.kilocode/cli/config.json) into auth.json if present.
+    await migrateLegacyAuth()
 
     const auth = await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))
     if (auth) {

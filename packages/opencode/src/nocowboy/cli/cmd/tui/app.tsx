@@ -21,7 +21,7 @@ import { DialogAlert } from "@tui/ui/dialog-alert"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { Link } from "@tui/ui/link"
 import { isNocowboyError, showNocowboyErrorToast } from "@/nocowboy/errors"
-const initializeTUIDependencies = (_opts: any) => {} // gateway removed
+import { initializeTUIDependencies } from "@nocowboy/gateway/tui"
 import { DialogProcessList } from "@/nocowboy/cli/cmd/tui/component/dialog-process-list"
 import { useIndexingWarnings } from "@/nocowboy/cli/cmd/tui/indexing-warning"
 import { TerminalTitle } from "./terminal-title"

@@ -4,7 +4,7 @@ import { Auth } from "@/auth"
 import { ModelCache } from "./model-cache"
 import * as Core from "@opencode-ai/core/models"
 import { Context, Effect, Layer } from "effect"
-import { AI_SDK_PROVIDERS, KILO_OPENROUTER_BASE, PROMPTS } from "@nocowboy/gateway"
+import { AI_SDK_PROVIDERS, NOCOWBOY_OPENROUTER_BASE, PROMPTS } from "@nocowboy/gateway"
 
 export const Model = Core.Model
 export type Model = Core.Model
@@ -84,7 +84,7 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
           id: "nocowboy",
           name: "NoCowboy",
           env: ["KILO_API_KEY"],
-          api: KILO_OPENROUTER_BASE.endsWith("/") ? KILO_OPENROUTER_BASE : `${KILO_OPENROUTER_BASE}/`,
+          api: NOCOWBOY_OPENROUTER_BASE.endsWith("/") ? NOCOWBOY_OPENROUTER_BASE : `${NOCOWBOY_OPENROUTER_BASE}/`,
           npm: "@nocowboy/gateway",
           models,
         }

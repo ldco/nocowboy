@@ -6,7 +6,7 @@
 // This module exports patch functions and data that the upstream provider.ts
 // calls at well-defined injection points (each marked with nocowboy_change).
 
-import { createKilo, type KiloProvider, AI_SDK_PROVIDERS, PROMPTS } from "@nocowboy/gateway"
+import { createNoCowboy, type NoCowboyProvider as KiloProvider, AI_SDK_PROVIDERS, PROMPTS } from "@nocowboy/gateway"
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
 import { ProviderID, ModelID } from "@/provider/schema"
 import { optionalOmitUndefined } from "@opencode-ai/core/schema"
@@ -33,7 +33,7 @@ export const REQUEST_TIMEOUT_MS = 300_000 // 5 minutes
 type BundledSDK = { languageModel(modelId: string): LanguageModelV3 }
 
 export const KILO_BUNDLED_PROVIDERS: Record<string, () => Promise<(options: any) => BundledSDK>> = {
-  "@nocowboy/gateway": async () => createKilo as unknown as (options: any) => BundledSDK,
+  "@nocowboy/gateway": async () => createNoCowboy as unknown as (options: any) => BundledSDK,
 }
 
 // ---------------------------------------------------------------------------

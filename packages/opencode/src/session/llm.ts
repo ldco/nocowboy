@@ -30,13 +30,12 @@ import { Auth } from "@/auth"
 // nocowboy_change start
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
 import { getKiloProjectId } from "@/nocowboy/project-id"
-import {
-  HEADER_FEATURE,
-  HEADER_PARENT_TASKID,
-  HEADER_PROJECTID,
-  HEADER_MACHINEID,
-  HEADER_TASKID,
-} from "@nocowboy/gateway"
+// nocowboy_change - gateway removed
+const HEADER_FEATURE = "x-nocowboy-feature"
+const HEADER_PARENT_TASKID = "x-nocowboy-parent-taskid"
+const HEADER_PROJECTID = "x-nocowboy-projectid"
+const HEADER_MACHINEID = "x-nocowboy-machineid"
+const HEADER_TASKID = "x-nocowboy-taskid"
 import { Identity } from "@nocowboy/telemetry"
 import { KiloSession } from "@/nocowboy/session"
 import { KiloLLM } from "@/nocowboy/session/llm"

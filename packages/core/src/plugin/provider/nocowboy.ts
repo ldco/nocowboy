@@ -1,6 +1,5 @@
-// kilocode_change - new file (gateway removed, stubs inlined)
-const createKilo = () => ({ models: [] })
-const KILO_OPENROUTER_BASE = ""
+// kilocode_change - new file
+import { createNoCowboy, NOCOWBOY_OPENROUTER_BASE } from "@nocowboy/gateway"
 import { Effect } from "effect"
 import { PluginV2 } from "../../plugin"
 import { ProviderV2 } from "../../provider"
@@ -15,23 +14,23 @@ export const KiloPlugin = PluginV2.define({
         if (evt.provider.id !== id) return
 
         const options = evt.provider.options.aisdk.provider
-        const token = options.kilocodeToken ?? options.apiKey ?? process.env.KILO_API_KEY
-        const org = process.env.KILO_ORG_ID ?? options.kilocodeOrganizationId
+        const token = options.nocowboyToken ?? options.apiKey ?? process.env.NOCOWBOY_API_KEY
+        const org = process.env.NOCOWBOY_ORG_ID ?? options.nocowboyOrganizationId
 
         evt.provider.endpoint = {
           type: "aisdk",
           package: "@nocowboy/gateway",
-          url: KILO_OPENROUTER_BASE,
+          url: NOCOWBOY_OPENROUTER_BASE,
         }
-        evt.provider.options.headers["HTTP-Referer"] = "https://kilo.ai/"
-        evt.provider.options.headers["X-Title"] = "Kilo Code"
-        options.kilocodeToken = token ?? "anonymous"
-        if (org) options.kilocodeOrganizationId = org
+        evt.provider.options.headers["HTTP-Referer"] = "https://nocowboy.ai/"
+        evt.provider.options.headers["X-Title"] = "NoCowboy"
+        options.nocowboyToken = token ?? "anonymous"
+        if (org) options.nocowboyOrganizationId = org
         if (!evt.provider.enabled) evt.provider.enabled = { via: "custom", data: { anonymous: true } }
       }),
       "aisdk.sdk": Effect.fn(function* (evt) {
         if (evt.model.providerID !== id) return
-        evt.sdk = createKilo()
+        evt.sdk = createNoCowboy()
       }),
     }
   }),
