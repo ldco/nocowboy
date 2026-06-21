@@ -23,11 +23,17 @@ function _getScrollboxRef(): any { return _scrollboxRef }
 function _scrollTo(idx: number) {
   const sb = _getScrollboxRef()
   log(`scrollTo(${idx}) sb=${!!sb}`)
-  setTimeout(() => {
-    const s = _getScrollboxRef()
-    log(`scrollTo.fire(${idx}) sb=${!!s} scrollTop=${s?.scrollTop}`)
-    s?.scrollTo(idx)
-  }, 50)
+  if (sb) {
+    sb.scrollTo(idx)
+  } else {
+    setTimeout(() => {
+      const s = _getScrollboxRef()
+      if (s) {
+        log(`scrollTo.deferred(${idx}) sb=${!!s} scrollTop=${s?.scrollTop}`)
+        s.scrollTo(idx)
+      }
+    }, 50)
+  }
 }
 
 type SidebarTab = "info" | "history" | "settings"
