@@ -20,13 +20,13 @@ function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${m
 let _scrollboxRef: any = undefined
 function _setScrollboxRef(r: any) { _scrollboxRef = r; log(`ref.set _scrollboxRef=${!!r}`) }
 function _getScrollboxRef(): any { return _scrollboxRef }
-function __scrollTo(idx: number) {
+function _scrollTo(idx: number) {
   const sb = _getScrollboxRef()
-  log(`_scrollTo(${idx}) sb=${!!sb}`)
+  log(`scrollTo(${idx}) sb=${!!sb}`)
   setTimeout(() => {
     const s = _getScrollboxRef()
-    log(`_scrollTo.fire(${idx}) sb=${!!s} _scrollTop=${s?._scrollTop}`)
-    s?._scrollTo(idx)
+    log(`scrollTo.fire(${idx}) sb=${!!s} scrollTop=${s?.scrollTop}`)
+    s?.scrollTo(idx)
   }, 50)
 }
 
@@ -109,17 +109,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
   
-
-  function _scrollTo(idx: number) {
-    const sb = _getScrollboxRef()
-    log(`_scrollTo(${idx}) sb=${!!sb}`)
-    setTimeout(() => {
-      const s = _getScrollboxRef()
-      log(`_scrollTo.fire(${idx}) sb=${!!s} _scrollTop=${s?._scrollTop}`)
-      s?._scrollTo(idx)
-    }, 50)
-  }
-
   // nocowboy_change - re-sync scroll when switching to history tab
   createEffect(() => {
     log(`createEffect tab=${tab()} selectedIdx=${selectedIdx()}`)
@@ -289,7 +278,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => { _setScrollboxRef(r); log(`ref.set historyScrollbox=${!!r}`) }} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={_setScrollboxRef} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
