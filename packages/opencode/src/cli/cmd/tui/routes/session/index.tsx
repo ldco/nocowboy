@@ -1340,7 +1340,6 @@ export function Session() {
                       <Match when={message.role === "user"}>
                           <UserMessage
                             index={index()}
-                            // nocowboy_change - message click silenced, action via ⋮ icon
                             onAction={() => {
                               if (renderer.getSelection()?.getSelectedText()) return
                               dialog.replace(() => (
@@ -1352,6 +1351,8 @@ export function Session() {
                               ))
                             }}
                             message={message as UserMessage}
+                            // nocowboy_change - message click reserved for future use
+                            onMouseUp={() => {}}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
                         />
@@ -1479,6 +1480,7 @@ function UserMessage(props: {
   parts: Part[]
   index: number
   pending?: string
+  onMouseUp?: () => void // nocowboy_change - no-op, reserved for future use
   onAction?: () => void // nocowboy_change
 }) {
   const ctx = use()
@@ -1521,6 +1523,7 @@ function UserMessage(props: {
             onMouseOut={() => {
               setHover(false)
             }}
+            onMouseUp={props.onMouseUp}
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
