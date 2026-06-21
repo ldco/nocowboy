@@ -1338,19 +1338,20 @@ export function Session() {
                         <></>
                       </Match>
                       <Match when={message.role === "user"}>
-                        <UserMessage
-                          index={index()}
-                          onMouseUp={() => {
-                            if (renderer.getSelection()?.getSelectedText()) return
-                            dialog.replace(() => (
-                              <DialogMessage
-                                messageID={message.id}
-                                sessionID={route.sessionID}
-                                setPrompt={(promptInfo) => prompt?.set(promptInfo)}
-                              />
-                            ))
-                          }}
-                          message={message as UserMessage}
+                          <UserMessage
+                            index={index()}
+                            // nocowboy_change - message click silenced, action via ⋮ icon
+                            onAction={() => {
+                              if (renderer.getSelection()?.getSelectedText()) return
+                              dialog.replace(() => (
+                                <DialogMessage
+                                  messageID={message.id}
+                                  sessionID={route.sessionID}
+                                  setPrompt={(promptInfo) => prompt?.set(promptInfo)}
+                                />
+                              ))
+                            }}
+                            message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
                         />
@@ -1476,9 +1477,9 @@ const MIME_BADGE: Record<string, string> = {
 function UserMessage(props: {
   message: UserMessage
   parts: Part[]
-  onMouseUp: () => void
   index: number
   pending?: string
+  onAction?: () => void // nocowboy_change
 }) {
   const ctx = use()
   const local = useLocal()
@@ -1520,13 +1521,19 @@ function UserMessage(props: {
             onMouseOut={() => {
               setHover(false)
             }}
-            onMouseUp={props.onMouseUp}
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
             backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
           >
+            <text                                       // nocowboy_change start
+              onMouseUp={() => props.onAction?.()}
+              paddingRight={1}
+              fg={theme.textMuted}
+            >
+              ⋮
+            </text>                                     // nocowboy_change end
             <text fg={theme.text}>{text()}</text>
             <Show when={files().length}>
               <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
