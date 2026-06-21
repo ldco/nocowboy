@@ -61,7 +61,7 @@ export function DialogPrompt(props: DialogPromptProps) {
         <textarea
           onSubmit={() => {
             if (props.busy) return
-            props.onConfirm?.(textarea.plainText)
+            props.onConfirm?.(textarea.plainText.trim()) // nocowboy_change - trim
           }}
           height={3}
           ref={(val: TextareaRenderable) => {
@@ -88,7 +88,7 @@ export function DialogPrompt(props: DialogPromptProps) {
             fg={theme.text}
             onMouseUp={() => {
               if (props.busy) return
-              props.onConfirm?.(textarea.plainText)
+              props.onConfirm?.(textarea.plainText.trim()) // nocowboy_change - trim
             }}
             paddingLeft={1}
           >
