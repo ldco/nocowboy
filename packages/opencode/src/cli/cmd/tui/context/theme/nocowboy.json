@@ -15,7 +15,7 @@
     "darkSecondary": "#a6a09b",
     "darkAccent": "#ff6800",
     "darkRed": "#ff6467",
-    "darkOrange": "#cca700",
+    "darkOrange": "#ff6800",
     "darkGreen": "#89d185",
     "darkCyan": "#3794ff",
     "lightBase": "#ffffff",
@@ -32,7 +32,7 @@
     "lightSecondary": "#57534d",
     "lightAccent": "#cc5200",
     "lightRed": "#e7000b",
-    "lightOrange": "#8a6d00",
+    "lightOrange": "#ff6800",
     "lightGreen": "#388a34",
     "lightCyan": "#1a85ff"
   },
