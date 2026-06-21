@@ -62,8 +62,8 @@
       "light": "lightGreen"
     },
     "info": {
-      "dark": "darkCyan",
-      "light": "lightCyan"
+      "dark": "darkAccent",
+      "light": "lightAccent"
     },
     "text": {
       "dark": "darkText",
