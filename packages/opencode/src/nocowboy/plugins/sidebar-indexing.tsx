@@ -65,11 +65,11 @@ function View(props: { api: TuiPluginApi }) {
   })
 
   return (
-    <Show when={enabled()}>
       <box>
         <text fg={theme().text}>
           <b>Code Indexing</b>
         </text>
+        <Show when={enabled() && configured()}>
         <box flexDirection="row" gap={1}>
           <text flexShrink={0} style={{ fg: tone(status().state, props.api) }}>
             •
@@ -78,9 +78,18 @@ function View(props: { api: TuiPluginApi }) {
             {label()}
           </text>
         </box>
-        <Show when={msg()}>{(text) => <text fg={theme().textMuted}>{text()}</text>}</Show>
+        <Show when={msg()}>
+          <text fg={theme().textMuted}>{msg()}</text>
+        </Show>
+        </Show>
+        <Show when={!enabled() || !configured()}>
+          <box flexDirection="row" gap={1}>
+            <text flexShrink={0} style={{ fg: theme().textMuted }}>•</text>
+            <text fg={theme().textMuted}>Not configured</text>
+          </box>
+          <text fg={theme().textMuted}>Enable indexing in settings to scan your codebase</text>
+        </Show>
       </box>
-    </Show>
   )
 }
 
