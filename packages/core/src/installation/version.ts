@@ -4,8 +4,8 @@ declare global {
   const KILO_BUILD_KIND: string // kilocode_change
 }
 
-export const InstallationVersion = typeof KILO_VERSION === "string" ? KILO_VERSION : "0.1.0-dev" // nocowboy_change
-export const InstallationChannel = typeof KILO_CHANNEL === "string" ? KILO_CHANNEL : "local"
+export const InstallationVersion = typeof KILO_VERSION === "string" ? KILO_VERSION : (process.env.KILO_VERSION ?? "local")
+export const InstallationChannel = typeof KILO_CHANNEL === "string" ? KILO_CHANNEL : (process.env.KILO_CHANNEL ?? "local")
 export const InstallationLocal = InstallationChannel === "local"
 // kilocode_change start - distinguish release builds from source / local builds
 export const InstallationBuildKind: "source" | "release" =
