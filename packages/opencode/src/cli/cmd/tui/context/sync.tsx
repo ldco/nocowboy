@@ -638,16 +638,26 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             consoleStateResponse,
             agentsResponse,
             configResponse,
-            globalConfigResponse, // nocowboy_change
-            ...(sessionListResponse ? [sessionListResponse] : []),
+            globalConfigResponse,
+            sessionListResponse,
           ]).then((responses) => {
             const providers = responses[0]
-            const providerList = responses[1]
+            const rawProviderList = responses[1]
             const consoleState = responses[2]
             const agents = responses[3]
             const config = responses[4]
             const globalConfig = responses[5] // nocowboy_change
             const sessions = responses[6] // nocowboy_change
+
+            // nocowboy_change start - rename Kilo Gateway provider
+            const rawAll = rawProviderList?.all
+            const providerList = rawAll && {
+              ...rawProviderList,
+              all: rawAll.map((p) =>
+                p.id === "kilo" ? { ...p, id: "nocowboy", name: "NoCowboy Gateway" as const } : p,
+              ),
+            }
+            // nocowboy_change end
 
             batch(() => {
               setStore("provider", reconcile(providers.providers))
