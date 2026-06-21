@@ -25,9 +25,9 @@ export function isNocowboyError(error: unknown): boolean {
 export function kiloErrorTitle(code: KiloErrorCode): string {
   switch (code) {
     case KILO_ERROR_CODES.PAID_MODEL_AUTH_REQUIRED:
-      return "You need to sign in to use this model"
+      return "No API provider configured"
     case KILO_ERROR_CODES.PROMOTION_MODEL_LIMIT_REACHED:
-      return "You need to sign up to keep going"
+      return "No API provider configured"
   }
 }
 
@@ -37,9 +37,9 @@ export function kiloErrorTitle(code: KiloErrorCode): string {
 export function kiloErrorDescription(code: KiloErrorCode): string {
   switch (code) {
     case KILO_ERROR_CODES.PAID_MODEL_AUTH_REQUIRED:
-      return "Sign in or create an account to access over 500 models, use credits at cost, or bring your own key."
+      return "Add a provider (OpenAI, Anthropic, DeepSeek, etc.) in your configuration file to use this model."
     case KILO_ERROR_CODES.PROMOTION_MODEL_LIMIT_REACHED:
-      return "Sign up for free to continue and explore 500 other models. Takes 2 minutes, no credit card required. Or come back later."
+      return "Configure a provider to continue using this model. NoCowboy does not have a built-in account system."
   }
 }
 
@@ -49,12 +49,12 @@ export function kiloErrorDescription(code: KiloErrorCode): string {
  */
 export function showNocowboyErrorToast(
   error: ReturnType<NamedError["toObject"]>,
-  toast: { show: (opts: { variant: "warning"; title: string; message: string; duration: number }) => void },
+  toast: { show: (opts: { variant: "info" | "success" | "warning" | "error"; title: string; message: string; duration: number }) => void },
 ): void {
   const code = parseKiloErrorCode(error)
   if (!code) return
   toast.show({
-    variant: "warning",
+    variant: "error",
     title: kiloErrorTitle(code),
     message: kiloErrorDescription(code),
     duration: 5000,
