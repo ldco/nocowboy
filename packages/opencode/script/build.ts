@@ -323,15 +323,10 @@ for (const item of targets) {
     entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorkerPath, indexingWorkerPath],
     // kilocode_change end
     define: {
-      KILO_VERSION: `'${Script.version}'`,
-      KILO_MIGRATIONS: JSON.stringify(migrations),
-      OTUI_TREE_SITTER_WORKER_PATH: bunfsRoot + workerRelativePath,
-      KILO_WORKER_PATH: workerPath,
-      KILO_SESSION_EXPORT_WORKER_PATH: sessionExportWorkerPath, // kilocode_change
-      KILO_INDEXING_WORKER_PATH: indexingWorkerPath, // kilocode_change
-      KILO_CHANNEL: `'${Script.channel}'`,
-      KILO_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "",
-      KILO_BUILD_KIND: Script.release ? `'release'` : `'source'`, // kilocode_change
+      NOCOWBOY_VERSION: `'${Script.version}'`,
+      NOCOWBOY_CHANNEL: `'${Script.channel}'`,
+      "process.env.KILO_CHANNEL": `'${Script.channel}'`,
+      NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // kilocode_change
     },
   })
 
