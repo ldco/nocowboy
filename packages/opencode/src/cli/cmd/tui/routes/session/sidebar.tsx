@@ -2,8 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createEffect, on, createSignal, createResource, Show, For, type JSX } from "solid-js"
-import { appendFileSync } from "node:fs" // nocowboy_change - debug
+import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -11,30 +10,6 @@ import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { RGBA, TextAttributes } from "@opentui/core"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
-import { useBindings } from "../../keymap"
-
-const LOG = "/tmp/nocowboy-sidebar.log"
-function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
-
-// nocowboy_change - module-level ref, survives component remount
-let _scrollboxRef: any = undefined
-function _setScrollboxRef(r: any) { _scrollboxRef = r; log(`ref.set _scrollboxRef=${!!r}`) }
-function _getScrollboxRef(): any { return _scrollboxRef }
-function _scrollTo(idx: number) {
-  const sb = _getScrollboxRef()
-  log(`scrollTo(${idx}) sb=${!!sb}`)
-  if (sb) {
-    sb.scrollTo(idx)
-  } else {
-    setTimeout(() => {
-      const s = _getScrollboxRef()
-      if (s) {
-        log(`scrollTo.deferred(${idx}) sb=${!!s} scrollTop=${s?.scrollTop}`)
-        s.scrollTo(idx)
-      }
-    }, 50)
-  }
-}
 
 type SidebarTab = "info" | "history" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
@@ -62,14 +37,31 @@ function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void
   )
 }
 
-function HistoryTab(props: {
-  list: any[]
-  currentID?: string
-  selectedIdx: number
-  onNavigate: (sessionID: string) => void
-  onSelectIdx: (idx: number) => void
-}) {
+function HistoryTab(props: { onNavigate: (sessionID: string) => void }) {
   const { theme } = useTheme()
+  const sync = useSync()
+  const sdk = useSDK()
+  const route = useRoute()
+
+  const [sessions] = createResource(async () => {
+    const result = await sdk.client.experimental.session.list(
+      { directory: null as any },
+      { throwOnError: false },
+    )
+    return result.data ?? []
+  })
+
+  const currentID = createMemo(() =>
+    route.data.type === "session" ? route.data.sessionID : undefined,
+  )
+
+  const list = createMemo(() => {
+    const items = sessions() ?? []
+    return items
+      .filter((s: any) => !s.parentID)
+      .sort((a: any, b: any) => (b.time?.updated ?? 0) - (a.time?.updated ?? 0))
+      .slice(0, 50)
+  })
 
   const ago = (ts: number) => {
     const diff = Date.now() - ts
@@ -80,20 +72,21 @@ function HistoryTab(props: {
   }
 
   return (
-    <Show when={props.list.length > 0} fallback={<text fg={theme.textMuted}>No sessions</text>}>
-      <For each={props.list}>
-        {(s: any, idx) => (
-          <text
-            fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
-            attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseOver={() => { log(`mouse.over idx=${idx()}`); props.onSelectIdx(idx()) }} // nocowboy_change
-            onMouseDown={(e: any) => { e?.preventDefault?.(); log(`mouse.click idx=${idx()} id=${s.id}`); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
-            wrapMode="none"
-          >
-            {ago(s.time?.updated ?? 0)} {s.title}
-          </text>
-        )}
-      </For>
+    <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
+      <Show when={list().length > 0} fallback={<text fg={theme.textMuted}>No sessions</text>}>
+        <For each={list()}>
+          {(s: any) => (
+            <text
+              fg={s.id === currentID() ? brand : theme.textMuted}
+              attributes={s.id === currentID() ? TextAttributes.BOLD : 0}
+              onMouseDown={(e: any) => { e?.preventDefault?.(); props.onNavigate(s.id) }}
+              wrapMode="none"
+            >
+              {ago(s.time?.updated ?? 0)} {s.title}
+            </text>
+          )}
+        </For>
+      </Show>
     </Show>
   )
 }
@@ -104,7 +97,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const { theme } = useTheme()
   const tuiConfig = useTuiConfig()
   const route = useRoute()
-  const sdk = useSDK()
   const session = createMemo(() => sync.session.get(props.sessionID))
   const workspace = () => {
     const workspaceID = session()?.workspaceID
@@ -113,106 +105,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   }
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
   const [tab, setTab] = createSignal<SidebarTab>("history")
-  const [selectedIdx, setSelectedIdx] = createSignal(0)
-  
-  // nocowboy_change - re-sync scroll when switching to history tab
-  createEffect(on(tab, (t) => {
-    if (t === "history") _scrollTo(selectedIdx())
-  }))
-
-  const [sessions] = createResource(async () => {
-    const result = await sdk.client.experimental.session.list(
-      { directory: null as any },
-      { throwOnError: false },
-    )
-    return result.data ?? []
-  })
-
-  const list = createMemo(() => {
-    const items = sessions() ?? []
-    return items
-      .filter((s: any) => !s.parentID)
-      .sort((a: any, b: any) => (b.time?.updated ?? 0) - (a.time?.updated ?? 0))
-      .slice(0, 50)
-  })
-
-  const currentID = createMemo(() =>
-    route.data.type === "session" ? route.data.sessionID : undefined,
-  )
-
-  const tabKeys = ["history", "info", "settings"] as const
-
-  // Tab switching — always enabled
-  useBindings(() => ({
-    enabled: true,
-    bindings: [
-      {
-        key: "left",
-        desc: "Previous tab",
-        group: "Sidebar",
-        cmd: () => {
-          const idx = tabKeys.indexOf(tab() as any)
-          const next = tabKeys[(idx - 1 + tabKeys.length) % tabKeys.length] as SidebarTab
-          log(`tab.left ${tab()} -> ${next}`)
-          setTab(next)
-          setSelectedIdx(0)
-          _setScrollboxRef(null)
-        },
-      },
-      {
-        key: "right",
-        desc: "Next tab",
-        group: "Sidebar",
-        cmd: () => {
-          const idx = tabKeys.indexOf(tab() as any)
-          const next = tabKeys[(idx + 1) % tabKeys.length] as SidebarTab
-          log(`tab.right ${tab()} -> ${next}`)
-          setTab(next)
-          setSelectedIdx(0)
-          _setScrollboxRef(null)
-        },
-      },
-    ],
-  }))
-
-  // History navigation — only enabled on history tab
-  useBindings(() => ({
-    enabled: tab() === "history",
-    bindings: [
-      {
-        key: "up",
-        desc: "Previous session",
-        group: "Sidebar",
-        cmd: () => {
-          const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
-          log(`key.up ${selectedIdx()} -> ${next} historyScrollbox=${!!_getScrollboxRef()}`)
-          setSelectedIdx(next)
-          _scrollTo(next)
-        },
-      },
-      {
-        key: "down",
-        desc: "Next session",
-        group: "Sidebar",
-        cmd: () => {
-          const len = list().length
-          const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
-          log(`key.down ${selectedIdx()} -> ${next} len=${len} historyScrollbox=${!!_getScrollboxRef()}`)
-          setSelectedIdx(next)
-          _scrollTo(next)
-        },
-      },
-      {
-        key: "return",
-        desc: "Open session",
-        group: "Sidebar",
-        cmd: () => {
-          const s = list()[selectedIdx()]
-          if (s) route.navigate({ type: "session", sessionID: s.id })
-        },
-      },
-    ],
-  }))
 
   return (
     <box
@@ -225,7 +117,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       paddingRight={2}
       position={props.overlay ? "absolute" : "relative"}
     >
-      <TabBar active={tab()} onSelect={(t) => { log(`tab.click ${tab()} -> ${t}`); setTab(t); setSelectedIdx(0); _setScrollboxRef(null) }} />
+      <TabBar active={tab()} onSelect={setTab} />
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
@@ -282,17 +174,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
-        <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => (_setScrollboxRef(r), undefined)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
-            <HistoryTab
-              list={list()}
-              currentID={currentID()}
-              selectedIdx={selectedIdx()}
-              onNavigate={(id) => route.navigate({ type: "session", sessionID: id })}
-              onSelectIdx={setSelectedIdx}
-            />
-          </scrollbox>
-        </Show>
+        <scrollbox flexGrow={1} scrollAcceleration={scrollAcceleration()}>
+          <HistoryTab onNavigate={(id) => route.navigate({ type: "session", sessionID: id })} />
+        </scrollbox>
       </Show>
 
       {/* Settings Tab — placeholder */}
