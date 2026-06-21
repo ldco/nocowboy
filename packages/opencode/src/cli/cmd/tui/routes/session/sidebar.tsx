@@ -19,8 +19,11 @@ let _historyScrollbox: any = undefined
 import { appendFileSync } from "node:fs"
 const LOG = "/tmp/nocowboy-sidebar.log"
 function log(msg: string) {
-  try { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) } catch {}
+  try { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) } catch (e) { /* ignore */ }
 }
+// Force a visible test on load — remove after debug
+import { writeSync } from "node:fs"
+writeSync(2, "SIDEBAR MODULE LOADED\n")
 log("=== SIDEBAR LOADED ===")
 
 type SidebarTab = "info" | "history" | "settings"
