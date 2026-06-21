@@ -796,7 +796,7 @@ function getSyntaxRules(theme: Theme) {
       scope: ["extmark.paste"],
       style: {
         foreground: theme.background,
-        background: theme.warning,
+        background: theme.accent, // nocowboy_change - brand orange, not warning yellow
         bold: true,
       },
     },

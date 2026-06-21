@@ -1376,6 +1376,12 @@ export function Session() {
                               />
                             ))
                           }}
+                          collapsedNext={(() => {
+                            const msgs = messages()
+                            const idx = msgs.indexOf(message)
+                            const next = msgs[idx + 1]
+                            return next?.role === "assistant" ? !!collapsed[next.id] : undefined
+                          })()} // nocowboy_change
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
@@ -1508,6 +1514,7 @@ function UserMessage(props: {
   index: number
   pending?: string
   onAction?: () => void // nocowboy_change
+  collapsedNext?: boolean // nocowboy_change
 }) {
   const ctx = use()
   const local = useLocal()
@@ -1526,7 +1533,12 @@ function UserMessage(props: {
   const { theme } = useTheme()
   const [hover, setHover] = createSignal(false)
   const queued = createMemo(() => props.pending && props.message.id > props.pending)
-  const color = createMemo(() => local.agent.color(props.message.agent))
+  const color = createMemo(() => {
+    const agent = local.agent.color(props.message.agent)
+    if (props.collapsedNext === true) return theme.backgroundPanel // nocowboy_change - collapsed = muted
+    if (props.collapsedNext === false) return RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change - expanded = brand
+    return agent
+  })
   const queuedFg = createMemo(() => selectedForeground(theme, color()))
   const metadataVisible = createMemo(() => queued() || ctx.showTimestamps())
 
