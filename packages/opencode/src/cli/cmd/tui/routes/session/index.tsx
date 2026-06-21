@@ -1516,8 +1516,7 @@ function UserMessage(props: {
         fg={theme.textMuted}
       >
         ⋮
-      </text><box flexDirection="column" flexGrow={1}>
-      <>
+      </text><box flexDirection="column" flexGrow={1}><>
       <Show when={text()}>
         <box
           id={props.message.id}
@@ -1586,8 +1585,7 @@ function UserMessage(props: {
           titleAlignment="center"
           borderColor={theme.borderActive}
         />
-      </Show></>
-      </box>
+      </Show></></box>
     </box>
   )
 }
