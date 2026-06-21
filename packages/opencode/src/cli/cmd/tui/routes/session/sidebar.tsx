@@ -270,53 +270,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
+        {/* TEST: minimal Info tab to isolate orphan text source */}
         <Show when={session()} fallback={<text fg={theme.textMuted}>No active session</text>}>
-          <box flexDirection="column" flexGrow={1}><scrollbox
-            flexGrow={1}
-            scrollAcceleration={scrollAcceleration()}
-            verticalScrollbarOptions={{
-              trackOptions: {
-                backgroundColor: theme.background,
-                foregroundColor: theme.borderActive,
-              },
-            }}
-          >
-            <box flexShrink={0} gap={1} paddingRight={1}>
-              <TuiPluginRuntime.Slot
-                name="sidebar_title"
-                mode="single_winner"
-                session_id={props.sessionID}
-                title={session()!.title}
-                share_url={session()!.share?.url}
-              >
-                <box paddingRight={1}>
-                  <text fg={theme.text}>
-                    <b>{session()!.title}</b>
-                  </text>
-                  <Show when={session()!.workspaceID}>
-                    <text fg={theme.textMuted}>
-                      <Show
-                        when={workspace()}
-                        fallback={<WorkspaceLabel type="unknown" name={session()!.workspaceID!} status="error" icon />}
-                      >
-                        {(item: any) => (
-                          <WorkspaceLabel
-                            type={item().type}
-                            name={item().name}
-                            status={project.workspace.status(item().id) ?? "error"}
-                            icon
-                          />
-                        )}
-                      </Show>
-                    </text>
-                  </Show>
-                  <Show when={session()!.share?.url}>
-                    <text fg={theme.textMuted}>{session()!.share!.url}</text>
-                  </Show>
-                </box>
-              </TuiPluginRuntime.Slot><TuiPluginRuntime.Slot name="sidebar_content" session_id={props.sessionID} />
-            </box>
-          </scrollbox><box flexShrink={0} gap={1} paddingTop={1}> {/* nocowboy_change - footer directly rendered, not via Slot */}<text fg={theme.textMuted} wrapMode="word">{project.data.instance.path.directory}{sync.data.vcs?.branch ? ":" + sync.data.vcs.branch : ""}</text><text fg={theme.textMuted} wrapMode="none"><span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span></text></box></box>
+          <text fg={theme.textMuted}>Info content here — {InstallationVersion}</text>
         </Show>
       </Show>
 
