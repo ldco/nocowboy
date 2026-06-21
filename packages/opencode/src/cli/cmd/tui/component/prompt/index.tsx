@@ -1615,7 +1615,7 @@ export function Prompt(props: PromptProps) {
                     <>
                       <text
                         fg={fadeColor(highlight(), agentMetaAlpha())}
-                        onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgent />) }} // nocowboy_change
+                        onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgent />) }} // nocowboy_change
                       >
                         {/* nocowboy_change start */}
                         {store.mode === "shell"
@@ -1630,7 +1630,7 @@ export function Prompt(props: PromptProps) {
                           <text
                             flexShrink={0}
                             fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                            onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogModel />) }} // nocowboy_change
+                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogModel />) }} // nocowboy_change
                           >
                             {local.model.parsed().model}
                           </text>
@@ -1638,7 +1638,7 @@ export function Prompt(props: PromptProps) {
                           <Show when={showVariant()}>
                             <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
                             <text
-                              onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }} // nocowboy_change
+                              onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }} // nocowboy_change
                             >
                               <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
                                 {local.model.variant.current()}
