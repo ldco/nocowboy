@@ -93,7 +93,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   let historyScrollbox: any // nocowboy_change
 
   function scrollTo(idx: number) {
-    setTimeout(() => historyScrollbox?.scrollTo(idx), 0)
+    setTimeout(() => historyScrollbox?.scrollTo(idx), 50)
   }
 
   // nocowboy_change - re-sync scroll when switching to history tab
