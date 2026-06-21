@@ -1516,9 +1516,7 @@ function UserMessage(props: {
         fg={theme.textMuted}
       >
         ⋮
-      </text>
-      {/* nocowboy_change end */}
-      <box flexDirection="column" flexGrow={1}> {/* nocowboy_change */}
+      </text><box flexDirection="column" flexGrow={1}> {/* nocowboy_change - no whitespace between siblings */}
       <Show when={text()}>
         <box
           id={props.message.id}
