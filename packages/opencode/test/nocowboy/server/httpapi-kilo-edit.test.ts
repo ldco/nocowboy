@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test"
 import { ConfigProvider, Layer } from "effect"
 import { HttpRouter } from "effect/unstable/http"
-import { HEADER_FEATURE, HEADER_ORGANIZATIONID } from "@nocowboy/gateway"
+import { HEADER_FEATURE, HEADER_NOCOWBOY_ORGANIZATIONID } from "@nocowboy/gateway"
 import * as Log from "@opencode-ai/core/util/log"
 import { KiloGatewayPaths } from "../../../src/nocowboy/server/httpapi/groups/kilo-gateway"
 import * as HttpApiServer from "../../../src/server/routes/instance/httpapi/server"
@@ -130,7 +130,7 @@ describe("HttpApi Kilo next edit", () => {
       expect(url(call.input)).toEndWith("/api/edit/completions")
       const headers = new Headers(call.init?.headers)
       expect(headers.get("authorization")).toBe("Bearer gateway-token")
-      expect(headers.get(HEADER_ORGANIZATIONID)).toBe("org-1")
+      expect(headers.get(HEADER_NOCOWBOY_ORGANIZATIONID)).toBe("org-1")
       expect(headers.get(HEADER_FEATURE)).toBe("autocomplete")
       if (typeof call.init?.body !== "string") throw new Error("missing edit request body")
       const body: unknown = JSON.parse(call.init.body)
@@ -159,7 +159,7 @@ describe("HttpApi Kilo next edit", () => {
       expect(url(call.input)).toBe("https://api.inceptionlabs.ai/v1/edit/completions")
       const headers = new Headers(call.init?.headers)
       expect(headers.get("authorization")).toBe("Bearer inception-token")
-      expect(headers.get(HEADER_ORGANIZATIONID)).toBeNull()
+      expect(headers.get(HEADER_NOCOWBOY_ORGANIZATIONID)).toBeNull()
       expect(headers.get(HEADER_FEATURE)).toBeNull()
     } finally {
       mock.mockRestore()

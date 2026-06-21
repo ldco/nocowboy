@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, beforeEach } from "bun:test"
 import { buildKiloHeaders, getFeatureHeader, getEditorNameHeader } from "@nocowboy/gateway"
-import { HEADER_FEATURE, ENV_FEATURE, ENV_EDITOR_NAME, ENV_VERSION, DEFAULT_EDITOR_NAME } from "@nocowboy/gateway"
+import { HEADER_FEATURE, ENV_FEATURE, ENV_EDITOR_NAME, ENV_VERSION, NOCOWBOY_DEFAULT_EDITOR_NAME } from "@nocowboy/gateway"
 
 describe("getFeatureHeader", () => {
   const original = process.env[ENV_FEATURE]
@@ -53,12 +53,12 @@ describe("getEditorNameHeader", () => {
 
   it("returns default editor name without version when KILOCODE_VERSION is not set", () => {
     delete process.env[ENV_VERSION]
-    expect(getEditorNameHeader()).toBe(DEFAULT_EDITOR_NAME)
+    expect(getEditorNameHeader()).toBe(NOCOWBOY_DEFAULT_EDITOR_NAME)
   })
 
   it("appends version when KILOCODE_VERSION is set", () => {
     process.env[ENV_VERSION] = "1.2.3"
-    expect(getEditorNameHeader()).toBe(`${DEFAULT_EDITOR_NAME} 1.2.3`)
+    expect(getEditorNameHeader()).toBe(`${NOCOWBOY_DEFAULT_EDITOR_NAME} 1.2.3`)
   })
 })
 

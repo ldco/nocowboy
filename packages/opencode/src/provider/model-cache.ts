@@ -1,7 +1,7 @@
 // nocowboy_change - new file
 // nocowboy_change - gateway removed, stubs inlined
 const fetchKiloModels = async (_opts?: KiloOptions): Promise<KiloModelsResult> => ({ models: {} })
-type KiloModelsResult = { models: Record<string, any>; error?: string }
+type KiloModelsResult = { models: Record<string, any>; error?: any }
 type KiloOptions = { sessionID?: string; apiKey?: string; baseURL?: string; kilocodeToken?: string; kilocodeOrganizationId?: string }
 import { Context, Duration, Effect, Layer, Schema } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
