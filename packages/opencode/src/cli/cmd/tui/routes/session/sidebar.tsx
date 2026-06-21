@@ -2,7 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -95,6 +95,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   function scrollTo(idx: number) {
     setTimeout(() => historyScrollbox?.scrollTo(idx), 0)
   }
+
+  // nocowboy_change - re-sync scroll when switching to history tab
+  createEffect(() => {
+    if (tab() === "history") scrollTo(selectedIdx())
+  })
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
