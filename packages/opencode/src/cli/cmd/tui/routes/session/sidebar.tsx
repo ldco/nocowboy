@@ -135,6 +135,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           const idx = tabKeys.indexOf(tab() as any)
           setTab(tabKeys[(idx - 1 + tabKeys.length) % tabKeys.length] as SidebarTab)
           setSelectedIdx(0)
+          historyScrollbox = null // nocowboy_change
         },
       },
       {
@@ -145,6 +146,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           const idx = tabKeys.indexOf(tab() as any)
           setTab(tabKeys[(idx + 1) % tabKeys.length] as SidebarTab)
           setSelectedIdx(0)
+          historyScrollbox = null // nocowboy_change
         },
       },
     ],
@@ -198,7 +200,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       paddingRight={2}
       position={props.overlay ? "absolute" : "relative"}
     >
-      <TabBar active={tab()} onSelect={(t) => { setTab(t); setSelectedIdx(0) }} />
+      <TabBar active={tab()} onSelect={(t) => { setTab(t); setSelectedIdx(0); historyScrollbox = null }} />
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
