@@ -152,7 +152,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         cmd: () => {
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
           setSelectedIdx(next)
-          historyScrollbox?.scrollTo(next) // nocowboy_change
+          setTimeout(() => historyScrollbox?.scrollTo(next), 0) // nocowboy_change
         },
       },
       {
@@ -163,7 +163,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
           setSelectedIdx(next)
-          historyScrollbox?.scrollTo(next) // nocowboy_change
+          setTimeout(() => historyScrollbox?.scrollTo(next), 0) // nocowboy_change
         },
       },
       {
