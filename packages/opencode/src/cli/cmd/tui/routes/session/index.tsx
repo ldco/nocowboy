@@ -274,12 +274,14 @@ export function Session() {
 
   // nocowboy_change start - collapse assistant messages, default expanded only last
   const [collapsed, setCollapsed] = createStore<Record<string, boolean>>({})
+  const msgCount = createMemo(() => messages().length)
 
   createEffect(() => {
+    msgCount()
     const msgs = messages()
     const last = msgs.findLast((m) => m.role === "assistant")?.id
     for (const m of msgs) {
-      if (m.role === "assistant" && m.id !== last && collapsed[m.id] === undefined) {
+      if (m.role === "assistant" && m.id !== last) {
         setCollapsed(m.id, true)
       }
     }
