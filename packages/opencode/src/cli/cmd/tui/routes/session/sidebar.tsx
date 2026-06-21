@@ -314,8 +314,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                     <text fg={theme.textMuted}>{session()!.share!.url}</text>
                   </Show>
                 </box>
-              </TuiPluginRuntime.Slot>
-              <TuiPluginRuntime.Slot name="sidebar_content" session_id={props.sessionID} />
+              </TuiPluginRuntime.Slot><TuiPluginRuntime.Slot name="sidebar_content" session_id={props.sessionID} />
             </box>
           </scrollbox><box flexShrink={0} gap={1} paddingTop={1}> {/* nocowboy_change - footer directly rendered, not via Slot */}<text fg={theme.textMuted} wrapMode="word">{project.data.instance.path.directory}{sync.data.vcs?.branch ? ":" + sync.data.vcs.branch : ""}</text><text fg={theme.textMuted} wrapMode="none"><span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span></text></box></box>
         </Show>
