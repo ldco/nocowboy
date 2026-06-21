@@ -91,20 +91,16 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
   let historyScrollbox: any // nocowboy_change
+  const [scrollboxRef, setScrollboxRef] = createSignal<any>(undefined) // nocowboy_change - reactive ref
   let keyboardNav = false // nocowboy_change
 
   // nocowboy_change - scroll history to follow keyboard selection
   createEffect(() => {
-    if (tab() !== "history" || !historyScrollbox || !keyboardNav) return
+    const idx = selectedIdx() // must read synchronously to create dependency
+    if (tab() !== "history" || !keyboardNav) return
+    if (!scrollboxRef()) return
     keyboardNav = false
-    const next = selectedIdx()
-    const viewportHeight = historyScrollbox.viewport?.height ?? 10
-    const scrollBottom = historyScrollbox.scrollTop + viewportHeight
-    if (next < historyScrollbox.scrollTop) {
-      historyScrollbox.scrollBy(next - historyScrollbox.scrollTop)
-    } else if (next + 1 > scrollBottom) {
-      historyScrollbox.scrollBy(next + 1 - scrollBottom)
-    }
+    setTimeout(() => scrollboxRef()?.scrollTo(idx), 0)
   })
 
   const [sessions] = createResource(async () => {
@@ -262,7 +258,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => (historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={(r: any) => { historyScrollbox = r; setScrollboxRef(r) }} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
