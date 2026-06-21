@@ -1516,7 +1516,8 @@ function UserMessage(props: {
         fg={theme.textMuted}
       >
         ⋮
-      </text><box flexDirection="column" flexGrow={1}> {/* nocowboy_change - no whitespace between siblings */}
+      </text><box flexDirection="column" flexGrow={1}>
+      <>
       <Show when={text()}>
         <box
           id={props.message.id}
@@ -1577,8 +1578,7 @@ function UserMessage(props: {
             </Show>
           </box>
         </box>
-      </Show>
-      <Show when={compaction()}>
+      </Show><Show when={compaction()}>
         <box
           marginTop={1}
           border={["top"]}
@@ -1586,7 +1586,7 @@ function UserMessage(props: {
           titleAlignment="center"
           borderColor={theme.borderActive}
         />
-      </Show>
+      </Show></>
       </box>
     </box>
   )
