@@ -271,7 +271,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
         <Show when={session()} fallback={<text fg={theme.textMuted}>No active session</text>}>
-          <scrollbox flexGrow={1}><text fg={theme.textMuted}>scrollbox works</text></scrollbox>
+          <scrollbox flexGrow={1}><text fg={theme.textMuted}>scrollbox works</text></scrollbox><box flexShrink={0} gap={1} paddingTop={1}><text fg={theme.textMuted} wrapMode="word">{project.data.instance.path.directory}{sync.data.vcs?.branch ? ":" + sync.data.vcs.branch : ""}</text><text fg={theme.textMuted} wrapMode="none"><span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span></text></box>
         </Show>
       </Show>
 
