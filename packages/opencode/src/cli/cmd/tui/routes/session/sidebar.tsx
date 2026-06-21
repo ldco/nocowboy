@@ -89,6 +89,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const tuiConfig = useTuiConfig()
   const route = useRoute()
   const sdk = useSDK()
+  log(`sidebar.mount sessionID=${props.sessionID} overlay=${props.overlay}`) // debug
   const session = createMemo(() => sync.session.get(props.sessionID))
   const workspace = () => {
     const workspaceID = session()?.workspaceID
