@@ -2,10 +2,10 @@ import { describe, expect } from "bun:test"
 import { Effect } from "effect"
 import { PluginV2 } from "@opencode-ai/core/plugin"
 import { ProviderPlugins } from "@opencode-ai/core/plugin/provider"
-import { KiloPlugin } from "@opencode-ai/core/plugin/provider/kilo"
+import { NoCowboyPlugin } from "@opencode-ai/core/plugin/provider/kilo"
 import { expectPluginRegistered, it, model, provider, withEnv } from "./provider-helper"
 
-describe("KiloPlugin", () => {
+describe("NoCowboyPlugin", () => {
   it.effect("is registered so legacy referer headers can be applied", () =>
     Effect.sync(() =>
       expectPluginRegistered(
@@ -18,7 +18,7 @@ describe("KiloPlugin", () => {
   it.effect("applies legacy referer headers only to kilo", () =>
     Effect.gen(function* () {
       const plugin = yield* PluginV2.Service
-      yield* plugin.add(KiloPlugin)
+      yield* plugin.add(NoCowboyPlugin)
       const result = yield* plugin.trigger(
         "provider.update",
         {},
@@ -42,7 +42,7 @@ describe("KiloPlugin", () => {
   it.effect("uses the exact legacy Kilo header casing and set", () =>
     Effect.gen(function* () {
       const plugin = yield* PluginV2.Service
-      yield* plugin.add(KiloPlugin)
+      yield* plugin.add(NoCowboyPlugin)
       const result = yield* plugin.trigger("provider.update", {}, { provider: provider("kilo"), cancel: false })
 
       expect(result.provider.options.headers).toEqual({
@@ -58,7 +58,7 @@ describe("KiloPlugin", () => {
   it.effect("uses the legacy provider-id guard instead of endpoint package matching", () =>
     Effect.gen(function* () {
       const plugin = yield* PluginV2.Service
-      yield* plugin.add(KiloPlugin)
+      yield* plugin.add(NoCowboyPlugin)
       const matchingID = yield* plugin.trigger(
         "provider.update",
         {},
@@ -92,7 +92,7 @@ describe("KiloPlugin", () => {
     withEnv({ KILO_API_KEY: undefined, KILO_ORG_ID: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
-        yield* plugin.add(KiloPlugin)
+        yield* plugin.add(NoCowboyPlugin)
         const updated = yield* plugin.trigger(
           "provider.update",
           {},
@@ -136,7 +136,7 @@ describe("KiloPlugin", () => {
     withEnv({ KILO_API_KEY: "environment-token", KILO_ORG_ID: "environment-org" }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
-        yield* plugin.add(KiloPlugin)
+        yield* plugin.add(NoCowboyPlugin)
         const result = yield* plugin.trigger(
           "provider.update",
           {},
@@ -167,7 +167,7 @@ describe("KiloPlugin", () => {
     withEnv({ KILO_API_KEY: undefined, KILO_ORG_ID: undefined }, () =>
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
-        yield* plugin.add(KiloPlugin)
+        yield* plugin.add(NoCowboyPlugin)
         const result = yield* plugin.trigger("provider.update", {}, { provider: provider("kilo"), cancel: false })
 
         expect(result.provider.enabled).toEqual({ via: "custom", data: { anonymous: true } })
