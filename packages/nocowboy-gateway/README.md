@@ -1,11 +1,11 @@
 # @nocowboy/nocowboy-gateway
 
-Unified Kilo Gateway package for OpenCode providing authentication, AI provider integration, and API access.
+Unified NoCowboy Gateway package for OpenCode providing authentication, AI provider integration, and API access.
 
 ## Features
 
-- **Authentication**: Device authorization flow for Kilo Gateway
-- **AI Provider**: OpenRouter-based provider with Kilo Gateway integration
+- **Authentication**: Device authorization flow for NoCowboy Gateway
+- **AI Provider**: OpenRouter-based provider with NoCowboy Gateway integration
 - **API Integration**: Profile, balance, and model management
 - **TUI Helpers**: Utilities for terminal UI components
 
@@ -20,19 +20,19 @@ bun add @nocowboy/nocowboy-gateway
 ### Plugin Registration
 
 ```typescript
-import { KiloAuthPlugin } from "@nocowboy/nocowboy-gateway"
+import { NoCowboyAuthPlugin } from "@nocowboy/nocowboy-gateway"
 
 // Register with OpenCode
-const plugins = [KiloAuthPlugin]
+const plugins = [NoCowboyAuthPlugin]
 ```
 
 ### Provider Usage
 
 ```typescript
-import { createKilo } from "@nocowboy/nocowboy-gateway"
+import { createNoCowboy } from "@nocowboy/nocowboy-gateway"
 
-const provider = createKilo({
-  nocowboyToken: process.env.KILOCODE_API_KEY,
+const provider = createNoCowboy({
+  nocowboyToken: process.env.NOCOWBOY_API_KEY,
   nocowboyOrganizationId: "org-123",
 })
 

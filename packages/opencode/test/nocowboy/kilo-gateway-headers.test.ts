@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach } from "bun:test"
-import { buildKiloHeaders, getFeatureHeader, getEditorNameHeader } from "@nocowboy/gateway"
+import { buildHeaders, getFeatureHeader, getEditorNameHeader } from "@nocowboy/gateway"
 import { HEADER_FEATURE, ENV_FEATURE, ENV_EDITOR_NAME, ENV_VERSION, NOCOWBOY_DEFAULT_EDITOR_NAME } from "@nocowboy/gateway"
 
 describe("getFeatureHeader", () => {
@@ -62,7 +62,7 @@ describe("getEditorNameHeader", () => {
   })
 })
 
-describe("buildKiloHeaders", () => {
+describe("buildHeaders", () => {
   const original = process.env[ENV_FEATURE]
 
   afterEach(() => {
@@ -75,25 +75,25 @@ describe("buildKiloHeaders", () => {
 
   it("includes feature header when env var is set", () => {
     process.env[ENV_FEATURE] = "vscode-extension"
-    const headers = buildKiloHeaders()
+    const headers = buildHeaders()
     expect(headers[HEADER_FEATURE]).toBe("vscode-extension")
   })
 
   it("omits feature header when env var is not set", () => {
     delete process.env[ENV_FEATURE]
-    const headers = buildKiloHeaders()
+    const headers = buildHeaders()
     expect(headers[HEADER_FEATURE]).toBeUndefined()
   })
 
   it("always includes editor name header", () => {
     delete process.env[ENV_FEATURE]
-    const headers = buildKiloHeaders()
+    const headers = buildHeaders()
     expect(headers["X-KILOCODE-EDITORNAME"]).toBe(getEditorNameHeader())
   })
 
   it("passes through any feature value from env", () => {
     process.env[ENV_FEATURE] = "custom-feature"
-    const headers = buildKiloHeaders()
+    const headers = buildHeaders()
     expect(headers[HEADER_FEATURE]).toBe("custom-feature")
   })
 })

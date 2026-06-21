@@ -1,18 +1,18 @@
-export type KiloModelsOptions = {
+export type ModelsOptions = {
   kilocodeToken?: string
   kilocodeOrganizationId?: string
 }
 
-export type KiloModelsError = {
+export type ModelsError = {
   kind: string
   status?: number
 }
 
 export type NoCowboyModelsResult = {
   models: Record<string, any>
-  error?: KiloModelsError
+  error?: ModelsError
 }
 
-export async function fetchNoCowboyModels(opts?: KiloModelsOptions): Promise<NoCowboyModelsResult> {
+export async function fetchNoCowboyModels(opts?: ModelsOptions): Promise<NoCowboyModelsResult> {
   return { models: {} }
 }

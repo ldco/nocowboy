@@ -1,1 +1,1 @@
-export async function kiloCustomLoader() { return { models: [] } }
+export async function nocowboyCustomLoader() { return { models: [] } }
