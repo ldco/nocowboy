@@ -55,7 +55,6 @@ const ScreenCtx = createContext<ScreenCtx>()
 const builtinButtons = [
   { key: "chat",    label: "Chat" },
   
-  { key: "settings",label: "Settings" },
   
 ]
 
