@@ -15,6 +15,12 @@ import { useBindings } from "../../keymap"
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
 
+// DEBUG
+import { appendFileSync } from "node:fs"
+const LOG = "/tmp/nocowboy-sidebar.log"
+function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
+log("=== SIDEBAR LOADED ===")
+
 type SidebarTab = "info" | "history" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
@@ -152,10 +158,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") return
+          if (tab() !== "history") { log(`key.up SKIP tab=${tab()}`); return }
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
+          log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
-          _historyScrollbox?.scrollTo(next) // nocowboy_change
+          _historyScrollbox?.scrollTo(next)
         },
       },
       {
@@ -163,11 +170,12 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") return
+          if (tab() !== "history") { log(`key.down SKIP tab=${tab()}`); return }
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
+          log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
-          _historyScrollbox?.scrollTo(next) // nocowboy_change
+          _historyScrollbox?.scrollTo(next)
         },
       },
       {
