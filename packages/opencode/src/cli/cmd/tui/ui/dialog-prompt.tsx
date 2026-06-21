@@ -83,7 +83,8 @@ export function DialogPrompt(props: DialogPromptProps) {
           <text fg={theme.text}>
             enter <span style={{ fg: theme.textMuted }}>submit</span>
           </text>
-          <text                                                               // nocowboy_change start
+          {/* nocowboy_change start */}
+          <text
             fg={theme.text}
             onMouseUp={() => {
               if (props.busy) return
@@ -93,7 +94,8 @@ export function DialogPrompt(props: DialogPromptProps) {
           >
             [ Submit ]
           </text>
-        </Show>                                                               // nocowboy_change end
+          {/* nocowboy_change end */}
+        </Show>
       </box>
     </box>
   )
