@@ -23,7 +23,7 @@ describe("NoCowboyPlugin", () => {
         "provider.update",
         {},
         {
-          provider: provider("kilo", {
+          provider: provider("nocowboy", {
             options: { headers: { Existing: "value" }, body: {}, aisdk: { provider: {}, request: {} } },
           }),
           cancel: false,
@@ -43,7 +43,7 @@ describe("NoCowboyPlugin", () => {
     Effect.gen(function* () {
       const plugin = yield* PluginV2.Service
       yield* plugin.add(NoCowboyPlugin)
-      const result = yield* plugin.trigger("provider.update", {}, { provider: provider("kilo"), cancel: false })
+      const result = yield* plugin.trigger("provider.update", {}, { provider: provider("nocowboy"), cancel: false })
 
       expect(result.provider.options.headers).toEqual({
         "HTTP-Referer": "https://kilo.ai/",
@@ -63,7 +63,7 @@ describe("NoCowboyPlugin", () => {
         "provider.update",
         {},
         {
-          provider: provider("kilo", {
+          provider: provider("nocowboy", {
             endpoint: { type: "aisdk", package: "not-kilo" },
           }),
           cancel: false,
@@ -97,7 +97,7 @@ describe("NoCowboyPlugin", () => {
           "provider.update",
           {},
           {
-            provider: provider("kilo", {
+            provider: provider("nocowboy", {
               endpoint: { type: "aisdk", package: "@ai-sdk/openai-compatible", url: "https://api.kilo.ai/api/gateway" },
               options: {
                 headers: {},
@@ -141,7 +141,7 @@ describe("NoCowboyPlugin", () => {
           "provider.update",
           {},
           {
-            provider: provider("kilo", {
+            provider: provider("nocowboy", {
               enabled: { via: "auth", service: "kilo" },
               options: {
                 headers: {},
@@ -168,7 +168,7 @@ describe("NoCowboyPlugin", () => {
       Effect.gen(function* () {
         const plugin = yield* PluginV2.Service
         yield* plugin.add(NoCowboyPlugin)
-        const result = yield* plugin.trigger("provider.update", {}, { provider: provider("kilo"), cancel: false })
+        const result = yield* plugin.trigger("provider.update", {}, { provider: provider("nocowboy"), cancel: false })
 
         expect(result.provider.enabled).toEqual({ via: "custom", data: { anonymous: true } })
         expect(result.provider.options.aisdk.provider.kilocodeToken).toBe("anonymous")
