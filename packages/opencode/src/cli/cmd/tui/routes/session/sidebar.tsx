@@ -157,6 +157,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
+  const [navigating, setNavigating] = createSignal(false) // nocowboy_change - context-aware return
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
@@ -214,6 +215,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Previous session",
         group: "Sidebar",
         cmd: () => {
+          setNavigating(true) // nocowboy_change
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
           log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
@@ -225,6 +227,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
+          setNavigating(true) // nocowboy_change
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
           log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
@@ -232,11 +235,19 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
       },
+    ],
+  }))
+
+  // nocowboy_change - return only active while navigating history via ↑↓
+  useBindings(() => ({
+    enabled: tab() === "history" && navigating(),
+    bindings: [
       {
         key: "return",
-        desc: "Open session",
+        desc: "Open selected session",
         group: "Sidebar",
         cmd: () => {
+          setNavigating(false)
           const s = list()[selectedIdx()]
           if (s) route.navigate({ type: "session", sessionID: s.id })
         },
