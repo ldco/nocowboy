@@ -32,8 +32,8 @@ export const REQUEST_TIMEOUT_MS = 300_000 // 5 minutes
 
 type BundledSDK = { languageModel(modelId: string): LanguageModelV3 }
 
-export const KILO_BUNDLED_PROVIDERS: Record<string, () => Promise<(options: any) => BundledSDK>> = {
-  "@nocowboy/gateway": async () => createNoCowboy as unknown as (options: any) => BundledSDK,
+export const KILO_BUNDLED_PROVIDERS: Record<string, () => Promise<(options: Record<string, unknown>) => BundledSDK>> = {
+  "@nocowboy/gateway": async () => createNoCowboy as unknown as (options: Record<string, unknown>) => BundledSDK,
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ export const KILO_MODEL_SCHEMA_EXTENSIONS = {
 // fromModelsDevModel patch — returns kilo-specific fields
 // ---------------------------------------------------------------------------
 
-export function patchModelsDevModel(providerID: string, source: any) {
+export function patchModelsDevModel(providerID: string, source: Record<string, unknown>) {
   return {
     variants: providerID === "nocowboy" ? (source.variants ?? {}) : {},
     recommendedIndex: source.recommendedIndex,
@@ -75,17 +75,20 @@ export function patchModelsDevModel(providerID: string, source: any) {
 // Config model patch — merges kilo-specific fields from config + existing
 // ---------------------------------------------------------------------------
 
-export function patchConfigModel(cfg: any, existing: any) {
+type VariantEntry = { disabled?: boolean } & Record<string, unknown>
+
+export function patchConfigModel(cfg: Record<string, unknown>, existing: Record<string, unknown> | undefined) {
+  const variants = cfg.variants as Record<string, VariantEntry> | undefined
   return {
-    recommendedIndex: cfg.recommendedIndex ?? existing?.recommendedIndex,
-    prompt: cfg.prompt ?? existing?.prompt,
-    isFree: cfg.isFree ?? existing?.isFree,
-    mayTrainOnYourPrompts: cfg.mayTrainOnYourPrompts ?? existing?.mayTrainOnYourPrompts,
-    terminalBench: existing?.terminalBench,
-    ai_sdk_provider: cfg.ai_sdk_provider ?? existing?.ai_sdk_provider,
-    variants: cfg.variants
+    recommendedIndex: cfg.recommendedIndex as number | undefined,
+    prompt: cfg.prompt as string | undefined,
+    isFree: cfg.isFree as boolean | undefined,
+    mayTrainOnYourPrompts: cfg.mayTrainOnYourPrompts as boolean | undefined,
+    terminalBench: existing?.terminalBench as { overallScore: number; avgAttemptCostUsd: number } | undefined,
+    ai_sdk_provider: cfg.ai_sdk_provider as string | undefined,
+    variants: variants
       ? mapValues(
-          pickBy(cfg.variants, (v) => !!v && !v.disabled),
+          pickBy(variants, (v) => !!v && !v.disabled),
           (v) => omit(v, ["disabled"]),
         )
       : {},
@@ -97,22 +100,24 @@ export function patchConfigModel(cfg: any, existing: any) {
 // ---------------------------------------------------------------------------
 
 type CustomDep = {
-  auth: (id: string) => Effect.Effect<any | undefined>
-  config: () => Effect.Effect<any>
+  auth: (id: string) => Effect.Effect<unknown>
+  config: () => Effect.Effect<object>
   env: () => Effect.Effect<Record<string, string | undefined>>
   get: (key: string) => Effect.Effect<string | undefined>
 }
 
-// Mirrors upstream's CustomLoader return type so Object.entries preserves proper typing
+// Mirrors upstream's CustomLoaderResult return type so Object.entries preserves proper typing
+// discoverModels must stay `any` because it must match upstream's CustomDiscoverModels type
+// (a complex generated type from Model schema) — our loaders never set it.
 type CustomLoaderResult = {
   autoload: boolean
-  getModel?: (sdk: any, modelID: string, options?: Record<string, any>) => Promise<any>
-  vars?: (options: Record<string, any>) => Record<string, string>
-  options?: Record<string, any>
-  discoverModels?: () => Promise<Record<string, any>>
+  getModel?: (sdk: Record<string, unknown>, modelID: string, options?: Record<string, unknown>) => Promise<unknown>
+  vars?: (options: Record<string, unknown>) => Record<string, string>
+  options?: Record<string, unknown>
+  discoverModels?: any
 }
 
-type CustomLoader = (provider: any) => Effect.Effect<CustomLoaderResult>
+type CustomLoader = (provider: Record<string, unknown>) => Effect.Effect<CustomLoaderResult, never, never>
 
 function shouldUseCopilotResponsesApi(modelID: string): boolean {
   const match = /^gpt-(\d+)/.exec(modelID)
@@ -120,7 +125,7 @@ function shouldUseCopilotResponsesApi(modelID: string): boolean {
   return Number(match[1]) >= 5 && !modelID.startsWith("gpt-5-mini")
 }
 
-function useLanguageModel(sdk: any) {
+function useLanguageModel(sdk: Record<string, unknown>) {
   return sdk.responses === undefined && sdk.chat === undefined
 }
 
@@ -129,19 +134,25 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
     "github-copilot-enterprise": () =>
       Effect.succeed({
         autoload: false,
-        async getModel(sdk: any, modelID: string, _options?: Record<string, any>) {
-          if (useLanguageModel(sdk)) return sdk.languageModel(modelID)
-          return shouldUseCopilotResponsesApi(modelID) ? sdk.responses(modelID) : sdk.chat(modelID)
+        async getModel(sdk: Record<string, unknown>, modelID: string, _options?: Record<string, unknown>) {
+          if (useLanguageModel(sdk)) return (sdk as Record<string, Function>).languageModel(modelID)
+          return shouldUseCopilotResponsesApi(modelID)
+            ? (sdk as Record<string, Function>).responses(modelID)
+            : (sdk as Record<string, Function>).chat(modelID)
         },
         options: {},
       }),
 
-    kilo: Effect.fnUntraced(function* (input: any) {
+    kilo: Effect.fnUntraced(function* (input: Record<string, unknown>) {
       const env = yield* dep.env()
+      const inp = input as { env: string[]; id: string; models: Record<string, { ai_sdk_provider?: string }> }
       const hasKey = yield* Effect.gen(function* () {
-        if (input.env.some((item: string) => env[item])) return true
-        if (yield* dep.auth(input.id)) return true
-        if ((yield* dep.config()).provider?.["kilo"]?.options?.apiKey) return true
+        if (inp.env.some((item: string) => env[item])) return true
+        if (yield* dep.auth(inp.id)) return true
+        const cfg = (yield* dep.config()) as Record<string, unknown>
+        const provider = cfg.provider as Record<string, unknown> | undefined
+        const kiloCfg = provider?.["kilo"] as { options?: { apiKey?: string } } | undefined
+        if (kiloCfg?.options?.apiKey) return true
         return false
       })
 
@@ -154,10 +165,10 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
       }
 
       return {
-        autoload: Object.keys(input.models).length > 0,
+        autoload: Object.keys(inp.models).length > 0,
         options,
         async getModel(sdk: KiloSDK, modelID: string) {
-          const p = input.models[modelID]?.ai_sdk_provider
+          const p = inp.models[modelID]?.ai_sdk_provider
           if (p === "alibaba") return sdk.alibaba(modelID)
           if (p === "anthropic") return sdk.anthropic(modelID)
           if (p === "mistral") return sdk.mistral(modelID)
@@ -166,7 +177,7 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
           return sdk.languageModel(modelID)
         },
       }
-    }),
+    }) as CustomLoader,
 
     // Override opencode to prevent auto-connecting without credentials
     opencode: () =>
@@ -185,37 +196,39 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
 
 export function patchCustomLoaderResult(
   providerID: string,
-  result: { options?: Record<string, any> },
+  result: { options?: Record<string, unknown> },
   env: Record<string, string | undefined>,
 ) {
   if (!result.options) return
+
+  const opts = result.options as Record<string, unknown>
 
   switch (providerID) {
     case "openrouter":
     case "vercel":
     case "zenmux":
-      result.options.headers = { ...result.options.headers, ...DEFAULT_HEADERS }
+      opts.headers = { ...(opts.headers as Record<string, string> | undefined), ...DEFAULT_HEADERS }
       break
     case "cerebras":
-      result.options.headers = {
-        ...result.options.headers,
+      opts.headers = {
+        ...(opts.headers as Record<string, string> | undefined),
         "X-Cerebras-3rd-Party-Integration": "kilo",
       }
       break
     case "azure": {
       // Extend env var lookup for Azure baseURL / resource name
-      const url = result.options.baseURL ?? env["AZURE_OPENAI_ENDPOINT"]
+      const url = (opts.baseURL as string | undefined) ?? env["AZURE_OPENAI_ENDPOINT"]
       const resource = (() => {
-        const name = result.options.resourceName
+        const name = opts.resourceName as string | undefined
         if (typeof name === "string" && name.trim() !== "") return name
         return env["AZURE_RESOURCE_NAME"] ?? env["AZURE_OPENAI_RESOURCE_NAME"]
       })()
       if (url) {
-        result.options.baseURL = url
-        delete result.options.resourceName
+        opts.baseURL = url
+        delete opts.resourceName
       } else if (resource) {
-        result.options.resourceName = resource
-        delete result.options.baseURL
+        opts.resourceName = resource
+        delete opts.baseURL
       }
       break
     }
@@ -240,7 +253,7 @@ export function ncowboySmallModelPriority(providerID: string): string[] | undefi
 // streaming responses from being aborted mid-stream.
 // ---------------------------------------------------------------------------
 
-export function buildTimeoutSignal(options: Record<string, any>): {
+export function buildTimeoutSignal(options: Record<string, unknown>): {
   signal: AbortSignal | undefined
   clear: () => void
 } {

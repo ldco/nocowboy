@@ -1,9 +1,9 @@
-import { Show } from "solid-js"
+import { Show, type JSX } from "solid-js"
 import { isNocowboyError } from "@/nocowboy/errors"
 
 interface KiloErrorBlockProps {
   error: unknown
-  fallback?: any
+  fallback?: JSX.Element
 }
 
 export function ErrorBlock(props: KiloErrorBlockProps) {

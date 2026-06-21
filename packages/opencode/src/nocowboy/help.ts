@@ -1,8 +1,8 @@
 import yargs from "yargs"
-import type { CommandModule } from "yargs"
+import type { CommandModule, Argv, Options } from "yargs"
 import * as Log from "@opencode-ai/core/util/log"
 
-type Cmd = CommandModule<any, any>
+type Cmd = CommandModule<{}, {}>
 
 const ANSI_REGEX = /\x1b\[[0-9;]*m/g
 
@@ -23,9 +23,9 @@ async function getHelpText(name: string, cmd: Cmd): Promise<string> {
     .wrap(null)
   if (cmd.builder) {
     if (typeof cmd.builder === "function") {
-      ;(cmd.builder as any)(inst)
+      cmd.builder(inst)
     } else {
-      inst.options(cmd.builder as any)
+      inst.options(cmd.builder)
     }
   }
   if (cmd.describe) {
@@ -37,7 +37,7 @@ async function getHelpText(name: string, cmd: Cmd): Promise<string> {
 
 async function getSubcommands(
   name: string,
-  builder: ((y: any) => any) | undefined,
+  builder: ((y: Argv<{}>) => Argv<{}> | PromiseLike<Argv<{}>>) | undefined,
   depth = 0,
 ): Promise<Array<{ name: string; hidden: boolean; help: string }>> {
   if (!builder || typeof builder !== "function") return []
@@ -52,11 +52,20 @@ async function getSubcommands(
     // yargs 18 internal API — verified against yargs@18.0.0
     // If these internals change, the catch block below will log a warning
     // and subcommand help will be omitted (top-level help still works)
-    const internal = (inst as any).getInternalMethods()
+    const internal = (inst as unknown as {
+      getInternalMethods: () => {
+        getCommandInstance: () => {
+          getCommandHandlers: () => Record<string, {
+            builder?: ((args: Argv<{}>) => Argv<{}>) | { [key: string]: Options }
+            description?: string | false
+          }>
+        }
+      }
+    }).getInternalMethods()
     const cmdInstance = internal.getCommandInstance()
     const handlers = cmdInstance.getCommandHandlers()
 
-    for (const [sub, handler] of Object.entries(handlers as Record<string, any>)) {
+    for (const [sub, handler] of Object.entries(handlers)) {
       if (sub === "$0") continue
 
       const full = `${name} ${sub}`
@@ -200,7 +209,7 @@ export async function generateHelp(options: {
   for (const cmd of relevant) {
     const name = extractCommandName(cmd)!
     const help = await getHelpText(name, cmd)
-    const hidden = (cmd as any).hidden === true
+    const hidden = (cmd as Cmd & { hidden?: boolean }).hidden === true
     const subs = await getSubcommands(name, typeof cmd.builder === "function" ? cmd.builder : undefined)
 
     sections.push({ name, hidden, help, subs })

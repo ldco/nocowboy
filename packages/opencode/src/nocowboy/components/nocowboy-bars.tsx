@@ -1,9 +1,9 @@
-import { For, createSignal, createContext, useContext, createMemo, onMount, onCleanup, type Accessor, type Setter } from "solid-js"
+import { For, createSignal, createContext, useContext, createMemo, onMount, onCleanup, type Accessor, type Setter, type JSX } from "solid-js"
 import { readFileSync, existsSync } from "node:fs"
 import { execSync } from "node:child_process"
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { RGBA, TextAttributes } from "@opentui/core"
+import { RGBA, TextAttributes, MouseEvent } from "@opentui/core"
 import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
 import { Clipboard } from "@tui/util/clipboard"
@@ -66,9 +66,9 @@ const appButtons = [
   { key: "edit",    label: "Edit" },
 ]
 
-export function ScreenProvider(props: { children: any }) {
+export function ScreenProvider(props: { children: JSX.Element }) {
   const [screen, setScreen] = createSignal<Screen>("chat")
-  globalSetScreen = setScreen as any
+  globalSetScreen = setScreen as unknown as ((s: Screen) => void)
   return (
     <ScreenCtx.Provider value={{ screen, setScreen }}>
       {props.children}
@@ -116,7 +116,7 @@ function Btn(props: { label: string; active: boolean; onClick: () => void }) {
       fg={props.active ? brandOrange : theme.textMuted}
       paddingLeft={1}
       paddingRight={1}
-      onMouseDown={(evt: any) => { evt?.preventDefault?.(); props.onClick() }}
+      onMouseDown={(evt: MouseEvent) => { evt.preventDefault?.(); props.onClick() }}
     >
       {props.label}
     </text>
@@ -160,7 +160,7 @@ function SidebarToggle() {
       fg={sidebarOpen() ? brandOrange : theme.textMuted}
       paddingLeft={1}
       paddingRight={1}
-      onMouseDown={(e: any) => { e?.preventDefault?.(); toggleSidebar() }}
+      onMouseDown={(e: MouseEvent) => { e.preventDefault?.(); toggleSidebar() }}
     >
       {sidebarOpen() ? "◀ Sidebar" : "▶ Sidebar"}
     </text>

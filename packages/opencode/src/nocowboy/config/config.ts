@@ -302,18 +302,18 @@ export namespace KilocodeConfig {
    * Returns empty agents + warnings if the user is not authenticated.
    */
   export async function loadOrganizationModes(
-    auth: Record<string, any>,
+    auth: Record<string, unknown>,
   ): Promise<{ agents: Record<string, ConfigAgent.Info>; warnings: Config.Warning[] }> {
     const warnings: Config.Warning[] = []
     try {
-      const kilo = auth["kilo"]
+      const kilo = auth["kilo"] as { type?: string; access?: string; accountId?: string } | undefined
       if (kilo?.type === "oauth" && kilo.access && kilo.accountId) {
         const modes = await fetchOrganizationModes(kilo.access, kilo.accountId)
         if (modes && modes.length > 0) {
           const agents = ModesMigrator.convertOrganizationModes(modes)
           log.debug("loaded organization custom modes", {
             count: modes.length,
-            modes: modes.map((m: any) => m.slug),
+            modes: modes.map((m) => m.id),
           })
           return { agents, warnings }
         }

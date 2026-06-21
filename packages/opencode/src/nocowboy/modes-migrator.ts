@@ -45,7 +45,7 @@ export namespace ModesMigrator {
   }
 
   export function convertPermissions(groups: KilocodeMode["groups"]): ConfigPermission.Info {
-    const permission: Record<string, any> = {}
+    const permission: ConfigPermission.Info = {}
     const allowedPermissions = new Set<string>()
 
     for (const group of groups) {
@@ -97,7 +97,15 @@ export namespace ModesMigrator {
    * organization admins can intentionally override built-in agents.
    */
   export function convertOrganizationMode(mode: OrganizationMode): ConfigAgent.Info {
-    const cfg = (mode as any).config ?? {}
+    const cfg = (mode as unknown as {
+      config?: {
+        roleDefinition?: string
+        customInstructions?: string
+        groups?: Array<string | [string, { fileRegex?: string; description?: string }]>
+        description?: string
+        whenToUse?: string
+      }
+    }).config ?? {}
     const prompt = [cfg.roleDefinition, cfg.customInstructions].filter(Boolean).join("\n\n")
     const groups = cfg.groups ?? []
     if (groups.length === 0) {
@@ -134,8 +142,8 @@ export namespace ModesMigrator {
       const wrapped = `---\n${content}\n---`
       const parsed = matter(wrapped).data as KilocodeModesFile
       return parsed?.customModes ?? []
-    } catch (err: any) {
-      if (err.code === "ENOENT") return []
+    } catch (err: unknown) {
+      if ((err as { code?: string }).code === "ENOENT") return []
       throw err
     }
   }

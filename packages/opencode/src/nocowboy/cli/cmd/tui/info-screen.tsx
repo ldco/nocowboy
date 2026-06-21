@@ -1,10 +1,10 @@
 import { For, Show, createMemo, onMount, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
-import { TextAttributes, RGBA } from "@opentui/core"
+import { TextAttributes, RGBA, MouseEvent } from "@opentui/core"
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
-import type { AssistantMessage } from "@nocowboy/sdk/v2"
+import type { AssistantMessage, Todo, McpStatus, LspStatus, Session, SnapshotFileDiff } from "@nocowboy/sdk/v2"
 import { TodoItem } from "@tui/component/todo-item"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { Global } from "@opencode-ai/core/global"
@@ -37,7 +37,7 @@ function Section(props: { title: string; children: JSX.Element }) {
   )
 }
 
-function Dot(props: { status: string; connectedColor: any; errorColor?: any }) {
+function Dot(props: { status: string; connectedColor: RGBA; errorColor?: RGBA }) {
   const { theme } = useTheme()
   const c = () => {
     if (props.status === "connected") return props.connectedColor ?? theme.success
@@ -58,7 +58,7 @@ export function InfoScreen() {
 
   const sessionID = createMemo(() => {
     if (route.data.type === "session") return route.data.sessionID
-    return (sync.data.session as any[])?.[0]?.id ?? null
+    return (sync.data.session as Session[])?.[0]?.id ?? null
   })
   const session = createMemo(() => {
     const id = sessionID()
@@ -99,14 +99,14 @@ export function InfoScreen() {
     return id ? (sync.data.todo[id] ?? []) : []
   })
   const showTodos = createMemo(() =>
-    todos().length > 0 && todos().some((item: any) => item.status !== "completed"),
+    todos().length > 0 && todos().some((item: Todo) => item.status !== "completed"),
   )
 
   // --- MCP widget ---
   const mcpList = createMemo(() =>
-    Object.entries(sync.data.mcp ?? {})
+    Object.entries((sync.data.mcp ?? {}) as Record<string, McpStatus>)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([name, item]: [string, any]) => ({
+      .map(([name, item]) => ({
         name,
         status: item.status,
         error: item.status === "failed" ? item.error : undefined,
@@ -127,7 +127,7 @@ export function InfoScreen() {
   })
 
   // --- LSP widget ---
-  const lspList = createMemo(() => (sync.data.lsp ?? []).map((item: any) => ({
+  const lspList = createMemo(() => (sync.data.lsp as LspStatus[] ?? []).map((item) => ({
     id: item.id,
     root: item.root,
     status: item.status,
@@ -177,9 +177,9 @@ export function InfoScreen() {
       <Show when={diffs().length > 0}>
         <Section title="Modified Files">
           <For each={diffs()}>
-            {(d: any) => (
+            {(d: SnapshotFileDiff) => (
               <box flexDirection="row" gap={1} justifyContent="space-between">
-                <text fg={theme.textMuted} wrapMode="none">{d.file ?? d.path}</text>
+                <text fg={theme.textMuted} wrapMode="none">{d.file ?? ""}</text>
                 <box flexDirection="row" gap={1} flexShrink={0}>
                   <Show when={d.additions}><text fg={theme.diffAdded}>+{d.additions}</text></Show>
                   <Show when={d.deletions}><text fg={theme.diffRemoved}>-{d.deletions}</text></Show>
@@ -194,7 +194,7 @@ export function InfoScreen() {
       <Show when={showTodos()}>
         <Section title="Todo">
           <For each={todos()}>
-            {(t: any) => <TodoItem status={t.status} content={t.content} />}
+            {(t: Todo) => <TodoItem status={t.status} content={t.content} />}
           </For>
         </Section>
       </Show>
@@ -203,7 +203,7 @@ export function InfoScreen() {
       <Show when={mcpList().length > 0}>
         <Section title={"MCP" + mcpStatusText()}>
           <For each={mcpList()}>
-            {(item: any) => (
+            {(item: { name: string; status: string; error?: string }) => (
               <box flexDirection="row" gap={1}>
                 <Dot status={item.status} connectedColor={theme.success} errorColor={theme.error} />
                 <text fg={theme.text} wrapMode="word">
@@ -233,7 +233,7 @@ export function InfoScreen() {
           </text>
         </Show>
         <For each={lspList()}>
-          {(item: any) => (
+          {(item: { id: string; root: string; status: string }) => (
             <box flexDirection="row" gap={1}>
               <Dot status={item.status} connectedColor={theme.success} errorColor={theme.error} />
               <text fg={theme.textMuted}>{item.id} {item.root ?? ""}</text>

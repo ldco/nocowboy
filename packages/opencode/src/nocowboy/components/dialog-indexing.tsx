@@ -30,9 +30,21 @@ import {
   type IndexingScope,
 } from "./indexing-dialog-state"
 
-// These types are OpenCode-internal and imported at runtime
-type UseSDK = any
-type SDK = any
+type SDK = {
+  client: {
+    config: {
+      overlay: (opts: { scope: string }) => Promise<{ data?: { global?: unknown; project?: unknown } }>
+      overlayUpdate: (opts: { scope: string; set: Record<string, unknown>; unset: string[] | string[][] | undefined }) => Promise<{ error?: unknown }>
+      get: (opts: Record<string, unknown>) => Promise<{ data?: Record<string, unknown> }>
+    }
+    global: {
+      config: {
+        get: (opts?: Record<string, unknown>) => Promise<{ data?: Record<string, unknown> }>
+      }
+    }
+  }
+}
+type UseSDK = SDK
 
 type EmbeddingProvider = NonNullable<IndexingConfig["provider"]>
 
