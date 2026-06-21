@@ -1338,21 +1338,21 @@ export function Session() {
                         <></>
                       </Match>
                       <Match when={message.role === "user"}>
-                          <UserMessage
-                            index={index()}
-                            onAction={() => {
-                              if (renderer.getSelection()?.getSelectedText()) return
-                              dialog.replace(() => (
-                                <DialogMessage
-                                  messageID={message.id}
-                                  sessionID={route.sessionID}
-                                  setPrompt={(promptInfo) => prompt?.set(promptInfo)}
-                                />
-                              ))
-                            }}
-                            message={message as UserMessage}
-                            // nocowboy_change - message click reserved for future use
-                            onMouseUp={() => {}}
+                        <UserMessage
+                          index={index()}
+                          // nocowboy_change - message click reserved for future use
+                          onMouseUp={() => {}}
+                          onAction={() => {
+                            if (renderer.getSelection()?.getSelectedText()) return
+                            dialog.replace(() => (
+                              <DialogMessage
+                                messageID={message.id}
+                                sessionID={route.sessionID}
+                                setPrompt={(promptInfo) => prompt?.set(promptInfo)}
+                              />
+                            ))
+                          }}
+                          message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
                         />
@@ -1478,9 +1478,9 @@ const MIME_BADGE: Record<string, string> = {
 function UserMessage(props: {
   message: UserMessage
   parts: Part[]
+  onMouseUp: () => void
   index: number
   pending?: string
-  onMouseUp?: () => void // nocowboy_change - no-op, reserved for future use
   onAction?: () => void // nocowboy_change
 }) {
   const ctx = use()
@@ -1507,16 +1507,7 @@ function UserMessage(props: {
   const compaction = createMemo(() => props.parts.find((x) => x.type === "compaction"))
 
   return (
-    <box flexDirection="row"> {/* nocowboy_change */}
-      {/* nocowboy_change start */}
-      <text
-        onMouseUp={() => props.onAction?.()}
-        paddingRight={1}
-        paddingTop={1}
-        fg={theme.textMuted}
-      >
-        ⋮
-      </text><box flexDirection="column" flexGrow={1}><>
+    <>
       <Show when={text()}>
         <box
           id={props.message.id}
@@ -1532,13 +1523,20 @@ function UserMessage(props: {
             onMouseOut={() => {
               setHover(false)
             }}
-            onMouseUp={props.onMouseUp}
+            flexDirection="row" // nocowboy_change
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
             backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
-          >
+          >{/* nocowboy_change start */}
+            <text
+              onMouseUp={() => props.onAction?.()}
+              paddingRight={1}
+              fg={theme.textMuted}
+            >
+              ⋮
+            </text>{/* nocowboy_change end */}
             <text fg={theme.text}>{text()}</text>
             <Show when={files().length}>
               <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
@@ -1577,7 +1575,8 @@ function UserMessage(props: {
             </Show>
           </box>
         </box>
-      </Show><Show when={compaction()}>
+      </Show>
+      <Show when={compaction()}>
         <box
           marginTop={1}
           border={["top"]}
@@ -1585,8 +1584,8 @@ function UserMessage(props: {
           titleAlignment="center"
           borderColor={theme.borderActive}
         />
-      </Show></></box>
-    </box>
+      </Show>
+    </>
   )
 }
 
