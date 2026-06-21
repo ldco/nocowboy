@@ -52,16 +52,19 @@ interface ScreenCtx {
 
 const ScreenCtx = createContext<ScreenCtx>()
 
-const buttons = [
+const builtinButtons = [
   { key: "chat",    label: "Chat" },
+  { key: "info",    label: "Info" },
+  { key: "settings",label: "Settings" },
+  { key: "history", label: "History" },
+]
+
+const appButtons = [
   { key: "api",     label: "API" },
   { key: "git",     label: "Git" },
-  { key: "db",     label: "DB" },
+  { key: "db",      label: "DB" },
   { key: "files",   label: "Files" },
   { key: "edit",    label: "Edit" },
-  { key: "settings",label: "Settings" },
-  { key: "info",    label: "Info" },
-  { key: "history", label: "History" },
 ]
 
 export function ScreenProvider(props: { children: any }) {
@@ -130,7 +133,17 @@ export function BottomBar() {
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
-      <For each={buttons}>
+      <For each={builtinButtons}>
+        {(b) => (
+          <Btn
+            label={b.label}
+            active={screen() === b.key}
+            onClick={() => setScreen(b.key as Screen)}
+          />
+        )}
+      </For>
+      <text fg={theme.textMuted}> • </text>
+      <For each={appButtons}>
         {(b) => (
           <Btn
             label={b.label}
