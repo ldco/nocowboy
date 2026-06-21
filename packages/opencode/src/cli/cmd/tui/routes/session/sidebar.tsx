@@ -2,7 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { createMemo, createEffect, on, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { appendFileSync } from "node:fs" // nocowboy_change - debug
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
@@ -110,10 +110,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const [selectedIdx, setSelectedIdx] = createSignal(0)
   
   // nocowboy_change - re-sync scroll when switching to history tab
-  createEffect(() => {
-    log(`createEffect tab=${tab()} selectedIdx=${selectedIdx()}`)
-    if (tab() === "history") _scrollTo(selectedIdx())
-  })
+  createEffect(on(tab, (t) => {
+    if (t === "history") _scrollTo(selectedIdx())
+  }))
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
