@@ -1548,6 +1548,7 @@ function UserMessage(props: {
               setHover(false)
             }}
             flexDirection="row" // nocowboy_change
+            onMouseUp={props.onMouseUp}
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
