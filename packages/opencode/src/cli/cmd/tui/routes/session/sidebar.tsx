@@ -2,7 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -45,7 +45,6 @@ function HistoryTab(props: {
   onNavigate: (sessionID: string) => void
   onSelectIdx: (idx: number) => void
 }) {
-  let refs: any[] = [] // nocowboy_change
   const { theme } = useTheme()
 
   const ago = (ts: number) => {
@@ -61,7 +60,6 @@ function HistoryTab(props: {
       <For each={props.list}>
         {(s: any, idx) => (
           <text
-            ref={(el: any) => { refs[idx()] = el; if (idx() === props.selectedIdx) setTimeout(() => el?.focus(), 0) }} // nocowboy_change
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
@@ -91,6 +89,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
+  let historyScrollbox: any // nocowboy_change
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
@@ -113,6 +112,15 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   )
 
   const tabKeys = ["history", "info", "settings"] as const
+
+  // nocowboy_change - auto-scroll history to follow selection
+  createEffect(() => {
+    if (tab() !== "history") return
+    const idx = selectedIdx()
+    if (historyScrollbox) {
+      historyScrollbox.scrollTo(idx)
+    }
+  })
 
   // Tab switching — always enabled
   useBindings(() => ({
@@ -238,7 +246,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox flexGrow={1} scrollAcceleration={scrollAcceleration()}>
+          <scrollbox ref={historyScrollbox} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
