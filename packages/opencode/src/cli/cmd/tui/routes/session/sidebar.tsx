@@ -3,6 +3,7 @@ import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
 import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { appendFileSync } from "node:fs" // nocowboy_change - debug
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -11,6 +12,9 @@ import { RGBA, TextAttributes } from "@opentui/core"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
+
+const LOG = "/tmp/nocowboy-sidebar.log"
+function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
 
 type SidebarTab = "info" | "history" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
@@ -62,8 +66,8 @@ function HistoryTab(props: {
           <text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseOver={() => props.onSelectIdx(idx())} // nocowboy_change
-            onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
+            onMouseOver={() => { log(`mouse.over idx=${idx()}`); props.onSelectIdx(idx()) }} // nocowboy_change
+            onMouseDown={(e: any) => { e?.preventDefault?.(); log(`mouse.click idx=${idx()} id=${s.id}`); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
             {ago(s.time?.updated ?? 0)} {s.title}
@@ -93,11 +97,16 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   let historyScrollbox: any // nocowboy_change
 
   function scrollTo(idx: number) {
-    setTimeout(() => historyScrollbox?.scrollTo(idx), 50)
+    log(`scrollTo(${idx}) historyScrollbox=${!!historyScrollbox}`)
+    setTimeout(() => {
+      log(`scrollTo.fire(${idx}) historyScrollbox=${!!historyScrollbox} scrollTop=${historyScrollbox?.scrollTop}`)
+      historyScrollbox?.scrollTo(idx)
+    }, 50)
   }
 
   // nocowboy_change - re-sync scroll when switching to history tab
   createEffect(() => {
+    log(`createEffect tab=${tab()} selectedIdx=${selectedIdx()}`)
     if (tab() === "history") scrollTo(selectedIdx())
   })
 
@@ -133,9 +142,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         group: "Sidebar",
         cmd: () => {
           const idx = tabKeys.indexOf(tab() as any)
-          setTab(tabKeys[(idx - 1 + tabKeys.length) % tabKeys.length] as SidebarTab)
+          const next = tabKeys[(idx - 1 + tabKeys.length) % tabKeys.length] as SidebarTab
+          log(`tab.left ${tab()} -> ${next}`)
+          setTab(next)
           setSelectedIdx(0)
-          historyScrollbox = null // nocowboy_change
+          historyScrollbox = null
         },
       },
       {
@@ -144,9 +155,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         group: "Sidebar",
         cmd: () => {
           const idx = tabKeys.indexOf(tab() as any)
-          setTab(tabKeys[(idx + 1) % tabKeys.length] as SidebarTab)
+          const next = tabKeys[(idx + 1) % tabKeys.length] as SidebarTab
+          log(`tab.right ${tab()} -> ${next}`)
+          setTab(next)
           setSelectedIdx(0)
-          historyScrollbox = null // nocowboy_change
+          historyScrollbox = null
         },
       },
     ],
@@ -162,8 +175,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         group: "Sidebar",
         cmd: () => {
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
+          log(`key.up ${selectedIdx()} -> ${next} historyScrollbox=${!!historyScrollbox}`)
           setSelectedIdx(next)
-          scrollTo(next) // nocowboy_change
+          scrollTo(next)
         },
       },
       {
@@ -173,8 +187,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         cmd: () => {
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
+          log(`key.down ${selectedIdx()} -> ${next} len=${len} historyScrollbox=${!!historyScrollbox}`)
           setSelectedIdx(next)
-          scrollTo(next) // nocowboy_change
+          scrollTo(next)
         },
       },
       {
@@ -200,7 +215,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       paddingRight={2}
       position={props.overlay ? "absolute" : "relative"}
     >
-      <TabBar active={tab()} onSelect={(t) => { setTab(t); setSelectedIdx(0); historyScrollbox = null }} />
+      <TabBar active={tab()} onSelect={(t) => { log(`tab.click ${tab()} -> ${t}`); setTab(t); setSelectedIdx(0); historyScrollbox = null }} />
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
@@ -258,7 +273,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => (historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={(r: any) => { historyScrollbox = r; log(`ref.set historyScrollbox=${!!r}`) }} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
