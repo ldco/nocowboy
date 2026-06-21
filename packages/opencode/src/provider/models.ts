@@ -42,6 +42,7 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
       const get = Effect.fn("ModelsDev.get")(function* () {
         const providers = { ...(yield* core.get()) }
         delete providers.nocowboy
+        delete providers.kilo // nocowboy_change - remove models.dev's Kilo Gateway entry
 
         const cfg = yield* config.get()
         const disabled = new Set(cfg.disabled_providers ?? [])
