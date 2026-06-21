@@ -1530,13 +1530,15 @@ function UserMessage(props: {
             backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
           >
-            <text                                       // nocowboy_change start
+            {/* nocowboy_change start */}
+            <text
               onMouseUp={() => props.onAction?.()}
               paddingRight={1}
               fg={theme.textMuted}
             >
               ⋮
-            </text>                                     // nocowboy_change end
+            </text>
+            {/* nocowboy_change end */}
             <text fg={theme.text}>{text()}</text>
             <Show when={files().length}>
               <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
