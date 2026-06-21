@@ -141,7 +141,6 @@ export function BottomBar() {
           />
         )}
       </For>
-      <text fg={theme.textMuted}>  •  </text>
       <For each={appButtons}>
         {(b) => (
           <Btn

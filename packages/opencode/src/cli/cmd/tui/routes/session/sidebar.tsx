@@ -17,8 +17,8 @@ const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void }) {
   const { theme } = useTheme()
   const tabs: { key: SidebarTab; label: string }[] = [
-    { key: "info", label: "Info" },
     { key: "history", label: "History" },
+    { key: "info", label: "Info" },
     { key: "settings", label: "Settings" },
   ]
   return (
