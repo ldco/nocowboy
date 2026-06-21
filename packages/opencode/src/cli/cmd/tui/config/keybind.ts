@@ -253,7 +253,7 @@ export const CommandMap = {
   theme_list: "theme.switch",
   theme_switch_mode: "theme.switch_mode",
   theme_mode_lock: "theme.mode.lock",
-  sidebar_toggle: "session.sidebar.toggle",
+  sidebar_toggle: "sidebar.toggle",
   scrollbar_toggle: "session.toggle.scrollbar",
   status_view: "opencode.status",
   session_export: "session.export",
