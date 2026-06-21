@@ -102,12 +102,7 @@ export function TopBar() {
       <text fg={theme.success} flexGrow={1}>
         {` \uf126${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}`}
       </text>
-      <text fg={theme.textMuted}>
-        {"  Score: --  Tokens: 0  Cost: $0.00  "}
-      </text>
-      <text fg="#ff0000" paddingRight={1}>
-        ●
-      </text>
+      <text flexGrow={1} />
     </box>
   )
 }
