@@ -42,14 +42,7 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
       const get = Effect.fn("ModelsDev.get")(function* () {
         const providers = { ...(yield* core.get()) }
         delete providers.nocowboy
-        // nocowboy_change start - models.dev returns a 'kilo' entry; rename to 'nocowboy'
-        // so it maps to our NoCowboy Gateway plugin when connected
-        const kiloFallback = providers.kilo
-          ? { ...providers.kilo, id: "nocowboy" as const, name: "NoCowboy Gateway" as const }
-          : undefined
-        delete providers.kilo
-        if (kiloFallback) providers.nocowboy = kiloFallback
-        // nocowboy_change end
+        delete providers.kilo // nocowboy_change - models.dev's Kilo entry; not ours
 
         const cfg = yield* config.get()
         const disabled = new Set(cfg.disabled_providers ?? [])
@@ -88,16 +81,18 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
           ...(org ? { ncowboyOrganizationId: org } : {}),
         }
         const models = yield* cache.fetch("nocowboy", fetch).pipe(Effect.catch(() => Effect.succeed({})))
+        // nocowboy_change start - only add NoCowboy Gateway provider when it has models
         if (Object.keys(models).length > 0) {
           providers.nocowboy = {
             id: "nocowboy",
-            name: "NoCowboy",
-            env: ["KILO_API_KEY"],
+            name: "NoCowboy Gateway",
+            env: ["NOCOWBOY_API_KEY"],
             api: NOCOWBOY_OPENROUTER_BASE.endsWith("/") ? NOCOWBOY_OPENROUTER_BASE : `${NOCOWBOY_OPENROUTER_BASE}/`,
             npm: "@nocowboy/gateway",
             models,
           }
-        } // nocowboy_change - only overwrite from cache if gateway returned real models
+        }
+        // nocowboy_change end
         if (Object.keys(models).length === 0) yield* cache.refresh("nocowboy", fetch).pipe(Effect.ignore, Effect.forkDetach)
         yield* addApertis()
         return providers
