@@ -50,9 +50,8 @@ function View(props: { api: TuiPluginApi }) {
           </box>
         </box>
       </Show>
-      <text>
-        <span style={{ fg: theme().textMuted }}>{path().parent}/</span>
-        <span style={{ fg: theme().text }}>{path().name}</span>
+      <text fg={theme().textMuted} wrapMode="none">
+        {path().parent}/{path().name}
       </text>
       <text fg={theme().textMuted}>
         <span style={{ fg: theme().success }}>•</span> <b>NoCowboy</b> <span>{props.api.app.version}</span>
