@@ -14,6 +14,7 @@ import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
 import { DialogProvider } from "../../component/dialog-provider" // nocowboy_change
+import { DialogIndexing } from "@/nocowboy/components/dialog-indexing" // nocowboy_change
 
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
@@ -90,46 +91,33 @@ function SettingsTab() {
   const { theme } = useTheme()
   const sync = useSync()
   const dialog = useDialog()
-  const [search, setSearch] = createSignal("")
-
-  const allProviders = createMemo(() => {
-    const next = sync.data.provider_next
-    if (!next?.all) return []
-    const q = search().toLowerCase()
-    const items = next.all as { id: string; name: string }[]
-    return q ? items.filter((p) => p.name.toLowerCase().includes(q) || p.id.includes(q)) : items
-  })
+  const sdk = useSDK()
 
   const connected = createMemo(() => {
     const next = sync.data.provider_next
-    if (!next?.connected) return new Set<string>()
-    return new Set(next.connected as string[])
+    if (!next?.all) return []
+    return next.all.filter((p: any) => next.connected?.includes(p.id))
   })
 
   return (
     <box flexDirection="column" gap={1}>
-      <text attributes={TextAttributes.BOLD} fg={theme.text} paddingBottom={1}>
-        Providers
+      <text attributes={TextAttributes.BOLD} fg={theme.text}>Providers</text>
+      <For each={connected()}>
+        {(p: any) => (
+          <text wrapMode="none">
+            <span style={{ fg: theme.success }}>•</span> {p.name}
+          </text>
+        )}
+      </For>
+      <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
+        + Connect a provider
       </text>
-      <input
-        onInput={(val: string) => setSearch(val)}
-        placeholder="Search providers..."
-        placeholderColor={theme.textMuted}
-        cursorColor={theme.primary}
-      />
-      <scrollbox flexGrow={1}>
-        <For each={allProviders()}>
-          {(p: { id: string; name: string }) => (
-            <text
-              onMouseDown={() => dialog.replace(() => <DialogProvider />)}
-              wrapMode="none"
-            >
-              <span style={{ fg: connected().has(p.id) ? theme.success : theme.textMuted }}>•</span>
-              {" "}{p.name}
-            </text>
-          )}
-        </For>
-      </scrollbox>
+      <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
+        <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
+          Open indexing configuration →
+        </text>
+      </box>
     </box>
   )
 }
