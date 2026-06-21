@@ -15,16 +15,12 @@ import { useBindings } from "../../keymap"
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
 
-// DEBUG
+// DEBUG — remove after stable
 import { appendFileSync } from "node:fs"
+console.log("SIDEBAR MODULE LOADED")
 const LOG = "/tmp/nocowboy-sidebar.log"
-function log(msg: string) {
-  try { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) } catch (e) { /* ignore */ }
-}
-// Force a visible test on load — remove after debug
-import { writeSync } from "node:fs"
-writeSync(2, "SIDEBAR MODULE LOADED\n")
-log("=== SIDEBAR LOADED ===")
+function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
+log("=== SIDEBAR STARTED ===")
 
 type SidebarTab = "info" | "history" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
