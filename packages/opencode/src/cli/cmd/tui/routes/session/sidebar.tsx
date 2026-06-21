@@ -147,13 +147,13 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         key: "up",
         desc: "Previous session",
         group: "Sidebar",
-        cmd: () => setSelectedIdx((prev) => (prev > 0 ? prev - 1 : list().length - 1)),
+        cmd: () => setSelectedIdx((prev) => (prev > 0 ? prev - 1 : 0)),
       },
       {
         key: "down",
         desc: "Next session",
         group: "Sidebar",
-        cmd: () => setSelectedIdx((prev) => (prev < list().length - 1 ? prev + 1 : 0)),
+        cmd: () => setSelectedIdx((prev) => (prev < list().length - 1 ? prev + 1 : list().length - 1)),
       },
       {
         key: "return",
