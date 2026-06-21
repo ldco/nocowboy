@@ -94,13 +94,15 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
-  let historyScrollbox: any // nocowboy_change
+  const [historyScrollbox, setHistoryScrollbox] = createSignal<any>(undefined) // nocowboy_change
 
   function scrollTo(idx: number) {
-    log(`scrollTo(${idx}) historyScrollbox=${!!historyScrollbox}`)
+    const sb = historyScrollbox()
+    log(`scrollTo(${idx}) sb=${!!sb}`)
     setTimeout(() => {
-      log(`scrollTo.fire(${idx}) historyScrollbox=${!!historyScrollbox} scrollTop=${historyScrollbox?.scrollTop}`)
-      historyScrollbox?.scrollTo(idx)
+      const s = historyScrollbox()
+      log(`scrollTo.fire(${idx}) sb=${!!s} scrollTop=${s?.scrollTop}`)
+      s?.scrollTo(idx)
     }, 50)
   }
 
@@ -146,7 +148,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           log(`tab.left ${tab()} -> ${next}`)
           setTab(next)
           setSelectedIdx(0)
-          historyScrollbox = null
+          setHistoryScrollbox(undefined)
         },
       },
       {
@@ -159,7 +161,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           log(`tab.right ${tab()} -> ${next}`)
           setTab(next)
           setSelectedIdx(0)
-          historyScrollbox = null
+          setHistoryScrollbox(undefined)
         },
       },
     ],
@@ -175,7 +177,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         group: "Sidebar",
         cmd: () => {
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
-          log(`key.up ${selectedIdx()} -> ${next} historyScrollbox=${!!historyScrollbox}`)
+          log(`key.up ${selectedIdx()} -> ${next} historyScrollbox=${!!historyScrollbox()}`)
           setSelectedIdx(next)
           scrollTo(next)
         },
@@ -187,7 +189,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         cmd: () => {
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
-          log(`key.down ${selectedIdx()} -> ${next} len=${len} historyScrollbox=${!!historyScrollbox}`)
+          log(`key.down ${selectedIdx()} -> ${next} len=${len} historyScrollbox=${!!historyScrollbox()}`)
           setSelectedIdx(next)
           scrollTo(next)
         },
@@ -215,7 +217,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       paddingRight={2}
       position={props.overlay ? "absolute" : "relative"}
     >
-      <TabBar active={tab()} onSelect={(t) => { log(`tab.click ${tab()} -> ${t}`); setTab(t); setSelectedIdx(0); historyScrollbox = null }} />
+      <TabBar active={tab()} onSelect={(t) => { log(`tab.click ${tab()} -> ${t}`); setTab(t); setSelectedIdx(0); setHistoryScrollbox(undefined) }} />
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
@@ -273,7 +275,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => { historyScrollbox = r; log(`ref.set historyScrollbox=${!!r}`) }} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={(r: any) => { setHistoryScrollbox(r); log(`ref.set historyScrollbox=${!!r}`) }} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
               list={list()}
               currentID={currentID()}
