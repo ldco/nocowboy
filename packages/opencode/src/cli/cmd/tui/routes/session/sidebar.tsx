@@ -92,6 +92,18 @@ function SettingsTab() {
   const sync = useSync()
   const dialog = useDialog()
   const sdk = useSDK()
+  const project = useProject()
+
+  const lspDisabled = () => sync.data.config?.lsp === false
+
+  const toggleLsp = async () => {
+    const dir = project.instance.directory() ?? ""
+    if (lspDisabled()) {
+      await sdk.client.config.overlayUpdate({ directory: dir, unset: [["lsp"]] })
+    } else {
+      await sdk.client.config.overlayUpdate({ directory: dir, set: { lsp: false } })
+    }
+  }
 
   const connected = createMemo(() => {
     const next = sync.data.provider_next
@@ -112,6 +124,12 @@ function SettingsTab() {
       <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
         + Connect a provider
       </text>
+      <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+          {lspDisabled() ? "Disabled — click to enable" : "Enabled — click to disable"}
+        </text>
+      </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
         <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
