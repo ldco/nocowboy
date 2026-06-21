@@ -63,7 +63,7 @@ function HistoryTab(props: {
           <text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : idx() === hoveredIdx() ? theme.text : theme.textMuted} // nocowboy_change
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseOver={() => setHoveredIdx(idx())} // nocowboy_change
+            onMouseOver={() => { setHoveredIdx(idx()); props.onSelectIdx(idx()) }} // nocowboy_change
             onMouseOut={() => setHoveredIdx(-1)} // nocowboy_change
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
