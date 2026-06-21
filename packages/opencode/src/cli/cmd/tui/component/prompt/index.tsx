@@ -49,6 +49,9 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
+import { DialogModel } from "../dialog-model" // nocowboy_change
+import { DialogAgent } from "../dialog-agent" // nocowboy_change
+import { DialogVariant } from "../dialog-variant" // nocowboy_change
 import {
   confirmWorkspaceFileChanges,
   openWorkspaceSelect,
@@ -1610,7 +1613,10 @@ export function Prompt(props: PromptProps) {
                 <Show when={local.agent.current()} fallback={<box height={1} />}>
                   {(agent) => (
                     <>
-                      <text fg={fadeColor(highlight(), agentMetaAlpha())}>
+                      <text
+                        fg={fadeColor(highlight(), agentMetaAlpha())}
+                        onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgent />) }} // nocowboy_change
+                      >
                         {/* nocowboy_change start */}
                         {store.mode === "shell"
                           ? "Shell"
@@ -1624,13 +1630,16 @@ export function Prompt(props: PromptProps) {
                           <text
                             flexShrink={0}
                             fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+                            onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogModel />) }} // nocowboy_change
                           >
                             {local.model.parsed().model}
                           </text>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
                           <Show when={showVariant()}>
                             <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                            <text>
+                            <text
+                              onMouseDown={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }} // nocowboy_change
+                            >
                               <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
                                 {local.model.variant.current()}
                               </span>
