@@ -146,25 +146,21 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           setSelectedIdx(0)
         },
       },
+    ],
+  }))
+
+  useBindings(() => ({
+    enabled: tab() === "history",
+    bindings: [
       {
         key: "up",
         desc: "Previous session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") return
-          setSelectedIdx((prev) => (prev > 0 ? prev - 1 : list().length - 1))
-        },
-      },
-      {
-        key: "down",
-        desc: "Next session",
-        group: "Sidebar",
-        cmd: () => {
-          if (tab() !== "history") { log(`key.up SKIP tab=${tab()}`); return }
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
-          log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
+          log(`key.up ${selectedIdx()} -> ${next}`)
           setSelectedIdx(next)
-          queueMicrotask(() => _historyScrollbox?.scrollTo(next))
+          setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
       },
       {
@@ -172,12 +168,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") { log(`key.down SKIP tab=${tab()}`); return }
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
-          log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
+          log(`key.down ${selectedIdx()} -> ${next} len=${len}`)
           setSelectedIdx(next)
-          queueMicrotask(() => _historyScrollbox?.scrollTo(next))
+          setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
       },
       {
@@ -185,7 +180,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Open session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") return
           const s = list()[selectedIdx()]
           if (s) route.navigate({ type: "session", sessionID: s.id })
         },
