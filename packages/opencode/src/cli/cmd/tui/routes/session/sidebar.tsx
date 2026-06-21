@@ -2,7 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -91,6 +91,21 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const [tab, setTab] = createSignal<SidebarTab>("history")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
   let historyScrollbox: any // nocowboy_change
+  let keyboardNav = false // nocowboy_change
+
+  // nocowboy_change - scroll history to follow keyboard selection
+  createEffect(() => {
+    if (tab() !== "history" || !historyScrollbox || !keyboardNav) return
+    keyboardNav = false
+    const next = selectedIdx()
+    const viewportHeight = historyScrollbox.viewport?.height ?? 10
+    const scrollBottom = historyScrollbox.scrollTop + viewportHeight
+    if (next < historyScrollbox.scrollTop) {
+      historyScrollbox.scrollBy(next - historyScrollbox.scrollTop)
+    } else if (next + 1 > scrollBottom) {
+      historyScrollbox.scrollBy(next + 1 - scrollBottom)
+    }
+  })
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
@@ -150,9 +165,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Previous session",
         group: "Sidebar",
         cmd: () => {
+          keyboardNav = true // nocowboy_change
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
           setSelectedIdx(next)
-          setTimeout(() => historyScrollbox?.scrollTo(next), 0) // nocowboy_change
         },
       },
       {
@@ -160,10 +175,10 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
+          keyboardNav = true // nocowboy_change
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
           setSelectedIdx(next)
-          setTimeout(() => historyScrollbox?.scrollTo(next), 0) // nocowboy_change
         },
       },
       {
