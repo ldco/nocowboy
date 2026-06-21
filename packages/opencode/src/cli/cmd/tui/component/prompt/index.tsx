@@ -1522,7 +1522,7 @@ export function Prompt(props: PromptProps) {
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
           border={["left"]}
-          borderColor={borderHighlight()}
+          borderColor={theme.backgroundPanel} // nocowboy_change
           customBorderChars={{
             ...SplitBorder.customBorderChars,
             bottomLeft: "╹",
