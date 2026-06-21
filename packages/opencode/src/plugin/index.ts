@@ -26,7 +26,8 @@ import { InstanceState } from "@/effect/instance-state"
 import { errorMessage } from "@/util/error"
 import { PluginLoader } from "./loader"
 import { parsePluginSpecifier, readPluginId, readV1Plugin, resolvePluginId } from "./shared"
-import { AuthPlugin } from "@nocowboy/gateway" // nocowboy_change
+// nocowboy_change - gateway removed, stub inlined
+const AuthPlugin = async () => ({})
 // REMOVED: import { AtomicChatPlugin } from "@nocowboy/plugin-atomic-chat" // nocowboy_change
 import { registerAdapter } from "@/control-plane/adapters"
 import type { WorkspaceAdapter } from "@/control-plane/types"

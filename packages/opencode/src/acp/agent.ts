@@ -61,7 +61,8 @@ import type {
 import { applyPatch } from "diff"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 
-import { fetchDefaultModel } from "@nocowboy/gateway" // nocowboy_change
+// nocowboy_change - gateway removed
+const fetchDefaultModel = async () => null
 import { ShellID } from "@/tool/shell/id"
 
 type ModeOption = { id: string; name: string; description?: string }

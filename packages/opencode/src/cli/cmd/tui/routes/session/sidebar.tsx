@@ -104,7 +104,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return project.workspace.get(workspaceID)
   }
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
-  const [tab, setTab] = createSignal<SidebarTab>("info")
+  const [tab, setTab] = createSignal<SidebarTab>("history")
 
   return (
     <box

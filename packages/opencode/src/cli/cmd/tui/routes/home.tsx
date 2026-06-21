@@ -1,7 +1,6 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { For } from "solid-js"
-// ScoreWidget removed — belongs on Info/Screen page
-// Logo removed — will add ASCII later
+import { RGBA, TextAttributes } from "@opentui/core"
 import { createEffect, createSignal, onMount } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useProject } from "../context/project"
@@ -15,6 +14,18 @@ import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { useEditorContext } from "@tui/context/editor"
 
 let once = false
+
+const asciiLogo = [
+  `███╗   ██╗ ██████╗  ██████╗ ██████╗ ██╗    ██╗██████╗  ██████╗ ██╗   ██╗`,
+  `████╗  ██║██╔═══██╗██╔════╝██╔═══██╗██║    ██║██╔══██╗██╔═══██╗╚██╗ ██╔╝`,
+  `██╔██╗ ██║██║   ██║██║     ██║   ██║██║ █╗ ██║██████╔╝██║   ██║ ╚████╔╝ `,
+  `██║╚██╗██║██║   ██║██║     ██║   ██║██║███╗██║██╔══██╗██║   ██║  ╚██╔╝  `,
+  `██║ ╚████║╚██████╔╝╚██████╗╚██████╔╝╚███╔███╔╝██████╔╝╚██████╔╝   ██║   `,
+  `╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚═════╝  ╚══╝╚══╝ ╚═════╝  ╚═════╝    ╚═╝   `,
+]
+
+const brand = RGBA.fromInts(0xff, 0x68, 0x00)
+
 const placeholder = {
   normal: ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"],
   shell: ["ls -la", "git status", "pwd"],
@@ -63,7 +74,13 @@ export function Home() {
 
   return (
     <box flexDirection="column" flexGrow={1}>
-      <box flexGrow={1} minHeight={0} />
+      <box flexGrow={1} minHeight={0} alignItems="center" justifyContent="center">
+        <box flexDirection="column" alignItems="center">
+          <For each={asciiLogo}>
+            {(line) => <text fg={brand} attributes={TextAttributes.BOLD}>{line}</text>}
+          </For>
+        </box>
+      </box>
       <box width="100%" paddingX={2}>
         <TuiPluginRuntime.Slot
           name="home_prompt"

@@ -1,6 +1,7 @@
 import { Config } from "@/config/config"
 // nocowboy_change start - preserve Kilo API default model overlay
-import { fetchDefaultModel } from "@nocowboy/gateway"
+// nocowboy_change - gateway removed
+const fetchDefaultModel = async () => null
 import { Auth } from "@/auth"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { filterPromptTrainingModels, nonEmptyProviders } from "@/nocowboy/provider/model-filter"

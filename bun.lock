@@ -98,10 +98,6 @@
         "@typescript/native-preview": "catalog:",
       },
     },
-    "packages/kilo-gateway": {
-      "name": "@nocowboy/gateway",
-      "version": "0.0.0-stub",
-    },
     "packages/kilo-indexing": {
       "name": "@nocowboy/indexing",
       "version": "7.3.46",
@@ -155,6 +151,10 @@
         "@types/bun": "catalog:",
         "@typescript/native-preview": "catalog:",
       },
+    },
+    "packages/nocowboy-gateway": {
+      "name": "@nocowboy/gateway",
+      "version": "0.0.0-stub",
     },
     "packages/opencode": {
       "name": "nocowboy-tui",
@@ -879,7 +879,7 @@
 
     "@msgpackr-extract/msgpackr-extract-win32-x64": ["@msgpackr-extract/msgpackr-extract-win32-x64@3.0.4", "", { "os": "win32", "cpu": "x64" }, "sha512-CmCXPQrkbwExx3j946/PtHWHbYJiCRBRDl4BlkRQcJB/YOwQxJRTpoo7aTsortjgoJ1x7opzTSxn7C+ASSLVjQ=="],
 
-    "@nocowboy/gateway": ["@nocowboy/gateway@workspace:packages/kilo-gateway"],
+    "@nocowboy/gateway": ["@nocowboy/gateway@workspace:packages/nocowboy-gateway"],
 
     "@nocowboy/indexing": ["@nocowboy/indexing@workspace:packages/kilo-indexing"],
 
