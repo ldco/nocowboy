@@ -14,6 +14,7 @@ import {
   untrack,
   useContext,
 } from "solid-js"
+import { createStore } from "solid-js/store" // nocowboy_change
 import { Dynamic } from "solid-js/web"
 import path from "path"
 import { useRoute, useRouteData } from "@tui/context/route"
@@ -270,6 +271,20 @@ export function Session() {
   const lastAssistant = createMemo(() => {
     return messages().findLast((x) => x.role === "assistant")
   })
+
+  // nocowboy_change start - collapse assistant messages, default expanded only last
+  const [collapsed, setCollapsed] = createStore<Record<string, boolean>>({})
+
+  createEffect(() => {
+    const msgs = messages()
+    const last = msgs.findLast((m) => m.role === "assistant")?.id
+    for (const m of msgs) {
+      if (m.role === "assistant" && m.id !== last && collapsed[m.id] === undefined) {
+        setCollapsed(m.id, true)
+      }
+    }
+  })
+  // nocowboy_change end
 
   const dimensions = useTerminalDimensions()
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "hide")
@@ -1340,8 +1355,15 @@ export function Session() {
                       <Match when={message.role === "user"}>
                         <UserMessage
                           index={index()}
-                          // nocowboy_change - message click reserved for future use
-                          onMouseUp={() => {}}
+                          // nocowboy_change - collapse/expand next assistant message
+                          onMouseUp={() => {
+                            const msgs = messages()
+                            const idx = msgs.indexOf(message)
+                            const next = msgs[idx + 1]
+                            if (next?.role === "assistant") {
+                              setCollapsed(next.id, (prev) => !prev)
+                            }
+                          }}
                           onAction={() => {
                             if (renderer.getSelection()?.getSelectedText()) return
                             dialog.replace(() => (
@@ -1358,11 +1380,13 @@ export function Session() {
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
+                        <Show when={!collapsed[message.id]}>{/* nocowboy_change - collapse */}
                         <AssistantMessage
                           last={lastAssistant()?.id === message.id}
                           message={message as AssistantMessage}
                           parts={sync.data.part[message.id] ?? []}
                         />
+                        </Show>{/* nocowboy_change */}
                       </Match>
                     </Switch>
                   )}
