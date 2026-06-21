@@ -45,6 +45,7 @@ function HistoryTab(props: {
   onNavigate: (sessionID: string) => void
   onSelectIdx: (idx: number) => void
 }) {
+  let refs: any[] = [] // nocowboy_change
   const { theme } = useTheme()
 
   const ago = (ts: number) => {
@@ -60,6 +61,7 @@ function HistoryTab(props: {
       <For each={props.list}>
         {(s: any, idx) => (
           <text
+            ref={(el: any) => { refs[idx()] = el; if (idx() === props.selectedIdx) setTimeout(() => el?.focus(), 0) }} // nocowboy_change
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
