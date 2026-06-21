@@ -18,7 +18,9 @@ let _historyScrollbox: any = undefined
 // DEBUG
 import { appendFileSync } from "node:fs"
 const LOG = "/tmp/nocowboy-sidebar.log"
-function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
+function log(msg: string) {
+  try { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) } catch {}
+}
 log("=== SIDEBAR LOADED ===")
 
 type SidebarTab = "info" | "history" | "settings"
@@ -163,7 +165,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
           log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
-          _historyScrollbox?.scrollTo(next)
+          queueMicrotask(() => _historyScrollbox?.scrollTo(next))
         },
       },
       {
@@ -176,7 +178,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
           log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
-          _historyScrollbox?.scrollTo(next)
+          queueMicrotask(() => _historyScrollbox?.scrollTo(next))
         },
       },
       {
