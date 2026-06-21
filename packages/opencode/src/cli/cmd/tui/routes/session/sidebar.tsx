@@ -2,7 +2,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
-import { createMemo, createEffect, createSignal, createResource, Show, For, type JSX } from "solid-js"
+import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
@@ -46,7 +46,6 @@ function HistoryTab(props: {
   onSelectIdx: (idx: number) => void
 }) {
   const { theme } = useTheme()
-  const [hoveredIdx, setHoveredIdx] = createSignal(-1) // nocowboy_change
 
   const ago = (ts: number) => {
     const diff = Date.now() - ts
@@ -61,10 +60,9 @@ function HistoryTab(props: {
       <For each={props.list}>
         {(s: any, idx) => (
           <text
-            fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : idx() === hoveredIdx() ? theme.text : theme.textMuted} // nocowboy_change
+            fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseOver={() => { setHoveredIdx(idx()); props.onSelectIdx(idx()) }} // nocowboy_change
-            onMouseOut={() => setHoveredIdx(-1)} // nocowboy_change
+            onMouseOver={() => props.onSelectIdx(idx())} // nocowboy_change
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
@@ -116,15 +114,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   const tabKeys = ["history", "info", "settings"] as const
 
-  // nocowboy_change - auto-scroll history to follow selection
-  createEffect(() => {
-    if (tab() !== "history") return
-    const idx = selectedIdx()
-    if (historyScrollbox) {
-      historyScrollbox.scrollTo(idx)
-    }
-  })
-
   // Tab switching — always enabled
   useBindings(() => ({
     enabled: true,
@@ -160,13 +149,22 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         key: "up",
         desc: "Previous session",
         group: "Sidebar",
-        cmd: () => setSelectedIdx((prev) => (prev > 0 ? prev - 1 : 0)),
+        cmd: () => {
+          const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
+          setSelectedIdx(next)
+          historyScrollbox?.scrollTo(next) // nocowboy_change
+        },
       },
       {
         key: "down",
         desc: "Next session",
         group: "Sidebar",
-        cmd: () => setSelectedIdx((prev) => (prev < list().length - 1 ? prev + 1 : list().length - 1)),
+        cmd: () => {
+          const len = list().length
+          const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
+          setSelectedIdx(next)
+          historyScrollbox?.scrollTo(next) // nocowboy_change
+        },
       },
       {
         key: "return",
