@@ -1507,7 +1507,18 @@ function UserMessage(props: {
   const compaction = createMemo(() => props.parts.find((x) => x.type === "compaction"))
 
   return (
-    <>
+    <box flexDirection="row"> {/* nocowboy_change */}
+      {/* nocowboy_change start */}
+      <text
+        onMouseUp={() => props.onAction?.()}
+        paddingRight={1}
+        paddingTop={1}
+        fg={theme.textMuted}
+      >
+        ⋮
+      </text>
+      {/* nocowboy_change end */}
+      <box flexDirection="column" flexGrow={1}> {/* nocowboy_change */}
       <Show when={text()}>
         <box
           id={props.message.id}
@@ -1530,15 +1541,6 @@ function UserMessage(props: {
             backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
           >
-            {/* nocowboy_change start */}
-            <text
-              onMouseUp={() => props.onAction?.()}
-              paddingRight={1}
-              fg={theme.textMuted}
-            >
-              ⋮
-            </text>
-            {/* nocowboy_change end */}
             <text fg={theme.text}>{text()}</text>
             <Show when={files().length}>
               <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
@@ -1587,7 +1589,8 @@ function UserMessage(props: {
           borderColor={theme.borderActive}
         />
       </Show>
-    </>
+      </box>
+    </box>
   )
 }
 
