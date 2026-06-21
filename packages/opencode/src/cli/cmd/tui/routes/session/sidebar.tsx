@@ -112,6 +112,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   const tabKeys = ["history", "info", "settings"] as const
 
+  // Tab switching — always enabled
   useBindings(() => ({
     enabled: true,
     bindings: [
@@ -135,30 +136,30 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           setSelectedIdx(0)
         },
       },
+    ],
+  }))
+
+  // History navigation — only enabled on history tab
+  useBindings(() => ({
+    enabled: tab() === "history",
+    bindings: [
       {
         key: "up",
         desc: "Previous session",
         group: "Sidebar",
-        cmd: () => {
-          if (tab() !== "history") return
-          setSelectedIdx((prev) => (prev > 0 ? prev - 1 : list().length - 1))
-        },
+        cmd: () => setSelectedIdx((prev) => (prev > 0 ? prev - 1 : list().length - 1)),
       },
       {
         key: "down",
         desc: "Next session",
         group: "Sidebar",
-        cmd: () => {
-          if (tab() !== "history") return
-          setSelectedIdx((prev) => (prev < list().length - 1 ? prev + 1 : 0))
-        },
+        cmd: () => setSelectedIdx((prev) => (prev < list().length - 1 ? prev + 1 : 0)),
       },
       {
         key: "return",
         desc: "Open session",
         group: "Sidebar",
         cmd: () => {
-          if (tab() !== "history") return
           const s = list()[selectedIdx()]
           if (s) route.navigate({ type: "session", sessionID: s.id })
         },
