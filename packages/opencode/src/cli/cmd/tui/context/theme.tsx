@@ -587,7 +587,7 @@ export function generateSystem(colors: TerminalColors, mode: "dark" | "light"): 
 
       // Status colors using ANSI
       error: ansiColors.red,
-      warning: ansiColors.yellow,
+      warning: RGBA.fromInts(0xff, 0x68, 0x00), // nocowboy_change - NoCowboy orange
       success: ansiColors.green,
       info: ansiColors.cyan,
 
