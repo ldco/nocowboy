@@ -67,7 +67,6 @@ import { ArgsProvider, useArgs, type Args } from "./context/args"
 import open from "open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app" // nocowboy_change
-import { InfoScreen } from "@/nocowboy/cli/cmd/tui/info-screen" // nocowboy_change
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state" // nocowboy_change
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
@@ -974,16 +973,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                  {plugin()}
                 </Show>
                 <Show when={useScreen().screen() !== "chat"}>
-                <Show when={useScreen().screen() === "info"}>{/* nocowboy_change start */}
-                  <InfoScreen />
-                </Show>{/* nocowboy_change end */}
-                <Show when={useScreen().screen() !== "info"}>
                 <box flexGrow={1} alignItems="center" justifyContent="center">
                   <text fg={useTheme().theme.textMuted}>
                     {useScreen().screen().charAt(0).toUpperCase() + useScreen().screen().slice(1)} view
                   </text>
                 </box>
-                </Show>
                 </Show>
               </box>
               <Show when={sidebarOpen() && (useScreen().screen() !== "chat" || route.data.type !== "session") && dimensions().width > 120}>
@@ -1005,14 +999,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                   onMouseUp={(e: any) => e?.stopPropagation?.()}
                   backgroundColor={theme.backgroundPanel}
                   width={42}
-                  height="100%"
-                >
-                  <Show when={sidebarSessionID()} fallback={
-                    <text fg={theme.textMuted} paddingTop={2} paddingLeft={2}>No active session</text>
-                  }>
-                    <Sidebar sessionID={sidebarSessionID()} overlay />
-                  </Show>
-                </box>
+                  height="100%" />
               </box>
             </Show>
           </ScreenProvider>
