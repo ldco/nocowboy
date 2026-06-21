@@ -97,11 +97,10 @@ function SettingsTab() {
   const lspDisabled = () => sync.data.config?.lsp === false
 
   const toggleLsp = async () => {
-    const dir = project.instance.directory() ?? ""
     if (lspDisabled()) {
-      await sdk.client.config.overlayUpdate({ directory: dir, unset: [["lsp"]] })
+      await sdk.client.config.overlayUpdate({ scope: "global", unset: [["lsp"]] })
     } else {
-      await sdk.client.config.overlayUpdate({ directory: dir, set: { lsp: false } })
+      await sdk.client.config.overlayUpdate({ scope: "global", set: { lsp: false } })
     }
   }
 
