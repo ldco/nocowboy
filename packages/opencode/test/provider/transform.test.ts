@@ -4181,7 +4181,7 @@ describe("ProviderTransform.options - OpenAI Responses API params guard", () => 
     expect(result.reasoningSummary).toBe("auto")
   })
 
-  test("includes reasoningSummary for @kilocode/kilo-gateway", () => {
+  test("includes reasoningSummary for @kilocode/nocowboy-gateway", () => {
     const result = ProviderTransform.options({
       model: gpt5Model("@nocowboy/gateway", "kilo"),
       sessionID,

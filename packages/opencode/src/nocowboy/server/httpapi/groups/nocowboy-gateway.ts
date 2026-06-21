@@ -8,9 +8,9 @@ import {
 } from "@/server/routes/instance/httpapi/middleware/workspace-routing"
 import { described } from "@/server/routes/instance/httpapi/groups/metadata"
 
-const root = "/kilo"
+const root = "/nocowboy"
 
-export const KiloGatewayPaths = {
+export const NoCowboyGatewayPaths = {
   authStatus: `${root}/auth-status`,
   cloudSessions: `${root}/cloud-sessions`,
   cloudSession: `${root}/cloud-session/:id`,
@@ -97,11 +97,11 @@ const ClawStatusResponse = Schema.Struct({
   botName: Schema.optional(Schema.NullOr(Schema.String)),
 })
 
-export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
+export const NoCowboyGatewayApi = HttpApi.make("nocowboy-gateway")
   .add(
     HttpApiGroup.make("nocowboy-gateway")
       .add(
-        HttpApiEndpoint.get("authStatus", KiloGatewayPaths.authStatus, {
+        HttpApiEndpoint.get("authStatus", NoCowboyGatewayPaths.authStatus, {
           query: WorkspaceRoutingQuery,
           success: described(HealthResponse, "Auth status"),
           error: HttpApiError.BadRequest,
@@ -112,7 +112,7 @@ export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Returns the authentication status for the Kilo Gateway.",
           }),
         ),
-        HttpApiEndpoint.get("cloudSessions", KiloGatewayPaths.cloudSessions, {
+        HttpApiEndpoint.get("cloudSessions", NoCowboyGatewayPaths.cloudSessions, {
           query: WorkspaceRoutingQuery,
           success: described(CloudSessionList, "Cloud session list"),
           error: HttpApiError.BadRequest,
@@ -123,7 +123,7 @@ export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Returns the list of cloud sessions.",
           }),
         ),
-        HttpApiEndpoint.get("cloudSession", KiloGatewayPaths.cloudSession, {
+        HttpApiEndpoint.get("cloudSession", NoCowboyGatewayPaths.cloudSession, {
           query: WorkspaceRoutingQuery,
           success: described(CloudSessionData, "Cloud session data"),
           error: HttpApiError.BadRequest,
@@ -134,7 +134,7 @@ export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Returns a specific cloud session.",
           }),
         ),
-        HttpApiEndpoint.post("cloudSessionImport", KiloGatewayPaths.cloudSessionImport, {
+        HttpApiEndpoint.post("cloudSessionImport", NoCowboyGatewayPaths.cloudSessionImport, {
           query: WorkspaceRoutingQuery,
           success: described(Schema.String, "Import result"),
           error: HttpApiError.BadRequest,
@@ -145,7 +145,7 @@ export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Import a cloud session into the local instance.",
           }),
         ),
-        HttpApiEndpoint.get("clawStatus", KiloGatewayPaths.clawStatus, {
+        HttpApiEndpoint.get("clawStatus", NoCowboyGatewayPaths.clawStatus, {
           query: WorkspaceRoutingQuery,
           success: described(ClawStatusResponse, "Claw status"),
           error: HttpApiError.BadRequest,
@@ -159,7 +159,7 @@ export const KiloGatewayApi = HttpApi.make("nocowboy-gateway")
       )
       .annotateMerge(
         OpenApi.annotations({
-          title: "kilo-gateway",
+          title: "nocowboy-gateway",
           description: "Kilo Gateway routes.",
         }),
       )

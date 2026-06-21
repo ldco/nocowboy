@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { Schema } from "effect"
-import { CloudSessionData } from "../../src/nocowboy/server/httpapi/groups/kilo-gateway"
+import { CloudSessionData } from "../../src/nocowboy/server/httpapi/groups/nocowboy-gateway"
 
 describe("cloud session HTTP schema", () => {
   test("preserves transcript fields needed by the VS Code preview", () => {

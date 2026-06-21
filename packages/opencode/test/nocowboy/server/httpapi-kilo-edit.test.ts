@@ -3,7 +3,7 @@ import { ConfigProvider, Layer } from "effect"
 import { HttpRouter } from "effect/unstable/http"
 import { HEADER_FEATURE, HEADER_NOCOWBOY_ORGANIZATIONID } from "@nocowboy/gateway"
 import * as Log from "@opencode-ai/core/util/log"
-import { KiloGatewayPaths } from "../../../src/nocowboy/server/httpapi/groups/kilo-gateway"
+import { NoCowboyGatewayPaths } from "../../../src/nocowboy/server/httpapi/groups/nocowboy-gateway"
 import * as HttpApiServer from "../../../src/server/routes/instance/httpapi/server"
 import { resetDatabase } from "../../fixture/db"
 import { disposeAllInstances, tmpdir } from "../../fixture/fixture"
@@ -46,7 +46,7 @@ function app() {
 
 async function send(body: Record<string, unknown> = edit, signal?: AbortSignal) {
   await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
-  return app().request(KiloGatewayPaths.edit, {
+  return app().request(NoCowboyGatewayPaths.edit, {
     method: "POST",
     headers: { "content-type": "application/json", "x-kilo-directory": tmp.path },
     body: JSON.stringify(body),

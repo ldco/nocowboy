@@ -1,7 +1,7 @@
 // kilocode_change - new file
 // When the injected Kilo models source returns a 401 error result, ModelCache surfaces
 // the failure and caches empty models (allowing re-auth via /connect).
-// The real fetchKiloModels 401-fallback unit test lives in packages/kilo-gateway/test/api/models.test.ts.
+// The real fetchKiloModels 401-fallback unit test lives in packages/nocowboy-gateway/test/api/models.test.ts.
 
 import { expect } from "bun:test"
 import { Effect, Layer } from "effect"

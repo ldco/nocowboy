@@ -5,7 +5,7 @@ import { AgentBuilderPaths } from "../../../src/nocowboy/server/httpapi/groups/a
 import { BackgroundProcessPaths } from "../../../src/nocowboy/server/httpapi/groups/background-process"
 import { ConfigConsolePaths } from "../../../src/nocowboy/server/httpapi/groups/config-console"
 import { IndexingPaths, KiloEmbeddingModel } from "../../../src/nocowboy/server/httpapi/groups/indexing"
-import { KiloGatewayPaths } from "../../../src/nocowboy/server/httpapi/groups/kilo-gateway"
+import { NoCowboyGatewayPaths } from "../../../src/nocowboy/server/httpapi/groups/nocowboy-gateway"
 import { NetworkPaths } from "../../../src/nocowboy/server/httpapi/groups/network"
 import { TelemetryPaths } from "../../../src/nocowboy/server/httpapi/groups/telemetry"
 import { ExperimentalPaths } from "../../../src/server/routes/instance/httpapi/groups/experimental"
@@ -149,7 +149,7 @@ describe("Kilo PublicApi OpenAPI contract", () => {
 
   test("keeps personal organization resets nullable", () => {
     const spec = OpenApi.fromApi(PublicApi)
-    const body = spec.paths[KiloGatewayPaths.organization]?.post?.requestBody as Body | undefined
+    const body = spec.paths[NoCowboyGatewayPaths.organization]?.post?.requestBody as Body | undefined
     const schema = body?.content?.["application/json"]?.schema
     const props = schema?.properties
     expect(props?.organizationId).toEqual({ anyOf: [{ type: "string" }, { type: "null" }] })
@@ -162,36 +162,36 @@ describe("Kilo PublicApi OpenAPI contract", () => {
       return body?.content?.["application/json"]?.schema
     }
 
-    const profile = response(KiloGatewayPaths.profile)?.properties
+    const profile = response(NoCowboyGatewayPaths.profile)?.properties
     expect(profile?.balance).toEqual({ anyOf: [expect.objectContaining({ type: "object" }), { type: "null" }] })
     expect(profile?.currentOrgId).toEqual({ anyOf: [{ type: "string" }, { type: "null" }] })
 
-    const auth = response(KiloGatewayPaths.authStatus)?.properties
+    const auth = response(NoCowboyGatewayPaths.authStatus)?.properties
     expect(auth).toEqual({
       authenticated: { type: "boolean" },
       type: { type: "string", enum: ["api", "oauth"] },
     })
 
-    const sessions = response(KiloGatewayPaths.cloudSessions)?.properties
+    const sessions = response(NoCowboyGatewayPaths.cloudSessions)?.properties
     expect(sessions?.cliSessions?.items?.properties?.title).toEqual({
       anyOf: [{ type: "string" }, { type: "null" }],
     })
     expect(sessions?.nextCursor).toEqual({ anyOf: [{ type: "string" }, { type: "null" }] })
 
-    const claw = response(KiloGatewayPaths.clawStatus)?.properties
+    const claw = response(NoCowboyGatewayPaths.clawStatus)?.properties
     expect(claw?.status).toEqual({ anyOf: [expect.objectContaining({ type: "string" }), { type: "null" }] })
     for (const field of ["openclawVersion", "lastStartedAt", "lastStoppedAt", "botName"]) {
       expect(claw?.[field]).toEqual({ anyOf: [{ type: "string" }, { type: "null" }] })
     }
 
-    expect(response(KiloGatewayPaths.clawChatCredentials)).toEqual({
+    expect(response(NoCowboyGatewayPaths.clawChatCredentials)).toEqual({
       anyOf: [expect.objectContaining({ type: "object" }), { type: "null" }],
     })
   })
 
   test("keeps transcription prompts in the public contract", () => {
     const spec = OpenApi.fromApi(PublicApi)
-    const body = spec.paths[KiloGatewayPaths.audioTranscriptions]?.post?.requestBody as Body | undefined
+    const body = spec.paths[NoCowboyGatewayPaths.audioTranscriptions]?.post?.requestBody as Body | undefined
     const schema = body?.content?.["application/json"]?.schema
     expect(schema?.properties?.prompt).toEqual({ type: "string" })
   })
