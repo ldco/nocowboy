@@ -158,7 +158,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         group: "Sidebar",
         cmd: () => {
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
-          log(`key.up ${selectedIdx()} -> ${next}`)
+          log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
@@ -170,7 +170,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         cmd: () => {
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
-          log(`key.down ${selectedIdx()} -> ${next} len=${len}`)
+          log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
