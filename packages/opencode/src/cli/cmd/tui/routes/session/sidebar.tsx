@@ -87,103 +87,28 @@ function HistoryTab(props: {
 
 function SettingsTab() {
   const { theme } = useTheme()
-  const sdk = useSDK()
-  const project = useProject()
-  const dialog = useDialog()
+  const sync = useSync()
 
-  const [scope, setScope] = createSignal<"project" | "global">("project")
-  const [refresh, setRefresh] = createSignal(0)
-
-  const providerLabel = (provider: string) => {
-    const labels: Record<string, string> = {
-      kilo: "NoCowboy",
-      openai: "OpenAI",
-      voyage: "Voyage AI",
-      gemini: "Gemini",
-      mistral: "Mistral AI",
-      "openai-compatible": "OpenAI Compatible",
-      "vercel-ai-gateway": "Vercel AI Gateway",
-      openrouter: "OpenRouter",
-      qdrant: "Qdrant",
-      ollama: "Ollama",
-      bedrock: "AWS Bedrock",
-    }
-    return labels[provider] ?? provider
-  }
-
-  const [overlayData] = createResource(
-    () => ({ directory: project.instance.directory() ?? "", scope: scope(), refresh: refresh() }),
-    async ({ directory, scope }) => {
-      const result = await sdk.client.config.overlay({ directory, scope })
-      return result.data
-    },
-  )
-
-  const apiKeyFields = createMemo(() => {
-    const data = overlayData()
-    if (!data?.fields) return []
-    return Object.entries(data.fields).filter(([key]) => key.endsWith("apiKey"))
+  const connected = createMemo(() => {
+    const next = sync.data.provider_next
+    if (!next?.all) return []
+    return next.all.filter((p: any) => next.connected?.includes(p.id))
   })
-
-  const handleClick = async (key: string, path: string[], value: unknown) => {
-    const provider = path[1]
-    const empty = await DialogPrompt.show(dialog, `API Key: ${providerLabel(provider)}`, {
-      placeholder: value ? "Enter new API key" : "Enter API key",
-    })
-    if (empty === null) return
-    const trimmed = empty.trim()
-    const params = { directory: project.instance.directory() ?? "", scope: scope() }
-    if (trimmed) {
-      await sdk.client.config.overlayUpdate({ ...params, set: { [key]: trimmed } })
-    } else {
-      await sdk.client.config.overlayUpdate({ ...params, unset: [path] })
-    }
-    setRefresh((r) => r + 1)
-  }
 
   return (
     <box flexDirection="column" gap={1}>
-      <box flexDirection="row" gap={1} flexShrink={0}>
-        <text
-          fg={scope() === "project" ? brand : theme.textMuted}
-          onMouseDown={(e: any) => { e?.preventDefault?.(); setScope("project") }}
-        >
-          Project
-        </text>
-        <text fg={theme.textMuted}>/</text>
-        <text
-          fg={scope() === "global" ? brand : theme.textMuted}
-          onMouseDown={(e: any) => { e?.preventDefault?.(); setScope("global") }}
-        >
-          Global
-        </text>
-      </box>
-
-      <Show when={!overlayData.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-        <Show
-          when={apiKeyFields().length > 0}
-          fallback={<text fg={theme.textMuted}>No API keys configured</text>}
-        >
-          <For each={apiKeyFields()}>
-            {([key, field]: [string, any]) => {
-              const hasValue = !!field.value
-              return (
-                <text
-                  onMouseDown={() => handleClick(key, field.path, field.value)}
-                  wrapMode="none"
-                >
-                  <span style={{ fg: hasValue ? theme.success : theme.error }}>•</span>
-                  {" "}
-                  {providerLabel(field.path[1])}
-                  {": "}
-                  <span style={{ fg: theme.textMuted }}>
-                    {hasValue ? "••••••••" : "not set"}
-                  </span>
-                </text>
-              )
-            }}
-          </For>
-        </Show>
+      <text attributes={TextAttributes.BOLD} fg={theme.text}>
+        Connected Providers
+      </text>
+      <Show when={connected().length > 0} fallback={<text fg={theme.textMuted}>No providers configured</text>}>
+        <For each={connected()}>
+          {(p: any) => (
+            <box flexDirection="row" gap={1}>
+              <text fg={theme.success}>•</text>
+              <text fg={theme.textMuted} wrapMode="none">{p.name}</text>
+            </box>
+          )}
+        </For>
       </Show>
     </box>
   )

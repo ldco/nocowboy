@@ -83,7 +83,17 @@ export function DialogPrompt(props: DialogPromptProps) {
           <text fg={theme.text}>
             enter <span style={{ fg: theme.textMuted }}>submit</span>
           </text>
-        </Show>
+          <text                                                               // nocowboy_change start
+            fg={theme.text}
+            onMouseUp={() => {
+              if (props.busy) return
+              props.onConfirm?.(textarea.plainText)
+            }}
+            paddingLeft={1}
+          >
+            [ Submit ]
+          </text>
+        </Show>                                                               // nocowboy_change end
       </box>
     </box>
   )
