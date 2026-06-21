@@ -1,5 +1,7 @@
-import { resolveKiloGatewayBaseUrl } from "@nocowboy/gateway"
-import { HEADER_FEATURE, HEADER_ORGANIZATIONID } from "@nocowboy/gateway"
+// gateway removed - stubs inlined
+const resolveKiloGatewayBaseUrl = () => undefined as string | undefined
+const HEADER_FEATURE = "X-KILOCODE-FEATURE"
+const HEADER_ORGANIZATIONID = "X-KILOCODE-ORGANIZATIONID"
 import { MAX_ITEM_TOKENS } from "../constants"
 import type { EmbedderInfo, EmbeddingResponse, IEmbedder } from "../interfaces/embedder"
 import { Log } from "../../util/log"

@@ -20,7 +20,6 @@
       "packages/ui",
       "packages/plugin",
       "packages/sdk/js",
-      "packages/kilo-gateway",
       "packages/kilo-telemetry",
       "packages/kilo-indexing",
       "packages/http-recorder"

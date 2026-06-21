@@ -1,5 +1,6 @@
-// kilocode_change - new file
-import { createKilo, KILO_OPENROUTER_BASE } from "@nocowboy/gateway"
+// kilocode_change - new file (gateway removed, stubs inlined)
+const createKilo = () => ({ models: [] })
+const KILO_OPENROUTER_BASE = ""
 import { Effect } from "effect"
 import { PluginV2 } from "../../plugin"
 import { ProviderV2 } from "../../provider"
