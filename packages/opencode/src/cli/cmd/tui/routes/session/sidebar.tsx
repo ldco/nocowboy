@@ -46,6 +46,7 @@ function HistoryTab(props: {
   onSelectIdx: (idx: number) => void
 }) {
   const { theme } = useTheme()
+  const [hoveredIdx, setHoveredIdx] = createSignal(-1) // nocowboy_change
 
   const ago = (ts: number) => {
     const diff = Date.now() - ts
@@ -60,8 +61,10 @@ function HistoryTab(props: {
       <For each={props.list}>
         {(s: any, idx) => (
           <text
-            fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
+            fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : idx() === hoveredIdx() ? theme.text : theme.textMuted} // nocowboy_change
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
+            onMouseOver={() => setHoveredIdx(idx())} // nocowboy_change
+            onMouseOut={() => setHoveredIdx(-1)} // nocowboy_change
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
