@@ -270,9 +270,8 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
-        {/* TEST: minimal Info tab to isolate orphan text source */}
         <Show when={session()} fallback={<text fg={theme.textMuted}>No active session</text>}>
-          <text fg={theme.textMuted}>Info content here — {InstallationVersion}</text>
+          <scrollbox flexGrow={1}><text fg={theme.textMuted}>scrollbox works</text></scrollbox>
         </Show>
       </Show>
 
