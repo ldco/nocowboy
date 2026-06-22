@@ -4,13 +4,14 @@ class Nocowboy < Formula
   version "0.3.5"
   license "LicenseRef-custom"
 
-  # Private repo: download the archive for your architecture and place it in
-  # the same directory as this formula, or provide a direct download URL.
+  # Set to the URL where release archives are hosted
+  release_url = "https://releases.nocowboy.dev/v#{version}"
+
   if Hardware::CPU.intel?
-    url "nocowboy-darwin-x64.zip"
+    url "#{release_url}/nocowboy-darwin-x64.zip"
     sha256 "UPDATE_ME"
   else
-    url "nocowboy-darwin-arm64.zip"
+    url "#{release_url}/nocowboy-darwin-arm64.zip"
     sha256 "UPDATE_ME"
   end
 

@@ -1,6 +1,9 @@
 # Maintainer: NoCowboy <nobody@nocowboy.dev>
 # Contributor: ldco <nobody@nocowboy.dev>
 
+# Set this to the URL where release archives are hosted
+_release_url="https://releases.nocowboy.dev/v${pkgver}"
+
 pkgname=nocowboy
 pkgver=0.3.5
 pkgrel=1
@@ -11,10 +14,11 @@ license=('LicenseRef-custom')
 depends=('glibc')
 makedepends=()
 
-# Private repo: place the archive next to this PKGBUILD before building
-source=('nocowboy-linux-x64.tar.gz')
+source_x86_64=("${_release_url}/nocowboy-linux-x64.tar.gz")
+source_aarch64=("${_release_url}/nocowboy-linux-arm64.tar.gz")
 
-sha256sums=('SKIP')
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
 
 package() {
   cd "${srcdir}"
