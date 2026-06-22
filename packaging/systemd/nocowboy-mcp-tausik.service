@@ -1,0 +1,11 @@
+[Unit]
+Description=NoCowboy MCP: tausik (requires tausik installed separately)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/false
+Restart=no
+
+[Install]
+WantedBy=default.target
