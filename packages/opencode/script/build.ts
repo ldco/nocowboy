@@ -419,8 +419,8 @@ if (Script.release) {
     const stagingDir = `dist/${key}/staging` // nocowboy_change
     await $`mkdir -p ${stagingDir}` // nocowboy_change
     await $`cp ${binDir}/nocowboy ${stagingDir}/` // nocowboy_change
-    await $`cp ../../install.sh ${stagingDir}/` // nocowboy_change
-    await $`cp -r ../../../packaging/config ${stagingDir}/config` // nocowboy_change
+    await $`cp ${path.resolve(dir, "../../install.sh")} ${stagingDir}/` // nocowboy_change
+    await $`cp -r ${path.resolve(dir, "../../packaging/config")} ${stagingDir}/config` // nocowboy_change
     if (key.includes("linux")) {
       const out = path.resolve("dist", `${archive}.tar.gz`) // nocowboy_change
       await $`tar -czf ${out} *`.cwd(stagingDir) // nocowboy_change
