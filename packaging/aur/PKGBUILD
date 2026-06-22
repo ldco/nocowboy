@@ -22,8 +22,18 @@ build() {
 package() {
   cd "${srcdir}"
 
-  # NoCowboy binary
-  install -Dm755 nocowboy "${pkgdir}/usr/bin/nocowboy"
+  # Binary + sidecars (models snapshot + tree-sitter wasms) must live together
+  install -Dm755 nocowboy "${pkgdir}/usr/lib/nocowboy/nocowboy"
+  install -Dm644 models-snapshot.json "${pkgdir}/usr/lib/nocowboy/models-snapshot.json"
+  mkdir -p "${pkgdir}/usr/lib/nocowboy/tree-sitter"
+  cp -r tree-sitter/. "${pkgdir}/usr/lib/nocowboy/tree-sitter/"
+
+  # Wrapper on PATH that points the binary at its sidecars
+  install -dm755 "${pkgdir}/usr/bin"
+  printf '%s\n' '#!/bin/sh' \
+    'export KILO_TREE_SITTER_WASM_DIR=/usr/lib/nocowboy/tree-sitter' \
+    'exec /usr/lib/nocowboy/nocowboy "$@"' > "${pkgdir}/usr/bin/nocowboy"
+  chmod 755 "${pkgdir}/usr/bin/nocowboy"
 
   # Default config
   mkdir -p "${pkgdir}/usr/share/nocowboy"

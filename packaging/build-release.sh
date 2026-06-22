@@ -41,6 +41,8 @@ done
 echo "--- Creating Arch source archive ---"
 mkdir -p /tmp/ncb-arch
 cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy /tmp/ncb-arch/
+cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/models-snapshot.json /tmp/ncb-arch/
+cp -r packages/opencode/dist/nocowboy-tui-linux-x64/bin/tree-sitter /tmp/ncb-arch/tree-sitter
 cp -r packaging/config /tmp/ncb-arch/config
 cp -r packaging/mcp-servers /tmp/ncb-arch/mcp-servers
 cp -r packaging/systemd /tmp/ncb-arch/systemd
