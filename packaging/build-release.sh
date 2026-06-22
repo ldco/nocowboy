@@ -18,8 +18,9 @@ bun run build
 cd "$APP_DIR"
 echo "Binaries built (Linux + macOS + Windows)."
 
-# Step 2: Create macOS archives
+# Step 2: Create release directory + macOS archives
 echo "--- Creating macOS archives ---"
+mkdir -p "${RELEASE_DIR}"
 for target in darwin-arm64; do
   bin_dir="packages/opencode/dist/nocowboy-tui-${target}/bin"
   if [ -f "${bin_dir}/nocowboy" ]; then
