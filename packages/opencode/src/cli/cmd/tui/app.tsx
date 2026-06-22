@@ -984,9 +984,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                 <Sidebar sessionID={sidebarSessionID()} />
               </Show>
             </box>
-            <Show when={route.data.type !== "home"}>
-              <BottomBar />
-            </Show>
+            <BottomBar />
             <Show when={sidebarOpen() && (useScreen().screen() !== "chat" || route.data.type !== "session") && dimensions().width <= 120}>
               <box
                 width={dimensions().width}
