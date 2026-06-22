@@ -1385,6 +1385,7 @@ export function Session() {
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
+                          onForceSend={() => { void sdk.client.session.abort({ sessionID: route.sessionID }) }} // nocowboy_change
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
@@ -1515,6 +1516,7 @@ function UserMessage(props: {
   pending?: string
   onAction?: () => void // nocowboy_change
   collapsedNext?: boolean // nocowboy_change
+  onForceSend?: () => void // nocowboy_change
 }) {
   const ctx = use()
   const local = useLocal()
@@ -1607,11 +1609,12 @@ function UserMessage(props: {
                   </text>
                 </Show>
               }
-            >
-              <text fg={theme.textMuted}>
-                <span style={{ bg: color(), fg: queuedFg(), bold: true }}> QUEUED </span>
-              </text>
-            </Show>
+             >
+               <text fg={theme.textMuted}>
+                 <span style={{ bg: color(), fg: queuedFg(), bold: true }}> QUEUED </span>
+                 <text fg={theme.textMuted} onMouseUp={props.onForceSend}> [force]</text> {/* nocowboy_change */}
+               </text>
+             </Show>
           </box>
         </box>
       </Show>
