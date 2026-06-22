@@ -30,7 +30,7 @@ const active = new Set([
   "auto-docs.yml",
   "beta.yml",
   "check-forbidden-strings.yml",
-  "check-kilo-generated-artifacts.yml",
+  "check-nocowboy-generated-artifacts.yml",
   "check-md-table-padding.yml",
   "check-opencode-annotations.yml",
   "check-org-member.yml",

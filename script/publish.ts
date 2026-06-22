@@ -89,7 +89,7 @@ if (Script.release) {
   // kilocode_change end
 
   // kilocode_change start - publish channel-aware GitHub release notes
-  const { publishNotes } = await import("./kilocode/release-notes")
+  const { publishNotes } = await import("./nocowboy/release-notes")
   await publishNotes({
     version: Script.version,
     prerelease: Script.preview,

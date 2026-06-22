@@ -39,7 +39,7 @@ if (git.status !== 0) {
 const bad = git.stdout.split("\0").filter(Boolean).sort()
 
 if (bad.length === 0) {
-  console.log("check-kilo-generated-artifacts: ok")
+  console.log("check-nocowboy-generated-artifacts: ok")
   process.exit(0)
 }
 
