@@ -183,13 +183,20 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   )
 
   const shareSession = async (sessionID: string) => { // nocowboy_change start
+    log(`shareSession.start ${sessionID}`)
     try {
       const res = await sdk.client.session.share({ sessionID })
+      log(`shareSession.response ok=${!!res.data?.share?.url}`)
       if (res.data?.share?.url) {
         await Clipboard.copy(res.data.share.url)
+        log(`shareSession.copied ${res.data.share.url}`)
         toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
+      } else {
+        log(`shareSession.no-url data=${JSON.stringify(res.data)}`)
+        toast.show({ message: "Failed to share session: no URL returned", variant: "error" })
       }
     } catch (e: any) {
+      log(`shareSession.error ${e?.message ?? e}`)
       toast.show({ message: e?.message ?? "Failed to share session", variant: "error" })
     }
   } // nocowboy_change end
@@ -301,7 +308,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
-        <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) shareSession(s.id) }}>Share selected session</text>{/* nocowboy_change */}
+        <text fg={brand} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log(`share.click ${s.id}`); shareSession(s.id) } }}>[ Share selected session ]</text>{/* nocowboy_change */}
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
           <scrollbox ref={(r: any) => (_historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
