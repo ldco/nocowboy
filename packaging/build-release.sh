@@ -27,6 +27,7 @@ for target in darwin-x64 darwin-arm64; do
     cp "${bin_dir}/nocowboy" "/tmp/ncb-mac-${target}/"
     cp install.sh "/tmp/ncb-mac-${target}/"
     cp -r packaging/config "/tmp/ncb-mac-${target}/config"
+    cp -r packaging/launchd "/tmp/ncb-mac-${target}/launchd"
     cd "/tmp/ncb-mac-${target}"
     zip -rq "${APP_DIR}/${RELEASE_DIR}/nocowboy-${target}.zip" .
     cd "$APP_DIR"

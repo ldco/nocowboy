@@ -75,6 +75,17 @@ else
   echo -e "${RED}Warning: config/ directory not found — no agents/commands/skills installed${NC}"
 fi
 
+# --- macOS: install launchd plists ---
+PLIST_SRC="${SCRIPT_DIR}/launchd"
+if [[ -d "${PLIST_SRC}" ]] && [[ "$(uname)" == "Darwin" ]]; then
+  mkdir -p "${HOME}/Library/LaunchAgents"
+  for plist in "${PLIST_SRC}"/*.plist; do
+    cp "$plist" "${HOME}/Library/LaunchAgents/"
+    launchctl load "${HOME}/Library/LaunchAgents/$(basename "$plist")" 2>/dev/null || true
+  done
+  echo -e "${MUTED}Installed MCP LaunchAgents to ~/Library/LaunchAgents/${NC}"
+fi
+
 echo ""
 echo -e "${MUTED}NoCowboy ${VERSION} installed.${NC}"
 echo -e "${MUTED}Run 'nocowboy' to start.${NC}"
