@@ -4,8 +4,7 @@ class Nocowboy < Formula
   version "0.3.5"
   license "LicenseRef-custom"
 
-  # Set to the URL where release archives are hosted
-  release_url = "https://releases.nocowboy.dev/v#{version}"
+  release_url = "https://github.com/ldco/nocowboy/raw/master/releases"
 
   if Hardware::CPU.intel?
     url "#{release_url}/nocowboy-darwin-x64.zip"

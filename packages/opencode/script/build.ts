@@ -109,7 +109,7 @@ function smokeEnv(root: string) {
 }
 
 async function smokeModels(binaryPath: string) {
-  const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), "kilo-models-"))
+  const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), "nocowboy-models-"))
   try {
     const out = await $`${binaryPath} --pure models anthropic`.env(smokeEnv(root)).text()
     if (out.split(/\r?\n/).some((line) => line.startsWith("anthropic/"))) return

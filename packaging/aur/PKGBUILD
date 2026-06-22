@@ -2,7 +2,7 @@
 # Contributor: ldco <nobody@nocowboy.dev>
 
 # Set this to the URL where release archives are hosted
-_release_url="https://releases.nocowboy.dev/v${pkgver}"
+_release_url="https://github.com/ldco/nocowboy/raw/master/releases"
 
 pkgname=nocowboy
 pkgver=0.3.5
