@@ -265,15 +265,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
       },
-      {
-        key: "s",
-        desc: "Share selected session",
-        group: "Sidebar",
-        cmd: () => {
-          const s = list()[selectedIdx()]
-          if (s) shareSession(s.id)
-        },
-      },
     ],
   }))
 
@@ -314,11 +305,14 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         </Show>
       </Show>
 
-      {/* History Tab — session list */}
+      {/* History Tab — session list / nocowboy_change start */}
       <Show when={tab() === "history"}>
-        <text fg={brand} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log(`share.click ${s.id}`); shareSession(s.id) } }}>[ Share selected session ]</text>{/* nocowboy_change */}
+        <box flexDirection="row" flexShrink={0} gap={2}>
+          <text fg={brand} onMouseDown={() => route.navigate({ type: "home" })}>[+ New Session]</text>
+          <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log(`share.click ${s.id}`); shareSession(s.id) } }}>[ Share ]</text>
+        </box>
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
-          <scrollbox ref={(r: any) => (_historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
+          <scrollbox ref={(r: any) => (_historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>
             <HistoryTab
               list={list()}
               currentID={currentID()}
@@ -329,6 +323,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           </scrollbox>
         </Show>
       </Show>
+      {/* nocowboy_change end */}
 
       {/* Settings Tab — API key management */}
       <Show when={tab() === "settings"}>
