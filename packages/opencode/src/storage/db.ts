@@ -30,9 +30,9 @@ const readRuntimeFlags = () =>
 
 export function getChannelPath(flags: Pick<DatabaseFlags, "disableChannelDb"> = readRuntimeFlags()) {
   if (["latest", "beta", "prod"].includes(InstallationChannel) || flags.disableChannelDb)
-    return path.join(Global.Path.data, "kilo.db") // nocowboy_change
+    return path.join(Global.Path.data, "nocowboy.db") // nocowboy_change
   const safe = InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")
-  const next = path.join(Global.Path.data, `kilo-${safe}.db`) // nocowboy_change
+  const next = path.join(Global.Path.data, `nocowboy-${safe}.db`) // nocowboy_change
   const prev = path.join(Global.Path.data, `opencode-${safe}.db`) // nocowboy_change
   if (!existsSync(next) && existsSync(prev)) return prev // nocowboy_change
   return next // nocowboy_change

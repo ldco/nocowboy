@@ -242,7 +242,7 @@ export function patchCustomLoaderResult(
 // ---------------------------------------------------------------------------
 
 export function ncowboySmallModelPriority(providerID: string): string[] | undefined {
-  if (providerID.startsWith("kilo")) return ["kilo-auto/small"]
+  if (providerID.startsWith("nocowboy")) return ["nocowboy-auto/small"]
   return undefined
 }
 

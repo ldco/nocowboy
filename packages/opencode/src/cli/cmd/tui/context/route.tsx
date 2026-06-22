@@ -14,8 +14,8 @@ export type SessionRoute = {
 }
 
 // nocowboy_change start
-export type KiloClawRoute = {
-  type: "kilo-claw"
+export type NoCowboyClawRoute = {
+  type: "nocowboy-claw"
 }
 // nocowboy_change end
 
@@ -25,7 +25,7 @@ export type PluginRoute = {
   data?: Record<string, unknown>
 }
 
-export type Route = HomeRoute | SessionRoute | PluginRoute | KiloClawRoute // nocowboy_change
+export type Route = HomeRoute | SessionRoute | PluginRoute | NoCowboyClawRoute // nocowboy_change
 
 export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
   name: "Route",
