@@ -54,6 +54,7 @@ echo "Arch source archive created."
 # Step 4: Build .pkg.tar.zst
 echo "--- Building .pkg.tar.zst ---"
 cd packaging/aur
+rm -rf src pkg   # ensure no cached sources from previous builds
 makepkg -f --noconfirm 2>&1
 cd "$APP_DIR"
 echo ".pkg.tar.zst built."
