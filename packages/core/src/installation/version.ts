@@ -4,7 +4,7 @@ declare global {
   const NOCOWBOY_BUILD_KIND: string // kilocode_change
 }
 
-export const InstallationVersion = typeof NOCOWBOY_VERSION === "string" ? NOCOWBOY_VERSION : (process.env.NOCOWBOY_VERSION ?? "0.4.0-dev")
+export const InstallationVersion = typeof NOCOWBOY_VERSION === "string" ? NOCOWBOY_VERSION : (process.env.NOCOWBOY_VERSION ?? "0.3.2-dev")
 export const InstallationChannel = typeof NOCOWBOY_CHANNEL === "string" ? NOCOWBOY_CHANNEL : (process.env.NOCOWBOY_CHANNEL ?? "local")
 export const InstallationLocal = InstallationChannel === "local"
 // kilocode_change start - distinguish release builds from source / local builds
