@@ -73,9 +73,14 @@ function time(tag: string) {
 }
 
 function migrations(dir: string): Journal {
-  const dirs = readdirSync(dir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
+  let dirs: string[]
+  try {
+    dirs = readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+  } catch {
+    return []
+  }
 
   const sql = dirs
     .map((name) => {

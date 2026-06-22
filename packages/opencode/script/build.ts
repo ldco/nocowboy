@@ -7,7 +7,7 @@ import path from "path"
 import { fileURLToPath } from "url"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import { createRequire } from "module" // nocowboy_change
-import { prepareModelsSnapshot } from "./kilocode/models-snapshot" // nocowboy_change
+import { prepareModelsSnapshot } from "./nocowboy/models-snapshot" // nocowboy_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
