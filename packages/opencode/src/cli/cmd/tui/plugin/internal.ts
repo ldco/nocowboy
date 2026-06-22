@@ -3,7 +3,6 @@ import HomeTips from "../feature-plugins/home/tips"
 // nocowboy_change start
 import HomeOnboarding from "@/nocowboy/plugins/home-onboarding"
 import KiloAttention from "@/nocowboy/plugins/attention"
-import KiloHomeFooter from "@/nocowboy/plugins/home-footer"
 import KiloSidebarFooter from "@/nocowboy/plugins/sidebar-footer"
 import KiloSidebarBackgroundProcesses from "@/nocowboy/plugins/sidebar-background-processes"
 import KiloSidebarIndexing from "@/nocowboy/plugins/sidebar-indexing"
@@ -33,7 +32,6 @@ export function internalTuiPlugins(flags: Pick<RuntimeFlags.Info, "experimentalE
   return [
     HomeOnboarding, // nocowboy_change
     KiloAttention, // nocowboy_change
-    KiloHomeFooter, // nocowboy_change
     KiloSidebarFooter, // nocowboy_change
     KiloSidebarBackgroundProcesses, // nocowboy_change
     KiloSidebarIndexing, // nocowboy_change
