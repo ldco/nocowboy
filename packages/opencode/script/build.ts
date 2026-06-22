@@ -319,13 +319,13 @@ for (const item of targets) {
               Number(match[1].slice(10,12)), Number(match[1].slice(12,14)),
             ) : 0
             return {
-              sql: JSON.stringify(fs.readFileSync(sqlPath, "utf-8")),
+              sql: fs.readFileSync(sqlPath, "utf-8"),
               timestamp,
-              name: JSON.stringify(name),
+              name,
             }
           })
           .filter(Boolean)
-        return `[${entries.map(e => `{sql:${e.sql},timestamp:${e.timestamp},name:${e.name}}`).join(",")}]`
+        return JSON.stringify(entries)
       })(),
     },
   })
