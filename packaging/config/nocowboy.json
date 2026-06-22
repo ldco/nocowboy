@@ -1,6 +1,11 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "mcp": {
+    "context7": { "type": "remote", "url": "http://127.0.0.1:8200/mcp", "enabled": true },
+    "sqlite": { "type": "remote", "url": "http://127.0.0.1:8201/mcp", "enabled": true },
+    "puppeteer": { "type": "remote", "url": "http://127.0.0.1:8202/mcp", "enabled": true },
+    "tausik": { "type": "remote", "url": "http://127.0.0.1:8204/mcp", "enabled": true },
+    "git": { "type": "remote", "url": "http://127.0.0.1:8205/mcp", "enabled": true },
     "puppetmaster": { "type": "remote", "url": "http://127.0.0.1:8203/mcp", "enabled": true },
     "ralph": { "type": "remote", "url": "http://127.0.0.1:8210/mcp", "enabled": true },
     "constitution": { "type": "remote", "url": "http://127.0.0.1:8216/mcp", "enabled": true },
