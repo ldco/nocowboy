@@ -7,7 +7,7 @@ export type ProviderMetadata = {
 }
 
 const notes: Record<string, string> = {
-  kilo: "settings.providers.note.kilo",
+  nocowboy: "settings.providers.note.nocowboy",
   opencode: "settings.providers.note.opencode",
   anthropic: "settings.providers.note.anthropic",
   deepseek: "settings.providers.note.deepseek",
@@ -18,7 +18,7 @@ const notes: Record<string, string> = {
   vercel: "settings.providers.note.vercel",
 }
 
-const order = ["kilo", "anthropic", "deepseek", "openai", "google", "openrouter", "vercel"] as const
+const order = ["nocowboy", "anthropic", "deepseek", "openai", "google", "openrouter", "vercel"] as const
 
 const priority = new Map<string, number>(order.map((id, index) => [id, index]))
 

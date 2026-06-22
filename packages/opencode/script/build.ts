@@ -263,6 +263,8 @@ for (const item of targets) {
   const rootPath = path.resolve(dir, "../../node_modules/@opentui/core/parser.worker.js")
   const parserWorker = fs.realpathSync(fs.existsSync(localPath) ? localPath : rootPath)
   const workerPath = "./src/cli/cmd/tui/worker.ts"
+  const sessionExportWorker = "./src/nocowboy/session-export/worker.ts" // nocowboy_change
+  const indexingWorker = "./src/nocowboy/indexing-worker.ts" // nocowboy_change
   // nocowboy_change - these Kilo workers don't exist in this fork
 
   // Use platform-specific bunfs root path based on target OS
@@ -300,13 +302,14 @@ for (const item of targets) {
     },
     // nocowboy_change start - packages/app was removed; no embedded web UI
     files: {},
-    entrypoints: ["./src/index.ts", parserWorker, workerPath],
+    entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorker, indexingWorker], // nocowboy_change
     // nocowboy_change end
     define: {
       NOCOWBOY_VERSION: `'${Script.version}'`,
       NOCOWBOY_CHANNEL: `'${Script.channel}'`,
 
       NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // nocowboy_change
+      NOCOWBOY_LIBC: item.abi === "musl" ? `'musl'` : `'glibc'`, // nocowboy_change
       NOCOWBOY_MIGRATIONS: (() => {
         const migrationDir = path.resolve(dir, "migration")
         if (!fs.existsSync(migrationDir)) return "undefined"

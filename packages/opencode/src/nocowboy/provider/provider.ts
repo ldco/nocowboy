@@ -55,7 +55,7 @@ export const KILO_MODEL_SCHEMA_EXTENSIONS = {
 }
 
 // ---------------------------------------------------------------------------
-// fromModelsDevModel patch — returns kilo-specific fields
+// fromModelsDevModel patch — returns nocowboy-specific fields
 // ---------------------------------------------------------------------------
 
 export function patchModelsDevModel(providerID: string, source: Record<string, unknown>) {
@@ -72,7 +72,7 @@ export function patchModelsDevModel(providerID: string, source: Record<string, u
 }
 
 // ---------------------------------------------------------------------------
-// Config model patch — merges kilo-specific fields from config + existing
+// Config model patch — merges nocowboy-specific fields from config + existing
 // ---------------------------------------------------------------------------
 
 type VariantEntry = { disabled?: boolean } & Record<string, unknown>
@@ -143,7 +143,7 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
         options: {},
       }),
 
-    kilo: Effect.fnUntraced(function* (input: Record<string, unknown>) {
+    nocowboy: Effect.fnUntraced(function* (input: Record<string, unknown>) {
       const env = yield* dep.env()
       const inp = input as { env: string[]; id: string; models: Record<string, { ai_sdk_provider?: string }> }
       const hasKey = yield* Effect.gen(function* () {
@@ -151,8 +151,8 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
         if (yield* dep.auth(inp.id)) return true
         const cfg = (yield* dep.config()) as Record<string, unknown>
         const provider = cfg.provider as Record<string, unknown> | undefined
-        const kiloCfg = provider?.["kilo"] as { options?: { apiKey?: string } } | undefined
-        if (kiloCfg?.options?.apiKey) return true
+        const nocowboyCfg = provider?.["nocowboy"] as { options?: { apiKey?: string } } | undefined
+        if (nocowboyCfg?.options?.apiKey) return true
         return false
       })
 
@@ -212,7 +212,7 @@ export function patchCustomLoaderResult(
     case "cerebras":
       opts.headers = {
         ...(opts.headers as Record<string, string> | undefined),
-        "X-Cerebras-3rd-Party-Integration": "kilo",
+        "X-Cerebras-3rd-Party-Integration": "nocowboy",
       }
       break
     case "azure": {

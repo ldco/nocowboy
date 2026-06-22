@@ -148,7 +148,7 @@ export const layer: Layer.Layer<
     const agent = yield* Agent.Service
     // nocowboy_change start
     const suggesttool = yield* SuggestTool
-    const kiloToolInfos = yield* NocowboyToolRegistry.infos()
+    const nocowboyToolInfos = yield* NocowboyToolRegistry.infos()
     // nocowboy_change end
 
     const state = yield* InstanceState.make<State>(
@@ -261,7 +261,7 @@ export const layer: Layer.Layer<
         })
 
         // nocowboy_change start
-        const kilo = yield* NocowboyToolRegistry.build(kiloToolInfos, {
+        const nocowboy = yield* NocowboyToolRegistry.build(nocowboyToolInfos, {
           agent: agents,
           truncate,
           indexing: indexing ?? false,
@@ -291,10 +291,10 @@ export const layer: Layer.Layer<
               tool.patch,
               tool.plan,
               ...(["cli", "vscode"].includes(flags.client) ? [tool.suggest] : []),
-              ...NocowboyToolRegistry.extra(kilo, cfg),
+              ...NocowboyToolRegistry.extra(nocowboy, cfg),
               ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ],
-            kilo,
+            nocowboy,
           ),
           // nocowboy_change end
           task: tool.task,
