@@ -2,7 +2,6 @@ import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { For } from "solid-js"
 import { RGBA, TextAttributes } from "@opentui/core"
 import { createEffect, createSignal, onMount } from "solid-js"
-import { useTheme } from "@tui/context/theme"
 import { useProject } from "../context/project"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -11,6 +10,7 @@ import { useRouteData } from "@tui/context/route"
 import { usePromptRef } from "../context/prompt"
 import { useLocal } from "../context/local"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
+import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { useEditorContext } from "@tui/context/editor"
 
 let once = false
@@ -95,14 +95,7 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
-                  <text
-                    fg={useTheme().theme.textMuted}
-                    paddingLeft={1}
-                    paddingRight={1}
-                    onMouseDown={(e: any) => { e?.preventDefault?.() }}
-                  >
-                    [🎙Voice]
-                  </text>
+                  <VoiceButton onResult={(text) => ref()?.set({ input: text, parts: [] })} />
                   <TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />
                 </box>
               }

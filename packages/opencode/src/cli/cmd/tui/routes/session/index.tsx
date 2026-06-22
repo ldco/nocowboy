@@ -66,6 +66,7 @@ import { DialogMessage } from "./dialog-message"
 import type { PromptInfo } from "../../component/prompt/history"
 import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { ErrorBlock } from "@/nocowboy/components/error-display" // nocowboy_change
+import { VoiceButton } from "@/nocowboy/components/voice-button" // nocowboy_change
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
@@ -1477,14 +1478,7 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
-                            <text
-                              fg={theme.textMuted}
-                              paddingLeft={1}
-                              paddingRight={1}
-                              onMouseDown={(e: any) => { e?.preventDefault?.(); /* TODO: ostt.ai STT */ }}
-                            >
-                              [🎙Voice]
-                            </text>
+                            <VoiceButton onResult={(text) => prompt?.set({ input: text, parts: [] })} />
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
                         }
