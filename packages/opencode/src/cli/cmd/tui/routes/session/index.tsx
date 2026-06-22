@@ -22,6 +22,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { SplitBorder } from "@tui/component/border"
+import { MessageID, PartID } from "@/session/schema" // nocowboy_change
 import { Spinner } from "@tui/component/spinner"
 import { selectedForeground, useTheme } from "@tui/context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
@@ -1386,25 +1387,28 @@ export function Session() {
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
                           onForceSend={() => {
-                            const msgs = messages()
-                            const idx = msgs.indexOf(message)
-                            const next = msgs[idx + 1]
-                            if (next?.role === "assistant") setCollapsed(next.id, true)
-                            // nocowboy_change start - abort + restore queued text to prompt
+                            // nocowboy_change start - interrupt + immediately resubmit queued message
                             const status = sync.data.session_status?.[route.sessionID]
                             if (status?.type !== "idle") void sdk.client.session.abort({ sessionID: route.sessionID })
                             const parts = sync.data.part[message.id]
-                            if (parts && prompt) {
-                              prompt.set(
-                                parts.reduce(
-                                  (agg: { input: string; parts: any[] }, part: Part) => {
-                                    if (part.type === "text" && !("synthetic" in part && (part as any).synthetic))
-                                      agg.input += (part as any).text
-                                    return agg
-                                  },
-                                  { input: "", parts: [] },
-                                ),
-                              )
+                            if (parts && route.sessionID) {
+                              const text = parts
+                                .filter((p: Part) => p.type === "text" && !("synthetic" in p && (p as any).synthetic))
+                                .map((p: any) => p.text)
+                                .join("\n\n")
+                              if (text.trim()) {
+                                const agent = local.agent.current()
+                                const model = local.model.current()
+                                void sdk.client.session.prompt({
+                                  sessionID: route.sessionID,
+                                  ...model,
+                                  messageID: MessageID.ascending(),
+                                  agent: agent?.name ?? "",
+                                  model,
+                                  variant: local.model.variant.current(),
+                                  parts: [{ id: PartID.ascending(), type: "text" as const, text: text.trim() }],
+                                }).catch(() => {})
+                              }
                             }
                           }} // nocowboy_change end
                         />
