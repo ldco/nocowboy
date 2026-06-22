@@ -11,7 +11,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Self-contained — this script lives inside the release archive.
-# The archive also contains: nocowboy (binary) + framework/ directory
+# The archive also contains: nocowboy (binary) + config/ directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
@@ -19,7 +19,7 @@ usage() {
 NoCowboy ${VERSION} installer
 
 Usage:
-  ./install.sh              Install nocowboy binary + framework
+  ./install.sh              Install nocowboy binary + default config
   ./install.sh --help       Show this help
 
 The install script is bundled inside the release archive.
@@ -59,20 +59,20 @@ case ":${PATH}:" in
     ;;
 esac
 
-# --- Framework (agents, commands, instructions, skills, config) ---
-FRAMEWORK_SRC="${SCRIPT_DIR}/framework"
-if [[ -d "${FRAMEWORK_SRC}" ]]; then
+# --- Default config (agents, commands, instructions, skills) ---
+CFG_SRC="${SCRIPT_DIR}/config"
+if [[ -d "${CFG_SRC}" ]]; then
   mkdir -p "${CONFIG_DIR}"
-  cp -r "${FRAMEWORK_SRC}/agent" "${CONFIG_DIR}/agent" 2>/dev/null || true
-  cp -r "${FRAMEWORK_SRC}/command" "${CONFIG_DIR}/command" 2>/dev/null || true
-  cp -r "${FRAMEWORK_SRC}/instructions" "${CONFIG_DIR}/instructions" 2>/dev/null || true
-  cp -r "${FRAMEWORK_SRC}/skills" "${CONFIG_DIR}/skills" 2>/dev/null || true
-  if [[ -f "${FRAMEWORK_SRC}/nocowboy.json" ]]; then
-    cp "${FRAMEWORK_SRC}/nocowboy.json" "${CONFIG_DIR}/"
+  cp -r "${CFG_SRC}/agent" "${CONFIG_DIR}/agent" 2>/dev/null || true
+  cp -r "${CFG_SRC}/command" "${CONFIG_DIR}/command" 2>/dev/null || true
+  cp -r "${CFG_SRC}/instructions" "${CONFIG_DIR}/instructions" 2>/dev/null || true
+  cp -r "${CFG_SRC}/skills" "${CONFIG_DIR}/skills" 2>/dev/null || true
+  if [[ -f "${CFG_SRC}/nocowboy.json" ]]; then
+    cp "${CFG_SRC}/nocowboy.json" "${CONFIG_DIR}/"
   fi
-  echo -e "${MUTED}Installed framework to ${CONFIG_DIR}/${NC}"
+  echo -e "${MUTED}Installed default config to ${CONFIG_DIR}/${NC}"
 else
-  echo -e "${RED}Warning: framework/ directory not found — no config/agents/commands installed${NC}"
+  echo -e "${RED}Warning: config/ directory not found — no agents/commands/skills installed${NC}"
 fi
 
 echo ""

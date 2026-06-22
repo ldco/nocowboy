@@ -8,16 +8,16 @@ Edit version in:
 - `packaging/aur/PKGBUILD` — `pkgver`
 - `packaging/homebrew/nocowboy.rb` — `version`
 
-## 2. Update framework
+## 2. Update default config
 
-Bundle the latest framework from the live config:
+Bundle the latest config from the live installation:
 
 ```bash
-cp -r ~/.config/nocowboy/agent packaging/framework/
-cp -r ~/.config/nocowboy/command packaging/framework/
-cp -r ~/.config/nocowboy/instructions packaging/framework/
-cp -r ~/.config/nocowboy/skills packaging/framework/
-cp ~/.config/nocowboy/nocowboy.json packaging/framework/
+cp -r ~/.config/nocowboy/agent packaging/config/
+cp -r ~/.config/nocowboy/command packaging/config/
+cp -r ~/.config/nocowboy/instructions packaging/config/
+cp -r ~/.config/nocowboy/skills packaging/config/
+cp ~/.config/nocowboy/nocowboy.json packaging/config/
 ```
 
 ## 3. Build
@@ -32,7 +32,7 @@ Produces in `dist/`:
 - `nocowboy-darwin-x64.zip`
 - `nocowboy-darwin-arm64.zip`
 
-Each archive contains: `nocowboy` (binary) + `install.sh` + `framework/`.
+Each archive contains: `nocowboy` (binary) + `install.sh` + `config/`.
 
 ## 4. Upload archives
 

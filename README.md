@@ -28,7 +28,7 @@ yay -S nocowboy
 # or: paru -S nocowboy
 ```
 
-The AUR package installs the binary to `/usr/bin/nocowboy` and framework to `/usr/share/nocowboy/framework/`. Run `nocowboy` to start.
+The AUR package installs the binary to `/usr/bin/nocowboy` with default config at `/usr/share/nocowboy/config/`. Run `nocowboy` to start.
 
 ### macOS (Homebrew)
 
@@ -36,7 +36,7 @@ The AUR package installs the binary to `/usr/bin/nocowboy` and framework to `/us
 brew install ldco/nocowboy/nocowboy
 ```
 
-After install, run the setup script to copy framework to your config:
+After install, run the setup script to populate your user config:
 ```bash
 /usr/local/share/nocowboy/install.sh
 ```
@@ -57,7 +57,7 @@ cd nocowboy
 ./install.sh
 ```
 
-The archive contains the binary, installer, and full framework (agents, commands, instructions, skills, config). The installer copies everything to `~/.nocowboy/bin/` and `~/.config/nocowboy/`.
+The archive contains the binary, installer, and default config (agents, commands, instructions, skills). The installer copies everything to `~/.nocowboy/bin/` and `~/.config/nocowboy/`.
 
 ### Build from source
 

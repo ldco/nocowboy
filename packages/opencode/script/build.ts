@@ -386,12 +386,12 @@ if (Script.release) {
   for (const key of Object.keys(binaries)) {
     const archive = pkg.name.includes("tui") ? key.replace(`${pkg.name}-`, "nocowboy-") : key // nocowboy_change
     const binDir = `dist/${key}/bin`
-    // Bundle framework + install.sh into the archive
+    // Bundle config + install.sh into the archive
     const stagingDir = `dist/${key}/staging` // nocowboy_change
     await $`mkdir -p ${stagingDir}` // nocowboy_change
     await $`cp ${binDir}/nocowboy ${stagingDir}/` // nocowboy_change
     await $`cp install.sh ${stagingDir}/` // nocowboy_change
-    await $`cp -r ../../../packaging/framework ${stagingDir}/framework` // nocowboy_change
+    await $`cp -r ../../../packaging/config ${stagingDir}/config` // nocowboy_change
     if (key.includes("linux")) {
       const out = path.resolve("dist", `${archive}.tar.gz`) // nocowboy_change
       await $`tar -czf ${out} *`.cwd(stagingDir) // nocowboy_change

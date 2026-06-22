@@ -22,5 +22,5 @@ package() {
   cd "${srcdir}"
   install -Dm755 nocowboy "${pkgdir}/usr/bin/nocowboy"
   mkdir -p "${pkgdir}/usr/share/nocowboy"
-  cp -r framework "${pkgdir}/usr/share/nocowboy/"
+  cp -r config "${pkgdir}/usr/share/nocowboy/"
 }

@@ -14,7 +14,7 @@ class Nocowboy < Formula
 
   def install
     bin.install "nocowboy"
-    (share/"nocowboy").install Dir["install.sh", "framework"]
+    (share/"nocowboy").install Dir["install.sh", "config"]
   end
 
   def post_install
