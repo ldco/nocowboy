@@ -1610,9 +1610,9 @@ function UserMessage(props: {
                 </Show>
               }
              >
-               <text fg={theme.textMuted}>
+               <text fg={theme.textMuted} onMouseUp={props.onForceSend}>
                  <span style={{ bg: color(), fg: queuedFg(), bold: true }}> QUEUED </span>
-                 <text fg={theme.textMuted} onMouseUp={props.onForceSend}> [force]</text> {/* nocowboy_change */}
+                 <span style={{ fg: theme.textMuted }}> [force]</span>
                </text>
              </Show>
           </box>
