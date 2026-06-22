@@ -16,9 +16,15 @@ const require = createRequire(import.meta.url) // kilocode_change
 
 process.chdir(dir)
 
-import { Script } from "@opencode-ai/script"
 import pkg from "../package.json"
 import { LanceDBRuntime } from "../src/nocowboy/lancedb" // kilocode_change
+
+const Script = {
+  channel: process.env.NOCOWBOY_CHANNEL ?? process.env.KILO_CHANNEL ?? "dev",
+  version: process.env.NOCOWBOY_VERSION ?? process.env.KILO_VERSION ?? "0.0.0",
+  preview: process.env.NOCOWBOY_PREVIEW === "true",
+  release: process.env.NOCOWBOY_RELEASE === "true",
+} // kilocode_change
 
 // Load migrations from migration directories
 const migrationDirs = (
@@ -385,7 +391,7 @@ for (const item of targets) {
         // kilocode_change start
         repository: {
           type: "git",
-          url: "https://github.com/Kilo-Org/kilocode",
+          url: "https://github.com/ldco/nocowboy",
         },
         // kilocode_change end
       },

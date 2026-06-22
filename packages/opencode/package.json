@@ -12,7 +12,7 @@
     "test:httpapi": "bun run script/httpapi-exercise.ts --mode coverage --fail-on-missing --fail-on-skip && bun run script/httpapi-exercise.ts --mode auth --fail-on-missing --fail-on-skip && bun run script/httpapi-exercise.ts --mode effect --fail-on-missing --fail-on-skip",
     "build": "bun run script/build.ts",
     "fix-node-pty": "bun run script/fix-node-pty.ts",
-    "dev": "KILO_VERSION=0.1.0-dev KILO_CHANNEL=dev bun --watch --conditions=browser ./src/index.ts",
+    "dev": "NOCOWBOY_VERSION=0.3.7-dev NOCOWBOY_CHANNEL=dev bun --watch --conditions=browser ./src/index.ts",
     "dev:temporary": "bun run --conditions=browser ./src/temporary.ts",
     "db": "bun drizzle-kit"
   },
