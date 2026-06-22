@@ -162,7 +162,7 @@ function SidebarToggle() {
       paddingRight={1}
       onMouseDown={(e: MouseEvent) => { e.preventDefault?.(); toggleSidebar() }}
     >
-      {sidebarOpen() ? "◀ Sidebar" : "▶ Sidebar"}
+      {sidebarOpen() ? "◀ ctrl+b" : "▶ ctrl+b"}
     </text>
   )
 }
