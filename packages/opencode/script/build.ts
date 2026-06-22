@@ -2,22 +2,22 @@
 
 import { $ } from "bun"
 import fs from "fs"
-import os from "os" // kilocode_change
+import os from "os" // nocowboy_change
 import path from "path"
 import { fileURLToPath } from "url"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
-import { createRequire } from "module" // kilocode_change
-import { prepareModelsSnapshot } from "./kilocode/models-snapshot" // kilocode_change
+import { createRequire } from "module" // nocowboy_change
+import { prepareModelsSnapshot } from "./kilocode/models-snapshot" // nocowboy_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const dir = path.resolve(__dirname, "..")
-const require = createRequire(import.meta.url) // kilocode_change
+const require = createRequire(import.meta.url) // nocowboy_change
 
 process.chdir(dir)
 
 import pkg from "../package.json"
-import { LanceDBRuntime } from "../src/nocowboy/lancedb" // kilocode_change
+import { LanceDBRuntime } from "../src/nocowboy/lancedb" // nocowboy_change
 
 const Script = {
   channel: process.env.NOCOWBOY_CHANNEL ?? "dev",
@@ -61,9 +61,9 @@ const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
-// kilocode_change - packages/app was removed; the web UI embed step is no longer applicable
+// nocowboy_change - packages/app was removed; the web UI embed step is no longer applicable
 
-// kilocode_change start - codebase indexing
+// nocowboy_change start - codebase indexing
 async function copyTreeSitterWasms(outputDir: string) {
   const runtimeWasmPath = require.resolve("web-tree-sitter/tree-sitter.wasm")
   const languagePackagePath = require.resolve("tree-sitter-wasms/package.json")
@@ -81,29 +81,18 @@ async function copyTreeSitterWasms(outputDir: string) {
 
   console.log(`copied ${languageWasmFiles.length + 1} tree-sitter wasm files to ${targetDir}`)
 }
-// kilocode_change end
+// nocowboy_change end
 
 // nocowboy_change start - web console not in this fork
 async function buildWebConsole() { return undefined }
 async function copyWebConsole(_input: string, _outputDir: string) {}
 // nocowboy_change end
 
-// kilocode_change start - validate compiled binaries load the sidecar models snapshot
+// nocowboy_change start - validate compiled binaries load the sidecar models snapshot
 function smokeEnv(root: string) {
   const env = { ...process.env }
-  delete env.KILO_MODELS_PATH
-  delete env.KILO_MODELS_URL
-  delete env.KILO_CONFIG
-  delete env.KILO_CONFIG_DIR
   return {
     ...env,
-    XDG_DATA_HOME: path.join(root, "data"),
-    XDG_CACHE_HOME: path.join(root, "cache"),
-    XDG_CONFIG_HOME: path.join(root, "config"),
-    XDG_STATE_HOME: path.join(root, "state"),
-    KILO_DISABLE_MODELS_FETCH: "1",
-    KILO_DISABLE_PROJECT_CONFIG: "1",
-    KILO_CONFIG_CONTENT: JSON.stringify({ enabled_providers: ["anthropic"] }),
     ANTHROPIC_API_KEY: "dummy",
   }
 }
@@ -120,10 +109,9 @@ async function smokeModels(binaryPath: string) {
       .catch((err) => console.warn(`Failed to remove smoke test directory ${root}`, err))
   }
 }
-// kilocode_change end
+// nocowboy_change end
 
-// kilocode_change start - upstream's createEmbeddedWebUIBundle is intentionally removed because
-// Kilo dropped the packages/app web UI. Kept here as a commented reference so future upstream merges
+// nocowboy_change start - upstream Kilo had a web UI package; removed from this fork
 // can see the deliberate divergence rather than treating a re-add as a clean re-introduction.
 // const createEmbeddedWebUIBundle = async () => {
 //   console.log(`Building Web UI to embed in the binary`)
@@ -148,7 +136,7 @@ async function smokeModels(binaryPath: string) {
 //     `}`,
 //   ].join("\n")
 // }
-// kilocode_change end
+// nocowboy_change end
 
 const allTargets: {
   os: string
@@ -234,12 +222,12 @@ const targets = singleFlag
     })
   : allTargets
 
-// kilocode_change start - prepare one validated models snapshot before any target compile
+// nocowboy_change start - prepare one validated models snapshot before any target compile
 const snapshot = await prepareModelsSnapshot()
 console.log(
   `Prepared models snapshot from ${snapshot.source} (${snapshot.providers} providers, ${snapshot.models} models)`,
 )
-// kilocode_change end
+// nocowboy_change end
 
 await $`rm -rf dist`
 const consoleDist = await buildWebConsole() // nocowboy_change
@@ -278,13 +266,13 @@ for (const item of targets) {
     conditions: ["browser"],
     tsconfig: "./tsconfig.json",
     plugins: [plugin],
-    // kilocode_change start - skip sourcemaps for release builds (each .js.map adds ~50 MB per target → ~600 MB total)
+    // nocowboy_change start - skip sourcemaps for release builds (each .js.map adds ~50 MB per target → ~600 MB total)
     sourcemap: Script.release ? "none" : "external",
-    // kilocode_change end
-    external: ["node-gyp", ...LanceDBRuntime.external], // kilocode_change
+    // nocowboy_change end
+    external: ["node-gyp", ...LanceDBRuntime.external], // nocowboy_change
     format: "esm",
     minify: true,
-    // kilocode_change start - disable code-splitting to avoid a Bun 1.3.14 codegen bug.
+    // nocowboy_change start - disable code-splitting to avoid a Bun 1.3.14 codegen bug.
     // With splitting:true Bun emits cross-chunk re-exports like `import{vn as G9}` whose
     // binding isn't top-level, so the compiled binary crashes at startup on the baseline
     // target: "SyntaxError: Exported binding 'G9' needs to refer to a top-level declared
@@ -292,26 +280,26 @@ for (const item of targets) {
     // in Bun#26089, post-1.3.14. Splitting only deduped shared code between the entrypoints;
     // turning it off inlines per entrypoint and produces a valid binary.
     splitting: false,
-    // kilocode_change end
+    // nocowboy_change end
     compile: {
       autoloadBunfig: false,
       autoloadDotenv: false,
       autoloadTsconfig: true,
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/nocowboy`, // kilocode_change
+      outfile: `dist/${name}/bin/nocowboy`, // nocowboy_change
       execArgv: [`--user-agent=nocowboy/${Script.version}`, "--use-system-ca", "--"], // nocowboy_change
       windows: {},
     },
-    // kilocode_change start - packages/app was removed; no embedded web UI
+    // nocowboy_change start - packages/app was removed; no embedded web UI
     files: {},
     entrypoints: ["./src/index.ts", parserWorker, workerPath],
-    // kilocode_change end
+    // nocowboy_change end
     define: {
       NOCOWBOY_VERSION: `'${Script.version}'`,
       NOCOWBOY_CHANNEL: `'${Script.channel}'`,
-      "process.env.KILO_CHANNEL": `'${Script.channel}'`,
-      NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // kilocode_change
+
+      NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // nocowboy_change
       NOCOWBOY_MIGRATIONS: (() => {
         const migrationDir = path.resolve(dir, "migration")
         if (!fs.existsSync(migrationDir)) return "undefined"
@@ -339,11 +327,11 @@ for (const item of targets) {
     },
   })
 
-  await fs.promises.copyFile(snapshot.path, path.resolve(dir, `dist/${name}/bin/models-snapshot.json`)) // kilocode_change
-  await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
-  if (consoleDist) await copyWebConsole(consoleDist, path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
+  await fs.promises.copyFile(snapshot.path, path.resolve(dir, `dist/${name}/bin/models-snapshot.json`)) // nocowboy_change
+  await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // nocowboy_change
+  if (consoleDist) await copyWebConsole(consoleDist, path.resolve(dir, `dist/${name}/bin`)) // nocowboy_change
 
-  // kilocode_change start - fix Nix-specific ELF interpreter paths for Linux binaries
+  // nocowboy_change start - fix Nix-specific ELF interpreter paths for Linux binaries
   if (item.os === "linux") {
     const interpreters: Record<string, string> = {
       x64: "/lib64/ld-linux-x86-64.so.2",
@@ -362,11 +350,11 @@ for (const item of targets) {
       }
     }
   }
-  // kilocode_change end
+  // nocowboy_change end
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {
-    const binaryPath = `dist/${name}/bin/nocowboy` // kilocode_change
+    const binaryPath = `dist/${name}/bin/nocowboy` // nocowboy_change
     console.log(`Running smoke test: ${binaryPath} --version`)
     try {
       const versionOutput = await $`${binaryPath} --version`.text()
@@ -393,14 +381,14 @@ for (const item of targets) {
         preferUnplugged: true,
         os: [item.os],
         cpu: [item.arch],
-        keywords: pkg.keywords, // kilocode_change
-        private: pkg.private, // kilocode_change
-        // kilocode_change start
+        keywords: pkg.keywords, // nocowboy_change
+        private: pkg.private, // nocowboy_change
+        // nocowboy_change start
         repository: {
           type: "git",
           url: "https://github.com/ldco/nocowboy",
         },
-        // kilocode_change end
+        // nocowboy_change end
       },
       null,
       2,
