@@ -62,7 +62,20 @@ mkdir -p "${RELEASE_DIR}"
 cp "packaging/aur/${PKG}" "${RELEASE_DIR}/"
 echo "Copied ${PKG} to ${RELEASE_DIR}/"
 
-# Step 6: Install on system
+# Step 6: Stop KiloCode MCPs (free ports for NoCowboy)
+echo "--- Stopping KiloCode MCPs (freeing ports) ---"
+for svc in kilo-mcp-constitution kilo-mcp-contract-guard kilo-mcp-ncp-validator \
+           kilo-mcp-puppetmaster kilo-mcp-ralph kilo-mcp-score-engine \
+           kilo-mcp-context7 kilo-mcp-git kilo-mcp-puppeteer kilo-mcp-sqlite \
+           kilo-mcp-tausik kilo-mcp-hooks kilo-mcp-orchestrator \
+           kilo-mcp-plugin-registry kilo-mcp-session-memory kilo-mcp-team-coordinator; do
+  systemctl --user stop "$svc" 2>/dev/null || true
+  systemctl --user disable "$svc" 2>/dev/null || true
+done
+systemctl --user daemon-reload
+echo "KiloCode MCPs stopped."
+
+# Step 7: Install on system
 echo "--- Installing on system ---"
 sudo pacman -U --noconfirm "${RELEASE_DIR}/${PKG}"
 echo "=== v${VERSION} installed ==="
