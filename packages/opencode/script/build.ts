@@ -20,11 +20,11 @@ import pkg from "../package.json"
 import { LanceDBRuntime } from "../src/nocowboy/lancedb" // kilocode_change
 
 const Script = {
-  channel: process.env.NOCOWBOY_CHANNEL ?? process.env.KILO_CHANNEL ?? "dev",
-  version: process.env.NOCOWBOY_VERSION ?? process.env.KILO_VERSION ?? "0.0.0",
-  preview: process.env.NOCOWBOY_PREVIEW === "true",
+  channel: process.env.NOCOWBOY_CHANNEL ?? "dev",
+  version: process.env.NOCOWBOY_VERSION ?? "0.0.0",
+  preview: false,
   release: process.env.NOCOWBOY_RELEASE === "true",
-} // kilocode_change
+} // nocowboy_change
 
 // Load migrations from migration directories
 const migrationDirs = (
@@ -300,7 +300,7 @@ for (const item of targets) {
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
       outfile: `dist/${name}/bin/nocowboy`, // kilocode_change
-      execArgv: [`--user-agent=kilo/${Script.version}`, "--use-system-ca", "--"], // kilocode_change
+      execArgv: [`--user-agent=nocowboy/${Script.version}`, "--use-system-ca", "--"], // nocowboy_change
       windows: {},
     },
     // kilocode_change start - packages/app was removed; no embedded web UI
@@ -314,7 +314,7 @@ for (const item of targets) {
       NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // kilocode_change
       NOCOWBOY_MIGRATIONS: (() => {
         const migrationDir = path.resolve(dir, "migration")
-        if (!fs.existsSync(migrationDir)) return "[]"
+        if (!fs.existsSync(migrationDir)) return "undefined"
         const entries = fs.readdirSync(migrationDir, { withFileTypes: true })
           .filter(e => e.isDirectory())
           .map(e => {
@@ -328,13 +328,13 @@ for (const item of targets) {
               Number(match[1].slice(10,12)), Number(match[1].slice(12,14)),
             ) : 0
             return {
-              sql: fs.readFileSync(sqlPath, "utf-8"),
+              sql: JSON.stringify(fs.readFileSync(sqlPath, "utf-8")),
               timestamp,
-              name,
+              name: JSON.stringify(name),
             }
           })
           .filter(Boolean)
-        return JSON.stringify(entries)
+        return `[${entries.map(e => `{sql:${e.sql},timestamp:${e.timestamp},name:${e.name}}`).join(",")}]`
       })(),
     },
   })
