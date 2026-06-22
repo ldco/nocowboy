@@ -1,6 +1,7 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "mcp": {
+    "plugin-registry": { "type": "remote", "url": "http://127.0.0.1:8214/mcp", "enabled": true },
     "context7": { "type": "remote", "url": "http://127.0.0.1:8200/mcp", "enabled": true },
     "sqlite": { "type": "remote", "url": "http://127.0.0.1:8201/mcp", "enabled": true },
     "puppeteer": { "type": "remote", "url": "http://127.0.0.1:8202/mcp", "enabled": true },

@@ -84,3 +84,5 @@ releases/
 packaging/aur/*.tar.gz
 packaging/mcp-servers/*/node_modules
 mcp-servers
+packaging/mcp-servers/plugin-registry/node_modules
+packaging/mcp-servers/plugin-registry/dist

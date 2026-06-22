@@ -5,6 +5,7 @@ _mcp_services="
   nocowboy-mcp-puppetmaster.service
   nocowboy-mcp-ralph.service
   nocowboy-mcp-score-engine.service
+  nocowboy-mcp-plugin-registry.service
 "
 
 _prefixed="nocowboy-mcp-"
