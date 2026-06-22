@@ -382,20 +382,27 @@ for (const item of targets) {
 }
 
 if (Script.release) {
-  const archives: string[] = [] // kilocode_change
+  const archives: string[] = [] // nocowboy_change
   for (const key of Object.keys(binaries)) {
     const archive = pkg.name.includes("tui") ? key.replace(`${pkg.name}-`, "nocowboy-") : key // nocowboy_change
+    const binDir = `dist/${key}/bin`
+    // Bundle framework + install.sh into the archive
+    const stagingDir = `dist/${key}/staging` // nocowboy_change
+    await $`mkdir -p ${stagingDir}` // nocowboy_change
+    await $`cp ${binDir}/nocowboy ${stagingDir}/` // nocowboy_change
+    await $`cp install.sh ${stagingDir}/` // nocowboy_change
+    await $`cp -r ../../../packaging/framework ${stagingDir}/framework` // nocowboy_change
     if (key.includes("linux")) {
-      const out = path.resolve("dist", `${archive}.tar.gz`) // kilocode_change
-      await $`tar -czf ${out} *`.cwd(`dist/${key}/bin`) // kilocode_change
-      archives.push(out) // kilocode_change
+      const out = path.resolve("dist", `${archive}.tar.gz`) // nocowboy_change
+      await $`tar -czf ${out} *`.cwd(stagingDir) // nocowboy_change
+      archives.push(out) // nocowboy_change
     } else {
-      const out = path.resolve("dist", `${archive}.zip`) // kilocode_change
-      await $`zip -r ${out} *`.cwd(`dist/${key}/bin`) // kilocode_change
-      archives.push(out) // kilocode_change
+      const out = path.resolve("dist", `${archive}.zip`) // nocowboy_change
+      await $`zip -r ${out} *`.cwd(stagingDir) // nocowboy_change
+      archives.push(out) // nocowboy_change
     }
+    await $`rm -rf ${stagingDir}` // nocowboy_change
   }
-  await $`gh release upload v${Script.version} ${archives} --clobber` // kilocode_change
 }
 
 export { binaries }

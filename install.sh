@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP=nocowboy
+INSTALL_DIR="${HOME}/.nocowboy/bin"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/${APP}"
+VERSION="0.3.9"
+
+MUTED='\033[0;90m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Self-contained — this script lives inside the release archive.
+# The archive also contains: nocowboy (binary) + framework/ directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<EOF
+NoCowboy ${VERSION} installer
+
+Usage:
+  ./install.sh              Install nocowboy binary + framework
+  ./install.sh --help       Show this help
+
+The install script is bundled inside the release archive.
+Extract the archive and run ./install.sh from the extracted directory.
+EOF
+  exit 0
+}
+
+[[ "${1:-}" == "--help" || "${1:-}" == "-h" ]] && usage
+
+# --- Binary ---
+if [[ -f "${SCRIPT_DIR}/nocowboy" ]]; then
+  mkdir -p "${INSTALL_DIR}"
+  cp "${SCRIPT_DIR}/nocowboy" "${INSTALL_DIR}/"
+  chmod 755 "${INSTALL_DIR}/nocowboy"
+  echo -e "${MUTED}Installed nocowboy to ${INSTALL_DIR}/nocowboy${NC}"
+else
+  echo -e "${RED}Error: nocowboy binary not found alongside install.sh${NC}"
+  echo "Extract the full archive and run install.sh from the extracted directory."
+  exit 1
+fi
+
+# --- PATH ---
+case ":${PATH}:" in
+  *:"${INSTALL_DIR}":*) ;;
+  *)
+    shell_config=""
+    case "${SHELL}" in
+      */zsh) shell_config="${HOME}/.zshrc" ;;
+      */bash) shell_config="${HOME}/.bashrc" ;;
+    esac
+    if [[ -n "${shell_config}" ]]; then
+      echo "export PATH=\"${INSTALL_DIR}:\$PATH\"" >> "${shell_config}"
+      echo -e "${MUTED}Added ${INSTALL_DIR} to PATH in ${shell_config}${NC}"
+    fi
+    export PATH="${INSTALL_DIR}:${PATH}"
+    ;;
+esac
+
+# --- Framework (agents, commands, instructions, skills, config) ---
+FRAMEWORK_SRC="${SCRIPT_DIR}/framework"
+if [[ -d "${FRAMEWORK_SRC}" ]]; then
+  mkdir -p "${CONFIG_DIR}"
+  cp -r "${FRAMEWORK_SRC}/agent" "${CONFIG_DIR}/agent" 2>/dev/null || true
+  cp -r "${FRAMEWORK_SRC}/command" "${CONFIG_DIR}/command" 2>/dev/null || true
+  cp -r "${FRAMEWORK_SRC}/instructions" "${CONFIG_DIR}/instructions" 2>/dev/null || true
+  cp -r "${FRAMEWORK_SRC}/skills" "${CONFIG_DIR}/skills" 2>/dev/null || true
+  if [[ -f "${FRAMEWORK_SRC}/nocowboy.json" ]]; then
+    cp "${FRAMEWORK_SRC}/nocowboy.json" "${CONFIG_DIR}/"
+  fi
+  echo -e "${MUTED}Installed framework to ${CONFIG_DIR}/${NC}"
+else
+  echo -e "${RED}Warning: framework/ directory not found — no config/agents/commands installed${NC}"
+fi
+
+echo ""
+echo -e "${MUTED}NoCowboy ${VERSION} installed.${NC}"
+echo -e "${MUTED}Run 'nocowboy' to start.${NC}"

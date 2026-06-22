@@ -1,0 +1,116 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "context7": { "type": "remote", "url": "http://127.0.0.1:8200/mcp", "enabled": true },
+    "sqlite": { "type": "remote", "url": "http://127.0.0.1:8201/mcp", "enabled": true },
+    "puppeteer": { "type": "remote", "url": "http://127.0.0.1:8202/mcp", "enabled": true },
+    "puppetmaster": { "type": "remote", "url": "http://127.0.0.1:8203/mcp", "enabled": true },
+    "tausik": { "type": "remote", "url": "http://127.0.0.1:8204/mcp", "enabled": true },
+    "git": { "type": "remote", "url": "http://127.0.0.1:8205/mcp", "enabled": true },
+    "ralph": { "type": "remote", "url": "http://127.0.0.1:8210/mcp", "enabled": true },
+    "constitution": { "type": "remote", "url": "http://127.0.0.1:8216/mcp", "enabled": true },
+    "ncp-validator": { "type": "remote", "url": "http://127.0.0.1:8217/mcp", "enabled": true },
+    "contract-guard": { "type": "remote", "url": "http://127.0.0.1:8218/mcp", "enabled": true },
+    "score-engine": { "type": "remote", "url": "http://127.0.0.1:8219/mcp", "enabled": true }
+  },
+  "lsp": true,
+  "instructions": [
+    "/home/ldco/.config/nocowboy/instructions/*.md",
+    "/home/ldco/.config/nocowboy/instructions/rules/*.md"
+  ],
+  "compaction": { "auto": true, "prune": true },
+  "permission": {
+    "*": "allow",
+    "bash": {
+      "^(sudo\\s+)?rm\\s+-rf\\s+/\\s*$": "ask",
+      "^(sudo\\s+)?rm\\s+-rf\\s+/*\\s*$": "ask",
+      "^(sudo\\s+)?rm\\s+-rf\\s+~\\s*$": "ask",
+      "^(sudo\\s+)?rm\\s+-rf\\s+\\.\\s*$": "ask",
+      "^(sudo\\s+)?dd\\s+if=": "ask",
+      "^(sudo\\s+)?mkfs\\.|^(sudo\\s+)?fdisk|^(sudo\\s+)?parted|^(sudo\\s+)?mkswap": "ask",
+      "^[Dd][Rr][Oo][Pp]\\s+(DATABASE|TABLE|SCHEMA|INDEX)": "ask",
+      "^[Tt][Rr][Uu][Nn][Cc][Aa][Tt][Ee]\\b": "ask",
+      "^redis-cli\\b.*(FLUSHALL|FLUSHDB)": "ask",
+      "^mongo\\b.*db\\.dropDatabase": "ask",
+      "^(sudo\\s+)?chmod\\s+777\\s+/": "ask",
+      "^git\\s+push\\s+.*(--force|-f)\\b": "ask",
+      "*": "allow"
+    },
+    "edit": {
+      "(^|/)kilo\\.json$": "ask",
+      "(^|/)nocowboy\\.json$": "ask",
+      "*": "allow"
+    }
+  },
+  "agent": {
+    "architect": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-pro",
+      "description": "Senior Software Architect — deep design analysis, ADRs, trade-off evaluation, C4 modeling, NFR-driven architecture",
+      "prompt": "You are a Senior Software Architect with 20+ years of experience across distributed systems, monolith decomposition, event-driven architectures, and domain-driven design. You do NOT write implementation code — your sole output is architectural analysis, decision records, implementation-ready plans saved as Markdown under the project's `docs/` directory, and Ralph TUI-compatible PRD JSON files (`prd.json`).\n\n## Core Methodology\n\n### Architectural Decision Records (ADR)\nEvery significant decision MUST be captured as an ADR with this structure:\n```\n# ADR-NNN: <Title>\n## Status: [Proposed | Accepted | Deprecated | Superseded]\n## Context: What forces are at play? What constraints exist?\n## Decision: What is the chosen approach?\n## Options Considered:\n  1. <Option A> — pros / cons\n  2. <Option B> — pros / cons\n  3. <Option C> — pros / cons\n## Consequences: What becomes easier? What becomes harder? What risks are introduced?\n```\n\n### C4 Model\nStructure all architecture descriptions using C4 levels:\n- **Level 1 — System Context**: The system and its users/external systems\n- **Level 2 — Container**: Applications, databases, message queues, file systems\n- **Level 3 — Component**: Major structural building blocks within each container\n- **Level 4 — Code**: (only if needed — classes, modules, interfaces)\n\n### ISO 25010 Quality Attribute Evaluation\nEvaluate every design against ALL 8 dimensions.\n\n### Trade-off Analysis\n- Always present at least 3 alternatives for any significant decision.\n- Use a decision matrix: criteria (weighted) × alternatives = scores.\n- Explicitly name the trade-off.\n\n### Interaction Protocol\n- Inspect codebase FIRST before asking anything.\n- Interview relentlessly — one question at a time with recommended answer.\n- Save ALL output as Markdown under `docs/`.\n- NEVER provide time estimates.\n- NEVER write implementation code.\n\n### Edge Case Stress Testing\nAfter proposing a design, stress-test against: load, failure, data, time, security, multi-tenancy.\n\n### PRD Generation for Ralph TUI\nGenerate `prd.json` at project root when asked. Schema: name, branchName, userStories with id/title/description/acceptanceCriteria/priority/dependsOn. 5-15 stories per PRD. Save companion plan as `docs/<feature-name>.md`.",
+      "permission": {
+        "read": "allow",
+        "edit": {
+          "(^|/)(prd\\.json|docs/.*\\.(md|json))$": "allow",
+          "*": "deny"
+        },
+        "bash": "allow",
+        "mcp": "deny"
+      }
+    },
+    "code-reviewer": {
+      "mode": "primary",
+      "description": "Deep codebase auditor. Multi-dimensional review: security, architecture, quality, performance, dependencies, testing, config.",
+      "path": "/home/ldco/.config/nocowboy/agent/code-reviewer.md",
+      "permission": {
+        "read": "allow", "glob": "allow", "grep": "allow", "semantic_search": "allow",
+        "bash": "allow",
+        "edit": { "docs/review-*.md": "allow", "*": "deny" },
+        "mcp": "allow", "recall": "allow", "external_directory": "allow"
+      }
+    },
+    "prd": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-pro",
+      "description": "Structured PRD interview agent.",
+      "path": "/home/ldco/.config/nocowboy/agent/prd.md",
+      "permission": {
+        "read": "allow", "glob": "allow", "grep": "allow", "semantic_search": "allow",
+        "webfetch": "allow",
+        "edit": { "docs/*.md": "allow", "*": "deny" },
+        "bash": "allow", "mcp": "allow", "skill": "allow",
+        "doom_loop": "allow", "recall": "allow", "external_directory": "allow"
+      }
+    },
+    "ralph": {
+      "mode": "primary",
+      "description": "Executes PRDs iteratively — one story at a time. Verify, learn, commit, repeat.",
+      "path": "/home/ldco/.config/nocowboy/agent/ralph.md",
+      "permission": {
+        "read": "allow", "glob": "allow", "grep": "allow", "semantic_search": "allow",
+        "webfetch": "allow", "edit": "allow", "bash": "allow", "mcp": "allow",
+        "skill": "allow", "doom_loop": "allow", "recall": "allow",
+        "external_directory": "allow", "question": "deny", "suggest": "deny",
+        "todowrite": "allow"
+      }
+    },
+    "explore": {
+      "mode": "primary",
+      "description": "Fast read-only agent for codebase exploration.",
+      "path": "/home/ldco/.config/nocowboy/agent/explore.md",
+      "permission": {
+        "read": "allow", "glob": "allow", "grep": "allow", "semantic_search": "allow",
+        "bash": "allow", "write": "deny", "edit": "deny", "mcp": "allow", "recall": "allow"
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "description": "Planning research agent — gather context, analyze dependencies, propose implementation plans.",
+      "path": "/home/ldco/.config/nocowboy/agent/plan.md",
+      "permission": {
+        "read": "allow", "glob": "allow", "grep": "allow", "semantic_search": "allow",
+        "bash": "allow", "write": "deny", "edit": "deny", "mcp": "allow"
+      }
+    }
+  }
+}
