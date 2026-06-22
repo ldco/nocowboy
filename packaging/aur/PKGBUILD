@@ -1,0 +1,22 @@
+# Maintainer: NoCowboy <nobody@nocowboy.dev>
+# Contributor: ldco <nobody@nocowboy.dev>
+
+pkgname=nocowboy
+pkgver=0.3.8
+pkgrel=1
+pkgdesc="AI-powered development tool — agentic coding for the Russian market"
+arch=('x86_64' 'aarch64')
+url="https://github.com/ldco/nocowboy"
+license=('MIT')
+depends=()
+makedepends=()
+
+source_x86_64=("https://github.com/ldco/nocowboy/releases/download/v${pkgver}/nocowboy-linux-x64.tar.gz")
+source_aarch64=("https://github.com/ldco/nocowboy/releases/download/v${pkgver}/nocowboy-linux-arm64.tar.gz")
+
+sha256sums_x86_64=('SKIP')
+sha256sums_aarch64=('SKIP')
+
+package() {
+  install -Dm755 nocowboy "${pkgdir}/usr/bin/nocowboy"
+}
