@@ -9,12 +9,14 @@ import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
-import { RGBA, TextAttributes } from "@opentui/core"
+import { RGBA, TextAttributes, MouseButton } from "@opentui/core" // nocowboy_change
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
 import { DialogProvider } from "../../component/dialog-provider" // nocowboy_change
 import { DialogIndexing } from "@/nocowboy/components/dialog-indexing" // nocowboy_change
+import * as Clipboard from "../../util/clipboard" // nocowboy_change
+import { useToast } from "../../ui/toast" // nocowboy_change
 
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
@@ -58,6 +60,7 @@ function HistoryTab(props: {
   selectedIdx: number
   onNavigate: (sessionID: string) => void
   onSelectIdx: (idx: number) => void
+  onShare?: (sessionID: string) => void // nocowboy_change
 }) {
   const { theme } = useTheme()
 
@@ -76,7 +79,7 @@ function HistoryTab(props: {
           <text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
+            onMouseDown={(e: any) => { e?.preventDefault?.(); if (e?.button === MouseButton.RIGHT) { props.onShare?.(s.id); return } props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
             {ago(s.time?.updated ?? 0)} {s.title}
@@ -147,6 +150,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const tuiConfig = useTuiConfig()
   const route = useRoute()
   const sdk = useSDK()
+  const toast = useToast() // nocowboy_change
   log(`sidebar.mount sessionID=${props.sessionID} overlay=${props.overlay}`) // debug
   const session = createMemo(() => sync.session.get(props.sessionID))
   const workspace = () => {
@@ -178,6 +182,18 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const currentID = createMemo(() =>
     route.data.type === "session" ? route.data.sessionID : undefined,
   )
+
+  const shareSession = async (sessionID: string) => { // nocowboy_change start
+    try {
+      const res = await sdk.client.session.share({ sessionID })
+      if (res.data?.share?.url) {
+        await Clipboard.copy(res.data.share.url)
+        toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
+      }
+    } catch (e: any) {
+      toast.show({ message: e?.message ?? "Failed to share session", variant: "error" })
+    }
+  } // nocowboy_change end
 
   const tabKeys = ["history", "info", "settings"] as const
 
@@ -283,8 +299,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               list={list()}
               currentID={currentID()}
               selectedIdx={selectedIdx()}
-              onNavigate={(id) => route.navigate({ type: "session", sessionID: id })}
-              onSelectIdx={setSelectedIdx}
+               onNavigate={(id) => route.navigate({ type: "session", sessionID: id })}
+               onSelectIdx={setSelectedIdx}
+               onShare={shareSession} // nocowboy_change
             />
           </scrollbox>
         </Show>
