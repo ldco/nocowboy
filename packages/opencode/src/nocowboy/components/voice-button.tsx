@@ -89,7 +89,7 @@ export function VoiceButton(props: {
       fg={fg()}
       paddingLeft={1}
       paddingRight={1}
-      onMouseDown={(e: { preventDefault?: () => void }) => { e.preventDefault?.(); record() }}
+      onMouseUp={() => record()}
     >
       {state() === "recording" ? "[⏹ Stop]" : state() === "transcribing" ? `Transcribing${dotFrames[dotIdx()]}` : "[🎙 Voice]"}
     </text>

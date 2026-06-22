@@ -95,6 +95,14 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
+                  <text
+                    fg={brand}
+                    paddingLeft={2}
+                    paddingRight={1}
+                    onMouseDown={(e: { preventDefault?: () => void; cancelBubble?: boolean }) => { e.preventDefault?.(); e.cancelBubble = true; ref()?.submit() }}
+                  >
+                    ➤
+                  </text>
                   <VoiceButton onResult={(text) => {
   const cur = ref()?.current?.input ?? ""
   ref()?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })

@@ -117,6 +117,7 @@ addDefaultParsers(parsers.parsers)
 
 const GO_UPSELL_FREE_TIER_LAST_SEEN_AT = "go_upsell_last_seen_at"
 const GO_UPSELL_FREE_TIER_DONT_SHOW = "go_upsell_dont_show"
+const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 const GO_UPSELL_ACCOUNT_RATE_LIMIT_LAST_SEEN_AT = "go_upsell_account_rate_limit_last_seen_at"
 const GO_UPSELL_ACCOUNT_RATE_LIMIT_DONT_SHOW = "go_upsell_account_rate_limit_dont_show"
 const GO_UPSELL_WINDOW = 86_400_000 // 24 hrs
@@ -1478,6 +1479,14 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
+                            <text
+                              fg={brand}
+                              paddingLeft={2}
+                              paddingRight={1}
+                              onMouseDown={(e: { preventDefault?: () => void; cancelBubble?: boolean }) => { e.preventDefault?.(); e.cancelBubble = true; prompt?.submit() }}
+                            >
+                              ➤
+                            </text>
                             <VoiceButton onResult={(text) => {
   const cur = prompt?.current?.input ?? ""
   prompt?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })
