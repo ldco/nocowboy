@@ -4,7 +4,7 @@ set -euo pipefail
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$APP_DIR"
 
-VERSION="${1:-0.3.5}"
+VERSION="${1:-0.4.0}"
 RELEASE_DIR="releases/v${VERSION}"
 ARCHIVE="nocowboy-linux-x64.tar.gz"
 PKG="nocowboy-${VERSION}-1-x86_64.pkg.tar.zst"

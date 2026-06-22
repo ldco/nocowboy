@@ -24,7 +24,7 @@ All existing tools make you faster.
 ### Arch Linux
 
 ```bash
-sudo pacman -U nocowboy-0.3.5-1-x86_64.pkg.tar.zst
+sudo pacman -U nocowboy-0.4.0-1-x86_64.pkg.tar.zst
 ```
 
 Installs: `/usr/bin/nocowboy`, `/usr/share/nocowboy/` (config + MCP servers),

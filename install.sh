@@ -4,7 +4,7 @@ set -euo pipefail
 APP=nocowboy
 INSTALL_DIR="${HOME}/.nocowboy/bin"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/${APP}"
-VERSION="0.3.9"
+VERSION="0.4.0"
 
 MUTED='\033[0;90m'
 RED='\033[0;31m'
