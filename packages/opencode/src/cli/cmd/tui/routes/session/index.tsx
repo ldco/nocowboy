@@ -1385,7 +1385,28 @@ export function Session() {
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
-                          onForceSend={() => { void sdk.client.session.abort({ sessionID: route.sessionID }) }} // nocowboy_change
+                          onForceSend={() => {
+                            const msgs = messages()
+                            const idx = msgs.indexOf(message)
+                            const next = msgs[idx + 1]
+                            if (next?.role === "assistant") setCollapsed(next.id, true)
+                            // nocowboy_change start - abort + restore queued text to prompt
+                            const status = sync.data.session_status?.[route.sessionID]
+                            if (status?.type !== "idle") void sdk.client.session.abort({ sessionID: route.sessionID })
+                            const parts = sync.data.part[message.id]
+                            if (parts && prompt) {
+                              prompt.set(
+                                parts.reduce(
+                                  (agg: { input: string; parts: any[] }, part: Part) => {
+                                    if (part.type === "text" && !("synthetic" in part && (part as any).synthetic))
+                                      agg.input += (part as any).text
+                                    return agg
+                                  },
+                                  { input: "", parts: [] },
+                                ),
+                              )
+                            }
+                          }} // nocowboy_change end
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
