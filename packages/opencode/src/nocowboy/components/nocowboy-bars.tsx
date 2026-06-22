@@ -175,13 +175,22 @@ function SidebarToggle() {
 function McpDot() {
   const { theme } = useTheme()
   const sync = useSync()
-  const status = createMemo(() => {
+  const info = createMemo(() => {
     const entries = Object.entries(sync.data.mcp ?? {})
-    if (entries.length === 0) return "none"
-    const failed = entries.some(([, i]) => i.status === "failed")
-    if (failed) return "failed"
-    const ok = entries.every(([, i]) => i.status === "connected")
-    return ok ? "connected" : "partial"
+    const total = entries.length
+    const connected = entries.filter(([, i]: [string, any]) => i.status === "connected").length
+    const failed = entries.filter(([, i]: [string, any]) => i.status === "failed").length
+    return { total, connected, failed }
   })
-  return <text fg={status() === "connected" ? theme.success : status() === "failed" ? theme.error : "#ff6800"} paddingRight={1}> ●</text>
+  const fg = () => {
+    const { connected, failed } = info()
+    if (failed > 0) return theme.error
+    if (connected > 0) return theme.success
+    return theme.textMuted
+  }
+  return (
+    <text fg={fg()} paddingRight={1}>
+      {`⊙ ${info().connected}/${info().total} MCP`}
+    </text>
+  )
 }
