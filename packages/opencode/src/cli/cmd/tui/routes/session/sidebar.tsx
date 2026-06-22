@@ -194,9 +194,8 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         log(`shareSession.copied ${url}`)
         toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
       } else {
-        const err = (res as any).error
-        log(`shareSession.no-url error=${JSON.stringify(err)}`)
-        toast.show({ message: err?.message ?? "Sharing unavailable on this server", variant: "error" })
+        log(`shareSession.server-error raw=${JSON.stringify(res).slice(0,200)}`)
+        toast.show({ message: "Share unavailable: server returned an error", variant: "error" })
       }
     } catch (e: any) {
       log(`shareSession.error ${e?.message ?? e}`)
