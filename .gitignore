@@ -76,3 +76,8 @@ packages/nocowboy-telemetry
 packages/nocowboy-vscode
 .kilo/
 .kilocode/
+packaging/aur/pkg
+packaging/aur/src
+packaging/aur/*.pkg.tar.zst
+packaging/aur/*.tar.gz
+releases/

@@ -21,33 +21,32 @@ All existing tools make you faster.
 
 ## Installation
 
-NoCowboy is a compiled binary with an embedded config (agents, commands, instructions, skills). You install it with one command.
-
 ### Arch Linux
 
-Download `releases/v0.3.5/nocowboy-0.3.5-1-x86_64.pkg.tar.zst` from the repo, then:
+Receive `nocowboy-0.3.5-1-x86_64.pkg.tar.zst` from the distributor, then:
 
 ```bash
 sudo pacman -U nocowboy-0.3.5-1-x86_64.pkg.tar.zst
 ```
 
-Installs the binary to `/usr/bin/nocowboy` and default config to `/usr/share/nocowboy/`.
-Tracked by pacman, removable with `pacman -R nocowboy`. Run `nocowboy` to start.
+Installs binary to `/usr/bin/nocowboy`, config to `/usr/share/nocowboy/`.
+Tracked by pacman, removable. Run `nocowboy` to start.
 
 ### macOS
 
-Download the archive for your Mac, then extract and run `./install.sh`:
+Receive the archive for your Mac, then:
 
 ```bash
 # Intel Mac
-unzip nocowboy-darwin-x64.zip && cd nocowboy-darwin-x64 && ./install.sh
+unzip nocowboy-darwin-x64.zip
+./install.sh
 
 # Apple Silicon (M1/M2/M3/M4)
-unzip nocowboy-darwin-arm64.zip && cd nocowboy-darwin-arm64 && ./install.sh
+unzip nocowboy-darwin-arm64.zip
+./install.sh
 ```
 
-This copies the binary to `~/.nocowboy/bin/nocowboy` and config to
-`~/.config/nocowboy/`. Run `nocowboy` to start.
+Copies binary to `~/.nocowboy/bin/nocowboy`, config to `~/.config/nocowboy/`.
 
 ### What you get
 

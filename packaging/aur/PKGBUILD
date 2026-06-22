@@ -12,7 +12,7 @@ url="https://github.com/ldco/nocowboy"
 license=('LicenseRef-custom')
 depends=('glibc')
 
-# Private repo: place the source archive next to this PKGBUILD before running makepkg
+# Place the source archive next to this PKGBUILD before running makepkg
 source=("nocowboy-linux-x64.tar.gz")
 sha256sums=('SKIP')
 
