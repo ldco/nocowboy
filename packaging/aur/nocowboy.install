@@ -1,27 +1,54 @@
+_mcp_services="
+  nocowboy-mcp-constitution.service
+  nocowboy-mcp-contract-guard.service
+  nocowboy-mcp-ncp-validator.service
+  nocowboy-mcp-puppetmaster.service
+  nocowboy-mcp-ralph.service
+  nocowboy-mcp-score-engine.service
+"
+
+_prefixed="nocowboy-mcp-"
+
 post_install() {
-  echo "Enabling NoCowboy MCP services..."
-  systemctl --global enable \
-    nocowboy-mcp-constitution.service \
-    nocowboy-mcp-contract-guard.service \
-    nocowboy-mcp-ncp-validator.service \
-    nocowboy-mcp-puppetmaster.service \
-    nocowboy-mcp-ralph.service \
-    nocowboy-mcp-score-engine.service
-  systemctl --global daemon-reload
-  echo "NoCowboy MCP services enabled. They will start on next login."
-  echo "Run 'systemctl --user start nocowboy-mcp-constitution' to start now."
+  # Enable all current MCP services for all users (start on next login)
+  for svc in $_mcp_services; do
+    systemctl --global enable "$svc" 2>/dev/null || true
+  done
+  systemctl --global daemon-reload 2>/dev/null || true
+
+  # Try to start now for the current user
+  systemctl --user daemon-reload 2>/dev/null || true
+  for svc in $_mcp_services; do
+    systemctl --user start "$svc" 2>/dev/null || true
+  done
 }
 
 post_upgrade() {
-  post_install
+  # Enable any new MCP services shipped in this version
+  for svc in $_mcp_services; do
+    systemctl --global enable "$svc" 2>/dev/null || true
+    systemctl --user start "$svc" 2>/dev/null || true
+  done
+
+  # Disable + stop any previously enabled MCP services that are no longer shipped
+  shipped=" $(echo $_mcp_services) "
+  enabled=$(systemctl --global list-unit-files --type=service 2>/dev/null \
+    | grep "^${_prefixed}" \
+    | grep ' enabled$' \
+    | awk '{print $1}') || true
+  for svc in $enabled; do
+    if ! echo "$shipped" | grep -q " ${svc} "; then
+      systemctl --user stop "$svc" 2>/dev/null || true
+      systemctl --global disable "$svc" 2>/dev/null || true
+    fi
+  done
+
+  systemctl --global daemon-reload 2>/dev/null || true
 }
 
 pre_remove() {
-  systemctl --global disable \
-    nocowboy-mcp-constitution.service \
-    nocowboy-mcp-contract-guard.service \
-    nocowboy-mcp-ncp-validator.service \
-    nocowboy-mcp-puppetmaster.service \
-    nocowboy-mcp-ralph.service \
-    nocowboy-mcp-score-engine.service
+  for svc in $_mcp_services; do
+    systemctl --user stop "$svc" 2>/dev/null || true
+    systemctl --global disable "$svc" 2>/dev/null || true
+  done
 }
