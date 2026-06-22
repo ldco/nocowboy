@@ -18,6 +18,14 @@ build() {
   for server in mcp-servers/*/; do
     cd "$server" && npm install --prod --ignore-scripts 2>/dev/null && cd ../..
   done
+  # Build TypeScript sources for servers without dist/ (e.g. puppetmaster)
+  for server in mcp-servers/*/; do
+    base=$(basename "$server")
+    if [ -d "$server/src" ] && [ ! -f "$server/dist/index.js" ]; then
+      npm install --prefix "$server" --include=dev 2>/dev/null
+      (cd "$server" && ./node_modules/.bin/tsc 2>/dev/null || npm run build 2>/dev/null || true)
+    fi
+  done
   cd proxy && npm install --prod --ignore-scripts 2>/dev/null && cd ..
 }
 
