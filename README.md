@@ -12,7 +12,7 @@ Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. Bu
 |---------|-------------|
 | **Code Constitution** — AST rules block bad AI code before it's written | ❌ |
 | **Live Contract Guard** — API changes break frontend builds | ❌ |
-| **NoCowboy Score** — 0-100% quality metric with CI/CD gating | ❌ |
+| **NoCowboy Score** — 0-100% quality metric (planned) | ❌ |
 
 All existing tools make you faster.  
 **NoCowboy makes you safer.**
