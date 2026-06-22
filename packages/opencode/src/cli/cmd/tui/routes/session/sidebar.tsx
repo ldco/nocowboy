@@ -76,14 +76,14 @@ function HistoryTab(props: {
     <Show when={props.list.length > 0} fallback={<text fg={theme.textMuted}>No sessions</text>}>
       <For each={props.list}>
         {(s: any, idx) => (
-          <text
+          <box flexDirection="row" gap={0}><text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseDown={(e: any) => { if (e?.button === MouseButton.RIGHT) { e?.preventDefault?.(); props.onShare?.(s.id); return } e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
+            onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
             {ago(s.time?.updated ?? 0)} {s.title}
-          </text>
+          </text><text fg={theme.textMuted} onMouseDown={(ev: any) => { ev?.preventDefault?.(); props.onShare?.(s.id) }}> [share]</text></box>
         )}
       </For>
     </Show>
