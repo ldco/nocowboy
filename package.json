@@ -21,9 +21,8 @@
       "packages/plugin",
       "packages/sdk/js",
       "packages/nocowboy-gateway",
-      "packages/kilo-telemetry",
-      "packages/kilo-indexing",
-      "packages/http-recorder"
+      "packages/nocowboy-indexing",
+      "packages/nocowboy-telemetry",
     ],
     "catalog": {
       "@effect/opentelemetry": "4.0.0-beta.65",

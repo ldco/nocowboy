@@ -85,20 +85,28 @@
         "@types/npmcli__arborist": "6.3.3",
       },
     },
-    "packages/http-recorder": {
-      "name": "@opencode-ai/http-recorder",
+    "packages/llm": {
+      "name": "@opencode-ai/llm",
       "version": "7.3.46",
       "dependencies": {
-        "@effect/platform-node": "catalog:",
+        "@smithy/eventstream-codec": "4.2.14",
+        "@smithy/util-utf8": "4.2.2",
+        "aws4fetch": "1.0.20",
         "effect": "catalog:",
       },
       "devDependencies": {
+        "@clack/prompts": "1.0.0-alpha.1",
+        "@effect/platform-node": "catalog:",
         "@tsconfig/bun": "catalog:",
         "@types/bun": "catalog:",
         "@typescript/native-preview": "catalog:",
       },
     },
-    "packages/kilo-indexing": {
+    "packages/nocowboy-gateway": {
+      "name": "@nocowboy/gateway",
+      "version": "0.0.0-stub",
+    },
+    "packages/nocowboy-indexing": {
       "name": "@nocowboy/indexing",
       "version": "7.3.46",
       "dependencies": {
@@ -130,30 +138,8 @@
         "typescript": "catalog:",
       },
     },
-    "packages/kilo-telemetry": {
+    "packages/nocowboy-telemetry": {
       "name": "@nocowboy/telemetry",
-      "version": "0.0.0-stub",
-    },
-    "packages/llm": {
-      "name": "@opencode-ai/llm",
-      "version": "7.3.46",
-      "dependencies": {
-        "@smithy/eventstream-codec": "4.2.14",
-        "@smithy/util-utf8": "4.2.2",
-        "aws4fetch": "1.0.20",
-        "effect": "catalog:",
-      },
-      "devDependencies": {
-        "@clack/prompts": "1.0.0-alpha.1",
-        "@effect/platform-node": "catalog:",
-        "@opencode-ai/http-recorder": "workspace:*",
-        "@tsconfig/bun": "catalog:",
-        "@types/bun": "catalog:",
-        "@typescript/native-preview": "catalog:",
-      },
-    },
-    "packages/nocowboy-gateway": {
-      "name": "@nocowboy/gateway",
       "version": "0.0.0-stub",
     },
     "packages/opencode": {
@@ -881,13 +867,13 @@
 
     "@nocowboy/gateway": ["@nocowboy/gateway@workspace:packages/nocowboy-gateway"],
 
-    "@nocowboy/indexing": ["@nocowboy/indexing@workspace:packages/kilo-indexing"],
+    "@nocowboy/indexing": ["@nocowboy/indexing@workspace:packages/nocowboy-indexing"],
 
     "@nocowboy/plugin": ["@nocowboy/plugin@workspace:packages/plugin"],
 
     "@nocowboy/sdk": ["@nocowboy/sdk@workspace:packages/sdk/js"],
 
-    "@nocowboy/telemetry": ["@nocowboy/telemetry@workspace:packages/kilo-telemetry"],
+    "@nocowboy/telemetry": ["@nocowboy/telemetry@workspace:packages/nocowboy-telemetry"],
 
     "@nodable/entities": ["@nodable/entities@2.2.0", "", {}, "sha512-9uGyhaQavEUMC8AIddIjau4NsnsXhou+j5sBAGojCM1oxmQpVKTWR/9JxABD6UAv12vpIms55fPZKFQEhG6uBg=="],
 
@@ -950,8 +936,6 @@
     "@octokit/webhooks-types": ["@octokit/webhooks-types@7.6.1", "", {}, "sha512-S8u2cJzklBC0FgTwWVLaM8tMrDuDMVE4xiTK4EYXM9GntyvrdbSoxqDQa+Fh57CCNApyIpyeqPhhFEmHPfrXgw=="],
 
     "@opencode-ai/core": ["@opencode-ai/core@workspace:packages/core"],
-
-    "@opencode-ai/http-recorder": ["@opencode-ai/http-recorder@workspace:packages/http-recorder"],
 
     "@opencode-ai/llm": ["@opencode-ai/llm@workspace:packages/llm"],
 

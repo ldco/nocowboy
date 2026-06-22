@@ -1,9 +1,0 @@
-{
-  "name": "@nocowboy/telemetry",
-  "version": "0.0.0-stub",
-  "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*.ts"
-  }
-}

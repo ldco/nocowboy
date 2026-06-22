@@ -71,3 +71,8 @@ packages/opencode/.artifacts/
 packages/kilo-vscode/
 packages/kilo-jetbrains/
 .nocowboy/
+packages/nocowboy-indexing
+packages/nocowboy-telemetry
+packages/nocowboy-vscode
+.kilo/
+.kilocode/

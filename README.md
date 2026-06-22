@@ -2,8 +2,7 @@
 
 **AI under control.** A terminal agent (TUI) that enforces code quality before production.
 
-Fork of [KiloCode](https://github.com/Kilo-Org/kilocode) (which is a fork of [OpenCode](https://github.com/anomalyco/opencode)).  
-Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com) (`@opentui/core@0.4.1`), Yoga flexbox. Bun runtime.
+Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. Bun runtime.
 
 ### What makes it different
 
