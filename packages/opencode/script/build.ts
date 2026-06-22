@@ -223,7 +223,11 @@ const targets = singleFlag
 
       return true
     })
-  : allTargets
+  // nocowboy_change - only build Arch (linux-x64) + macOS; others kept for future
+  : allTargets.filter(
+      (item) =>
+        item.abi === undefined && item.avx2 !== false && item.os !== "win32" && !(item.os === "linux" && item.arch === "arm64"),
+    )
 
 // nocowboy_change start - prepare one validated models snapshot before any target compile
 const snapshot = await prepareModelsSnapshot()
