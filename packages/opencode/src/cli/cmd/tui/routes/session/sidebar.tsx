@@ -9,7 +9,7 @@ import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
-import { RGBA, TextAttributes, MouseButton } from "@opentui/core" // nocowboy_change
+import { RGBA, TextAttributes } from "@opentui/core"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
@@ -60,7 +60,6 @@ function HistoryTab(props: {
   selectedIdx: number
   onNavigate: (sessionID: string) => void
   onSelectIdx: (idx: number) => void
-  onShare?: (sessionID: string) => void // nocowboy_change
 }) {
   const { theme } = useTheme()
 
@@ -76,14 +75,14 @@ function HistoryTab(props: {
     <Show when={props.list.length > 0} fallback={<text fg={theme.textMuted}>No sessions</text>}>
       <For each={props.list}>
         {(s: any, idx) => (
-          <box flexDirection="row" gap={0}><text
+          <text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
             onMouseDown={(e: any) => { e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
             {ago(s.time?.updated ?? 0)} {s.title}
-          </text><text fg={theme.textMuted} onMouseDown={(ev: any) => { ev?.preventDefault?.(); props.onShare?.(s.id) }}> [share]</text></box>
+          </text>
         )}
       </For>
     </Show>
@@ -302,6 +301,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* History Tab — session list */}
       <Show when={tab() === "history"}>
+        <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) shareSession(s.id) }}>Share selected session</text>{/* nocowboy_change */}
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
           <scrollbox ref={(r: any) => (_historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>{/* nocowboy_change */}
             <HistoryTab
@@ -310,8 +310,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               selectedIdx={selectedIdx()}
                onNavigate={(id) => route.navigate({ type: "session", sessionID: id })}
                onSelectIdx={setSelectedIdx}
-               onShare={shareSession} // nocowboy_change
-            />
+             />
           </scrollbox>
         </Show>
       </Show>
