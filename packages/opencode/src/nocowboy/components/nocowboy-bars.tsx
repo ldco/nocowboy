@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 import { RGBA, TextAttributes, MouseEvent } from "@opentui/core"
 import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
+import { useSync } from "@tui/context/sync"
 import { Clipboard } from "@tui/util/clipboard"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 
@@ -108,9 +109,7 @@ export function TopBar() {
         <text fg={theme.success} flexGrow={1}>
           {` \uf126 ${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}${git().dirty > 0 ? ` !${git().dirty}` : ""}${git().untracked > 0 ? ` ?${git().untracked}` : ""}`}
         </text>
-      <text fg="#ff0000" paddingRight={1}>
-        ●
-      </text>
+      {/* mcp status */}<McpDot />
     </box>
   )
 }
@@ -171,4 +170,18 @@ function SidebarToggle() {
       {sidebarOpen() ? "◀ ctrl+b" : "▶ ctrl+b"}
     </text>
   )
+}
+
+function McpDot() {
+  const { theme } = useTheme()
+  const sync = useSync()
+  const status = createMemo(() => {
+    const entries = Object.entries(sync.data.mcp ?? {})
+    if (entries.length === 0) return "none"
+    const failed = entries.some(([, i]) => i.status === "failed")
+    if (failed) return "failed"
+    const ok = entries.every(([, i]) => i.status === "connected")
+    return ok ? "connected" : "partial"
+  })
+  return <text fg={status() === "connected" ? theme.success : status() === "failed" ? theme.error : "#ff6800"} paddingRight={1}> ●</text>
 }
