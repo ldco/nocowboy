@@ -226,7 +226,7 @@ const targets = singleFlag
   // nocowboy_change - only build Arch (linux-x64) + macOS; others kept for future
   : allTargets.filter(
       (item) =>
-        item.abi === undefined && item.avx2 !== false && item.os !== "win32" && !(item.os === "linux" && item.arch === "arm64"),
+        item.abi === undefined && item.avx2 !== false && item.os !== "win32" && !(item.os === "linux" && item.arch === "arm64") && !(item.os === "darwin" && item.arch === "x64"),
     )
 
 // nocowboy_change start - prepare one validated models snapshot before any target compile

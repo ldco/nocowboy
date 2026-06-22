@@ -6,13 +6,9 @@ class Nocowboy < Formula
 
   release_url = "https://github.com/ldco/nocowboy/raw/master/releases"
 
-  if Hardware::CPU.intel?
-    url "#{release_url}/nocowboy-darwin-x64.zip"
-    sha256 "UPDATE_ME"
-  else
-    url "#{release_url}/nocowboy-darwin-arm64.zip"
-    sha256 "UPDATE_ME"
-  end
+  url "#{release_url}/nocowboy-darwin-arm64.zip"
+  sha256 "UPDATE_ME"
+  depends_on arch: :arm64
 
   def install
     bin.install "nocowboy"

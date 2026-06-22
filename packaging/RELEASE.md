@@ -21,7 +21,6 @@ This creates:
 ```
 releases/v0.3.6/
 ├── nocowboy-0.3.6-1-x86_64.pkg.tar.zst   ← Arch Linux (install this)
-├── nocowboy-darwin-x64.zip               ← macOS Intel
 └── nocowboy-darwin-arm64.zip             ← macOS Apple Silicon
 ```
 

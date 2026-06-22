@@ -20,7 +20,7 @@ echo "Binaries built (Linux + macOS + Windows)."
 
 # Step 2: Create macOS archives
 echo "--- Creating macOS archives ---"
-for target in darwin-x64 darwin-arm64; do
+for target in darwin-arm64; do
   bin_dir="packages/opencode/dist/nocowboy-tui-${target}/bin"
   if [ -f "${bin_dir}/nocowboy" ]; then
     mkdir -p "/tmp/ncb-mac-${target}"

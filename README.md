@@ -34,10 +34,6 @@ ralph, score-engine). Run `nocowboy` to start. MCP services auto-start on login.
 ### macOS
 
 ```bash
-# Intel Mac
-unzip nocowboy-darwin-x64.zip
-./install.sh
-
 # Apple Silicon (M1/M2/M3/M4)
 unzip nocowboy-darwin-arm64.zip
 ./install.sh
