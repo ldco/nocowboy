@@ -21,43 +21,51 @@ All existing tools make you faster.
 
 ## Installation
 
-### Arch Linux (AUR)
+NoCowboy is a compiled binary with an embedded config (agents, commands, instructions, skills). You install it with one command.
 
+### Arch Linux
+
+**Option A — AUR (recommended):**
 ```bash
 yay -S nocowboy
-# or: paru -S nocowboy
 ```
+This downloads `releases/v0.3.5/nocowboy-linux-x64.tar.gz` (73MB) from the repo,
+extracts it, and installs the binary to `/usr/bin/nocowboy` and config to
+`/usr/share/nocowboy/`. Done.
 
-The AUR package installs the binary to `/usr/bin/nocowboy` with default config at `/usr/share/nocowboy/config/`. Run `nocowboy` to start.
-
-### macOS (Homebrew)
-
+**Option B — Manual archive:**
+Download `releases/v0.3.5/nocowboy-linux-x64.tar.gz` from GitHub, then:
 ```bash
-brew install ldco/nocowboy/nocowboy
-```
-
-After install, run the setup script to populate your user config:
-```bash
-/usr/local/share/nocowboy/install.sh
-```
-
-### Manual install (any platform)
-
-Receive the archive for your platform, extract, and run the bundled installer:
-
-```bash
-# Linux
 tar xzf nocowboy-linux-x64.tar.gz
-cd nocowboy
 ./install.sh
+```
+This copies the binary to `~/.nocowboy/bin/nocowboy` and config to
+`~/.config/nocowboy/`. Add `~/.nocowboy/bin` to your PATH.
 
-# macOS
+### macOS
+
+**Intel Mac:**
+Download `releases/v0.3.5/nocowboy-darwin-x64.zip` from GitHub, then:
+```bash
 unzip nocowboy-darwin-x64.zip
-cd nocowboy
 ./install.sh
 ```
 
-The archive contains the binary, installer, and default config (agents, commands, instructions, skills). The installer copies everything to `~/.nocowboy/bin/` and `~/.config/nocowboy/`.
+**Apple Silicon Mac:**
+Download `releases/v0.3.5/nocowboy-darwin-arm64.zip` from GitHub, then:
+```bash
+unzip nocowboy-darwin-arm64.zip
+./install.sh
+```
+
+### What you get
+
+After install, run:
+```bash
+nocowboy
+```
+The app reads its config from `~/.config/nocowboy/` and data from
+`~/.local/share/nocowboy/`. That's it — no other setup needed.
 
 ### Build from source
 
