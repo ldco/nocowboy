@@ -19,12 +19,45 @@ All existing tools make you faster.
 
 ---
 
-## Quick start
+## Installation
 
+### Linux
+
+**Arch Linux (AUR):**
 ```bash
-npm run setup          # Install system deps (lazygit, nvim, xh, nnn, etc.)
-npm run dev            # Start the TUI with auto-reload on file changes
+yay -S nocowboy
+# or: paru -S nocowboy
 ```
+
+**Other distros (install script):**
+```bash
+curl -fsSL https://github.com/ldco/nocowboy/releases/latest/download/install | bash
+```
+
+**From source:**
+```bash
+git clone https://github.com/ldco/nocowboy
+cd nocowboy
+bun run build
+./install --binary dist/nocowboy-tui-linux-x64/bin/nocowboy
+```
+
+### macOS
+
+**Homebrew:**
+```bash
+brew tap ldco/nocowboy
+brew install nocowboy
+```
+
+**Install script:**
+```bash
+curl -fsSL https://github.com/ldco/nocowboy/releases/latest/download/install | bash
+```
+
+---
+
+## Quick start
 
 ---
 
