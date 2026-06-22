@@ -184,18 +184,24 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   const shareSession = async (sessionID: string) => { // nocowboy_change start
     log(`shareSession.start ${sessionID}`)
+    const sess = sync.session.get(sessionID)
+    const existingUrl = sess?.share?.url
+    if (existingUrl) {
+      log(`shareSession.existing-url ${existingUrl}`)
+      await Clipboard.copy(existingUrl)
+      toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
+      return
+    }
     try {
       const res = await sdk.client.session.share({ sessionID })
-      log(`shareSession.res keys=${Object.keys(res).join(",")} hasError=${!!(res as any).error} dataType=${typeof (res as any).data} full=${JSON.stringify(res).slice(0,300)}`)
+      log(`shareSession.res keys=${Object.keys(res).join(",")} hasError=${!!(res as any).error} dataType=${typeof (res as any).data}`)
       const d = (res as any).data
-      const url = d?.share?.url
-      if (url) {
-        await Clipboard.copy(url)
-        log(`shareSession.copied ${url}`)
+      if (d?.share?.url) {
+        await Clipboard.copy(d.share.url)
+        log(`shareSession.copied ${d.share.url}`)
         toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
       } else {
-        log(`shareSession.server-error raw=${JSON.stringify(res).slice(0,200)}`)
-        toast.show({ message: "Share unavailable: server returned an error", variant: "error" })
+        toast.show({ message: "Failed to share session", variant: "error" })
       }
     } catch (e: any) {
       log(`shareSession.error ${e?.message ?? e}`)
