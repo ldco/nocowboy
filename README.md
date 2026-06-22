@@ -25,38 +25,29 @@ NoCowboy is a compiled binary with an embedded config (agents, commands, instruc
 
 ### Arch Linux
 
-**Option A — AUR (recommended):**
-```bash
-yay -S nocowboy
-```
-This downloads `releases/v0.3.5/nocowboy-linux-x64.tar.gz` (73MB) from the repo,
-extracts it, and installs the binary to `/usr/bin/nocowboy` and config to
-`/usr/share/nocowboy/`. Done.
+Download `releases/v0.3.5/nocowboy-0.3.5-1-x86_64.pkg.tar.zst` from the repo, then:
 
-**Option B — Manual archive:**
-Download `releases/v0.3.5/nocowboy-linux-x64.tar.gz` from GitHub, then:
 ```bash
-tar xzf nocowboy-linux-x64.tar.gz
-./install.sh
+sudo pacman -U nocowboy-0.3.5-1-x86_64.pkg.tar.zst
 ```
-This copies the binary to `~/.nocowboy/bin/nocowboy` and config to
-`~/.config/nocowboy/`. Add `~/.nocowboy/bin` to your PATH.
+
+Installs the binary to `/usr/bin/nocowboy` and default config to `/usr/share/nocowboy/`.
+Tracked by pacman, removable with `pacman -R nocowboy`. Run `nocowboy` to start.
 
 ### macOS
 
-**Intel Mac:**
-Download `releases/v0.3.5/nocowboy-darwin-x64.zip` from GitHub, then:
+Download the archive for your Mac, then extract and run `./install.sh`:
+
 ```bash
-unzip nocowboy-darwin-x64.zip
-./install.sh
+# Intel Mac
+unzip nocowboy-darwin-x64.zip && cd nocowboy-darwin-x64 && ./install.sh
+
+# Apple Silicon (M1/M2/M3/M4)
+unzip nocowboy-darwin-arm64.zip && cd nocowboy-darwin-arm64 && ./install.sh
 ```
 
-**Apple Silicon Mac:**
-Download `releases/v0.3.5/nocowboy-darwin-arm64.zip` from GitHub, then:
-```bash
-unzip nocowboy-darwin-arm64.zip
-./install.sh
-```
+This copies the binary to `~/.nocowboy/bin/nocowboy` and config to
+`~/.config/nocowboy/`. Run `nocowboy` to start.
 
 ### What you get
 

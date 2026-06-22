@@ -1,9 +1,8 @@
 # Maintainer: NoCowboy <nobody@nocowboy.dev>
 # Contributor: ldco <nobody@nocowboy.dev>
 
-# Set this to the URL where release archives are hosted
-_release_url="https://github.com/ldco/nocowboy/raw/master/releases/v${pkgver}"
-
+pkgname=nocowboy
+pkgver=0.3.5
 pkgname=nocowboy
 pkgver=0.3.5
 pkgrel=1
@@ -13,7 +12,8 @@ url="https://github.com/ldco/nocowboy"
 license=('LicenseRef-custom')
 depends=('glibc')
 
-source=("${_release_url}/nocowboy-linux-x64.tar.gz")
+# Private repo: place the source archive next to this PKGBUILD before running makepkg
+source=("nocowboy-linux-x64.tar.gz")
 sha256sums=('SKIP')
 
 package() {
