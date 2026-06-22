@@ -6,7 +6,7 @@ import { createSequencer } from "./sequence"
 import { SyncSubscriber } from "./sync-subscriber"
 
 declare global {
-  const KILO_SESSION_EXPORT_WORKER_PATH: string
+  const NOCOWBOY_SESSION_EXPORT_WORKER_PATH: string
 }
 
 type WorkerTarget = string | URL
@@ -144,7 +144,7 @@ export const shutdown = async (): Promise<void> => {
 }
 
 function target(): WorkerTarget {
-  if (typeof KILO_SESSION_EXPORT_WORKER_PATH !== "undefined") return KILO_SESSION_EXPORT_WORKER_PATH
+  if (typeof NOCOWBOY_SESSION_EXPORT_WORKER_PATH !== "undefined") return NOCOWBOY_SESSION_EXPORT_WORKER_PATH
   return new URL("./worker.ts", import.meta.url)
 }
 

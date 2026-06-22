@@ -9,7 +9,7 @@ import type { Event, Log, Message, Request, Result } from "./indexing-worker-pro
 import type { IndexingWarning } from "./indexing-warning"
 
 declare global {
-  const KILO_INDEXING_WORKER_PATH: string
+  const NOCOWBOY_INDEXING_WORKER_PATH: string
 }
 
 export namespace IndexingWorker {
@@ -55,8 +55,8 @@ export namespace IndexingWorker {
     if (shared && !shared.stopped) return shared
 
     const file =
-      typeof KILO_INDEXING_WORKER_PATH !== "undefined"
-        ? KILO_INDEXING_WORKER_PATH
+      typeof NOCOWBOY_INDEXING_WORKER_PATH !== "undefined"
+        ? NOCOWBOY_INDEXING_WORKER_PATH
         : new URL("./indexing-worker.ts", import.meta.url)
     const state: Channel = {
       task: new Worker(file, { ref: false }),

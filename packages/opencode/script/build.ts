@@ -310,6 +310,9 @@ for (const item of targets) {
 
       NOCOWBOY_BUILD_KIND: Script.release ? `'release'` : `'source'`, // nocowboy_change
       NOCOWBOY_LIBC: item.abi === "musl" ? `'musl'` : `'glibc'`, // nocowboy_change
+      NOCOWBOY_WORKER_PATH: `'${bunfsRoot}src/cli/cmd/tui/worker.js'`, // nocowboy_change
+      NOCOWBOY_SESSION_EXPORT_WORKER_PATH: `'${bunfsRoot}src/nocowboy/session-export/worker.js'`, // nocowboy_change
+      NOCOWBOY_INDEXING_WORKER_PATH: `'${bunfsRoot}src/nocowboy/indexing-worker.js'`, // nocowboy_change
       NOCOWBOY_MIGRATIONS: (() => {
         const migrationDir = path.resolve(dir, "migration")
         if (!fs.existsSync(migrationDir)) return "undefined"

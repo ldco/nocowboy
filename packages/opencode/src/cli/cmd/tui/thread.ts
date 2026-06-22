@@ -27,7 +27,7 @@ import {
 import { validateSession } from "./validate-session"
 
 declare global {
-  const KILO_WORKER_PATH: string
+  const NOCOWBOY_WORKER_PATH: string
 }
 
 type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
@@ -70,7 +70,7 @@ function createEventSource(client: RpcClient): EventSource {
 }
 
 async function target() {
-  if (typeof KILO_WORKER_PATH !== "undefined") return KILO_WORKER_PATH
+  if (typeof NOCOWBOY_WORKER_PATH !== "undefined") return NOCOWBOY_WORKER_PATH
   const dist = new URL("./cli/cmd/tui/worker.js", import.meta.url)
   if (await Filesystem.exists(fileURLToPath(dist))) return dist
   return new URL("./worker.ts", import.meta.url)
