@@ -1,25 +1,22 @@
 class Nocowboy < Formula
   desc "AI-powered development tool for the Russian market"
   homepage "https://github.com/ldco/nocowboy"
-  version "0.3.10"
+  version "0.3.5"
   license "LicenseRef-custom"
 
+  # Private repo: download the archive for your architecture and place it in
+  # the same directory as this formula, or provide a direct download URL.
   if Hardware::CPU.intel?
-    url "https://example.com/releases/v#{version}/nocowboy-darwin-x64.zip"
+    url "nocowboy-darwin-x64.zip"
     sha256 "UPDATE_ME"
   else
-    url "https://example.com/releases/v#{version}/nocowboy-darwin-arm64.zip"
+    url "nocowboy-darwin-arm64.zip"
     sha256 "UPDATE_ME"
   end
 
   def install
     bin.install "nocowboy"
     (share/"nocowboy").install Dir["install.sh", "config"]
-  end
-
-  def post_install
-    ohai "To complete setup, run:"
-    ohai "  #{share}/nocowboy/install.sh"
   end
 
   test do

@@ -2,7 +2,7 @@
 # Contributor: ldco <nobody@nocowboy.dev>
 
 pkgname=nocowboy
-pkgver=0.3.10
+pkgver=0.3.5
 pkgrel=1
 pkgdesc="AI-powered development tool — agentic coding for the Russian market"
 arch=('x86_64' 'aarch64')
@@ -11,12 +11,10 @@ license=('LicenseRef-custom')
 depends=('glibc')
 makedepends=()
 
-# Replace with actual download URL for your distribution channel
-source_x86_64=("nocowboy-linux-x64.tar.gz::https://example.com/releases/v${pkgver}/nocowboy-linux-x64.tar.gz")
-source_aarch64=("nocowboy-linux-arm64.tar.gz::https://example.com/releases/v${pkgver}/nocowboy-linux-arm64.tar.gz")
+# Private repo: place the archive next to this PKGBUILD before building
+source=('nocowboy-linux-x64.tar.gz')
 
-sha256sums_x86_64=('SKIP')
-sha256sums_aarch64=('SKIP')
+sha256sums=('SKIP')
 
 package() {
   cd "${srcdir}"

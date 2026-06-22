@@ -43,7 +43,7 @@ After install, run the setup script to populate your user config:
 
 ### Manual install (any platform)
 
-Download the archive for your platform, extract, and run the bundled installer:
+Receive the archive for your platform, extract, and run the bundled installer:
 
 ```bash
 # Linux
