@@ -1760,7 +1760,19 @@ export function Prompt(props: PromptProps) {
                     })()}
                   </box>
                 </box>
-                <text fg={store.interrupt > 0 ? theme.primary : theme.text}>
+                <text
+                  fg={store.interrupt > 0 ? theme.primary : theme.text}
+                  onMouseUp={() => {
+                    if (!props.sessionID) return
+                    setStore("interrupt", store.interrupt + 1)
+                    setTimeout(() => setStore("interrupt", 0), 5000)
+                    if (store.interrupt >= 2) {
+                      void sdk.client.session.abort({ sessionID: props.sessionID })
+                      setStore("interrupt", 0)
+                    }
+                    dialog.clear()
+                  }} // nocowboy_change
+                >
                   esc{" "}
                   <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
                     {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
