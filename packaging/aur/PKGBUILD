@@ -2,23 +2,19 @@
 # Contributor: ldco <nobody@nocowboy.dev>
 
 # Set this to the URL where release archives are hosted
-_release_url="https://github.com/ldco/nocowboy/raw/master/releases"
+_release_url="https://github.com/ldco/nocowboy/raw/master/releases/v${pkgver}"
 
 pkgname=nocowboy
 pkgver=0.3.5
 pkgrel=1
 pkgdesc="AI-powered development tool — agentic coding for the Russian market"
-arch=('x86_64' 'aarch64')
+arch=('x86_64')
 url="https://github.com/ldco/nocowboy"
 license=('LicenseRef-custom')
 depends=('glibc')
-makedepends=()
 
-source_x86_64=("${_release_url}/nocowboy-linux-x64.tar.gz")
-source_aarch64=("${_release_url}/nocowboy-linux-arm64.tar.gz")
-
-sha256sums_x86_64=('SKIP')
-sha256sums_aarch64=('SKIP')
+source=("${_release_url}/nocowboy-linux-x64.tar.gz")
+sha256sums=('SKIP')
 
 package() {
   cd "${srcdir}"
