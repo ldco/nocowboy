@@ -1,3 +1,5 @@
+![NoCowboy](logo.svg)
+
 # NoCowboy TUI
 
 **AI under control.** A terminal agent (TUI) that enforces code quality before production.
@@ -10,10 +12,9 @@ Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. Bu
 |---------|-------------|
 | **Code Constitution** — AST rules block bad AI code before it's written | ❌ |
 | **Live Contract Guard** — API changes break frontend builds | ❌ |
-| **NCP Protocol** — spec-first development (define before code) | ❌ |
 | **NoCowboy Score** — 0-100% quality metric with CI/CD gating | ❌ |
 
-All existing tools (Claude Code, Cline, Aider, Cursor) make you faster.  
+All existing tools make you faster.  
 **NoCowboy makes you safer.**
 
 ---
@@ -54,12 +55,7 @@ packages/
 ├── llm/                   # LLM abstraction layer
 ├── plugin/                # Plugin/tool interface
 ├── sdk/js/                # Auto-generated TypeScript SDK
-├── kilo-gateway/          # Gateway stubs (Kilo API removed)
-├── kilo-indexing/         # Code indexing (tree-sitter, LanceDB)
-├── kilo-telemetry/        # Telemetry stubs (Kilo backend removed)
-├── kilo-vscode/           # VS Code extension (gitignored, kept for later)
-├── kilo-jetbrains/        # JetBrains plugin (gitignored, kept for later)
-└── containers/            # Docker build files
+└── nocowboy-gateway/      # Gateway stubs
 ```
 
 ---
@@ -101,4 +97,4 @@ External tools installed via `npm run setup`:
 
 ## License
 
-MIT (inherited from KiloCode/OpenCode)
+Closed-source commercial. See LICENSE.md.
