@@ -11,41 +11,58 @@ PKG="nocowboy-${VERSION}-1-x86_64.pkg.tar.zst"
 
 echo "=== Building NoCowboy v${VERSION} ==="
 
-# Step 1: Build binary
+# Step 1: Build binary (cross-compiles all platforms)
 echo "--- Building binary ---"
 cd packages/opencode
 bun run build
 cd "$APP_DIR"
-echo "Binary built."
+echo "Binaries built (Linux + macOS + Windows)."
 
-# Step 2: Create source archive for makepkg
-echo "--- Creating source archive ---"
-mkdir -p /tmp/ncb-release
-cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy /tmp/ncb-release/
-cp -r packaging/config /tmp/ncb-release/config
-cp -r packaging/mcp-servers /tmp/ncb-release/mcp-servers
-cp -r packaging/systemd /tmp/ncb-release/systemd
-cp install.sh /tmp/ncb-release/
-cd /tmp/ncb-release
+# Step 2: Create macOS archives
+echo "--- Creating macOS archives ---"
+for target in darwin-x64 darwin-arm64; do
+  bin_dir="packages/opencode/dist/nocowboy-tui-${target}/bin"
+  if [ -f "${bin_dir}/nocowboy" ]; then
+    mkdir -p "/tmp/ncb-mac-${target}"
+    cp "${bin_dir}/nocowboy" "/tmp/ncb-mac-${target}/"
+    cp install.sh "/tmp/ncb-mac-${target}/"
+    cp -r packaging/config "/tmp/ncb-mac-${target}/config"
+    cd "/tmp/ncb-mac-${target}"
+    zip -rq "${APP_DIR}/${RELEASE_DIR}/nocowboy-${target}.zip" .
+    cd "$APP_DIR"
+    rm -rf "/tmp/ncb-mac-${target}"
+    echo "  nocowboy-${target}.zip"
+  fi
+done
+
+# Step 3: Create source archive for Arch makepkg
+echo "--- Creating Arch source archive ---"
+mkdir -p /tmp/ncb-arch
+cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy /tmp/ncb-arch/
+cp -r packaging/config /tmp/ncb-arch/config
+cp -r packaging/mcp-servers /tmp/ncb-arch/mcp-servers
+cp -r packaging/systemd /tmp/ncb-arch/systemd
+cp install.sh /tmp/ncb-arch/
+cd /tmp/ncb-arch
 tar -czf "${APP_DIR}/packaging/aur/${ARCHIVE}" .
 cd "$APP_DIR"
-rm -rf /tmp/ncb-release
-echo "Source archive created."
+rm -rf /tmp/ncb-arch
+echo "Arch source archive created."
 
-# Step 3: Build .pkg.tar.zst
+# Step 4: Build .pkg.tar.zst
 echo "--- Building .pkg.tar.zst ---"
 cd packaging/aur
 makepkg -f --noconfirm 2>&1
 cd "$APP_DIR"
 echo ".pkg.tar.zst built."
 
-# Step 4: Copy to releases
+# Step 5: Copy to releases
 echo "--- Copying to releases ---"
 mkdir -p "${RELEASE_DIR}"
 cp "packaging/aur/${PKG}" "${RELEASE_DIR}/"
-echo "Copied to ${RELEASE_DIR}/"
+echo "Copied ${PKG} to ${RELEASE_DIR}/"
 
-# Step 5: Install on system
+# Step 6: Install on system
 echo "--- Installing on system ---"
 sudo pacman -U --noconfirm "${RELEASE_DIR}/${PKG}"
 echo "=== v${VERSION} installed ==="
