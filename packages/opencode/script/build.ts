@@ -83,9 +83,10 @@ async function copyTreeSitterWasms(outputDir: string) {
 }
 // kilocode_change end
 
-// kilocode_change start - embed Kilo Console static assets
+// nocowboy_change start - skip Kilo Console (removed from fork)
 async function buildKiloConsole() {
   const app = path.resolve(dir, "../kilo-console")
+  if (!fs.existsSync(app)) { console.log("kilo-console not found, skipping"); return undefined }
   const out = path.join(app, "dist")
   console.log("building Kilo Console")
   const proc = Bun.spawn([process.execPath, "run", "build"], {
@@ -288,8 +289,12 @@ for (const item of targets) {
   const rootPath = path.resolve(dir, "../../node_modules/@opentui/core/parser.worker.js")
   const parserWorker = fs.realpathSync(fs.existsSync(localPath) ? localPath : rootPath)
   const workerPath = "./src/cli/cmd/tui/worker.ts"
-  const sessionExportWorkerPath = "./src/kilocode/session-export/worker.ts" // kilocode_change
-  const indexingWorkerPath = "./src/kilocode/indexing-worker.ts" // kilocode_change
+  const sessionExportWorkerPath = fs.existsSync("./src/kilocode/session-export/worker.ts") // nocowboy_change
+    ? "./src/kilocode/session-export/worker.ts"
+    : undefined
+  const indexingWorkerPath = fs.existsSync("./src/kilocode/indexing-worker.ts") // nocowboy_change
+    ? "./src/kilocode/indexing-worker.ts"
+    : undefined
 
   // Use platform-specific bunfs root path based on target OS
   const bunfsRoot = item.os === "win32" ? "B:/~BUN/root/" : "/$bunfs/root/"
@@ -320,13 +325,13 @@ for (const item of targets) {
       autoloadTsconfig: true,
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/kilo`, // kilocode_change
+      outfile: `dist/${name}/bin/nocowboy`, // kilocode_change
       execArgv: [`--user-agent=kilo/${Script.version}`, "--use-system-ca", "--"], // kilocode_change
       windows: {},
     },
     // kilocode_change start - packages/app was removed; no embedded web UI
     files: {},
-    entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorkerPath, indexingWorkerPath],
+    entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorkerPath, indexingWorkerPath].filter(Boolean) as string[],
     // kilocode_change end
     define: {
       NOCOWBOY_VERSION: `'${Script.version}'`,
@@ -338,7 +343,7 @@ for (const item of targets) {
 
   await fs.promises.copyFile(snapshot.path, path.resolve(dir, `dist/${name}/bin/models-snapshot.json`)) // kilocode_change
   await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
-  await copyKiloConsole(kiloConsoleDist, path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
+  if (kiloConsoleDist) await copyKiloConsole(kiloConsoleDist, path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
 
   // kilocode_change start - fix Nix-specific ELF interpreter paths for Linux binaries
   if (item.os === "linux") {
@@ -352,7 +357,7 @@ for (const item of targets) {
     const interpreter = interpreters[key]
     if (interpreter) {
       try {
-        await $`patchelf --set-interpreter ${interpreter} dist/${name}/bin/kilo`
+        await $`patchelf --set-interpreter ${interpreter} dist/${name}/bin/nocowboy`
         console.log(`patched interpreter for ${name} -> ${interpreter}`)
       } catch {
         console.warn(`patchelf not available, skipping interpreter fix for ${name}`)
@@ -363,7 +368,7 @@ for (const item of targets) {
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {
-    const binaryPath = `dist/${name}/bin/kilo` // kilocode_change
+    const binaryPath = `dist/${name}/bin/nocowboy` // kilocode_change
     console.log(`Running smoke test: ${binaryPath} --version`)
     try {
       const versionOutput = await $`${binaryPath} --version`.text()
