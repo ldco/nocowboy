@@ -2,7 +2,7 @@ import { describe, expect } from "bun:test"
 import { Effect } from "effect"
 import { PluginV2 } from "@opencode-ai/core/plugin"
 import { ProviderPlugins } from "@opencode-ai/core/plugin/provider"
-import { NoCowboyPlugin } from "@opencode-ai/core/plugin/provider/kilo"
+import { NoCowboyPlugin } from "@opencode-ai/core/plugin/provider/nocowboy"
 import { expectPluginRegistered, it, model, provider, withEnv } from "./provider-helper"
 
 describe("NoCowboyPlugin", () => {

@@ -11,7 +11,7 @@ export const LLMGatewayPlugin = PluginV2.define({
         if (evt.provider.enabled === false) return
         evt.provider.options.headers["HTTP-Referer"] = "https://kilo.ai/" // kilocode_change
         evt.provider.options.headers["X-Title"] = "Kilo Code" // kilocode_change
-        evt.provider.options.headers["X-Source"] = "kilo" // kilocode_change
+        evt.provider.options.headers["X-Source"] = "nocowboy" // kilocode_change
       }),
     }
   }),

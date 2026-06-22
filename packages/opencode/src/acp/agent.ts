@@ -1755,7 +1755,7 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
   // returns earlier via `specified` (config.model) or the sorted providers list.
   if (providers.some((p) => p.id === "nocowboy")) {
     const freeModel = await fetchDefaultModel()
-    if (freeModel) return { providerID: ProviderID.kilo, modelID: ModelID.make(freeModel) }
+    if (freeModel) return { providerID: ProviderID.nocowboy, modelID: ModelID.make(freeModel) }
   }
   // nocowboy_change end
   throw new Error("No models available")

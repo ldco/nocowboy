@@ -12,7 +12,7 @@ type Provider = {
   options?: Record<string, unknown>
 }
 
-export type KiloIndexingAuth = {
+export type NoCowboyIndexingAuth = {
   apiKey?: string
   baseUrl?: string
   organizationId?: string
@@ -66,31 +66,31 @@ function hasOtherProvider(indexing: unknown): boolean {
   return providers.some((provider) => value(cfg[provider]))
 }
 
-export function resolveKiloIndexingAuth(input: {
+export function resolveNoCowboyIndexingAuth(input: {
   config?: unknown
   provider?: Provider
   auth?: Auth
   env?: Env
-}): KiloIndexingAuth {
+}): NoCowboyIndexingAuth {
   const config = record(input.config)
-  const options = record(record(config.provider).kilo)
+  const options = record(record(config.provider).nocowboy)
   const provider = input.provider ?? record(input.provider)
   const providerOptions = record(provider.options)
   const providerConfig = record(options.options)
-  const kilo = record(record(config.indexing).kilo)
+  const nocowboy = record(record(config.indexing).nocowboy)
   const env = input.env ?? process.env
 
   return {
     apiKey:
-      text(kilo.apiKey) ??
+      text(nocowboy.apiKey) ??
       text(providerConfig.apiKey) ??
       token(input.auth) ??
       text(provider.key) ??
       text(providerOptions.ncowboyToken) ??
       text(env.KILO_API_KEY),
-    baseUrl: text(kilo.baseUrl) ?? text(providerConfig.baseURL) ?? text(providerConfig.baseUrl),
+    baseUrl: text(nocowboy.baseUrl) ?? text(providerConfig.baseURL) ?? text(providerConfig.baseUrl),
     organizationId:
-      text(kilo.organizationId) ??
+      text(nocowboy.organizationId) ??
       text(providerConfig.ncowboyOrganizationId) ??
       org(input.auth) ??
       text(providerOptions.ncowboyOrganizationId) ??
@@ -98,20 +98,20 @@ export function resolveKiloIndexingAuth(input: {
   }
 }
 
-export function hasKiloIndexingAuth(input: Parameters<typeof resolveKiloIndexingAuth>[0]): boolean {
-  return !!resolveKiloIndexingAuth(input).apiKey
+export function hasNoCowboyIndexingAuth(input: Parameters<typeof resolveNoCowboyIndexingAuth>[0]): boolean {
+  return !!resolveNoCowboyIndexingAuth(input).apiKey
 }
 
-export function shouldDefaultIndexingToKilo(indexing: unknown, auth: KiloIndexingAuth): boolean {
+export function shouldDefaultIndexingToNoCowboy(indexing: unknown, auth: NoCowboyIndexingAuth): boolean {
   const cfg = record(indexing)
   if (cfg.provider !== undefined || !auth.apiKey) return false
   return !hasOtherProvider(cfg)
 }
 
-export function indexingWithKiloDefault(
+export function indexingWithNoCowboyDefault(
   indexing: IndexingConfig | undefined,
-  auth: KiloIndexingAuth,
+  auth: NoCowboyIndexingAuth,
 ): IndexingConfig | undefined {
-  if (!shouldDefaultIndexingToKilo(indexing, auth)) return indexing
+  if (!shouldDefaultIndexingToNoCowboy(indexing, auth)) return indexing
   return { ...indexing, provider: "kilo" }
 }

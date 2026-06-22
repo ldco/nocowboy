@@ -21,7 +21,7 @@ import { Event as IndexingEvent, Warning as IndexingWarningEvent } from "./index
 import { indexingWarningKey, type IndexingWarning } from "./indexing-warning"
 import { IndexingWorker } from "./indexing-worker-client"
 import { LanceDBRuntime } from "./lancedb" // nocowboy_change
-import { indexingWithKiloDefault, resolveKiloIndexingAuth, type KiloIndexingAuth } from "./indexing-auth" // nocowboy_change
+import { indexingWithNoCowboyDefault, resolveNoCowboyIndexingAuth, type NoCowboyIndexingAuth } from "./indexing-auth" // nocowboy_change
 
 const log = Log.create({ service: "kilocode-indexing" })
 const auth = makeRuntime(Auth.Service, Auth.defaultLayer)
@@ -66,12 +66,12 @@ function pending(): z.infer<typeof IndexingStatus> {
   }
 }
 
-async function kiloAuth(cfg: Config.Info): Promise<KiloIndexingAuth> {
+async function kiloAuth(cfg: Config.Info): Promise<NoCowboyIndexingAuth> {
   const info = await auth.runPromise((svc) => svc.get("kilo"))
-  return resolveKiloIndexingAuth({ config: cfg, auth: info })
+  return resolveNoCowboyIndexingAuth({ config: cfg, auth: info })
 }
 
-function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloIndexingAuth) {
+function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: NoCowboyIndexingAuth) {
   if (input.embedderProvider !== "kilo") return input
 
   return {
@@ -82,7 +82,7 @@ function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloI
   }
 }
 
-async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: KiloIndexingAuth) {
+async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: NoCowboyIndexingAuth) {
   if (input.embedderProvider !== "kilo") return input
 
   const catalog = await fetchEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
@@ -256,7 +256,7 @@ export namespace KiloIndexing {
     const auth = await kiloAuth(cfg)
     const globalConfig = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
     const global = globalConfig.indexing
-    const merged = indexingWithKiloDefault({ ...global, ...cfg.indexing }, auth)
+    const merged = indexingWithNoCowboyDefault({ ...global, ...cfg.indexing }, auth)
     const cfgInput = await model(enrichKilo(input(merged, global), auth), auth)
     const workspaces = new Set<WorkspaceID | undefined>([WorkspaceContext.workspaceID])
     const box = { status: pending() }

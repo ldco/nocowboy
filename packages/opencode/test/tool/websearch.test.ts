@@ -38,7 +38,7 @@ describe("websearch provider", () => {
 
   test("is only enabled for kilo or explicit websearch provider flags", () => {
     // kilocode_change
-    expect(webSearchEnabled(ProviderID.kilo, { exa: false, parallel: false })).toBe(true) // kilocode_change
+    expect(webSearchEnabled(ProviderID.nocowboy, { exa: false, parallel: false })).toBe(true) // kilocode_change
     expect(webSearchEnabled(ProviderID.opencode, { exa: false, parallel: false })).toBe(false) // kilocode_change
     expect(webSearchEnabled(ProviderID.openai, { exa: false, parallel: false })).toBe(false)
     expect(webSearchEnabled(ProviderID.openai, { exa: true, parallel: false })).toBe(true)

@@ -6,7 +6,7 @@ import { filterPromptTrainingModels, nonEmptyProviders } from "../../../src/noco
 function model(id: string, training?: boolean): Provider.Model {
   return {
     id: ModelID.make(id),
-    providerID: ProviderID.kilo,
+    providerID: ProviderID.nocowboy,
     api: { id: "kilo", url: "https://api.kilo.ai", npm: "@nocowboy/gateway" },
     name: id,
     capabilities: {

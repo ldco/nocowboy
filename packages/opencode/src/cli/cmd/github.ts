@@ -393,10 +393,10 @@ on:
 jobs:
   nocowboy:
     if: |
-      contains(github.event.comment.body, ' /kc') ||
-      startsWith(github.event.comment.body, '/kc') ||
-      contains(github.event.comment.body, ' /kilo') ||
-      startsWith(github.event.comment.body, '/kilo')
+      contains(github.event.comment.body, ' /ncb') ||
+      startsWith(github.event.comment.body, '/ncb') ||
+      contains(github.event.comment.body, ' /nocowboy') ||
+      startsWith(github.event.comment.body, '/nocowboy')
     runs-on: ubuntu-latest
     permissions:
       id-token: write

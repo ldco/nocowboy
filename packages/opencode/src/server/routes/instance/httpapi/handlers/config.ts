@@ -45,13 +45,13 @@ export const configHandlers = HttpApiBuilder.group(InstanceHttpApi, "config", (h
       // nocowboy_change end
 
       // nocowboy_change start - Fetch default model from Kilo API when the kilo provider is available.
-      if (providers[ProviderID.kilo]) {
+      if (providers[ProviderID.nocowboy]) {
         const auth = yield* Auth.Service
         const info = yield* auth.get("kilo").pipe(Effect.mapError(() => new HttpApiError.Unauthorized({}))) // nocowboy_change
         const token = info?.type === "oauth" ? info.access : info?.key
         const organizationId = info?.type === "oauth" ? info.accountId : undefined
         const model = yield* Effect.promise(() => fetchDefaultModel())
-        if (model && providers[ProviderID.kilo]?.models[model]) defaults[ProviderID.kilo] = ModelID.make(model)
+        if (model && providers[ProviderID.nocowboy]?.models[model]) defaults[ProviderID.nocowboy] = ModelID.make(model)
       }
       // nocowboy_change end
 

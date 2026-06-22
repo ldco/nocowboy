@@ -16,7 +16,7 @@ import { createEffect, createMemo, createResource, createSignal, Show } from "so
 import { reconcile } from "solid-js/store"
 import type { IndexingConfig, Config } from "@nocowboy/sdk/v2"
 import * as Log from "@opencode-ai/core/util/log"
-import { hasKiloIndexingAuth, resolveKiloIndexingAuth, shouldDefaultIndexingToKilo } from "../indexing-auth"
+import { hasNoCowboyIndexingAuth, resolveNoCowboyIndexingAuth, shouldDefaultIndexingToNoCowboy } from "../indexing-auth"
 import {
   createIndexingDialogState,
   currentKiloModel,
@@ -105,7 +105,7 @@ function scopedIndexing(data: Config | undefined): IndexingConfig {
 function hasKiloAuth(sync: ReturnType<typeof useSync>, scope: IndexingScope, indexing: IndexingConfig): boolean {
   const provider = sync.data.provider_next.all.find((item) => item.id === "kilo")
   const config = indexingScopeConfig(scope, sync.data.config, sync.data.globalConfig, indexing)
-  return hasKiloIndexingAuth({ config, provider })
+  return hasNoCowboyIndexingAuth({ config, provider })
 }
 
 function defaultIndexing(
@@ -116,8 +116,8 @@ function defaultIndexing(
 ): IndexingConfig {
   const provider = sync.data.provider_next.all.find((item) => item.id === "kilo")
   const config = indexingScopeConfig(scope, sync.data.config, sync.data.globalConfig, indexing)
-  const auth = resolveKiloIndexingAuth({ config, provider })
-  if (!shouldDefaultIndexingToKilo({ ...global, ...indexing }, auth)) return indexing
+  const auth = resolveNoCowboyIndexingAuth({ config, provider })
+  if (!shouldDefaultIndexingToNoCowboy({ ...global, ...indexing }, auth)) return indexing
   return { ...indexing, provider: "kilo", model: null, dimension: null }
 }
 

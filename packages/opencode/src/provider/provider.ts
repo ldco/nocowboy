@@ -441,7 +441,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           headers: {
             "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
             "X-Title": "Kilo Code", // nocowboy_change
-            "X-Source": "kilo", // nocowboy_change
+            "X-Source": "nocowboy", // nocowboy_change
           },
         },
       }),

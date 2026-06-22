@@ -66,7 +66,7 @@ export function webSearchEnabled(
   providerID: ProviderID,
   flags = { exa: Flag.NOCOWBOY_ENABLE_EXA, parallel: Flag.NOCOWBOY_ENABLE_PARALLEL },
 ) {
-  return providerID === ProviderID.kilo || flags.exa || flags.parallel // nocowboy_change
+  return providerID === ProviderID.nocowboy || flags.exa || flags.parallel // nocowboy_change
 }
 
 type TaskDef = Tool.InferDef<typeof TaskTool>
