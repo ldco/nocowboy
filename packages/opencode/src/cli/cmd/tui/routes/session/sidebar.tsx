@@ -79,7 +79,7 @@ function HistoryTab(props: {
           <text
             fg={s.id === props.currentID ? brand : idx() === props.selectedIdx ? theme.text : theme.textMuted}
             attributes={s.id === props.currentID ? TextAttributes.BOLD : 0}
-            onMouseDown={(e: any) => { e?.preventDefault?.(); if (e?.button === MouseButton.RIGHT) { props.onShare?.(s.id); return } props.onSelectIdx(idx()); props.onNavigate(s.id) }}
+            onMouseDown={(e: any) => { if (e?.button === MouseButton.RIGHT) { e?.preventDefault?.(); props.onShare?.(s.id); return } e?.preventDefault?.(); props.onSelectIdx(idx()); props.onNavigate(s.id) }}
             wrapMode="none"
           >
             {ago(s.time?.updated ?? 0)} {s.title}
@@ -249,6 +249,15 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
+        },
+      },
+      {
+        key: "s",
+        desc: "Share selected session",
+        group: "Sidebar",
+        cmd: () => {
+          const s = list()[selectedIdx()]
+          if (s) shareSession(s.id)
         },
       },
     ],
