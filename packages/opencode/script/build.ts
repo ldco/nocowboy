@@ -325,7 +325,7 @@ for (const item of targets) {
             }
           })
           .filter(Boolean)
-        return JSON.stringify(entries)
+        return JSON.stringify(entries.sort((a, b) => a.timestamp - b.timestamp))
       })(),
     },
   })
