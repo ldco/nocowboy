@@ -168,7 +168,7 @@ function askEditGuard() {
 function planEditRules(worktree: string) {
   return {
     "*": "deny" as const,
-    [path.join(".kilo", "plans", "*.md")]: "allow" as const,
+    [path.join(".nocowboy", "plans", "*.md")]: "allow" as const,
     [path.join("plans", "*.md")]: "allow" as const,
     [path.join(".plans", "*.md")]: "allow" as const,
     [path.join(".opencode", "plans", "*.md")]: "allow" as const,
@@ -518,7 +518,7 @@ export async function remove(input: { name: string; agent?: AgentInfo; dirs: str
   const home = os.default.homedir()
   const modesFiles = [
     path.join(NocowboyPaths.vscodeGlobalStorage(), "settings", "custom_modes.yaml"),
-    path.join(home, ".kilocode", "cli", "global", "settings", "custom_modes.yaml"),
+    path.join(home, ".nocowboy", "cli", "global", "settings", "custom_modes.yaml"),
     path.join(home, ".kilocodemodes"),
     path.join(input.directory, ".kilocodemodes"),
   ]

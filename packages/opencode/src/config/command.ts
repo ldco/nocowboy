@@ -61,10 +61,10 @@ export async function load(dir: string, warnings?: Warning[]) {
 
     // nocowboy_change start
     const patterns = [
-      "/.kilo/command/",
-      "/.kilo/commands/",
-      "/.kilocode/command/",
-      "/.kilocode/commands/",
+      "/.nocowboy/command/",
+      "/.nocowboy/commands/",
+      "/.nocowboy/command/",
+      "/.nocowboy/commands/",
       "/.opencode/command/",
       "/.opencode/commands/",
       "/command/",

@@ -5,9 +5,9 @@ import { NocowboyPaths } from "@/nocowboy/paths"
 export namespace ConfigProtection {
   /**
    * Config directory prefixes (relative paths, forward-slash normalized).
-   * Matches .kilo/, .kilocode/, .opencode/ at any depth within the project.
+   * Matches .nocowboy/, .nocowboy/, .opencode/ at any depth within the project.
    */
-  const CONFIG_DIRS = [".nocowboy/", ".kilocode/", ".opencode/"]
+  const CONFIG_DIRS = [".nocowboy/", ".nocowboy/", ".opencode/"]
 
   /**
    * Subdirectories under CONFIG_DIRS that are NOT config files (e.g. plan files).
@@ -19,7 +19,7 @@ export namespace ConfigProtection {
    * Root-level config files that must be protected.
    * Matched only when the relative path has no directory component.
    */
-  const CONFIG_ROOT_FILES = new Set(["kilo.json", "kilo.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
+  const CONFIG_ROOT_FILES = new Set(["nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
 
   /** Metadata key used to signal the UI to hide the "Allow always" option. */
   export const DISABLE_ALWAYS_KEY = "disableAlways" as const
@@ -37,8 +37,8 @@ export namespace ConfigProtection {
   export function isRelative(pattern: string): boolean {
     const normalized = normalize(pattern)
     for (const dir of CONFIG_DIRS) {
-      const bare = dir.slice(0, -1) // e.g. ".kilo"
-      // Match at root (e.g. ".kilo/foo") or nested (e.g. "packages/sub/.kilo/foo")
+      const bare = dir.slice(0, -1) // e.g. ".nocowboy"
+      // Match at root (e.g. ".nocowboy/foo") or nested (e.g. "packages/sub/.nocowboy/foo")
       if (normalized === bare || normalized.endsWith("/" + bare)) return true
       if (normalized.startsWith(dir)) {
         if (excluded(normalized.slice(dir.length))) continue
@@ -99,7 +99,7 @@ export namespace ConfigProtection {
       if (within(filepath, dir)) return true
     }
 
-    // ~/.kilo/ and ~/.kilocode/ (legacy global dirs)
+    // ~/.nocowboy/ and ~/.nocowboy/ (legacy global dirs)
     for (const dir of NocowboyPaths.globalDirs()) {
       if (within(filepath, dir)) return true
     }

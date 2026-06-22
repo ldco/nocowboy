@@ -188,7 +188,7 @@ export const McpAuthCommand = effectCmd({
 
     if (servers.length === 0) {
       prompts.log.warn("No OAuth-capable MCP servers configured")
-      prompts.log.info("Remote MCP servers support OAuth by default. Add a remote server in kilo.json:") // nocowboy_change
+      prompts.log.info("Remote MCP servers support OAuth by default. Add a remote server in nocowboy.json:") // nocowboy_change
       prompts.log.info(`
   "mcp": {
     "my-server": {
@@ -398,8 +398,8 @@ export const McpLogoutCommand = effectCmd({
 })
 
 async function resolveConfigPath(baseDir: string, global = false) {
-  // nocowboy_change start - prefer kilo.json/.kilo over opencode.json/.opencode
-  // Check for existing config files (prefer .jsonc over .json, check .kilo/ and .opencode/ subdirectory too)
+  // nocowboy_change start - prefer nocowboy.json/.kilo over opencode.json/.opencode
+  // Check for existing config files (prefer .jsonc over .json, check .nocowboy/ and .opencode/ subdirectory too)
   const candidates = [
     path.join(baseDir, "nocowboy.json"),
     path.join(baseDir, "nocowboy.jsonc"),
@@ -409,8 +409,8 @@ async function resolveConfigPath(baseDir: string, global = false) {
 
   if (!global) {
     candidates.push(
-      path.join(baseDir, ".kilo", "nocowboy.json"),
-      path.join(baseDir, ".kilo", "nocowboy.jsonc"),
+      path.join(baseDir, ".nocowboy", "nocowboy.json"),
+      path.join(baseDir, ".nocowboy", "nocowboy.jsonc"),
       path.join(baseDir, ".nocowboy", "opencode.json"),
       path.join(baseDir, ".nocowboy", "opencode.jsonc"),
       path.join(baseDir, ".opencode", "opencode.json"),
@@ -424,7 +424,7 @@ async function resolveConfigPath(baseDir: string, global = false) {
     }
   }
 
-  // Default to kilo.json if none exist
+  // Default to nocowboy.json if none exist
   return path.join(baseDir, "nocowboy.json")
   // nocowboy_change end
 }

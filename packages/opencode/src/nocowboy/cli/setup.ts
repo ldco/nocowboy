@@ -51,7 +51,7 @@ export namespace NocowboyCli {
 
     await Telemetry.init()
 
-    // Migrate legacy auth (~/.kilocode/cli/config.json) into auth.json if present.
+    // Migrate legacy auth (~/.nocowboy/cli/config.json) into auth.json if present.
     await migrateLegacyAuth()
 
     const auth = await AppRuntime.runPromise(Auth.Service.use((s) => s.get("kilo")))

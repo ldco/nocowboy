@@ -507,7 +507,7 @@ function ScopeSelect(props: DialogIndexingProps & { scope: IndexingScope }) {
   const dialog = useDialog()
   const options: DialogSelectOption<IndexingScope>[] = [
     { value: "global", title: "Global", description: "Stored in the user config directory" },
-    { value: "project", title: "Project", description: "Stored in this repo's .kilo config" },
+    { value: "project", title: "Project", description: "Stored in this repo's .nocowboy config" },
   ]
 
   return (

@@ -389,14 +389,14 @@ export namespace Sessions {
     enabling = (async () => {
       const token = await ncowboyToken()
       if (!token) {
-        throw new Error("Unable to enable remote: no Kilo credentials found. Run `nocowboy auth login`.")
+        throw new Error("Unable to enable remote: no NoCowboy credentials found. Run `nocowboy auth login`.")
       }
 
       const valid = await authValid(token)
       if (valid === false) {
-        throw new Error("Unable to enable remote: invalid or expired Kilo credentials. Run `nocowboy auth login`.")
+        throw new Error("Unable to enable remote: invalid or expired NoCowboy credentials. Run `nocowboy auth login`.")
       }
-      if (valid === undefined) throw new Error("Unable to enable remote: failed to verify Kilo credentials.")
+      if (valid === undefined) throw new Error("Unable to enable remote: failed to verify NoCowboy credentials.")
 
       const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
         .replace(/^https:\/\//, "wss://")
@@ -577,7 +577,7 @@ export namespace Sessions {
 
     const client = await getClient()
     if (!client) {
-      throw new Error("Unable to share session: no Kilo credentials found. Run `nocowboy auth login`.")
+      throw new Error("Unable to share session: no NoCowboy credentials found. Run `nocowboy auth login`.")
     }
 
     const current = (await get(sessionId).catch(() => undefined)) ?? (await create(sessionId))
@@ -622,7 +622,7 @@ export namespace Sessions {
 
     const client = await getClient()
     if (!client) {
-      throw new Error("Unable to unshare session: no Kilo credentials found. Run `nocowboy auth login`.")
+      throw new Error("Unable to unshare session: no NoCowboy credentials found. Run `nocowboy auth login`.")
     }
 
     log.info("unsharing", { sessionId })

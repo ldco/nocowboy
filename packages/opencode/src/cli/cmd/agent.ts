@@ -109,7 +109,7 @@ const AgentCreateCommand = effectCmd({
           scope = scopeResult
         }
         targetPath = path.join(
-          scope === "global" ? Global.Path.config : path.join(ctx.worktree, ".kilo"), // nocowboy_change
+          scope === "global" ? Global.Path.config : path.join(ctx.worktree, ".nocowboy"), // nocowboy_change
           "agents",
         )
       }

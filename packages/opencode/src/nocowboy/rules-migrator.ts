@@ -8,7 +8,7 @@ export namespace RulesMigrator {
   const home = () => process.env.NOCOWBOY_TEST_HOME || process.env.HOME || process.env.USERPROFILE || os.homedir()
 
   // Directory-based rules (read from both .kilo and .kilocode)
-  const KILO_RULES_DIRS = [".kilo/rules", ".kilocode/rules"]
+  const KILO_RULES_DIRS = [".nocowboy/rules", ".nocowboy/rules"]
   const globalRulesDirs = () => [path.join(home(), ".nocowboy", "rules"), path.join(home(), ".nocowboy", "rules")]
 
   // Known modes for mode-specific rule discovery
@@ -50,7 +50,7 @@ export namespace RulesMigrator {
   export async function discoverRules(projectDir: string): Promise<RuleFile[]> {
     const rules: RuleFile[] = []
 
-    // 1. Global rules directories (~/.kilo/rules/*.md and ~/.kilocode/rules/*.md)
+    // 1. Global rules directories (~/.nocowboy/rules/*.md and ~/.nocowboy/rules/*.md)
     const globalSeen = new Set<string>()
     for (const dir of globalRulesDirs()) {
       if (!(await isDirectory(dir))) continue
@@ -63,7 +63,7 @@ export namespace RulesMigrator {
       }
     }
 
-    // 2. Project .kilo/rules/ and .kilocode/rules/ directories
+    // 2. Project .nocowboy/rules/ and .nocowboy/rules/ directories
     const seen = new Set<string>()
     for (const rulesRel of KILO_RULES_DIRS) {
       const projectRulesDir = path.join(projectDir, rulesRel)
@@ -87,9 +87,9 @@ export namespace RulesMigrator {
 
     // 4. Mode-specific rules
     for (const mode of KNOWN_MODES) {
-      // Mode-specific directories (.kilo/rules-{mode}/*.md and .kilocode/rules-{mode}/*.md)
+      // Mode-specific directories (.nocowboy/rules-{mode}/*.md and .nocowboy/rules-{mode}/*.md)
       const modeSeen = new Set<string>()
-      for (const prefix of [".kilo", ".kilocode"]) {
+      for (const prefix of [".nocowboy", ".nocowboy"]) {
         const modeDir = path.join(projectDir, `${prefix}/rules-${mode}`)
         if (await isDirectory(modeDir)) {
           const files = await findMarkdownFiles(modeDir)
@@ -143,7 +143,7 @@ export namespace RulesMigrator {
       // Warn about legacy files
       if (rule.source === "legacy") {
         warnings.push(
-          `Legacy rule file '${path.basename(rule.path)}' found. Consider migrating to .kilo/rules/ directory.`,
+          `Legacy rule file '${path.basename(rule.path)}' found. Consider migrating to .nocowboy/rules/ directory.`,
         )
       }
     }

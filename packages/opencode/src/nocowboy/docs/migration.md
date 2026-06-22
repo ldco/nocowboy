@@ -157,8 +157,8 @@ The following Kilocode features are not yet migrated:
 
 | Feature | Status | Notes |
 |---|---|---|
-| Rules (`.kilocode/rules/`) | Phase 2 | Will map to `instructions` array |
-| Workflows (`.kilocode/workflows/`) | Phase 2 | Will map to custom commands |
+| Rules (`.nocowboy/rules/`) | Phase 2 | Will map to `instructions` array |
+| Workflows (`.nocowboy/workflows/`) | Phase 2 | Will map to custom commands |
 | MCP Servers (`mcp_settings.json`) | Phase 2 | Will map to `mcp` config |
 | Provider Settings | Phase 2 | Will map to `provider` config |
 | Mode-specific API configs | Phase 2 | Different models per mode |
@@ -200,17 +200,17 @@ Skills are discovered from these locations (in order, later entries override ear
 
 ### Project Skills (Walk-up Discovery)
 
-The scanner walks up from the current directory to the git worktree root, finding all `.kilocode/skills/` directories:
+The scanner walks up from the current directory to the git worktree root, finding all `.nocowboy/skills/` directories:
 
 ```
 your-project/
-├── .kilocode/
+├── .nocowboy/
 │   └── skills/
 │       └── project-skill/
 │           └── SKILL.md
 └── packages/
     └── my-package/           # If you run from here
-        └── .kilocode/
+        └── .nocowboy/
             └── skills/
                 └── package-skill/
                     └── SKILL.md
@@ -222,7 +222,7 @@ Running from `packages/my-package/` discovers both `package-skill` and `project-
 
 | Platform | Path |
 |---|---|
-| All | `~/.kilocode/skills/` |
+| All | `~/.nocowboy/skills/` |
 
 ### VSCode Extension Storage (Marketplace Skills)
 
@@ -252,8 +252,8 @@ Detailed instructions for the agent...
 When the same skill name exists in multiple locations, **last one wins**:
 
 1. `.claude/skills/` (lowest priority)
-2. `.kilocode/skills/` (walk-up)
-3. `~/.kilocode/skills/`
+2. `.nocowboy/skills/` (walk-up)
+3. `~/.nocowboy/skills/`
 4. VSCode extension storage
 5. `.opencode/skill/` (walk-up)
 6. `~/.opencode/skill/` (highest priority)
@@ -286,7 +286,7 @@ Skills can be symlinked from a shared location:
 
 ```
 .agents/skills/shared-skill/          # Actual skill
-.kilocode/skills/shared-skill -> ...  # Symlink
+.nocowboy/skills/shared-skill -> ...  # Symlink
 .opencode/skill/shared-skill -> ...   # Symlink
 ```
 
@@ -308,10 +308,10 @@ Kilocode rules are migrated to Opencode's `instructions` array. See [`rules-migr
 | Location | Description |
 |---|---|
 | `.kilocoderules` | Legacy project rules file |
-| `.kilocode/rules/*.md` | Project rules directory |
-| `~/.kilocode/rules/*.md` | Global rules directory |
+| `.nocowboy/rules/*.md` | Project rules directory |
+| `~/.nocowboy/rules/*.md` | Global rules directory |
 | `.kilocoderules-{mode}` | Mode-specific legacy rules |
-| `.kilocode/rules-{mode}/*.md` | Mode-specific rules directory |
+| `.nocowboy/rules-{mode}/*.md` | Mode-specific rules directory |
 
 ---
 
@@ -323,8 +323,8 @@ Kilocode workflows are migrated to Opencode commands. See [`workflows-migrator.t
 
 | Location | Description |
 |---|---|
-| `.kilocode/workflows/*.md` | Project workflows |
-| `~/.kilocode/workflows/*.md` | Global workflows |
+| `.nocowboy/workflows/*.md` | Project workflows |
+| `~/.nocowboy/workflows/*.md` | Global workflows |
 | VSCode extension storage | Marketplace-installed workflows |
 
 ---

@@ -23,7 +23,7 @@ export namespace KilocodeTuiConfig {
   export type Editable = Omit<Patch, "keybinds"> & { keybinds?: Record<string, string> }
 
   const files = ["tui.jsonc", "tui.json"] as const
-  const dirs = [".kilo", ".kilocode", ".opencode"] as const
+  const dirs = [".nocowboy", ".nocowboy", ".opencode"] as const
 
   export async function get(input: { directory: string }) {
     const cfg = await Effect.runPromise(
@@ -78,7 +78,7 @@ export namespace KilocodeTuiConfig {
 
     const roots = await Filesystem.findUp([...files], input.directory, input.worktree)
     if (roots[0]) return roots[0]
-    return path.join(input.directory, ".kilo", "tui.json")
+    return path.join(input.directory, ".nocowboy", "tui.json")
   }
 
   async function read(file: string) {

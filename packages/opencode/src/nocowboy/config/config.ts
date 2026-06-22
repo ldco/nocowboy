@@ -38,34 +38,29 @@ export namespace KilocodeConfig {
   // ── Config file constants ────────────────────────────────────────────
 
   /** Kilo-specific config file names (highest-to-lowest precedence within kilo). */
-  export const KILO_CONFIG_FILES = ["kilo.jsonc", "kilo.json"] as const
+  export const NOCOWBOY_CONFIG_FILES = ["nocowboy.jsonc", "nocowboy.json"] as const
 
   /** All config file names in precedence order (kilo + opencode). */
-  export const ALL_CONFIG_FILES = ["kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json"] as const
+  export const ALL_CONFIG_FILES = ["nocowboy.jsonc", "nocowboy.json", "opencode.jsonc", "opencode.json"] as const
 
   /** Directory suffixes that Kilo recognizes in addition to .opencode. */
-  export const KILO_DIR_SUFFIXES = [".kilo", ".kilocode"] as const
+  export const NOCOWBOY_DIR_SUFFIXES = [".nocowboy"] as const
 
   /** All config directory suffixes Kilo can update, including upstream .opencode. */
-  export const ALL_CONFIG_DIR_SUFFIXES = [".kilo", ".kilocode", ".opencode"] as const
+  export const ALL_CONFIG_DIR_SUFFIXES = [".nocowboy", ".opencode"] as const
 
   /** Path patterns for resolving kilo agent names from file paths. */
-  export const AGENT_PATTERNS = ["/.kilo/agent/", "/.kilo/agents/", "/.kilocode/agent/", "/.kilocode/agents/"] as const
+  export const AGENT_PATTERNS = ["/.nocowboy/agent/", "/.nocowboy/agents/"] as const
 
   /** Path patterns for resolving kilo command names from file paths. */
-  export const COMMAND_PATTERNS = [
-    "/.kilo/command/",
-    "/.kilo/commands/",
-    "/.kilocode/command/",
-    "/.kilocode/commands/",
-  ] as const
+  export const COMMAND_PATTERNS = ["/.nocowboy/command/", "/.nocowboy/commands/"] as const
 
   /**
    * Choose the project config file that Config.update should patch.
    *
    * This mirrors the Kilo project-config load chain: prefer existing config files
    * in ancestor config directories, then existing root config files, and create
-   * `.kilo/kilo.jsonc` when no project config exists yet.
+   * `.nocowboy/kilo.jsonc` when no project config exists yet.
    */
   export const projectConfigUpdateTarget = Effect.fn("KilocodeConfig.projectConfigUpdateTarget")(function* (input: {
     fs: AppFileSystem.Interface
@@ -79,7 +74,7 @@ export namespace KilocodeConfig {
       .up({ targets: [...ALL_CONFIG_FILES], start: input.directory, stop: input.worktree })
       .pipe(Effect.orDie)
     const files = [...dirs.flatMap((dir) => ALL_CONFIG_FILES.map((file) => path.join(dir, file))), ...roots]
-    return files.find((file) => existsSync(file)) ?? path.join(input.directory, ".kilo", "kilo.jsonc")
+    return files.find((file) => existsSync(file)) ?? path.join(input.directory, ".nocowboy", "nocowboy.jsonc")
   })
 
   export const updateProjectConfig = Effect.fn("KilocodeConfig.updateProjectConfig")(function* (input: {
@@ -326,7 +321,7 @@ export namespace KilocodeConfig {
 
   // ── Bash permission migration ────────────────────────────────────────
 
-  const GLOBAL_CONFIG_FILES = ["config.json", "kilo.json", "kilo.jsonc", "opencode.json", "opencode.jsonc"]
+  const GLOBAL_CONFIG_FILES = ["config.json", "nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc"]
 
   /**
    * Migrate bash permission for existing users before config is consumed.
@@ -437,6 +432,6 @@ export namespace KilocodeConfig {
 
   /** Check whether a directory path should be treated as a config directory (for loading config files). */
   export function isConfigDir(dir: string, flagDir?: string): boolean {
-    return dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === flagDir
+    return dir.endsWith(".nocowboy") || dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === flagDir
   }
 }

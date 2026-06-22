@@ -1,6 +1,6 @@
 // Dev-only JSONL event trace for direct interactive mode.
 //
-// Enable with KILO_DIRECT_TRACE=1. Writes one JSON line per event to
+// Enable with NOCOWBOY_DIRECT_TRACE=1. Writes one JSON line per event to
 // ~/.local/share/kilo/log/direct/<timestamp>-<pid>.jsonl. Also writes // nocowboy_change
 // a latest.json pointer so you can quickly find the most recent trace.
 //

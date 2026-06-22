@@ -31,15 +31,15 @@ export namespace NocowboyPaths {
 
   /** Global Kilo directories in user home: ~/.kilocode and ~/.kilo (legacy first, .kilo wins later) */
   export function globalDirs(): string[] {
-    return [path.join(home(), ".kilocode"), path.join(home(), ".kilo")]
+    return [path.join(home(), ".nocowboy"), path.join(home(), ".nocowboy")]
   }
 
   /**
    * Discover Kilo directories containing skills.
-   * Returns parent directories (.kilocode/ and .kilo/) for glob pattern "skills/[*]/SKILL.md".
+   * Returns parent directories (.nocowboy/ and .nocowboy/) for glob pattern "skills/[*]/SKILL.md".
    *
-   * - Walks up from projectDir to worktreeRoot for .kilocode/ and .kilo/
-   * - Includes global ~/.kilocode/ and ~/.kilo/
+   * - Walks up from projectDir to worktreeRoot for .nocowboy/ and .nocowboy/
+   * - Includes global ~/.nocowboy/ and ~/.nocowboy/
    * - Includes VSCode extension global storage
    *
    * Does NOT copy/migrate skills - just provides paths for discovery.
@@ -54,7 +54,7 @@ export namespace NocowboyPaths {
     const directories: string[] = []
 
     if (!opts.skipGlobalPaths) {
-      // 1. Global ~/.kilocode/ and ~/.kilo/ (loaded first so project-level overrides)
+      // 1. Global ~/.nocowboy/ and ~/.nocowboy/ (loaded first so project-level overrides)
       for (const global of globalDirs()) {
         const globalSkills = path.join(global, "skills")
         if (!(await Filesystem.isDir(globalSkills))) continue
@@ -69,11 +69,11 @@ export namespace NocowboyPaths {
       }
     }
 
-    // 3. Walk up from project dir to worktree root for .kilocode/ and .kilo/
+    // 3. Walk up from project dir to worktree root for .nocowboy/ and .nocowboy/
     // Returns parent directories (not skills/) because
     // the glob pattern "skills/[*]/SKILL.md" is applied from the parent
     // Loaded last so project-level skills take precedence over global
-    for (const target of [".kilocode", ".kilo"] as const) {
+    for (const target of [".nocowboy", ".nocowboy"] as const) {
       const projectDirs = await Array.fromAsync(
         Filesystem.up({
           targets: [target],

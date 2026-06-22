@@ -25,10 +25,10 @@ If you have existing opencode config with `instructions`, the Kilocode rules are
 { "instructions": ["AGENTS.md", "custom-rules.md"] }
 
 // Kilocode rules add:
-{ "instructions": [".kilocoderules", ".kilocode/rules/coding.md"] }
+{ "instructions": [".kilocoderules", ".nocowboy/rules/coding.md"] }
 
 // Result (combined, deduplicated):
-{ "instructions": ["AGENTS.md", "custom-rules.md", ".kilocoderules", ".kilocode/rules/coding.md"] }
+{ "instructions": ["AGENTS.md", "custom-rules.md", ".kilocoderules", ".nocowboy/rules/coding.md"] }
 ```
 
 ### 3. Restart to Pick Up Changes
@@ -44,15 +44,15 @@ The migrator reads rules from these locations:
 | Location | Description |
 |---|---|
 | `.kilocoderules` | Legacy single-file rules in project root |
-| `.kilocode/rules/*.md` | Directory-based rules (multiple markdown files) |
+| `.nocowboy/rules/*.md` | Directory-based rules (multiple markdown files) |
 | `.kilocoderules-{mode}` | Mode-specific legacy rules (e.g., `.kilocoderules-code`) |
-| `.kilocode/rules-{mode}/*.md` | Mode-specific rule directories |
+| `.nocowboy/rules-{mode}/*.md` | Mode-specific rule directories |
 
 ### Global Rules
 
 | Location | Description |
 |---|---|
-| `~/.kilocode/rules/*.md` | Global rules directory |
+| `~/.nocowboy/rules/*.md` | Global rules directory |
 
 ## File Mapping
 
@@ -60,9 +60,9 @@ The migrator reads rules from these locations:
 |---|---|
 | `.kilocoderules` | `instructions: [".kilocoderules"]` |
 | `.kilocoderules-{mode}` | `instructions: [".kilocoderules-{mode}"]` |
-| `.kilocode/rules/*.md` | `instructions: [".kilocode/rules/file.md", ...]` |
-| `.kilocode/rules-{mode}/*.md` | `instructions: [".kilocode/rules-{mode}/file.md", ...]` |
-| `~/.kilocode/rules/*.md` | `instructions: ["~/.kilocode/rules/file.md", ...]` |
+| `.nocowboy/rules/*.md` | `instructions: [".nocowboy/rules/file.md", ...]` |
+| `.nocowboy/rules-{mode}/*.md` | `instructions: [".nocowboy/rules-{mode}/file.md", ...]` |
+| `~/.nocowboy/rules/*.md` | `instructions: ["~/.nocowboy/rules/file.md", ...]` |
 
 ## AGENTS.md Compatibility
 
@@ -79,17 +79,17 @@ The following are **not** migrated:
 - `.roorules` - Roo-specific rules
 - `.clinerules` - Cline-specific rules
 
-Only Kilocode-specific files (`.kilocoderules`, `.kilocode/rules/`) are migrated.
+Only Kilocode-specific files (`.kilocoderules`, `.nocowboy/rules/`) are migrated.
 
 ## Mode-Specific Rules
 
-Mode-specific rules (e.g., `.kilocoderules-code`, `.kilocode/rules-architect/`) are included by default. All mode-specific rules are loaded regardless of the current mode.
+Mode-specific rules (e.g., `.kilocoderules-code`, `.nocowboy/rules-architect/`) are included by default. All mode-specific rules are loaded regardless of the current mode.
 
 ## Warnings
 
 The migrator generates warnings for:
 
-- **Legacy files**: When `.kilocoderules` is found, a warning suggests migrating to `.kilocode/rules/` directory structure
+- **Legacy files**: When `.kilocoderules` is found, a warning suggests migrating to `.nocowboy/rules/` directory structure
 
 ## Example
 
@@ -99,7 +99,7 @@ The migrator generates warnings for:
 project/
 ├── .kilocoderules           # Legacy rules
 ├── .kilocoderules-code      # Code-mode specific
-└── .kilocode/
+└── .nocowboy/
     └── rules/
         ├── coding.md        # Coding standards
         └── testing.md       # Testing guidelines
@@ -110,8 +110,8 @@ project/
 ```json
 {
   "instructions": [
-    "/path/to/project/.kilocode/rules/coding.md",
-    "/path/to/project/.kilocode/rules/testing.md",
+    "/path/to/project/.nocowboy/rules/coding.md",
+    "/path/to/project/.nocowboy/rules/testing.md",
     "/path/to/project/.kilocoderules",
     "/path/to/project/.kilocoderules-code"
   ]

@@ -266,7 +266,7 @@ async function getShellConfigFile(): Promise<string | null> {
       content.includes("# opencode") ||
       content.includes(".opencode/bin") ||
       content.includes("# nocowboy") ||
-      content.includes(".kilo/bin")
+      content.includes(".nocowboy/bin")
     ) {
       return file
     }
@@ -294,13 +294,13 @@ async function cleanShellConfig(file: string) {
 
     if (skip) {
       skip = false
-      if (trimmed.includes(".opencode/bin") || trimmed.includes(".kilo/bin") || trimmed.includes("fish_add_path")) {
+      if (trimmed.includes(".opencode/bin") || trimmed.includes(".nocowboy/bin") || trimmed.includes("fish_add_path")) {
         continue
       }
     }
 
     if (
-      (trimmed.startsWith("export PATH=") && (trimmed.includes(".opencode/bin") || trimmed.includes(".kilo/bin"))) ||
+      (trimmed.startsWith("export PATH=") && (trimmed.includes(".opencode/bin") || trimmed.includes(".nocowboy/bin"))) ||
       (trimmed.startsWith("fish_add_path") && (trimmed.includes(".nocowboy") || trimmed.includes(".nocowboy")))
     ) {
       continue

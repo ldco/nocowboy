@@ -11,10 +11,10 @@ export namespace WorkflowsMigrator {
   const home = () => process.env.HOME || process.env.USERPROFILE || os.homedir()
 
   // .kilocode first (lower precedence), .kilo second (higher precedence / wins)
-  const KILO_WORKFLOWS_DIRS = [".kilocode/workflows", ".kilo/workflows"]
+  const KILO_WORKFLOWS_DIRS = [".nocowboy/workflows", ".nocowboy/workflows"]
   const globalWorkflowsDirs = () => [
-    path.join(home(), ".kilocode", "workflows"),
-    path.join(home(), ".kilo", "workflows"),
+    path.join(home(), ".nocowboy", "workflows"),
+    path.join(home(), ".nocowboy", "workflows"),
   ]
 
   export interface KilocodeWorkflow {
@@ -79,13 +79,13 @@ export namespace WorkflowsMigrator {
       const vscodeWorkflowsDir = path.join(NocowboyPaths.vscodeGlobalStorage(), "workflows")
       workflows.push(...(await loadWorkflowsFromDir(vscodeWorkflowsDir, "global")))
 
-      // 2. Home directories ~/.kilocode/workflows and ~/.kilo/workflows
+      // 2. Home directories ~/.nocowboy/workflows and ~/.nocowboy/workflows
       for (const dir of globalWorkflowsDirs()) {
         workflows.push(...(await loadWorkflowsFromDir(dir, "global")))
       }
     }
 
-    // 3. Project workflows (.kilo/workflows/ and .kilocode/workflows/)
+    // 3. Project workflows (.nocowboy/workflows/ and .nocowboy/workflows/)
     for (const dir of KILO_WORKFLOWS_DIRS) {
       workflows.push(...(await loadWorkflowsFromDir(path.join(projectDir, dir), "project")))
     }

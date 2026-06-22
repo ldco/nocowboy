@@ -92,7 +92,7 @@ When a user reports unexpected behavior:
 Tool results and user messages may include `<system-reminder>` tags containing useful context — they are NOT part of the user's input.
 
 # Project config files
-`.kilo/command/*.md` defines slash commands; `.kilo/agent/*.md` defines agent personas. These are not task specs — do not search them to understand what a task requires. Exception: when the user explicitly invokes a slash command or agent, you may read its definition file to understand how to execute it.
+`.nocowboy/command/*.md` defines slash commands; `.nocowboy/agent/*.md` defines agent personas. These are not task specs — do not search them to understand what a task requires. Exception: when the user explicitly invokes a slash command or agent, you may read its definition file to understand how to execute it.
 
 # Tool usage policy
 - For file search, prefer Glob and Grep tools over Bash `find`/`ls` to reduce context usage.

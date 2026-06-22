@@ -223,10 +223,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // 4. `.opencode` directories (and KILO_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
-  // nocowboy_change start - also load tui.json from .kilo/.kilocode
+  // nocowboy_change start - also load tui.json from .nocowboy/.kilocode
   const dirs = unique(directories).filter(
     (dir) =>
-      dir.endsWith(".kilo") || dir.endsWith(".kilocode") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
+      dir.endsWith(".nocowboy") || dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
   )
   // nocowboy_change end
 

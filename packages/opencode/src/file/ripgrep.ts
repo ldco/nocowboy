@@ -438,7 +438,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | ChildPro
 
         const root: Node = { name: "", children: new Map() }
         for (const file of list) {
-          if (file.includes(".kilo") || file.includes(".opencode")) continue // nocowboy_change
+          if (file.includes(".nocowboy") || file.includes(".opencode")) continue // nocowboy_change
           const parts = file.split(path.sep)
           if (parts.length < 2) continue
           let node = root
