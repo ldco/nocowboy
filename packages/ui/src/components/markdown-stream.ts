@@ -1,6 +1,6 @@
 import { marked, type Tokens } from "marked"
 import remend from "remend"
-import { stableBlocks } from "../kilocode/markdown-stable-blocks" // kilocode_change
+import { stableBlocks } from "../nocowboy/markdown-stable-blocks" // kilocode_change
 
 export type Block = {
   raw: string

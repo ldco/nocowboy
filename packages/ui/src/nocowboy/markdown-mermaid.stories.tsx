@@ -14,7 +14,7 @@ flowchart TD
 
 export default {
   title: "Kilo/Markdown Mermaid",
-  id: "kilocode-markdown-mermaid",
+  id: "nocowboy-markdown-mermaid",
 }
 
 export const Mermaid = {

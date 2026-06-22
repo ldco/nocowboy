@@ -7,10 +7,10 @@ import { checksum } from "@opencode-ai/core/util/encode"
 import { ComponentProps, createEffect, createResource, createSignal, onCleanup, splitProps } from "solid-js"
 import { isServer } from "solid-js/web"
 import { stream } from "./markdown-stream"
-import { tryFastRender } from "../kilocode/markdown-fast-path" // kilocode_change
-import { hasMermaid, preserveMermaid, renderMermaid, type MermaidLabels } from "../kilocode/markdown-mermaid" // kilocode_change
-import { preserveStreamingHighlight } from "../kilocode/markdown-stream-highlight" // kilocode_change
-import { createIncrementalMarkdown, type MarkdownBlock } from "../kilocode/markdown-incremental-dom" // kilocode_change
+import { tryFastRender } from "../nocowboy/markdown-fast-path" // kilocode_change
+import { hasMermaid, preserveMermaid, renderMermaid, type MermaidLabels } from "../nocowboy/markdown-mermaid" // kilocode_change
+import { preserveStreamingHighlight } from "../nocowboy/markdown-stream-highlight" // kilocode_change
+import { createIncrementalMarkdown, type MarkdownBlock } from "../nocowboy/markdown-incremental-dom" // kilocode_change
 
 type Entry = {
   hash: string
