@@ -14,7 +14,7 @@ echo "=== Building NoCowboy v${VERSION} ==="
 # Step 1: Build binary (cross-compiles all platforms)
 echo "--- Building binary ---"
 cd packages/opencode
-bun run build
+NOCOWBOY_VERSION=${VERSION} NOCOWBOY_RELEASE=true bun run build
 cd "$APP_DIR"
 echo "Binaries built (Linux + macOS + Windows)."
 
