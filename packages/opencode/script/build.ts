@@ -83,31 +83,10 @@ async function copyTreeSitterWasms(outputDir: string) {
 }
 // kilocode_change end
 
-// nocowboy_change start - skip Kilo Console (removed from fork)
-async function buildKiloConsole() {
-  const app = path.resolve(dir, "../kilo-console")
-  if (!fs.existsSync(app)) { console.log("kilo-console not found, skipping"); return undefined }
-  const out = path.join(app, "dist")
-  console.log("building Kilo Console")
-  const proc = Bun.spawn([process.execPath, "run", "build"], {
-    cwd: app,
-    env: { ...process.env, KILO_CONSOLE_BASE: "/console/" },
-    stdout: "inherit",
-    stderr: "inherit",
-    windowsHide: true,
-  })
-  const code = await proc.exited
-  if (code !== 0) throw new Error(`Kilo Console build failed with exit code ${code}`)
-  return out
-}
-
-async function copyKiloConsole(input: string, outputDir: string) {
-  const target = path.join(outputDir, "console")
-  await fs.promises.rm(target, { recursive: true, force: true })
-  await fs.promises.cp(input, target, { recursive: true })
-  console.log(`copied Kilo Console assets to ${target}`)
-}
-// kilocode_change end
+// nocowboy_change start - web console not in this fork
+async function buildWebConsole() { return undefined }
+async function copyWebConsole(_input: string, _outputDir: string) {}
+// nocowboy_change end
 
 // kilocode_change start - validate compiled binaries load the sidecar models snapshot
 function smokeEnv(root: string) {
@@ -263,7 +242,7 @@ console.log(
 // kilocode_change end
 
 await $`rm -rf dist`
-const kiloConsoleDist = await buildKiloConsole() // kilocode_change
+const consoleDist = await buildWebConsole() // nocowboy_change
 
 const binaries: Record<string, string> = {}
 if (!skipInstall) {
@@ -289,12 +268,7 @@ for (const item of targets) {
   const rootPath = path.resolve(dir, "../../node_modules/@opentui/core/parser.worker.js")
   const parserWorker = fs.realpathSync(fs.existsSync(localPath) ? localPath : rootPath)
   const workerPath = "./src/cli/cmd/tui/worker.ts"
-  const sessionExportWorkerPath = fs.existsSync("./src/kilocode/session-export/worker.ts") // nocowboy_change
-    ? "./src/kilocode/session-export/worker.ts"
-    : undefined
-  const indexingWorkerPath = fs.existsSync("./src/kilocode/indexing-worker.ts") // nocowboy_change
-    ? "./src/kilocode/indexing-worker.ts"
-    : undefined
+  // nocowboy_change - these Kilo workers don't exist in this fork
 
   // Use platform-specific bunfs root path based on target OS
   const bunfsRoot = item.os === "win32" ? "B:/~BUN/root/" : "/$bunfs/root/"
@@ -331,7 +305,7 @@ for (const item of targets) {
     },
     // kilocode_change start - packages/app was removed; no embedded web UI
     files: {},
-    entrypoints: ["./src/index.ts", parserWorker, workerPath, sessionExportWorkerPath, indexingWorkerPath].filter(Boolean) as string[],
+    entrypoints: ["./src/index.ts", parserWorker, workerPath],
     // kilocode_change end
     define: {
       NOCOWBOY_VERSION: `'${Script.version}'`,
@@ -343,7 +317,7 @@ for (const item of targets) {
 
   await fs.promises.copyFile(snapshot.path, path.resolve(dir, `dist/${name}/bin/models-snapshot.json`)) // kilocode_change
   await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
-  if (kiloConsoleDist) await copyKiloConsole(kiloConsoleDist, path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
+  if (consoleDist) await copyWebConsole(consoleDist, path.resolve(dir, `dist/${name}/bin`)) // kilocode_change
 
   // kilocode_change start - fix Nix-specific ELF interpreter paths for Linux binaries
   if (item.os === "linux") {
