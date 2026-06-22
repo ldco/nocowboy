@@ -94,8 +94,8 @@ function smokeEnv(root: string) {
   return {
     ...env,
     // Upstream Flag system reads KILO_* env vars — these are the runtime interface, not branding
-    KILO_DISABLE_PROJECT_CONFIG: "1",
-    KILO_CONFIG_CONTENT: JSON.stringify({ enabled_providers: ["anthropic"] }),
+    NOCOWBOY_DISABLE_PROJECT_CONFIG: "1",
+    NOCOWBOY_CONFIG_CONTENT: JSON.stringify({ enabled_providers: ["anthropic"] }),
     ANTHROPIC_API_KEY: "dummy",
   }
 }

@@ -546,7 +546,7 @@ export const layer = Layer.effect(
       let result: Info = {}
       // Seed the default global config with the schema for editor completion, but avoid writing when the user
       // explicitly routes config through env-provided paths or content.
-      if (!Flag.KILO_CONFIG && !Flag.KILO_CONFIG_DIR && !Flag.KILO_CONFIG_CONTENT) {
+      if (!Flag.NOCOWBOY_CONFIG && !Flag.NOCOWBOY_CONFIG_DIR && !Flag.NOCOWBOY_CONFIG_CONTENT) {
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
@@ -767,22 +767,22 @@ export const layer = Layer.effect(
 
         yield* merge(Global.Path.config, global, "global")
 
-        if (Flag.KILO_CONFIG) {
+        if (Flag.NOCOWBOY_CONFIG) {
           // nocowboy_change start - capture KILO_CONFIG failures as warnings
           yield* merge(
-            Flag.KILO_CONFIG,
-            yield* loadFile(Flag.KILO_CONFIG).pipe(
+            Flag.NOCOWBOY_CONFIG,
+            yield* loadFile(Flag.NOCOWBOY_CONFIG).pipe(
               Effect.catchDefect((err: unknown) => {
-                caughtWarning(warnings, Flag.KILO_CONFIG!, err)
+                caughtWarning(warnings, Flag.NOCOWBOY_CONFIG!, err)
                 return Effect.succeed({} as Info)
               }),
             ),
           )
           // nocowboy_change end
-          log.debug("loaded custom config", { path: Flag.KILO_CONFIG })
+          log.debug("loaded custom config", { path: Flag.NOCOWBOY_CONFIG })
         }
 
-        if (!Flag.KILO_DISABLE_PROJECT_CONFIG) {
+        if (!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
           // nocowboy_change start - also discover kilo.json project files
           for (const name of ["nocowboy", "opencode"] as const) {
             for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.project.worktree).pipe(Effect.orDie)) {
@@ -807,15 +807,15 @@ export const layer = Layer.effect(
 
         const directories = yield* ConfigPaths.directories(ctx.directory, ctx.project.worktree) // nocowboy_change
 
-        if (Flag.KILO_CONFIG_DIR) {
-          log.debug("loading config from KILO_CONFIG_DIR", { path: Flag.KILO_CONFIG_DIR })
+        if (Flag.NOCOWBOY_CONFIG_DIR) {
+          log.debug("loading config from KILO_CONFIG_DIR", { path: Flag.NOCOWBOY_CONFIG_DIR })
         }
 
         const deps: Fiber.Fiber<void, never>[] = []
 
         // nocowboy_change start
         for (const dir of unique(directories)) {
-          if (KilocodeConfig.isConfigDir(dir, Flag.KILO_CONFIG_DIR)) {
+          if (KilocodeConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR)) {
             for (const file of KilocodeConfig.ALL_CONFIG_FILES) {
               const source = path.join(dir, file)
               log.debug(`loading config from ${source}`)
@@ -874,12 +874,12 @@ export const layer = Layer.effect(
           yield* mergePluginOrigins(dir, list)
         }
 
-        if (process.env.KILO_CONFIG_CONTENT) {
+        if (process.env.NOCOWBOY_CONFIG_CONTENT) {
           // nocowboy_change start - capture KILO_CONFIG_CONTENT parse failures as warnings
           const source = "KILO_CONFIG_CONTENT"
           yield* merge(
             source,
-            yield* loadConfig(process.env.KILO_CONFIG_CONTENT, {
+            yield* loadConfig(process.env.NOCOWBOY_CONFIG_CONTENT, {
               dir: ctx.directory,
               source,
             }).pipe(
@@ -907,7 +907,7 @@ export const layer = Layer.effect(
               { concurrency: 2 },
             )
             if (Option.isSome(tokenOpt)) {
-              process.env["KILO_CONSOLE_TOKEN"] = tokenOpt.value
+              process.env["NOCOWBOY_CONSOLE_TOKEN"] = tokenOpt.value
               yield* env.set("KILO_CONSOLE_TOKEN", tokenOpt.value)
             }
 
@@ -967,8 +967,8 @@ export const layer = Layer.effect(
           })
         }
 
-        if (Flag.KILO_PERMISSION) {
-          result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.KILO_PERMISSION))
+        if (Flag.NOCOWBOY_PERMISSION) {
+          result.permission = mergeDeep(result.permission ?? {}, JSON.parse(Flag.NOCOWBOY_PERMISSION))
         }
 
         if (result.tools) {
@@ -990,14 +990,14 @@ export const layer = Layer.effect(
           result.share = "auto"
         }
 
-        if (Flag.KILO_DISABLE_AUTOCOMPACT) {
+        if (Flag.NOCOWBOY_DISABLE_AUTOCOMPACT) {
           result.compaction = { ...result.compaction, auto: false }
         }
-        if (Flag.KILO_DISABLE_PRUNE) {
+        if (Flag.NOCOWBOY_DISABLE_PRUNE) {
           result.compaction = { ...result.compaction, prune: false }
         }
         // nocowboy_change start — inject Kilo default plugins into both plugin list and origins
-        KilocodeDefaultPlugins.apply(result, { disabled: Flag.KILO_DISABLE_DEFAULT_PLUGINS, log })
+        KilocodeDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
         // nocowboy_change end
 
         return {

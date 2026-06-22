@@ -76,7 +76,7 @@ export function useSessionEffects(deps: {
   sdk: ReturnType<typeof useSDK>
   sync: ReturnType<typeof useSync>
 }) {
-  const pty = process.env.KILO_PTY_ID
+  const pty = process.env.NOCOWBOY_PTY_ID
   const state = { prev: "" }
 
   // Notify server which session the user is viewing
@@ -187,7 +187,7 @@ export function init() {
    * - Registers NoCowboy commands
    * - Registers the auto-approve toggle command
    */
-  Flag.KILO_EXPERIMENTAL_DISABLE_COPY_ON_SELECT = true
+  Flag.NOCOWBOY_EXPERIMENTAL_DISABLE_COPY_ON_SELECT = true
   const sync = useSync()
   const sdk = useSDK()
   const toast = useToast()

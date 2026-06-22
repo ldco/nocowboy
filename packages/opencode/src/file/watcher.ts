@@ -73,7 +73,7 @@ export const layer = Layer.effect(
     const state = yield* InstanceState.make(
       Effect.fn("FileWatcher.state")(
         function* () {
-          if (yield* Flag.KILO_EXPERIMENTAL_DISABLE_FILEWATCHER) return
+          if (yield* Flag.NOCOWBOY_EXPERIMENTAL_DISABLE_FILEWATCHER) return
 
           const ctx = yield* InstanceState.context
 
@@ -122,7 +122,7 @@ export const layer = Layer.effect(
           const cfg = yield* config.get()
           const cfgIgnores = cfg.watcher?.ignore ?? []
 
-          if (yield* Flag.KILO_EXPERIMENTAL_FILEWATCHER) {
+          if (yield* Flag.NOCOWBOY_EXPERIMENTAL_FILEWATCHER) {
             // nocowboy_change
             yield* Effect.forkScoped(
               subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),

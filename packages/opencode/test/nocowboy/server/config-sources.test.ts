@@ -31,7 +31,7 @@ const env = {
   KILO_CONFIG_DIR: process.env.KILO_CONFIG_DIR,
   KILO_DISABLE_PROJECT_CONFIG: process.env.KILO_DISABLE_PROJECT_CONFIG,
   KILO_TEST_MANAGED_CONFIG_DIR: process.env.KILO_TEST_MANAGED_CONFIG_DIR,
-  flagConfig: Flag.KILO_CONFIG,
+  flagConfig: Flag.NOCOWBOY_CONFIG,
 }
 
 afterEach(async () => {
@@ -46,7 +46,7 @@ function restore() {
   set("KILO_CONFIG_DIR", env.KILO_CONFIG_DIR)
   set("KILO_DISABLE_PROJECT_CONFIG", env.KILO_DISABLE_PROJECT_CONFIG)
   set("KILO_TEST_MANAGED_CONFIG_DIR", env.KILO_TEST_MANAGED_CONFIG_DIR)
-  Flag.KILO_CONFIG = env.flagConfig
+  Flag.NOCOWBOY_CONFIG = env.flagConfig
 }
 
 function set(key: keyof typeof process.env, value: string | undefined) {
@@ -99,7 +99,7 @@ describe("config source routes", () => {
     const managedFile = path.join(tmp.path, "managed", "kilo.json")
 
     process.env.KILO_CONFIG = envFile
-    Flag.KILO_CONFIG = envFile
+    Flag.NOCOWBOY_CONFIG = envFile
     process.env.KILO_CONFIG_CONTENT = '{"username":"secret-inline-value"}'
     process.env.KILO_CONFIG_DIR = path.join(tmp.path, "extra")
     process.env.KILO_TEST_MANAGED_CONFIG_DIR = path.join(tmp.path, "managed")

@@ -244,7 +244,7 @@ export namespace KiloIndexing {
     const dir = Instance.directory
     const baseline = baselineDirectory(dir)
     const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.get()))
-    if (process.env["KILO_DISABLE_CODEBASE_INDEXING"] === "vscode-no-workspace") {
+    if (process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] === "vscode-no-workspace") {
       return track(hit, await inert(() => noWorkspace()))
     }
     if (!hasIndexingPlugin(cfg.plugin)) {

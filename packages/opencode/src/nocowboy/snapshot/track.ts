@@ -84,7 +84,7 @@ export namespace SnapshotTrack {
   const log = Log.create({ service: "snapshot.track" })
 
   export const TIMEOUT_MS = iife(() => {
-    const raw = process.env["KILO_SNAPSHOT_TRACK_TIMEOUT_MS"]
+    const raw = process.env["NOCOWBOY_SNAPSHOT_TRACK_TIMEOUT_MS"]
     if (raw) {
       const parsed = Number(raw)
       if (Number.isFinite(parsed) && parsed > 0) return parsed

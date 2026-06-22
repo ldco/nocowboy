@@ -173,7 +173,7 @@ export namespace KiloSessionProcessor {
     set: (sessionID: SessionID, status: SessionStatus.Info) => Effect.Effect<void>
   }) {
     return {
-      limit: Flag.KILO_SESSION_RETRY_LIMIT,
+      limit: Flag.NOCOWBOY_SESSION_RETRY_LIMIT,
       offline: (info: { error: unknown; message: string }) =>
         handleOffline({
           error: info.error,

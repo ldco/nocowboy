@@ -13,7 +13,7 @@ export const ServeCommand = effectCmd({
   // need for an ambient project InstanceContext at startup.
   instance: false, // nocowboy_change
   handler: Effect.fn("Cli.serve")(function* (args) {
-    if (!Flag.KILO_SERVER_PASSWORD) {
+    if (!Flag.NOCOWBOY_SERVER_PASSWORD) {
       console.log("Warning: NOCOWBOY_SERVER_PASSWORD is not set; server is unsecured.")
     }
     const opts = yield* resolveNetworkOptions(args)

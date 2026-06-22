@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import os from "os"
 import path from "path"
-import { prepareModelsSnapshot } from "../../../script/kilocode/models-snapshot"
+import { prepareModelsSnapshot } from "../../../script/nocowboy/models-snapshot"
 import { loadModelsSnapshotFrom } from "../../../src/nocowboy/provider/models-snapshot"
 
 const fixture = {

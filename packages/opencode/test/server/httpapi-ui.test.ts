@@ -24,16 +24,16 @@ void Log.init({ print: false })
 const testStateLayer = Layer.effectDiscard(
   Effect.gen(function* () {
     const original = {
-      KILO_SERVER_PASSWORD: Flag.KILO_SERVER_PASSWORD,
-      KILO_SERVER_USERNAME: Flag.KILO_SERVER_USERNAME,
+      KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+      KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
       envPassword: process.env.KILO_SERVER_PASSWORD,
       envUsername: process.env.KILO_SERVER_USERNAME,
     }
 
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
-        Flag.KILO_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-        Flag.KILO_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+        Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
+        Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
         restoreEnv("KILO_SERVER_PASSWORD", original.envPassword)
         restoreEnv("KILO_SERVER_USERNAME", original.envUsername)
       }),

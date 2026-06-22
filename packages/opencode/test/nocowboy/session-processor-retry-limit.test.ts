@@ -2,7 +2,7 @@
 // This MUST happen before static imports, but ES module imports are hoisted.
 // So we set it here and use mock.module + dynamic imports for modules that
 // transitively load flag.ts to ensure the env is captured at load time.
-process.env.KILO_SESSION_RETRY_LIMIT = "2"
+process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "2"
 
 import { NodeFileSystem } from "@effect/platform-node"
 import { afterEach, describe, expect, spyOn } from "bun:test"
@@ -138,7 +138,7 @@ const env = SessionProcessor.layer.pipe(Layer.provideMerge(deps), Layer.provide(
 const it = testEffect(env)
 
 afterEach(() => {
-  delete process.env.KILO_SESSION_RETRY_LIMIT
+  delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
 })
 
 describe("session processor retry limit", () => {
@@ -148,7 +148,7 @@ describe("session processor retry limit", () => {
       provideTmpdirInstance(
         (dir) =>
           Effect.gen(function* () {
-            process.env.KILO_SESSION_RETRY_LIMIT = "2"
+            process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "2"
             const test = yield* TestLLM
             const processors = yield* SessionProcessor.Service
             const session = yield* Session.Service
@@ -224,31 +224,31 @@ describe("session processor retry limit", () => {
     Effect.promise(async () => {
       const { Flag } = await import("@opencode-ai/core/flag/flag")
 
-      delete process.env.KILO_SESSION_RETRY_LIMIT
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBeUndefined()
+      delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
 
-      process.env.KILO_SESSION_RETRY_LIMIT = "0"
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBeUndefined()
+      process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "0"
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
 
-      process.env.KILO_SESSION_RETRY_LIMIT = "-1"
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBeUndefined()
+      process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "-1"
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
 
-      process.env.KILO_SESSION_RETRY_LIMIT = "abc"
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBeUndefined()
+      process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "abc"
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
 
-      process.env.KILO_SESSION_RETRY_LIMIT = "2"
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBe(2)
+      process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "2"
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBe(2)
     }),
   )
 
   it.effect("reads env at access time (dynamic getter)", () =>
     Effect.promise(async () => {
       const { Flag } = await import("@opencode-ai/core/flag/flag")
-      delete process.env.KILO_SESSION_RETRY_LIMIT
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBeUndefined()
-      process.env.KILO_SESSION_RETRY_LIMIT = "5"
-      expect(Flag.KILO_SESSION_RETRY_LIMIT).toBe(5)
-      delete process.env.KILO_SESSION_RETRY_LIMIT
+      delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
+      process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "5"
+      expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBe(5)
+      delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
     }),
   )
 })

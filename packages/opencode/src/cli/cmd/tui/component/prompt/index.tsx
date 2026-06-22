@@ -618,7 +618,7 @@ export function Prompt(props: PromptProps) {
         desc: "Change the workspace for the session",
         name: "workspace.set",
         category: "Session",
-        enabled: Flag.KILO_EXPERIMENTAL_WORKSPACES,
+        enabled: Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES,
         slashName: "warp",
         run: () => {
           void openWorkspaceSelect({

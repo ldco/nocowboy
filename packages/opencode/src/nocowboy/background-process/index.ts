@@ -168,7 +168,7 @@ export namespace BackgroundProcess {
   }
 
   function infer() {
-    return Flag.KILO_CLIENT === "cli" && process.env.KILO_BACKGROUND_PROCESS_PORTS === "true"
+    return Flag.NOCOWBOY_CLIENT === "cli" && process.env.NOCOWBOY_BACKGROUND_PROCESS_PORTS === "true"
   }
 
   function update(active: Active, ports?: number[]) {

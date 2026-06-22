@@ -286,7 +286,7 @@ function isBunfsPath(p: string): boolean {
 
 // Exported for test coverage.
 export async function detectRepo(): Promise<string> {
-  const hint = process.env.KILO_DEV_REPO
+  const hint = process.env.NOCOWBOY_DEV_REPO
   if (hint) return hint
 
   const candidates: string[] = []

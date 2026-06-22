@@ -108,7 +108,7 @@ export namespace KiloSession {
 
   export function attribution(id: string): { rootID: string; feature?: string } {
     const rootID = resolveRoot(id)
-    const platform = resolvePlatform(rootID) ?? process.env["KILO_PLATFORM"]
+    const platform = resolvePlatform(rootID) ?? process.env["NOCOWBOY_PLATFORM"]
     const feature = featureForPlatform(platform) ?? process.env[ENV_FEATURE]
     return { rootID, ...(feature ? { feature } : {}) }
   }

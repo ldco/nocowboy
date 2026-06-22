@@ -60,8 +60,8 @@ export namespace KilocodeConfigSources {
   const global = ["config.json", "kilo.json", "kilo.jsonc", "opencode.json", "opencode.jsonc"] as const
 
   export async function list(input: Input): Promise<Result> {
-    const project = Flag.KILO_DISABLE_PROJECT_CONFIG ? [] : await projectSources(input)
-    const dirs = Flag.KILO_DISABLE_PROJECT_CONFIG ? [] : await configDirSources(input)
+    const project = Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG ? [] : await projectSources(input)
+    const dirs = Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG ? [] : await configDirSources(input)
     const sources = [
       ...wellknownSources(input.auth ?? {}),
       ...(await globalSources()),
@@ -106,13 +106,13 @@ export namespace KilocodeConfigSources {
   }
 
   async function envFileSources(): Promise<Pending[]> {
-    if (!Flag.KILO_CONFIG) return []
+    if (!Flag.NOCOWBOY_CONFIG) return []
     return [
       await fileSource({
         kind: "env-file",
         scope: "env",
-        label: "KILO_CONFIG",
-        file: Flag.KILO_CONFIG,
+        label: "NOCOWBOY_CONFIG",
+        file: Flag.NOCOWBOY_CONFIG,
         reason: "Explicit config file from KILO_CONFIG.",
       }),
     ]
@@ -135,9 +135,9 @@ export namespace KilocodeConfigSources {
   async function configDirSources(input: Input): Promise<Pending[]> {
     const project = await Filesystem.findUp([...roots], input.directory, input.worktree)
     const home = await Filesystem.findUp([...roots], Global.Path.home, Global.Path.home)
-    const env = Flag.KILO_CONFIG_DIR ? [Flag.KILO_CONFIG_DIR] : []
+    const env = Flag.NOCOWBOY_CONFIG_DIR ? [Flag.NOCOWBOY_CONFIG_DIR] : []
     const dirs = unique([Global.Path.config, ...project, ...home, ...env]).filter((dir) =>
-      KilocodeConfig.isConfigDir(dir, Flag.KILO_CONFIG_DIR),
+      KilocodeConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR),
     )
 
     const result: Pending[] = []
@@ -162,7 +162,7 @@ export namespace KilocodeConfigSources {
   }
 
   function dirScope(dir: string, input: { project: string[]; home: string[] }): Scope {
-    if (dir === Flag.KILO_CONFIG_DIR) return "env"
+    if (dir === Flag.NOCOWBOY_CONFIG_DIR) return "env"
     if (input.project.includes(dir)) return "project"
     if (input.home.includes(dir)) return "global"
     return "global"
@@ -170,35 +170,35 @@ export namespace KilocodeConfigSources {
 
   function envContentSources(): Pending[] {
     const sources: Pending[] = []
-    if (process.env.KILO_CONFIG_CONTENT) {
+    if (process.env.NOCOWBOY_CONFIG_CONTENT) {
       sources.push({
         kind: "env-content",
         scope: "env",
-        label: "KILO_CONFIG_CONTENT",
-        source: "KILO_CONFIG_CONTENT",
+        label: "NOCOWBOY_CONFIG_CONTENT",
+        source: "NOCOWBOY_CONFIG_CONTENT",
         exists: true,
         editable: false,
         reason: "Inline config content from the process environment; value is not exposed.",
       })
     }
-    if (Flag.KILO_CONFIG_DIR) {
+    if (Flag.NOCOWBOY_CONFIG_DIR) {
       sources.push({
         kind: "runtime-env",
         scope: "env",
-        label: "KILO_CONFIG_DIR",
-        source: "KILO_CONFIG_DIR",
-        path: Flag.KILO_CONFIG_DIR,
+        label: "NOCOWBOY_CONFIG_DIR",
+        source: "NOCOWBOY_CONFIG_DIR",
+        path: Flag.NOCOWBOY_CONFIG_DIR,
         exists: true,
         editable: false,
         reason: "Adds an extra config directory to the load chain.",
       })
     }
-    if (Flag.KILO_DISABLE_PROJECT_CONFIG) {
+    if (Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
       sources.push({
         kind: "runtime-env",
         scope: "env",
-        label: "KILO_DISABLE_PROJECT_CONFIG",
-        source: "KILO_DISABLE_PROJECT_CONFIG",
+        label: "NOCOWBOY_DISABLE_PROJECT_CONFIG",
+        source: "NOCOWBOY_DISABLE_PROJECT_CONFIG",
         exists: true,
         editable: false,
         reason: "Project-level config files and directories are disabled for this process.",
@@ -274,9 +274,9 @@ export namespace KilocodeConfigSources {
 
   function runtimeSources(): Pending[] {
     return [
-      runtimeSource("KILO_PERMISSION", Flag.KILO_PERMISSION, "Runtime permission overlay."),
-      runtimeSource("KILO_DISABLE_AUTOCOMPACT", process.env.KILO_DISABLE_AUTOCOMPACT, "Disables automatic compaction."),
-      runtimeSource("KILO_DISABLE_PRUNE", process.env.KILO_DISABLE_PRUNE, "Disables tool-output pruning."),
+      runtimeSource("KILO_PERMISSION", Flag.NOCOWBOY_PERMISSION, "Runtime permission overlay."),
+      runtimeSource("NOCOWBOY_DISABLE_AUTOCOMPACT", process.env.NOCOWBOY_DISABLE_AUTOCOMPACT, "Disables automatic compaction."),
+      runtimeSource("KILO_DISABLE_PRUNE", process.env.NOCOWBOY_DISABLE_PRUNE, "Disables tool-output pruning."),
     ].filter((item): item is Pending => item !== undefined)
   }
 

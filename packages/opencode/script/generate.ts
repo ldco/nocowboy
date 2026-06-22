@@ -1,6 +1,6 @@
 import path from "path"
 import { fileURLToPath } from "url"
-import { prepareModelsSnapshot } from "./kilocode/models-snapshot" // kilocode_change
+import { prepareModelsSnapshot } from "./nocowboy/models-snapshot" // kilocode_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

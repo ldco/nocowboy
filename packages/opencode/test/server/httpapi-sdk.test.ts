@@ -34,8 +34,8 @@ const it = testEffect(
 )
 
 const original = {
-  KILO_SERVER_PASSWORD: Flag.KILO_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.KILO_SERVER_USERNAME,
+  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
 }
 
 type ServerPath = "default" | "raw"
@@ -48,8 +48,8 @@ type TestServices = AppFileSystem.Service | ChildProcessSpawner.ChildProcessSpaw
 type TestScope = Scope.Scope | TestServices
 
 function app(serverPath: ServerPath, input?: { password?: string; username?: string }) {
-  Flag.KILO_SERVER_PASSWORD = input?.password
-  Flag.KILO_SERVER_USERNAME = input?.username
+  Flag.NOCOWBOY_SERVER_PASSWORD = input?.password
+  Flag.NOCOWBOY_SERVER_USERNAME = input?.username
   if (serverPath === "default") return Server.Default().app
 
   const handler = HttpRouter.toWebHandler(
@@ -369,8 +369,8 @@ function seedMessage(directory: string, sessionID: string) {
 }
 
 afterEach(async () => {
-  Flag.KILO_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.KILO_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
+  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
   await disposeAllInstances()
   await resetDatabase()
 })

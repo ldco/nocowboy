@@ -35,7 +35,7 @@ export namespace ConsoleAssets {
   }
 
   async function dir() {
-    const override = process.env.KILO_CONSOLE_ASSET_DIR
+    const override = process.env.NOCOWBOY_CONSOLE_ASSET_DIR
     if (override && (await ready(override, false))) return override
 
     const copied = path.join(path.dirname(process.execPath), "console")

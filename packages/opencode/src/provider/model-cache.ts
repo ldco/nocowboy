@@ -131,8 +131,8 @@ export const layer: Layer.Layer<
           if (info.accountId) options.kilocodeOrganizationId = info.accountId
         }
 
-        if (process.env.KILO_API_KEY) options.kilocodeToken = process.env.KILO_API_KEY
-        if (process.env.KILO_ORG_ID) options.kilocodeOrganizationId = process.env.KILO_ORG_ID
+        if (process.env.NOCOWBOY_API_KEY) options.kilocodeToken = process.env.NOCOWBOY_API_KEY
+        if (process.env.NOCOWBOY_ORG_ID) options.kilocodeOrganizationId = process.env.NOCOWBOY_ORG_ID
         log.debug("auth options resolved", {
           providerID,
           hasToken: !!options.kilocodeToken,

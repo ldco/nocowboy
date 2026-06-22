@@ -111,7 +111,7 @@ export namespace Sessions {
       if (auth?.type === "oauth" && auth.access.length > 0) return auth.access
       if (auth?.type === "wellknown" && auth.token.length > 0) return auth.token
 
-      const key = process.env["KILO_API_KEY"]?.trim()
+      const key = process.env["NOCOWBOY_API_KEY"]?.trim()
       if (key) return key
       return undefined
     })
@@ -174,7 +174,7 @@ export namespace Sessions {
       const valid = await authValid(token)
       if (!valid) return undefined
 
-      const base = process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
+      const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
       const baseHeaders: Record<string, string> = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -196,11 +196,11 @@ export namespace Sessions {
     })
   }
 
-  const shareDisabled = process.env["KILO_DISABLE_SHARE"] === "true" || process.env["KILO_DISABLE_SHARE"] === "1"
+  const shareDisabled = process.env["NOCOWBOY_DISABLE_SHARE"] === "true" || process.env["NOCOWBOY_DISABLE_SHARE"] === "1"
   const ingestDisabled =
-    process.env["KILO_DISABLE_SESSION_INGEST"] === "true" || process.env["KILO_DISABLE_SESSION_INGEST"] === "1"
+    process.env["NOCOWBOY_DISABLE_SESSION_INGEST"] === "true" || process.env["NOCOWBOY_DISABLE_SESSION_INGEST"] === "1"
   const debugIngest =
-    process.env["KILO_DEBUG_SESSION_INGEST"] === "true" || process.env["KILO_DEBUG_SESSION_INGEST"] === "1"
+    process.env["NOCOWBOY_DEBUG_SESSION_INGEST"] === "true" || process.env["NOCOWBOY_DEBUG_SESSION_INGEST"] === "1"
 
   const ingest = IngestQueue.create({
     getShare: async (sessionId) => get(sessionId).catch(() => undefined),
@@ -216,7 +216,7 @@ export namespace Sessions {
     },
   })
 
-  const remoteEnabled = process.env["KILO_REMOTE"] === "1"
+  const remoteEnabled = process.env["NOCOWBOY_REMOTE"] === "1"
   let remote: { conn: RemoteWS.Connection; sender: RemoteSender.Sender } | undefined
   let enabling: Promise<void> | undefined
   let remoteSeq = 0
@@ -398,7 +398,7 @@ export namespace Sessions {
       }
       if (valid === undefined) throw new Error("Unable to enable remote: failed to verify Kilo credentials.")
 
-      const url = (process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
+      const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
         .replace(/^https:\/\//, "wss://")
         .replace(/^http:\/\//, "ws://")
 
@@ -793,7 +793,7 @@ export namespace Sessions {
 
   async function meta(sessionId?: string) {
     const override = sessionId ? KiloSession.resolvePlatform(sessionId) : undefined
-    const platform = override || process.env["KILO_PLATFORM"] || "cli"
+    const platform = override || process.env["NOCOWBOY_PLATFORM"] || "cli"
     const orgId = await getOrgId()
     const gitBranch = await branch().catch(() => undefined)
     const gitUrl = await getGitUrl().catch(() => undefined)
@@ -807,7 +807,7 @@ export namespace Sessions {
   }
 
   async function getOrgId(): Promise<Uuid | undefined> {
-    const env = process.env["KILO_ORG_ID"]
+    const env = process.env["NOCOWBOY_ORG_ID"]
     if (isUuid(env)) return env
 
     return withInFlightCache(orgKey, ttlMs, async () => {

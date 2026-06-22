@@ -73,8 +73,8 @@ describe("kilocode default indexing plugin", () => {
   })
 
   test("does not hard-enable indexing plugin when default plugins are disabled", async () => {
-    const original = Flag.KILO_DISABLE_DEFAULT_PLUGINS
-    Flag.KILO_DISABLE_DEFAULT_PLUGINS = true
+    const original = Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS
+    Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS = true
 
     try {
       await using tmp = await tmpdir({
@@ -97,7 +97,7 @@ describe("kilocode default indexing plugin", () => {
         },
       })
     } finally {
-      Flag.KILO_DISABLE_DEFAULT_PLUGINS = original
+      Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS = original
     }
   })
 })

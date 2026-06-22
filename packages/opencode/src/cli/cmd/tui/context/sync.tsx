@@ -793,7 +793,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       },
       get ready() {
         // return true // nocowboy_change - upstream #23037 left this debug path enabled; keep it commented so future merges do not restore eager ready state.
-        if (process.env.KILO_FAST_BOOT) return true
+        if (process.env.NOCOWBOY_FAST_BOOT) return true
         return store.status !== "loading"
       },
       get path() {

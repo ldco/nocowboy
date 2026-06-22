@@ -40,15 +40,15 @@ describe("test database safety", () => {
     // reset helper rejects it before cleanup can run.
     await using tmp = await tmpdir()
     const file = path.join(tmp.path, "sessions.db")
-    const previous = Flag.KILO_DB
+    const previous = Flag.NOCOWBOY_DB
     await Bun.write(file, "preserve me")
-    Flag.KILO_DB = file
+    Flag.NOCOWBOY_DB = file
 
     try {
       await expect(resetDatabase()).rejects.toThrow(`Refusing to reset non-test database: ${file}`)
       expect(await Bun.file(file).text()).toBe("preserve me")
     } finally {
-      Flag.KILO_DB = previous
+      Flag.NOCOWBOY_DB = previous
     }
   })
 

@@ -12,7 +12,7 @@ import { testEffect } from "../lib/effect"
 
 void Log.init({ print: false })
 
-const originalWorkspaces = Flag.KILO_EXPERIMENTAL_WORKSPACES
+const originalWorkspaces = Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES
 const context = Context.empty() as Context.Context<unknown>
 const it = testEffect(Session.defaultLayer)
 
@@ -22,7 +22,7 @@ function app() {
 
 afterEach(async () => {
   mock.restore()
-  Flag.KILO_EXPERIMENTAL_WORKSPACES = originalWorkspaces
+  Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = originalWorkspaces
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -32,7 +32,7 @@ describe("sync HttpApi", () => {
     "serves sync routes",
     () =>
       Effect.gen(function* () {
-        Flag.KILO_EXPERIMENTAL_WORKSPACES = true
+        Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = true
         const tmp = yield* TestInstance
         const headers = { "x-kilo-directory": tmp.directory, "content-type": "application/json" }
         const info = spyOn(Log.create({ service: "server.sync" }), "info")

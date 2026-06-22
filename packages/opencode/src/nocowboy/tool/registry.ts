@@ -106,9 +106,9 @@ export namespace NocowboyToolRegistry {
       ...(cfg.experimental?.codebase_search === true ? [tools.codebase] : []),
       ...(tools.semantic ? [tools.semantic] : []),
       tools.recall,
-      ...(Flag.KILO_CLIENT === "cli" || Flag.KILO_CLIENT === "vscode" ? [tools.process] : []),
+      ...(Flag.NOCOWBOY_CLIENT === "cli" || Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.process] : []),
       // The extension is the only client that can consume the Agent Manager start event.
-      ...(Flag.KILO_CLIENT === "vscode" ? [tools.manager] : []),
+      ...(Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.manager] : []),
     ]
   }
 

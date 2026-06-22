@@ -36,7 +36,7 @@ export function ide() {
 }
 
 export function alreadyInstalled() {
-  return process.env["KILO_CALLER"] === "vscode" || process.env["KILO_CALLER"] === "vscode-insiders"
+  return process.env["NOCOWBOY_CALLER"] === "vscode" || process.env["NOCOWBOY_CALLER"] === "vscode-insiders"
 }
 
 // nocowboy_change start - Kilo's VS Code extension bundles the CLI; auto-install from CLI is not applicable

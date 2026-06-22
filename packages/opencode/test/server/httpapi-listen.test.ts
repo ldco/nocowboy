@@ -11,8 +11,8 @@ import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 void Log.init({ print: false })
 
 const original = {
-  KILO_SERVER_PASSWORD: Flag.KILO_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.KILO_SERVER_USERNAME,
+  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
   envPassword: process.env.KILO_SERVER_PASSWORD,
   envUsername: process.env.KILO_SERVER_USERNAME,
 }
@@ -20,8 +20,8 @@ const auth = { username: "opencode", password: "listen-secret" }
 const testPty = process.platform === "win32" ? test.skip : test
 
 afterEach(async () => {
-  Flag.KILO_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.KILO_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
+  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
   if (original.envPassword === undefined) delete process.env.KILO_SERVER_PASSWORD
   else process.env.KILO_SERVER_PASSWORD = original.envPassword
   if (original.envUsername === undefined) delete process.env.KILO_SERVER_USERNAME
@@ -31,16 +31,16 @@ afterEach(async () => {
 })
 
 async function startListener() {
-  Flag.KILO_SERVER_PASSWORD = auth.password
-  Flag.KILO_SERVER_USERNAME = auth.username
+  Flag.NOCOWBOY_SERVER_PASSWORD = auth.password
+  Flag.NOCOWBOY_SERVER_USERNAME = auth.username
   process.env.KILO_SERVER_PASSWORD = auth.password
   process.env.KILO_SERVER_USERNAME = auth.username
   return Server.listen({ hostname: "127.0.0.1", port: 0 })
 }
 
 async function startNoAuthListener() {
-  Flag.KILO_SERVER_PASSWORD = undefined
-  Flag.KILO_SERVER_USERNAME = auth.username
+  Flag.NOCOWBOY_SERVER_PASSWORD = undefined
+  Flag.NOCOWBOY_SERVER_USERNAME = auth.username
   delete process.env.KILO_SERVER_PASSWORD
   process.env.KILO_SERVER_USERNAME = auth.username
   return Server.listen({ hostname: "127.0.0.1", port: 0 })
@@ -295,8 +295,8 @@ describe("HttpApi Server.listen", () => {
     }) as typeof process.stderr.write
     try {
       // kilocode_change start - use an authenticated local route instead of proxy-dependent status
-      Flag.KILO_SERVER_PASSWORD = auth.password
-      Flag.KILO_SERVER_USERNAME = auth.username
+      Flag.NOCOWBOY_SERVER_PASSWORD = auth.password
+      Flag.NOCOWBOY_SERVER_USERNAME = auth.username
       process.env.KILO_SERVER_PASSWORD = auth.password
       process.env.KILO_SERVER_USERNAME = auth.username
       const response = await Server.Default().app.request("/doc", {

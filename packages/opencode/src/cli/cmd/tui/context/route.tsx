@@ -32,8 +32,8 @@ export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
   init: (props: { initialRoute?: Route }) => {
     const [store, setStore] = createStore<Route>(
       props.initialRoute ??
-        (process.env["KILO_ROUTE"]
-          ? JSON.parse(process.env["KILO_ROUTE"])
+        (process.env["NOCOWBOY_ROUTE"]
+          ? JSON.parse(process.env["NOCOWBOY_ROUTE"])
           : {
               type: "home",
             }),

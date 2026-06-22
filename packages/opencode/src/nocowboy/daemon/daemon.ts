@@ -76,11 +76,11 @@ export namespace Daemon {
   }
 
   function root() {
-    return process.env.KILO_TEST_DAEMON_STATE_DIR ?? Global.Path.state
+    return process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR ?? Global.Path.state
   }
 
   function logs() {
-    return process.env.KILO_TEST_DAEMON_LOG_DIR ?? Global.Path.log
+    return process.env.NOCOWBOY_TEST_DAEMON_LOG_DIR ?? Global.Path.log
   }
 
   export function file() {

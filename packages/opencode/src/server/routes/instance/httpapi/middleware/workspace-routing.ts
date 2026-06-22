@@ -60,7 +60,7 @@ function requestURL(request: HttpServerRequest.HttpServerRequest): URL {
 }
 
 function configuredWorkspaceID(): WorkspaceID | undefined {
-  return Flag.KILO_WORKSPACE_ID ? WorkspaceID.make(Flag.KILO_WORKSPACE_ID) : undefined
+  return Flag.NOCOWBOY_WORKSPACE_ID ? WorkspaceID.make(Flag.NOCOWBOY_WORKSPACE_ID) : undefined
 }
 
 function selectedWorkspaceID(url: URL, sessionWorkspaceID?: WorkspaceID): WorkspaceID | undefined {

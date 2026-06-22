@@ -106,7 +106,7 @@ export const Typescript: Info = {
   ),
   extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"],
   async spawn(root) {
-    if (!Flag.KILO_EXPERIMENTAL_LSP_TOOL) return undefined
+    if (!Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL) return undefined
     const bin = await TsCheck.native_tsgo(root)
     if (!bin) {
       log.info("tsgo native binary not found, falling back to lightweight client")

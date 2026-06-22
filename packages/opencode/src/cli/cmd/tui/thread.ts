@@ -85,7 +85,7 @@ async function input(value?: string) {
 
 export function resolveThreadDirectory(project?: string, envPWD = process.env.PWD, cwd = process.cwd()) {
   // nocowboy_change start - ignore stale PWD from wrappers such as `bun --cwd`, except kilo-dev's caller cwd
-  const dev = process.env.KILO_DEV_CWD
+  const dev = process.env.NOCOWBOY_DEV_CWD
   const real = Filesystem.resolve(cwd)
   const root = dev
     ? Filesystem.resolve(dev)

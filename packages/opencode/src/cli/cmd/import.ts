@@ -151,7 +151,7 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, projectI
       return
     }
 
-    const base = process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
+    const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
     const response = yield* Effect.tryPromise({
       try: () => fetch(`${base}/session/${encodeURIComponent(slug)}`),
       catch: (e) =>

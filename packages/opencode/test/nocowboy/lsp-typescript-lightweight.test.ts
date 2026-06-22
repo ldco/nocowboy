@@ -23,19 +23,19 @@ const fakeFlags = {} as RuntimeFlags.Info
 describe("typescript lightweight mode", () => {
   describe("spawn gate", () => {
     test("Typescript.spawn returns undefined when flag is off", async () => {
-      const saved = Flag.KILO_EXPERIMENTAL_LSP_TOOL
-      Flag.KILO_EXPERIMENTAL_LSP_TOOL = false
+      const saved = Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL
+      Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = false
       try {
         const result = await LSPServer.Typescript.spawn("/tmp/any", fakeCtx, fakeFlags)
         expect(result).toBeUndefined()
       } finally {
-        Flag.KILO_EXPERIMENTAL_LSP_TOOL = saved
+        Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = saved
       }
     })
 
     test("Typescript.spawn calls native_tsgo when flag is on", async () => {
-      const saved = Flag.KILO_EXPERIMENTAL_LSP_TOOL
-      Flag.KILO_EXPERIMENTAL_LSP_TOOL = true
+      const saved = Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL
+      Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = true
       const spy = spyOn(TsCheck, "native_tsgo").mockResolvedValue(undefined)
 
       try {
@@ -43,7 +43,7 @@ describe("typescript lightweight mode", () => {
         expect(spy).toHaveBeenCalled()
         expect(result).toBeUndefined() // undefined because mock returns no binary
       } finally {
-        Flag.KILO_EXPERIMENTAL_LSP_TOOL = saved
+        Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = saved
         spy.mockRestore()
       }
     })

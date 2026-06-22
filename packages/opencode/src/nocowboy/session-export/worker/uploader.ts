@@ -228,7 +228,7 @@ async function headers(args: HeaderArgs): Promise<Headers> {
     "x-kilo-export-client-sent-at": new Date().toISOString(),
     "x-kilo-export-content-encoding": "identity",
   })
-  const token = process.env.KILO_SESSION_EXPORT_AUTH_TOKEN
+  const token = process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN
   if (token) out.set("authorization", `Bearer ${token}`)
   const anon = args.anonId ?? (await anonId(args.anonIdPath))
   if (!token && anon) out.set("x-kilo-anon-id", anon)

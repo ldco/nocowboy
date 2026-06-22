@@ -20,11 +20,11 @@ export const exerciseDatabasePath =
   process.env.KILO_HTTPAPI_EXERCISE_DB ??
   path.join(process.env.TMPDIR ?? "/tmp", `opencode-httpapi-exercise-${process.pid}.db`)
 process.env.KILO_DB = exerciseDatabasePath
-Flag.KILO_DB = exerciseDatabasePath
+Flag.NOCOWBOY_DB = exerciseDatabasePath
 
 export const original = {
-  KILO_SERVER_PASSWORD: Flag.KILO_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.KILO_SERVER_USERNAME,
+  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
 }
 
 export const cleanupExercisePaths = Effect.promise(async () => {

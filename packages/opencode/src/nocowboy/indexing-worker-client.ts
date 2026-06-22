@@ -160,7 +160,7 @@ export namespace IndexingWorker {
               root,
               config,
               baselineDirectory,
-              lancedbPath: process.env.KILO_LANCEDB_PATH,
+              lancedbPath: process.env.NOCOWBOY_LANCEDB_PATH,
             },
           },
           (message) => {

@@ -64,7 +64,7 @@ const log = Log.create({ service: "tool.registry" })
 
 export function webSearchEnabled(
   providerID: ProviderID,
-  flags = { exa: Flag.KILO_ENABLE_EXA, parallel: Flag.KILO_ENABLE_PARALLEL },
+  flags = { exa: Flag.NOCOWBOY_ENABLE_EXA, parallel: Flag.NOCOWBOY_ENABLE_PARALLEL },
 ) {
   return providerID === ProviderID.kilo || flags.exa || flags.parallel // nocowboy_change
 }
@@ -354,7 +354,7 @@ export const layer: Layer.Layer<
 
         const usePatch =
           // nocowboy_change start
-          !!process.env["KILO_E2E_LLM_URL"] ||
+          !!process.env["NOCOWBOY_E2E_LLM_URL"] ||
           (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
         // nocowboy_change end
         if (tool.id === ApplyPatchTool.id) return usePatch

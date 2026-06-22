@@ -31,15 +31,15 @@ const cleanState = Effect.gen(function* () {
 const withCleanState = <A, E, R>(self: Effect.Effect<A, E, R>) =>
   Effect.acquireUseRelease(
     Effect.gen(function* () {
-      const disabled = Flag.KILO_DISABLE_DEFAULT_PLUGINS
-      Flag.KILO_DISABLE_DEFAULT_PLUGINS = true
+      const disabled = Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS
+      Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS = true
       yield* cleanState
       return disabled
     }),
     () => self,
     (disabled) =>
       Effect.gen(function* () {
-        Flag.KILO_DISABLE_DEFAULT_PLUGINS = disabled
+        Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS = disabled
         yield* cleanState
       }),
   )

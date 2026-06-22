@@ -24,7 +24,7 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
   const afs = yield* AppFileSystem.Service
   return unique([
     Global.Path.config,
-    ...(!Flag.KILO_DISABLE_PROJECT_CONFIG
+    ...(!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
           targets: [".nocowboy"], // nocowboy_change
           start: directory,
@@ -36,7 +36,7 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
       start: Global.Path.home,
       stop: Global.Path.home,
     })),
-    ...(Flag.KILO_CONFIG_DIR ? [Flag.KILO_CONFIG_DIR] : []),
+    ...(Flag.NOCOWBOY_CONFIG_DIR ? [Flag.NOCOWBOY_CONFIG_DIR] : []),
   ])
 })
 
