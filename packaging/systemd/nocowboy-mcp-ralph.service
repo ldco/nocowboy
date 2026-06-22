@@ -1,0 +1,16 @@
+[Unit]
+Description=NoCowboy MCP: ralph
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/ralph/dist/index.js
+WorkingDirectory=/usr/share/nocowboy/mcp-servers/ralph
+Environment=NODE_ENV=production
+Environment=PORT=8210
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

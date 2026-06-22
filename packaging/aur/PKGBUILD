@@ -1,8 +1,3 @@
-# Maintainer: NoCowboy <nobody@nocowboy.dev>
-# Contributor: ldco <nobody@nocowboy.dev>
-
-pkgname=nocowboy
-pkgver=0.3.5
 pkgname=nocowboy
 pkgver=0.3.5
 pkgrel=1
@@ -10,15 +5,34 @@ pkgdesc="AI-powered development tool — agentic coding for the Russian market"
 arch=('x86_64')
 url="https://github.com/ldco/nocowboy"
 license=('LicenseRef-custom')
-depends=('glibc')
+depends=('glibc' 'nodejs')
+makedepends=('npm')
 
-# Place the source archive next to this PKGBUILD before running makepkg
+install=nocowboy.install
 source=("nocowboy-linux-x64.tar.gz")
 sha256sums=('SKIP')
 
+build() {
+  cd "${srcdir}"
+  for server in mcp-servers/*/; do
+    cd "$server" && npm install --prod --ignore-scripts 2>/dev/null && cd ../..
+  done
+}
+
 package() {
   cd "${srcdir}"
+
+  # NoCowboy binary
   install -Dm755 nocowboy "${pkgdir}/usr/bin/nocowboy"
+
+  # Default config
   mkdir -p "${pkgdir}/usr/share/nocowboy"
-  cp -r config "${pkgdir}/usr/share/nocowboy/"
+  cp -r config/. "${pkgdir}/usr/share/nocowboy/config/"
+
+  # MCP servers with installed node_modules
+  cp -r mcp-servers/. "${pkgdir}/usr/share/nocowboy/mcp-servers/"
+
+  # Systemd service files
+  mkdir -p "${pkgdir}/usr/lib/systemd/user"
+  cp systemd/*.service "${pkgdir}/usr/lib/systemd/user/"
 }

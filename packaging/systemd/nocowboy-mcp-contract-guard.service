@@ -1,0 +1,16 @@
+[Unit]
+Description=NoCowboy MCP: contract-guard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/contract-guard/dist/index.js
+WorkingDirectory=/usr/share/nocowboy/mcp-servers/contract-guard
+Environment=NODE_ENV=production
+Environment=PORT=8218
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

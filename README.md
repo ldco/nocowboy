@@ -23,18 +23,15 @@ All existing tools make you faster.
 
 ### Arch Linux
 
-Receive `nocowboy-0.3.5-1-x86_64.pkg.tar.zst` from the distributor, then:
-
 ```bash
 sudo pacman -U nocowboy-0.3.5-1-x86_64.pkg.tar.zst
 ```
 
-Installs binary to `/usr/bin/nocowboy`, config to `/usr/share/nocowboy/`.
-Tracked by pacman, removable. Run `nocowboy` to start.
+Installs: `/usr/bin/nocowboy`, `/usr/share/nocowboy/` (config + MCP servers),
+systemd services (constitution, contract-guard, ncp-validator, puppetmaster,
+ralph, score-engine). Run `nocowboy` to start. MCP services auto-start on login.
 
 ### macOS
-
-Receive the archive for your Mac, then:
 
 ```bash
 # Intel Mac

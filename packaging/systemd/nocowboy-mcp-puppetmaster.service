@@ -1,0 +1,16 @@
+[Unit]
+Description=NoCowboy MCP: puppetmaster
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/puppetmaster/dist/index.js
+WorkingDirectory=/usr/share/nocowboy/mcp-servers/puppetmaster
+Environment=NODE_ENV=production
+Environment=PORT=8203
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=NoCowboy MCP: score-engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/score-engine/dist/index.js
+WorkingDirectory=/usr/share/nocowboy/mcp-servers/score-engine
+Environment=NODE_ENV=production
+Environment=PORT=8219
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
