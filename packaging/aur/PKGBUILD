@@ -2,21 +2,25 @@
 # Contributor: ldco <nobody@nocowboy.dev>
 
 pkgname=nocowboy
-pkgver=0.3.8
+pkgver=0.3.10
 pkgrel=1
 pkgdesc="AI-powered development tool — agentic coding for the Russian market"
 arch=('x86_64' 'aarch64')
 url="https://github.com/ldco/nocowboy"
-license=('MIT')
-depends=()
+license=('LicenseRef-custom')
+depends=('glibc')
 makedepends=()
 
-source_x86_64=("https://github.com/ldco/nocowboy/releases/download/v${pkgver}/nocowboy-linux-x64.tar.gz")
-source_aarch64=("https://github.com/ldco/nocowboy/releases/download/v${pkgver}/nocowboy-linux-arm64.tar.gz")
+# Replace with actual download URL for your distribution channel
+source_x86_64=("nocowboy-linux-x64.tar.gz::https://example.com/releases/v${pkgver}/nocowboy-linux-x64.tar.gz")
+source_aarch64=("nocowboy-linux-arm64.tar.gz::https://example.com/releases/v${pkgver}/nocowboy-linux-arm64.tar.gz")
 
 sha256sums_x86_64=('SKIP')
 sha256sums_aarch64=('SKIP')
 
 package() {
+  cd "${srcdir}"
   install -Dm755 nocowboy "${pkgdir}/usr/bin/nocowboy"
+  mkdir -p "${pkgdir}/usr/share/nocowboy"
+  cp -r framework "${pkgdir}/usr/share/nocowboy/"
 }

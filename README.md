@@ -21,20 +21,38 @@ All existing tools make you faster.
 
 ## Installation
 
-Download the archive for your platform, extract it, and run the bundled installer:
-
-### Linux (x86_64 / arm64)
+### Arch Linux (AUR)
 
 ```bash
-tar xzf nocowboy-linux-x64.tar.gz     # or nocowboy-linux-arm64.tar.gz
-cd nocowboy
-./install.sh
+yay -S nocowboy
+# or: paru -S nocowboy
 ```
 
-### macOS (x86_64 / arm64)
+The AUR package installs the binary to `/usr/bin/nocowboy` and framework to `/usr/share/nocowboy/framework/`. Run `nocowboy` to start.
+
+### macOS (Homebrew)
 
 ```bash
-unzip nocowboy-darwin-x64.zip         # or nocowboy-darwin-arm64.zip
+brew install ldco/nocowboy/nocowboy
+```
+
+After install, run the setup script to copy framework to your config:
+```bash
+/usr/local/share/nocowboy/install.sh
+```
+
+### Manual install (any platform)
+
+Download the archive for your platform, extract, and run the bundled installer:
+
+```bash
+# Linux
+tar xzf nocowboy-linux-x64.tar.gz
+cd nocowboy
+./install.sh
+
+# macOS
+unzip nocowboy-darwin-x64.zip
 cd nocowboy
 ./install.sh
 ```
@@ -45,8 +63,8 @@ The archive contains the binary, installer, and full framework (agents, commands
 
 ```bash
 bun install
-bun run build              # produces dist/nocowboy-tui-linux-x64/bin/nocowboy
-./install.sh               # (copies the binary from the build output)
+NOCOWBOY_RELEASE=true bun run build
+# Archive is at dist/nocowboy-linux-x64.tar.gz
 ```
 
 ---
