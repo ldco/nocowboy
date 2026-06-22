@@ -1,55 +1,110 @@
-# Release process (private repo, self-contained archives)
+# Release process
 
-The release archive is fully self-contained — no external downloads, no GitHub dependency.
+## Before you start
 
-## 1. Update version
-
-Edit version in:
-- `packaging/aur/PKGBUILD` — `pkgver`
-- `packaging/homebrew/nocowboy.rb` — `version`
-
-## 2. Update default config
-
-Bundle the latest config from the live installation:
-
+Make sure you have built the binary and tested it:
 ```bash
-cp -r ~/.config/nocowboy/agent packaging/config/
-cp -r ~/.config/nocowboy/command packaging/config/
-cp -r ~/.config/nocowboy/instructions packaging/config/
-cp -r ~/.config/nocowboy/skills packaging/config/
-cp ~/.config/nocowboy/nocowboy.json packaging/config/
+cd packages/opencode
+bun run build
 ```
 
-## 3. Build
+## Building a new version
+
+One command builds everything and installs the upgrade:
 
 ```bash
-NOCOWBOY_RELEASE=true NOCOWBOY_VERSION=0.3.10 bun run build
+npm run release 0.3.6
 ```
 
-Produces in `dist/`:
-- `nocowboy-linux-x64.tar.gz`
-- `nocowboy-linux-arm64.tar.gz`
-- `nocowboy-darwin-x64.zip`
-- `nocowboy-darwin-arm64.zip`
+This creates:
 
-Each archive contains: `nocowboy` (binary) + `install.sh` + `config/`.
+```
+releases/v0.3.6/
+├── nocowboy-0.3.6-1-x86_64.pkg.tar.zst   ← Arch Linux (install this)
+├── nocowboy-darwin-x64.zip               ← macOS Intel
+└── nocowboy-darwin-arm64.zip             ← macOS Apple Silicon
+```
 
-## 4. Upload archives
+### What the release script does
 
-Upload archives to your distribution endpoint. Update the download URLs in:
-- `packaging/aur/PKGBUILD` — `source_x86_64` / `source_aarch64`
-- `packaging/homebrew/nocowboy.rb` — `url` blocks
+1. `bun run build` — compiles the binary for all platforms
+2. Creates macOS .zip archives (from cross-compiled binaries)
+3. Creates a source `.tar.gz` with: binary + config + MCP servers + systemd files
+4. Runs `makepkg -f` — this:
+   a. Extracts the source archive
+   b. Runs `npm install --prod` inside each MCP server directory
+   c. Packages everything into `.pkg.tar.zst`
+5. Copies the `.pkg.tar.zst` to `releases/v0.3.6/`
+6. **Stops all KiloCode MCP servers** (frees ports 8200-8219)
+7. **Installs the new package** via `pacman -U`
 
-## 5. Update package checksums (AUR)
+### After install
+
+The `.install` script runs automatically:
+- **First install:** Enables all MCP services for all users, starts them now
+- **Upgrade:** Compares MCP servers in the new package vs currently enabled ones
+  — New servers: enabled + started
+  — Removed servers: stopped + disabled
+  — Changed servers: restarted
+- **Remove:** Stops + disables all NoCowboy MCPs
+
+The MCP services start on every login (`WantedBy=default.target`). They persist
+independently of the NoCowboy TUI — shared across instances.
+
+---
+
+## Adding a new MCP server (e.g. for v0.3.6)
+
+1. Copy the server source to `packaging/mcp-servers/<name>/`
+2. Run `npm install --prod` inside it (to verify it works)
+3. Create `packaging/systemd/nocowboy-mcp-<name>.service`
+4. The `.install` file has a `_mcp_services` list — add the new `.service` name there
+5. Add its port URL to `packaging/config/nocowboy.json`
+6. The `post_upgrade` hook auto-enables and starts new servers on upgrade
+
+The service file template:
+
+```ini
+[Unit]
+Description=NoCowboy MCP: <name>
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/<name>/dist/index.js
+WorkingDirectory=/usr/share/nocowboy/mcp-servers/<name>
+Environment=NODE_ENV=production
+Environment=PORT=<port>
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+```
+
+## Removing an MCP server
+
+1. Remove its service file from `packaging/systemd/`
+2. Remove its source directory from `packaging/mcp-servers/`
+3. Remove its URL entry from `packaging/config/nocowboy.json`
+4. Remove it from `_mcp_services` in `packaging/aur/nocowboy.install`
+5. The `post_upgrade` hook auto-stops + disables it on upgrade
+
+## Files to update for each version
+
+| File | Change |
+|---|---|
+| `packaging/aur/PKGBUILD` | `pkgver=0.3.6` |
+| `packaging/build-release.sh` | Default `VERSION` at top |
+
+## Manual install (if you already have the .pkg.tar.zst)
 
 ```bash
-curl -sL https://your-distribution-host/v0.3.10/nocowboy-linux-x64.tar.gz | sha256sum
-curl -sL https://your-distribution-host/v0.3.10/nocowboy-linux-arm64.tar.gz | sha256sum
+sudo pacman -U releases/v0.3.6/nocowboy-0.3.6-1-x86_64.pkg.tar.zst
 ```
 
-Update `sha256sums` in `packaging/aur/PKGBUILD`.
+## Distribute macOS builds
 
-## 6. Publish
-
-- **AUR**: `makepkg --printsrc > .SRCINFO && git commit && git push aur master`
-- **Homebrew**: commit and push the updated formula
+The `.zip` files are standalone — extract and run `./install.sh`. They don't
+include MCP servers (macOS doesn't use systemd). MCP servers run on Linux only.
