@@ -501,7 +501,10 @@ export function QuestionPrompt(props: {
             </span>
           </text>
 
-          <text fg={theme.text}>
+          <text
+            fg={theme.text}
+            onMouseUp={() => { if (renderer.getSelection()?.getSelectedText()) return; reject() }}
+          >
             esc <span style={{ fg: theme.textMuted }}>dismiss</span>
           </text>
         </box>

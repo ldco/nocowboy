@@ -1478,7 +1478,10 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
-                            <VoiceButton onResult={(text) => prompt?.set({ input: text, parts: [] })} />
+                            <VoiceButton onResult={(text) => {
+  const cur = prompt?.current?.input ?? ""
+  prompt?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })
+}} />
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
                         }

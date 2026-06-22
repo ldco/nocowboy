@@ -95,7 +95,10 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
-                  <VoiceButton onResult={(text) => ref()?.set({ input: text, parts: [] })} />
+                  <VoiceButton onResult={(text) => {
+  const cur = ref()?.current?.input ?? ""
+  ref()?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })
+}} />
                   <TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />
                 </box>
               }

@@ -31,7 +31,7 @@ async function transcribe(
 
 type State = "idle" | "recording" | "transcribing"
 
-const dotFrames = ["...", " ..", "  .", " .."]
+const dotFrames = [".  ", ".. ", "...", ".. "]
 
 export function VoiceButton(props: {
   onResult: (text: string) => void
@@ -91,7 +91,7 @@ export function VoiceButton(props: {
       paddingRight={1}
       onMouseDown={(e: { preventDefault?: () => void }) => { e.preventDefault?.(); record() }}
     >
-      {state() === "recording" ? "[⏹ Stop]" : state() === "transcribing" ? `⟳ Transcribing${dotFrames[dotIdx()]}` : "[🎙 Voice]"}
+      {state() === "recording" ? "[⏹ Stop]" : state() === "transcribing" ? `Transcribing${dotFrames[dotIdx()]}` : "[🎙 Voice]"}
     </text>
   )
 }
