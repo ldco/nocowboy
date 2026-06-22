@@ -186,14 +186,17 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     log(`shareSession.start ${sessionID}`)
     try {
       const res = await sdk.client.session.share({ sessionID })
-      log(`shareSession.response ok=${!!res.data?.share?.url}`)
-      if (res.data?.share?.url) {
-        await Clipboard.copy(res.data.share.url)
-        log(`shareSession.copied ${res.data.share.url}`)
+      log(`shareSession.res keys=${Object.keys(res).join(",")} hasError=${!!(res as any).error} dataType=${typeof (res as any).data} full=${JSON.stringify(res).slice(0,300)}`)
+      const d = (res as any).data
+      const url = d?.share?.url
+      if (url) {
+        await Clipboard.copy(url)
+        log(`shareSession.copied ${url}`)
         toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
       } else {
-        log(`shareSession.no-url data=${JSON.stringify(res.data)}`)
-        toast.show({ message: "Failed to share session: no URL returned", variant: "error" })
+        const err = (res as any).error
+        log(`shareSession.no-url error=${JSON.stringify(err)}`)
+        toast.show({ message: err?.message ?? "Sharing unavailable on this server", variant: "error" })
       }
     } catch (e: any) {
       log(`shareSession.error ${e?.message ?? e}`)
