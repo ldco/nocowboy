@@ -2,6 +2,7 @@ import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { For } from "solid-js"
 import { RGBA, TextAttributes } from "@opentui/core"
 import { createEffect, createSignal, onMount } from "solid-js"
+import { useTheme } from "@tui/context/theme"
 import { useProject } from "../context/project"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -33,6 +34,7 @@ const placeholder = {
 
 export function Home() {
   const sync = useSync()
+  const { theme } = useTheme()
   const project = useProject()
   const route = useRouteData("home")
   const promptRef = usePromptRef()
@@ -95,13 +97,21 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
-                  <text
+                    <text
+                    fg={theme.textMuted}
+                    paddingLeft={1}
+                    paddingRight={1}
+                    onMouseUp={() => ref()?.set({ input: "", parts: [] })}
+                  >
+                    ⟲
+                  </text>
+                    <text
                     fg={brand}
                     paddingLeft={2}
                     paddingRight={1}
-                    onMouseDown={(e: { preventDefault?: () => void; cancelBubble?: boolean }) => { e.preventDefault?.(); e.cancelBubble = true; ref()?.submit() }}
+                    onMouseUp={() => ref()?.submit()}
                   >
-                    ➤
+                    ⮞
                   </text>
                   <VoiceButton onResult={(text) => {
   const cur = ref()?.current?.input ?? ""

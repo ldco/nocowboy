@@ -1480,12 +1480,20 @@ export function Session() {
                         right={
                           <box flexDirection="row">
                             <text
+                              fg={theme.textMuted}
+                              paddingLeft={1}
+                              paddingRight={1}
+                              onMouseUp={() => prompt?.set({ input: "", parts: [] })}
+                            >
+                              ⟲
+                            </text>
+                            <text
                               fg={brand}
                               paddingLeft={2}
                               paddingRight={1}
-                              onMouseDown={(e: { preventDefault?: () => void; cancelBubble?: boolean }) => { e.preventDefault?.(); e.cancelBubble = true; prompt?.submit() }}
+                              onMouseUp={() => prompt?.submit()}
                             >
-                              ➤
+                              ⮞
                             </text>
                             <VoiceButton onResult={(text) => {
   const cur = prompt?.current?.input ?? ""

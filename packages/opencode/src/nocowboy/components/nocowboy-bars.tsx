@@ -20,27 +20,33 @@ function shortPath(p: string): string {
   return rel
 }
 
-function gitInfo(): { branch: string; ahead: number; behind: number } {
+function gitInfo() {
   let gitDir = ""
   for (const d of [process.cwd(), resolve(process.cwd(), ".."), resolve(process.cwd(), "../.."), resolve(process.cwd(), "../../..")]) {
     const p = resolve(d, ".git/HEAD")
     if (existsSync(p)) { gitDir = d; break }
   }
-  if (!gitDir) return { branch: "", ahead: 0, behind: 0 }
+  if (!gitDir) return { branch: "", ahead: 0, behind: 0, dirty: 0, untracked: 0 }
   let branch = ""
   try {
     const head = readFileSync(resolve(gitDir, ".git/HEAD"), "utf-8").trim()
     const m = head.match(/ref: refs\/heads\/(.+)/)
     if (m) branch = m[1] ?? ""
   } catch {}
-  let ahead = 0, behind = 0
+  let ahead = 0, behind = 0, dirty = 0, untracked = 0
   try {
     const fwd = execSync(`git rev-list --count @{upstream}..HEAD 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
     ahead = parseInt(fwd.trim(), 10) || 0
     const bwd = execSync(`git rev-list --count HEAD..@{upstream} 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
     behind = parseInt(bwd.trim(), 10) || 0
+    const st = execSync(`git status --porcelain 2>/dev/null || true`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
+    for (const line of st.split("\n")) {
+      if (!line.trim()) continue
+      if (line.startsWith("??")) untracked++
+      else dirty++
+    }
   } catch {}
-  return { branch, ahead, behind }
+  return { branch, ahead, behind, dirty, untracked }
 }
 
 export type Screen = string
@@ -97,11 +103,11 @@ export function TopBar() {
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
       <text attributes={TextAttributes.BOLD} fg={brandOrange}> noCowboy</text>
       <text fg={theme.text}>
-        {` ${pathDisplay} \uf1d2`}
+        {` ${pathDisplay}`}
       </text>
-      <text fg={theme.success} flexGrow={1}>
-        {` \uf126${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}`}
-      </text>
+        <text fg={theme.success} flexGrow={1}>
+          {` \uf126 ${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}${git().dirty > 0 ? ` !${git().dirty}` : ""}${git().untracked > 0 ? ` ?${git().untracked}` : ""}`}
+        </text>
       <text fg="#ff0000" paddingRight={1}>
         ●
       </text>
