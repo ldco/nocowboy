@@ -9,26 +9,50 @@ _mcp_services="
 
 _prefixed="nocowboy-mcp-"
 
-post_install() {
-  # Enable all current MCP services for all users (start on next login)
+_user_start() {
+  local user="${SUDO_USER:-$USER}"
+  systemctl --global daemon-reload 2>/dev/null || true
   for svc in $_mcp_services; do
     systemctl --global enable "$svc" 2>/dev/null || true
   done
-  systemctl --global daemon-reload 2>/dev/null || true
+  # User services need the actual user's session bus — run as the user
+  if command -v sudo &>/dev/null && [ -n "$user" ]; then
+    sudo -u "$user" systemctl --user daemon-reload 2>/dev/null || true
+    for svc in $_mcp_services; do
+      sudo -u "$user" systemctl --user start "$svc" 2>/dev/null || true
+    done
+    loginctl enable-linger "$user" 2>/dev/null || true
+  fi
+}
 
-  # Try to start now for the current user
-  systemctl --user daemon-reload 2>/dev/null || true
+_user_stop() {
+  local user="${SUDO_USER:-$USER}"
+  if command -v sudo &>/dev/null && [ -n "$user" ]; then
+    for svc in $_mcp_services; do
+      sudo -u "$user" systemctl --user stop "$svc" 2>/dev/null || true
+    done
+  fi
+}
+
+_user_disable() {
+  local user="${SUDO_USER:-$USER}"
   for svc in $_mcp_services; do
-    systemctl --user start "$svc" 2>/dev/null || true
+    systemctl --global disable "$svc" 2>/dev/null || true
   done
+  if command -v sudo &>/dev/null && [ -n "$user" ]; then
+    for svc in $_mcp_services; do
+      sudo -u "$user" systemctl --user disable "$svc" 2>/dev/null || true
+    done
+  fi
+}
+
+post_install() {
+  _user_start
 }
 
 post_upgrade() {
-  # Enable any new MCP services shipped in this version
-  for svc in $_mcp_services; do
-    systemctl --global enable "$svc" 2>/dev/null || true
-    systemctl --user start "$svc" 2>/dev/null || true
-  done
+  # Enable + start any new MCP services shipped in this version
+  _user_start
 
   # Disable + stop any previously enabled MCP services that are no longer shipped
   shipped=" $(echo $_mcp_services) "
@@ -38,7 +62,9 @@ post_upgrade() {
     | awk '{print $1}') || true
   for svc in $enabled; do
     if ! echo "$shipped" | grep -q " ${svc} "; then
-      systemctl --user stop "$svc" 2>/dev/null || true
+      if command -v sudo &>/dev/null && [ -n "${SUDO_USER:-$USER}" ]; then
+        sudo -u "${SUDO_USER:-$USER}" systemctl --user stop "$svc" 2>/dev/null || true
+      fi
       systemctl --global disable "$svc" 2>/dev/null || true
     fi
   done
@@ -47,8 +73,6 @@ post_upgrade() {
 }
 
 pre_remove() {
-  for svc in $_mcp_services; do
-    systemctl --user stop "$svc" 2>/dev/null || true
-    systemctl --global disable "$svc" 2>/dev/null || true
-  done
+  _user_stop
+  _user_disable
 }
