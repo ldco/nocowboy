@@ -5,10 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/score-engine/dist/index.js
+ExecStart=/usr/bin/node /usr/share/nocowboy/proxy/node_modules/mcp-proxy/dist/bin/mcp-proxy.mjs --port 8219 -- /usr/bin/node /usr/share/nocowboy/mcp-servers/score-engine/dist/index.js
 WorkingDirectory=/usr/share/nocowboy/mcp-servers/score-engine
 Environment=NODE_ENV=production
-Environment=PORT=8219
 Restart=on-failure
 RestartSec=5
 

@@ -10,7 +10,7 @@ import { Clipboard } from "@tui/util/clipboard"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const projectRoot = resolve(__dirname, "../../../../..")
+const projectRoot = process.cwd() // nocowboy_change - cwd, not bunfs-relative
 
 function shortPath(p: string): string {
   const home = process.env.HOME || "/home/" + (process.env.USER || "user")

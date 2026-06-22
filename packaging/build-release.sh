@@ -45,6 +45,7 @@ cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/models-snapshot.json /tmp/n
 cp -r packages/opencode/dist/nocowboy-tui-linux-x64/bin/tree-sitter /tmp/ncb-arch/tree-sitter
 cp -r packaging/config /tmp/ncb-arch/config
 cp -r packaging/mcp-servers /tmp/ncb-arch/mcp-servers
+cp -r packaging/proxy /tmp/ncb-arch/proxy
 cp -r packaging/systemd /tmp/ncb-arch/systemd
 cp install.sh /tmp/ncb-arch/
 cd /tmp/ncb-arch

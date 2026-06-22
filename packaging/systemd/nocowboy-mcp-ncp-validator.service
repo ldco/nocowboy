@@ -5,10 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node /usr/share/nocowboy/mcp-servers/ncp-validator/dist/index.js
+ExecStart=/usr/bin/node /usr/share/nocowboy/proxy/node_modules/mcp-proxy/dist/bin/mcp-proxy.mjs --port 8217 -- /usr/bin/node /usr/share/nocowboy/mcp-servers/ncp-validator/dist/index.js
 WorkingDirectory=/usr/share/nocowboy/mcp-servers/ncp-validator
 Environment=NODE_ENV=production
-Environment=PORT=8217
 Restart=on-failure
 RestartSec=5
 
