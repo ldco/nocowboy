@@ -659,3 +659,129 @@ This is straightforward for MOST functions — they're just async wrappers. The 
 ### Immediate action
 
 Clone MiMo reference and copy `fts-query.ts` + `fts.sql.ts` into our source. These have zero Effect dependencies and provide immediate memory search capability via FTS5. Total effort: ~2 hours including SQLite migration.
+
+---
+
+## 11. Full Competitive Borrowing Analysis — 30+ CLI/TUI Agents
+
+**Date:** 2026-06-24 | **Method:** Feature extraction, not code copying. We borrow IDEAS and patterns, not source code (except MiMo — MIT license, same fork base).
+
+### Quick Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Already done / have equivalent |
+| 🟡 | In roadmap (P1-P3) |
+| 🔴 | Should borrow NOW (high impact, low effort) |
+| ⬜ | Nice to have, not priority |
+| ❌ | Not relevant for Russian market |
+
+---
+
+### Big Tech & Official Agents
+
+| Competitor | Feature to borrow | Status | Effort | Russian-market impact |
+|---|---|---|---|---|
+| **Claude Code** | Permission model (per-tool, timeout, auto-deny) | 🟡 P1 | Medium | High — enterprise security |
+| **Claude Code** | Ultraplan (cloud-assisted planning) | ❌ | Cloud infra needed | Low — we're local-first |
+| **Claude Code** | Ultrareview (multi-agent cloud review) | ❌ | Cloud infra needed | Low |
+| **Claude Code** | Statusline (custom status bar) | 🟡 P2 | Low | Medium — UX polish |
+| **Claude Code** | Routines (scheduled cloud tasks) | ❌ | Cloud dependent | Low |
+| **Codex CLI (OpenAI)** | Sandbox execution mode | 🟡 P1 | High | High — already in roadmap |
+| **Codex CLI** | Multi-turn approval memory | 🔴 | Low | High — remembers `allow` decisions per session |
+| **Gemini CLI** | Free tier (no API key needed) | 🔴 | Low | CRITICAL — Russian devs cost-sensitive |
+| **Gemini CLI** | Google Workspace integration | ❌ | Not applicable | — |
+| **Amazon Q** | Enterprise SSO / compliance | ⬜ | High | Medium — future |
+| **Copilot CLI** | Zero-config setup | 🔴 | Medium | High — `nocowboy init` wizard |
+| **Copilot CLI** | `/explain` shell command | ✅ | 0 | We have `/repomap` + explore agent |
+| **JetBrains Junie** | IDE integration (IntelliJ plugin) | ⬜ | Very High | Medium — Russian devs use JetBrains |
+| **Grok Build (xAI)** | Grok model integration | ⬜ | Medium | Low — not widely used in Russia |
+| **Qwen Code (Alibaba)** | Chinese-language prompts | 🔴 | Low | Low — but pattern for Russian-language prompts |
+
+### Open-Source Pioneers
+
+| Competitor | Feature to borrow | Status | Effort | Impact |
+|---|---|---|---|---|
+| **Aider** | Repomap — token-optimized repo summary | ✅ DONE | — | Done |
+| **Aider** | SEARCH/REPLACE edit format | 🟡 P2 | Medium | High — more reliable than line edits |
+| **Aider** | Auto-commit with conventional commits | 🔴 | Low | High — we have `/commit` command, make it auto |
+| **Aider** | Map-tokens budget (configurable token limit for repo context) | 🔴 | Low | Medium — our repomap needs this |
+| **Aider** | Watch files mode (auto-detect changes) | ⬜ | Medium | Low |
+| **Goose (Block)** | MCP-native architecture (entire agent built around MCP) | ✅ | 0 | We already have this (shared MCP) |
+| **Goose (Block)** | Extension marketplace with ratings | 🟡 P2 | Medium | Medium — `mcp search` command |
+| **Plandex** | Plan-execute-verify workflow | 🔴 | Low | High — we have `/plan` + `/act`, need verify |
+| **Plandex** | Branch-per-task isolation | 🔴 | Medium | High — Russian monorepos need isolation |
+| **Mentat** | Direct file editing (no confirmation) | ❌ | — | Dangerous without sandbox |
+| **OpenCode** | Multi-provider via catalog | ✅ | 0 | We have this (LiteLLM proxy) |
+| **OpenCode** | Agent Manager (worktree sessions) | ✅ | 0 | Inherited from OpenCode |
+| **WhaleCode** | Deep context local agent (whole-codebase context) | 🔴 | Medium | CRITICAL — Russian monorepos are huge |
+| **Kilo CLI** | 500+ models via gateway | ✅ | 0 | We have this via multi-provider |
+
+### Autonomous Agents
+
+| Competitor | Feature to borrow | Status | Effort | Impact |
+|---|---|---|---|---|
+| **OpenHands** | Docker sandbox execution | 🟡 P1 | High | High — already in roadmap |
+| **OpenHands** | Web UI (browser interface) | ⬜ | Very High | Medium — broader market |
+| **OpenHands** | Agent skills marketplace | ⬜ | High | Low |
+| **Devon** | Long-horizon task decomposition | 🟡 P2 | Medium | Medium — goal judge covers this |
+| **SWE-agent** | ReAct loop with structured actions | ✅ | 0 | We already have agent-tool loop |
+| **AutoCodeRover** | Automated bug fixing (issue → PR) | ⬜ | High | Medium |
+| **GPT-Engineer** | Single-prompt → full project generation | ❌ | — | Not our focus (we're for existing codebases) |
+| **GPT-Engineer** | Step-by-step clarification prompts | 🟡 P3 | Low | Low — `nocowboy init` covers this |
+
+### IDE Extensions
+
+| Competitor | Feature to borrow | Status | Effort | Impact |
+|---|---|---|---|---|
+| **Cline** | MCP marketplace (largest ecosystem) | 🟡 P2 | Medium | Medium |
+| **Cline** | VS Code extension | ⬜ | Very High | Medium — Russian devs use VS Code |
+| **Cline** | `.clinerules` project-level instructions | ✅ | 0 | We have `nocowboy.json` agent instructions |
+
+### Enterprise Agents
+
+| Competitor | Feature to borrow | Status | Effort | Impact |
+|---|---|---|---|---|
+| **Qodo CLI** | Automated PR review with suggestions | 🔴 | Medium | High — code-reviewer agent covers this partially |
+| **Qodo CLI** | Incremental PR review (only changed files) | 🔴 | Low | High — large PRs in monorepos |
+| **Augment Code** | Context-aware completions | ❌ | Very High | Low — requires custom model |
+| **Factory AI** | Droid-based autonomous agents | ⬜ | High | Low |
+
+### Shell-Native Agents
+
+| Competitor | Feature to borrow | Status | Effort | Impact |
+|---|---|---|---|---|
+| **ShellGPT** | Natural language → shell command | ✅ | 0 | We have agent in TUI |
+| **AI Shell** | Interactive shell with AI | ✅ | 0 | We have this |
+| **Warp** | Terminal-integrated agent (agent IN the terminal) | 🔴 | Medium | Medium — unique UX |
+| **Warp** | AI-powered command predictions | ⬜ | High | Low |
+
+---
+
+### 🔴 TOP PRIORITY — Borrow NOW (high impact, low effort)
+
+These are features we can add in hours/days, not weeks:
+
+| # | Feature | From | Implementation | Russian-market why |
+|---|---|---|---|---|
+| 1 | **Multi-turn approval memory** | Codex CLI | Remember `allow` decisions per session. If user said "allow bash" once, don't ask again for same pattern. | Reduces friction — Russian devs hate repetitive dialogs |
+| 2 | **Free tier / no-API-key mode** | Gemini CLI | Default to local LLM (Ollama) or DuckDuckGo-level free providers. `nocowboy --free` flag. | CRITICAL — sanctions, cost sensitivity, unreliable API access |
+| 3 | **Zero-config wizard** | Copilot CLI | `nocowboy init` — 3 questions: provider? editor? languages? — everything else auto. | CRITICAL — adoption. Russian devs won't read docs |
+| 4 | **Auto-commit mode** | Aider | After every successful change, auto-commit with conventional message. Config toggle. | High — we already have `/commit`, make it automatic |
+| 5 | **Plan-verify loop** | Plandex | After `/act` completes, auto-verify: run tests, check lint, compare diff to plan. | High — autonomous workflows need verification |
+| 6 | **Deep context mode** | WhaleCode | Token-budgeted injection of entire codebase context using our repomap + indexing. | CRITICAL — Russian 1C/Banking monorepos are 100K+ files |
+| 7 | **Incremental PR review** | Qodo CLI | `/review` command that only reviews changed files in current branch vs main. | High — our code-reviewer reviews everything |
+| 8 | **Branch-per-task isolation** | Plandex | `nocowboy plan` creates a git branch, `nocowboy act` works in it, auto-PR on completion. | High — safety + traceability |
+| 9 | **Warp-style inline agent** | Warp | Agent suggestions appear inline in the terminal, not just in TUI chat. | Medium — unique UX, no competitor has this in Russia |
+| 10 | **Russian-language prompts** | Qwen Code pattern | Translate all 6 agent prompts to Russian. Test with Russian monorepos. | CRITICAL — adoption in non-English organizations |
+
+### Rejected — Not borrowing
+
+| Feature | From | Why rejected |
+|---|---|---|
+| GPt-Engineer single-prompt project gen | GPT-Engineer | We're for existing codebases, not greenfield from 0 |
+| Mentat direct file editing | Mentat | Dangerous without sandbox |
+| Custom model training | Augment Code | Beyond our scope |
+| Cloud-assisted planning | Claude Code | We're local-first, no cloud infra |
+| Google Workspace integration | Gemini CLI | Not relevant for Russia |
+| Voice input (Whisper) | Various | Russian market needs Yandex SpeechKit, not Whisper |
