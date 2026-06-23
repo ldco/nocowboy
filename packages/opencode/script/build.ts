@@ -386,17 +386,6 @@ for (const item of targets) {
   }
 
   await $`rm -rf ./dist/${name}/bin/tui`
-  // Bundle first-party MCP server dists into the platform package
-  const mcpServersDir = path.resolve(dir, "../../packaging/mcp-servers")
-  if (fs.existsSync(mcpServersDir)) {
-    const mcpOut = `dist/${name}/mcp-servers`
-    for (const serverDir of fs.readdirSync(mcpServersDir)) {
-      const sdist = path.join(mcpServersDir, serverDir, "dist")
-      if (fs.existsSync(sdist)) {
-        await $`mkdir -p ${mcpOut}/${serverDir} && cp -r ${sdist} ${mcpOut}/${serverDir}/`
-      }
-    }
-  }
   const npmName = `nocowboy-${item.os}-${item.arch}` // nocowboy_change
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
@@ -407,7 +396,7 @@ for (const item of targets) {
         os: [item.os],
         cpu: [item.arch],
         bin: { nocowboy: "bin/nocowboy" }, // nocowboy_change
-        files: ["bin/", "mcp-servers/"], // nocowboy_change
+        files: ["bin/"], // nocowboy_change
         keywords: pkg.keywords, // nocowboy_change
         private: pkg.private, // nocowboy_change
         // nocowboy_change start
