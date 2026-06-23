@@ -11,15 +11,19 @@ One meta-package + two platform binary packages + first-party MCP server package
 | `nocowboy-darwin-arm64` | Compiled binary for macOS ARM64 (M1/M2/M3) | `dist/nocowboy-tui-darwin-arm64/` |
 | `@nocowboy/mcp-<name>` | First-party MCP servers — published separately, **NOT** in the meta-package | `packaging/mcp-servers/<name>/` |
 
-**MCP servers are NOT hardcoded in the meta-package.** Each is published independently to npm.
-The `launcher.ts` auto-detects them at runtime via `require.resolve("@nocowboy/mcp-<name>/dist/index.js")`.
-Users install only the servers they need: `npm install -g @nocowboy/mcp-constitution`
-Then configure: `nocowboy mcp install constitution`
+**MCP servers are NOT hardcoded in the meta-package.** Each is published independently to npm with a `postinstall` script that automatically configures it via `nocowboy mcp install <name>`.
+
+User flow:
+```bash
+npm install -g @nocowboy/mcp-constitution
+# ^ postinstall auto-runs → server added to config, started on port 9200+
+```
 
 This is a true **plugin out/plugin in** system:
-- New server: publish `@nocowboy/mcp-new-thing`, user installs it
-- Deprecated server: user uninstalls it, no meta-package changes needed
-- No version coupling between core and servers
+- Install a server: `npm install -g @nocowboy/mcp-<name>` — auto-configured
+- Uninstall: `npm uninstall -g @nocowboy/mcp-<name>` — run `mcp remove <name>` first
+- New server published: npm install it, done
+- Deprecated server: uninstall it, no core changes needed
 | `@nocowboy/mcp-constitution` | AI Constitution server — code policy enforcement | `packaging/mcp-servers/constitution/` |
 | `@nocowboy/mcp-contract-guard` | API contract guard server | `packaging/mcp-servers/contract-guard/` |
 | `@nocowboy/mcp-ncp-validator` | NoCowboy Score/Contract guard validator | `packaging/mcp-servers/ncp-validator/` |
