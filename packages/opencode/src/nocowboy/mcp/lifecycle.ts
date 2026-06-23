@@ -2,8 +2,19 @@ import * as os from "node:os"
 import * as path from "node:path"
 import * as fs from "node:fs/promises"
 import { spawn } from "node:child_process"
+import { createRequire } from "node:module"
+
+const _require = createRequire(import.meta.url)
 
 const MCP_DIR = path.join(os.homedir(), ".nocowboy", "mcp")
+
+function proxyBin(): string {
+  try {
+    return _require.resolve("mcp-proxy/dist/bin/mcp-proxy.mjs")
+  } catch {
+    return "mcp-proxy"
+  }
+}
 
 const MANIFEST: Record<string, { command: string } | null> = {
   context7: { command: "npx -y @upstash/context7-mcp" },
@@ -109,7 +120,7 @@ export namespace McpLifecycle {
     const logStream = await fs.open(logPath, "a")
     const logFd = logStream.fd
 
-    const child = spawn("mcp-proxy", ["--port", String(port), "--", ...cmd.split(" ")], {
+    const child = spawn(proxyBin(), ["--port", String(port), "--", ...cmd.split(" ")], {
       stdio: ["ignore", logFd, logFd],
       detached: false,
     })
