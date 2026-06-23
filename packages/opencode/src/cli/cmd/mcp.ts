@@ -104,6 +104,7 @@ export const McpCommand = cmd({
       .command(McpListCommand)
       .command(McpAuthCommand)
       .command(McpLogoutCommand)
+      .command(McpInstallCommand) // nocowboy_change
       .command(McpDebugCommand)
       .command(McpStartCommand) // nocowboy_change
       .command(McpStopCommand) // nocowboy_change
@@ -817,6 +818,35 @@ async function showMcpStatus(results: McpProcInfo[]): Promise<void> {
   }
   prompts.outro(`${results.filter((r) => r.running).length}/${results.length} running`)
 }
+
+export const McpInstallCommand = effectCmd({
+  command: "install <name>",
+  describe: "install and configure a first-party MCP server (@nocowboy/mcp-<name>)",
+  builder: (yargs) =>
+    yargs.positional("name", { describe: "server name", type: "string", demandOption: true }),
+  handler: Effect.fn("Cli.mcp.install")(function* (args) {
+    const cmd = yield* Effect.promise(() => Launcher.command(args.name))
+    if (!cmd) {
+      prompts.log.warn(`@nocowboy/mcp-${args.name} not installed. Run: npm install -g @nocowboy/mcp-${args.name}`)
+      return
+    }
+    const globalConfig = yield* Config.Service.use((svc) => svc.getGlobal())
+    if (globalConfig.mcp?.[args.name]) {
+      prompts.log.warn(`Server "${args.name}" is already configured`)
+      return
+    }
+    const configPath = yield* Effect.promise(() => resolveConfigPath(Global.Path.config, true))
+    yield* Effect.promise(async () => {
+      const port = 9200 + Object.keys(globalConfig.mcp ?? {}).length
+      const url = `http://127.0.0.1:${port}/mcp`
+      const mcpConfig: ConfigMCP.Info = { type: "remote", url, enabled: true }
+      await addMcpToConfig(args.name, mcpConfig, configPath)
+      await Launcher.save(args.name, cmd)
+      const r = await McpLifecycle.startOne(args.name, cmd, port)
+      prompts.log.success(`"${args.name}" installed and running — ${r.url}`)
+    })
+  }),
+})
 
 export const McpStartCommand = effectCmd({
   command: "start [name]",
