@@ -398,7 +398,7 @@ for (const item of targets) {
         bin: { nocowboy: "bin/nocowboy" }, // nocowboy_change
         files: ["bin/"], // nocowboy_change
         keywords: pkg.keywords, // nocowboy_change
-        private: pkg.private, // nocowboy_change
+        private: false, // nocowboy_change
         // nocowboy_change start
         repository: {
           type: "git",
