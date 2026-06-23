@@ -20,6 +20,7 @@ import { modify, applyEdits } from "jsonc-parser"
 import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp" // nocowboy_change
 import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
 import { McpProxy } from "@/nocowboy/mcp/proxy" // nocowboy_change
+import { Launcher } from "@/nocowboy/mcp/launcher" // nocowboy_change
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 
@@ -826,16 +827,15 @@ export const McpStartCommand = effectCmd({
 
     const names = args.name ? [args.name] : servers.map(([n]) => n)
 
-yield* Effect.promise(async () => {
+    yield* Effect.promise(async () => {
       const results: McpProcInfo[] = []
       for (const name of names) {
         const match = servers.find(([n]) => n === name)
         if (!match) { prompts.log.warn(`Server "${name}" not found in config`); continue }
-        const [, raw] = match
-        if (!isMcpConfigured(raw)) { prompts.log.warn(`Server "${name}" has invalid config`); continue }
-        if (raw.type !== "local") { prompts.log.warn(`Skipping "${name}" — remote server, nothing to start locally`); continue }
+        const cmd = await Launcher.command(name)
+        if (!cmd) { prompts.log.warn(`Skipping "${name}" — no launch command defined (add one in ~/.nocowboy/mcp/launch.json)`); continue }
         const port = 9200 + results.length
-        const r = await McpLifecycle.startOne(name, raw.command, port)
+        const r = await McpLifecycle.startOne(name, cmd, port)
         results.push(r)
       }
       await showMcpStatus(results)

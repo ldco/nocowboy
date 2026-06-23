@@ -3,6 +3,7 @@ import * as path from "node:path"
 import * as fsp from "node:fs/promises"
 import * as fs from "node:fs"
 import { spawn } from "node:child_process"
+import { Launcher } from "./launcher"
 
 const MCP_DIR = path.join(os.homedir(), ".nocowboy", "mcp")
 
@@ -49,14 +50,14 @@ export namespace McpLifecycle {
     return { name, pid, running, port, url }
   }
 
-  export async function startOne(name: string, command: string[], port: number): Promise<McpProcessInfo> {
+  export async function startOne(name: string, command: string, port: number): Promise<McpProcessInfo> {
     const existing = await status(name)
     if (existing.running) return existing
 
     await ensureDir()
     const logPath = logFile(name)
     const logFd = fs.openSync(logPath, "a")
-    const cmd = command.join(" ")
+    const cmd = command
 
     const selfBin = process.argv[0] ?? process.execPath
     const selfArgs = ["mcp", "_proxy", "--port", String(port), "--", cmd]
