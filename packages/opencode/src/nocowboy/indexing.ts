@@ -2,7 +2,6 @@ import z from "zod"
 import path from "path"
 import { type IndexingTelemetryEvent, type VectorStoreSearchResult } from "@nocowboy/indexing/engine"
 import { toIndexingConfigInput, type IndexingConfig } from "@nocowboy/indexing/config"
-import { hasIndexingPlugin } from "@nocowboy/indexing/detect"
 import { IndexingStatus, disabledIndexingStatus } from "@nocowboy/indexing/status"
 import { Telemetry } from "@nocowboy/telemetry"
 import { fetchNoCowboyEmbeddingModelCatalog as fetchEmbeddingModelCatalog } from "@nocowboy/gateway"
@@ -247,7 +246,7 @@ export namespace KiloIndexing {
     if (process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] === "vscode-no-workspace") {
       return track(hit, await inert(() => noWorkspace()))
     }
-    if (!hasIndexingPlugin(cfg.plugin)) {
+    if (!cfg.indexing?.enabled) {
       return track(hit, await inert(() => missing()))
     }
 

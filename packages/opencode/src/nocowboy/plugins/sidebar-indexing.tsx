@@ -4,7 +4,6 @@ import type { IndexingStatus, IndexingStatusState } from "@nocowboy/indexing/sta
 import * as Log from "@opencode-ai/core/util/log"
 import { useSync } from "@/cli/cmd/tui/context/sync"
 import { formatIndexingLabel } from "../indexing-label"
-import { indexingEnabled } from "../indexing-feature"
 
 const id = "internal:kilo-sidebar-indexing"
 const log = Log.create({ service: "sidebar-indexing" })
@@ -33,9 +32,7 @@ function message(status: IndexingStatus) {
 function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
   const sync = useSync()
-  // System-wide (global) config is the primary source. Project-level (config) is
-  // kept for future per-project support — currently unused but both are checked.
-  const enabled = createMemo(() => indexingEnabled(sync.data.config) || indexingEnabled(sync.data.globalConfig))
+  // indexing is a first-class feature, checked directly from config, not via plugin marker
   const configured = createMemo(
     () => sync.data.config.indexing?.enabled === true || sync.data.globalConfig.indexing?.enabled === true,
   )
@@ -43,7 +40,7 @@ function View(props: { api: TuiPluginApi }) {
   const label = createMemo(() => formatIndexingLabel(status()))
   const msg = createMemo(() => message(status()))
   const refresh = () => {
-    if (!enabled() || !configured()) return
+    if (!configured()) return
     const params = props.api.state.path.directory ? { directory: props.api.state.path.directory } : undefined
     void props.api.client.indexing
       .status(params)
@@ -71,7 +68,7 @@ function View(props: { api: TuiPluginApi }) {
         <text fg={theme().text}>
           <b>Code Indexing</b>
         </text>
-        <Show when={enabled() && configured()}>
+        <Show when={configured()}>
         <box flexDirection="row" gap={1}>
           <text flexShrink={0} style={{ fg: tone(status().state, props.api) }}>
             •
@@ -86,7 +83,7 @@ function View(props: { api: TuiPluginApi }) {
           </text>
         </Show>
         </Show>
-        <Show when={!enabled() || !configured()}>
+        <Show when={!configured()}>
           <box flexDirection="row" gap={1}>
             <text flexShrink={0} style={{ fg: theme().textMuted }}>•</text>
             <text fg={theme().textMuted}>Not configured</text>

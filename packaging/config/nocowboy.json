@@ -63,7 +63,6 @@
     }
   },
   "lsp": true,
-  "plugin": ["@nocowboy/indexing"],
   "indexing": {
     "enabled": true,
     "provider": "voyage",

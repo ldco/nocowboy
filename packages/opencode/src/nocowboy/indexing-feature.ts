@@ -1,14 +1,9 @@
 import { pathToFileURL } from "url"
-import { hasIndexingPlugin } from "@nocowboy/indexing/detect"
 
 export const INDEXING_PLUGIN = "@nocowboy/indexing"
 
-// RATIONALE: Upstream PluginSpec changed from string to string | [string, Record].
-// Use a broad input type to accept both forms but return the concrete PluginSpec shape.
-type PluginSpec = string | [string, Record<string, unknown>]
-
 type ConfigLike = {
-  plugin?: readonly PluginSpec[] | null
+  indexing?: { enabled?: boolean }
 }
 
 type Req = {
@@ -20,7 +15,7 @@ type LogLike = {
 }
 
 export function indexingEnabled(config?: ConfigLike | null): boolean {
-  return hasIndexingPlugin(config?.plugin ?? [])
+  return config?.indexing?.enabled === true
 }
 
 export function resolveIndexingPlugin(req: Req, log?: LogLike): string {
@@ -32,11 +27,4 @@ export function resolveIndexingPlugin(req: Req, log?: LogLike): string {
     log?.debug("failed to resolve indexing plugin package, using package marker", { error })
     return INDEXING_PLUGIN
   }
-}
-
-export function ensureIndexingPlugin(items: readonly PluginSpec[], plugin?: string): PluginSpec[] {
-  const plugins = [...items]
-  if (!plugin) return plugins
-  if (hasIndexingPlugin(plugins)) return plugins
-  return [...plugins, plugin]
 }
