@@ -18,6 +18,7 @@ import path from "path"
 import { Global } from "@opencode-ai/core/global"
 import { modify, applyEdits } from "jsonc-parser"
 import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp" // nocowboy_change
+import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 import { Effect } from "effect"
@@ -103,6 +104,10 @@ export const McpCommand = cmd({
       .command(McpAuthCommand)
       .command(McpLogoutCommand)
       .command(McpDebugCommand)
+      .command(McpStartCommand) // nocowboy_change
+      .command(McpStopCommand) // nocowboy_change
+      .command(McpStatusCommand) // nocowboy_change
+      .command(McpLogsCommand) // nocowboy_change
       .demandCommand(),
   async handler() {},
 })
@@ -788,3 +793,76 @@ export const McpDebugCommand = effectCmd({
     })
   }),
 })
+
+// nocowboy_change start — MCP lifecycle subcommands
+async function showMcpStatus(results: McpLifecycle.McpProcessInfo[]): Promise<void> {
+  for (const r of results) {
+    if (r.running) {
+      prompts.log.info(`✓ ${r.name} running (pid ${r.pid}) — ${r.url}`)
+    } else {
+      prompts.log.warn(`○ ${r.name} stopped — ${r.url}`)
+    }
+  }
+  prompts.outro(`${results.filter((r) => r.running).length}/${results.length} running`)
+}
+
+export const McpStartCommand = cmd({
+  command: "start [name]",
+  describe: "start MCP servers as background processes",
+  builder: (yargs) =>
+    yargs.positional("name", { describe: "server name (omit to start all)", type: "string" }),
+  async handler(args) {
+    if (args.name) {
+      const result = await McpLifecycle.startOne(args.name)
+      await showMcpStatus([result])
+    } else {
+      const results = await McpLifecycle.startAll()
+      await showMcpStatus(results)
+    }
+  },
+})
+
+export const McpStopCommand = cmd({
+  command: "stop [name]",
+  describe: "stop MCP server processes",
+  builder: (yargs) =>
+    yargs.positional("name", { describe: "server name (omit to stop all)", type: "string" }),
+  async handler(args) {
+    if (args.name) {
+      await McpLifecycle.stopOne(args.name)
+      prompts.log.success(`Stopped ${args.name}`)
+    } else {
+      await McpLifecycle.stopAll()
+      prompts.log.success("All MCP servers stopped")
+    }
+  },
+})
+
+export const McpStatusCommand = cmd({
+  command: "status [name]",
+  describe: "show MCP server process status",
+  builder: (yargs) =>
+    yargs.positional("name", { describe: "server name (omit to show all)", type: "string" }),
+  async handler(args) {
+    const results = await McpLifecycle.status(args.name)
+    await showMcpStatus(results)
+  },
+})
+
+export const McpLogsCommand = cmd({
+  command: "logs <name>",
+  describe: "show recent MCP server logs",
+  builder: (yargs) =>
+    yargs
+      .positional("name", { describe: "server name", type: "string", demandOption: true })
+      .option("lines", { alias: "n", describe: "number of lines", type: "number", default: 20 }),
+  async handler(args) {
+    const output = await McpLifecycle.logs(args.name, args.lines)
+    if (!output) {
+      prompts.log.warn(`No logs for ${args.name}`)
+      return
+    }
+    console.log(output)
+  },
+})
+// nocowboy_change end

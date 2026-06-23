@@ -3,6 +3,8 @@ import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js"
 import { Portal, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import type { TextareaRenderable } from "@opentui/core"
 import { RGBA } from "@opentui/core"
+
+const brand = RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change
 import { useTheme, selectedForeground } from "../../context/theme"
 import type { PermissionRequest } from "@nocowboy/sdk/v2"
 import { useSDK } from "../../context/sdk"
@@ -580,7 +582,6 @@ function Prompt<const T extends Record<string, string>>(props: {
   onSelect: (option: keyof T) => void
 }) {
   const { theme } = useTheme()
-  const brand = RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change
   const tuiConfig = useTuiConfig()
   const dimensions = useTerminalDimensions()
   const keys = Object.keys(props.options) as (keyof T)[]
