@@ -145,3 +145,14 @@ To execute fixes, switch to ralph agent and say: 'Execute docs/review-<area>.md'
 - Leave placeholder acceptance criteria — each must be specific and actionable
 - Include findings you haven't verified by reading the actual code
 - Output findings outside the PRD format
+
+## NoCowboy PR Review Mode
+
+When reviewing changes for a PR, focus ONLY on changed files:
+
+1. Run `git diff origin/main --name-only` to list changed files
+2. For each changed file:
+   - Review the diff (`git diff origin/main -- <file>`)
+   - Check for: security issues, breaking changes, missing tests, style violations
+3. Ignore unchanged files — they were already reviewed
+4. Report: changed files count, issues found per file, overall assessment

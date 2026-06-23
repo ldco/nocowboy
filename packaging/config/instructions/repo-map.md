@@ -107,3 +107,17 @@ Kilo's `semantic_search` tool can find related code by meaning. Use it as a comp
 - ❌ Blindly editing files without reading surrounding code for context
 - ✅ Reading the target file + its imports + any file that imports it
 - ✅ Searching for tests related to the file before changing it
+
+## Deep Context Mode (NoCowboy)
+
+When `indexing.enabled` is true in nocowboy.json, the repomap is auto-generated
+before each agent turn and injected into context. The repomap includes:
+
+- Directory structure with file counts and line counts
+- Key dependencies detected from import/require statements
+- Responsibility labels auto-detected from directory names
+
+The agent uses this for:
+- Understanding project structure before making changes
+- Finding the right file to edit
+- Avoiding edits that would break module boundaries
