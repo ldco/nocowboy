@@ -21,6 +21,7 @@ import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp" // nocowboy_change
 import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
 import { McpProxy } from "@/nocowboy/mcp/proxy" // nocowboy_change
 import { Launcher } from "@/nocowboy/mcp/launcher" // nocowboy_change
+import { spawn } from "node:child_process" // nocowboy_change
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 
@@ -827,7 +828,20 @@ export const McpInstallCommand = effectCmd({
   handler: Effect.fn("Cli.mcp.install")(function* (args) {
     const cmd = yield* Effect.promise(() => Launcher.command(args.name))
     if (!cmd) {
-      prompts.log.warn(`@nocowboy/mcp-${args.name} not installed. Run: npm install -g @nocowboy/mcp-${args.name}`)
+      const confirm = yield* Effect.promise(() =>
+        prompts.confirm({
+          message: `@nocowboy/mcp-${args.name} not found. Install from npm?`,
+          initialValue: true,
+        }),
+      )
+      if (!confirm) { prompts.log.warn(`Run manually: npm install -g @nocowboy/mcp-${args.name}`); return }
+      yield* Effect.promise(async () => {
+        const cp = spawn("npm", ["install", "-g", `@nocowboy/mcp-${args.name}`], { stdio: "inherit" })
+        await new Promise<void>((resolve, reject) => {
+          cp.on("exit", (code) => code === 0 ? resolve() : reject(new Error(`npm install exited ${code}`)))
+          cp.on("error", reject)
+        })
+      })
       return
     }
     const globalConfig = yield* Config.Service.use((svc) => svc.getGlobal())
