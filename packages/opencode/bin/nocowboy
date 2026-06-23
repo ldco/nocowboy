@@ -1,11 +1,33 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { spawnSync } from "child_process"
 import { fileURLToPath } from "url"
 import { dirname, resolve } from "path"
+import { existsSync } from "fs"
 
 const dir = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-process.exit(spawnSync(
-  process.argv0,
-  ["run", "--cwd", dir, "--conditions=browser", resolve(dir, "src/index.ts"), ...process.argv.slice(2)],
-  { stdio: "inherit", env: process.env },
-).status ?? 1)
+
+// Try compiled binary first
+const platforms = [
+  ["linux-x64", "linux-x64"],
+  ["darwin-arm64", "darwin-arm64"],
+  ["darwin-x64", "darwin-x64"],
+]
+for (const [, plat] of platforms) {
+  const bin = resolve(dir, `dist/nocowboy-tui-${plat}/bin/nocowboy`)
+  if (existsSync(bin)) {
+    const result = spawnSync(bin, process.argv.slice(2), { stdio: "inherit", env: process.env })
+    process.exit(result.status ?? 1)
+  }
+}
+
+// Fall back to dev mode via bun
+if (process.argv0?.endsWith("bun") || process.argv0?.endsWith("bun.exe")) {
+  process.exit(spawnSync(
+    process.argv0,
+    ["run", "--cwd", dir, "--conditions=browser", resolve(dir, "src/index.ts"), ...process.argv.slice(2)],
+    { stdio: "inherit", env: process.env },
+  ).status ?? 1)
+}
+
+console.error("nocowboy: no compiled binary found and not running under bun. Run `npm run build` first.")
+process.exit(1)

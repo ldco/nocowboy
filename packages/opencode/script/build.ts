@@ -21,7 +21,7 @@ import { LanceDBRuntime } from "../src/nocowboy/lancedb" // nocowboy_change
 
 const Script = {
   channel: process.env.NOCOWBOY_CHANNEL ?? "dev",
-  version: process.env.NOCOWBOY_VERSION ?? "0.0.0",
+  version: process.env.NOCOWBOY_VERSION ?? pkg.version ?? "0.0.0",
   preview: false,
   release: process.env.NOCOWBOY_RELEASE === "true",
 } // nocowboy_change
