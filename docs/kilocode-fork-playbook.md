@@ -785,3 +785,86 @@ These are features we can add in hours/days, not weeks:
 | Cloud-assisted planning | Claude Code | We're local-first, no cloud infra |
 | Google Workspace integration | Gemini CLI | Not relevant for Russia |
 | Voice input (Whisper) | Various | Russian market needs Yandex SpeechKit, not Whisper |
+
+---
+
+## 12. User Challenge — Honest Answers to Borrowing Claims
+
+### #2 — "Free tier" — challenged: "what is free?"
+
+**User is right.** There's no truly free LLM inference. Every API call costs someone.
+
+**Correction:** Replace "free tier" with **"offline-capable without API key."**
+
+| Capability | API key needed? | How |
+|---|---|---|
+| `nocowboy repomap` | No | Local file scan |
+| `nocowboy mcp start` | No | Local processes |
+| Codebase indexing | No | Local SQLite vectors |
+| Git operations | No | Local git MCP |
+| Shell command execution | No | Local bash |
+| Code generation | **Yes** | Needs LLM (API or local model) |
+| Code review | **Yes** | Needs LLM |
+
+**The real offer:** NoCowboy is fully functional WITHOUT an API key for all non-LLM features. When you DO add an API key or local model, the agent kicks in. This is unique — Claude Code and Copilot are useless without API keys / accounts.
+
+**Implementation:** `nocowboy --offline` flag. Auto-detects if no provider is configured → offers to set up local Ollama OR warns that agent features need a model.
+
+### #4 — "Auto-commit" — challenged: "we have it anyway - no?"
+
+**We have `/commit`, not auto-commit.** The difference:
+
+| | `/commit` (ours) | Aider auto-commit |
+|---|---|---|
+| Trigger | Agent decides to run | Auto after every successful change |
+| Verification | Manual (agent runs lint/test) | Auto (runs lint + test before commit) |
+| Message | Agent writes | Auto-generated conventional commit |
+| Workflow | `do work → /commit` | `do work` (commit happens silently) |
+
+**Verdict:** Keep `/commit` as manual. Don't add auto-commit. The agent should ALWAYS decide when to commit. Automatic commits without agent review = dangerous. Our `/commit` command is BETTER for safety. Don't borrow this.
+
+### #8 — "Branch-per-task" — challenged: "we use eternal git mcp - it not better?"
+
+**git MCP is a TOOL. Plandex's approach is a WORKFLOW.** Let me compare:
+
+| | Git MCP (ours) | Plandex branch-per-task |
+|---|---|---|
+| What it is | Full git operations (branch, commit, push, PR, etc.) | Workflow: auto-branch → work → auto-PR → auto-merge |
+| Flexibility | Agent orchestrates any git workflow | Pre-defined workflow, less flexible |
+| Error recovery | Agent handles git conflicts manually | Workflow handles rollback |
+| Isolation | Agent creates branches manually | Enforced isolation per task |
+| Learning curve | Agent must know git well | Zero git knowledge needed by agent |
+
+**Verdict:** Our git MCP IS better for power users. Plandex's approach is better for autonomous workflows. The ideal: **keep git MCP for manual operations, add `nocowboy plan --branch` flag that auto-creates isolated branch for the plan.**
+
+When the agent runs `/plan`, optionally create a git branch. When `/act` succeeds, the agent can PR-merge. This combines the best of both.
+
+### #9 — "Warp-style inline agent" — challenged: "do we need suggestions?"
+
+**No.** Warp's inline terminal suggestions are a different product category. NoCowboy is a full TUI coding agent with session context, agent memory, MCP tools, and project awareness. Inline terminal suggestions are for quick "what command do I run" moments — that's not what NoCowboy is for.
+
+**Verdict:** Don't borrow. Not relevant. This was a bad suggestion.
+
+### #10 — "Russian localization" — asked: "how can we localise to Russia?"
+
+**Concrete plan for Russian localization:**
+
+| Layer | What | How | Priority |
+|---|---|---|---|
+| **Agent prompts** | All 6 agent prompts translated to Russian | Write Russian versions of architect.md, code-reviewer.md, prd.md, ralph.md, explore.md, plan.md | 🟡 P1 |
+| **System instructions** | All 16 instruction files have Russian versions | Duplicate `instructions/` → `instructions/ru/`. Agent loads Russian when `nocowboy --lang ru` | 🟡 P1 |
+| **UI strings** | Error messages, help text, status messages | Add i18n keys. Load locale from nocowboy.json `lang` field (default: auto-detect from LANG env) | 🟢 P2 |
+| **Code understanding** | Agent should understand Russian comments, variable names | Add to system prompt: "You are working with a Russian codebase. Comments and variable names may be in Russian. Translate critical identifiers to English when reasoning." | 🟡 P1 |
+| **Documentation** | README, docs, publish guide | Write Russian versions of all docs. | 🟢 P2 |
+| **152-FZ compliance** | Consent prompts, data localization notices | Add Russian-language consent dialogs referencing 152-FZ. | 🟡 P1 |
+
+**Qwen Code pattern:** They did Chinese-first → 3x adoption in China vs English-only. We do Russian-first.
+
+**Implementation approach:**
+1. Add `"lang": "ru"` to nocowboy.json (default: auto-detect via `$LANG`)
+2. Create `instructions/ru/` directory with Russian versions
+3. Create `agent/ru/` for Russian agent prompts
+4. Agent loads Russian prompts when `lang === "ru"`
+5. No i18n framework needed (agent prompts are markdown files, just load the right language)
+
+**Key insight:** Chinese and Russian are the TWO largest non-English developer markets. Qwen Code won China by localizing. No other Western AI coding tool (Claude Code, Cursor, Copilot) has Russian-language agent prompts. This is a regulatory + adoption moat.
