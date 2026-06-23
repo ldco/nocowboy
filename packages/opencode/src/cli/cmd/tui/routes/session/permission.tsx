@@ -27,6 +27,10 @@ import { normalizeUrls } from "@/nocowboy/util/url"
 import { useBindings, useCommandShortcut } from "../../keymap"
 import { usePathFormatter } from "../../context/path-format"
 
+// nocowboy_change — session-scoped approval memory
+const sessionApprovals = new Set<string>()
+function approvalKey(perm?: string, patterns?: string): string { return `${perm ?? "?"}:${patterns?.slice(0, 200) ?? "*"}` }
+
 type PermissionStage = "permission" | "always" | "reject"
 
 function filetype(input?: string) {
@@ -138,9 +142,19 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
   const sdk = useSDK()
   const project = useProject()
   const sync = useSync()
+  const cacheHit: boolean = sessionApprovals.has(approvalKey(props.request.permission, props.request.patterns?.join(";")))
+  const req = props.request
   const [store, setStore] = createStore({
-    stage: "permission" as PermissionStage,
+    stage: (cacheHit ? "done" : "permission") as PermissionStage,
   })
+  if (cacheHit) {
+    void sdk.client.permission.reply({
+      reply: "once",
+      requestID: req.id,
+      workspace: project.workspace.current(),
+    })
+  }
+
   const pathFormatter = usePathFormatter()
 
   const session = createMemo(() => sync.data.session.find((s) => s.id === props.request.sessionID))
@@ -474,6 +488,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
                   })
                   return
                 }
+                sessionApprovals.add(approvalKey(props.request.permission, props.request.patterns?.join(";")))
                 void sdk.client.permission.reply({
                   reply: "once",
                   requestID: props.request.id,
