@@ -1,6 +1,6 @@
 import { cmd } from "./cmd"
 import { effectCmd } from "../effect-cmd"
-import { Cause } from "effect"
+import { Cause, Effect } from "effect"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js"
@@ -22,7 +22,6 @@ import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
 import { McpProxy } from "@/nocowboy/mcp/proxy" // nocowboy_change
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
-import { Effect } from "effect"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -797,7 +796,15 @@ export const McpDebugCommand = effectCmd({
 })
 
 // nocowboy_change start — MCP lifecycle subcommands
-async function showMcpStatus(results: McpLifecycle.McpProcessInfo[]): Promise<void> {
+interface McpProcInfo {
+  name: string
+  pid: number | null
+  running: boolean
+  port: number
+  url: string
+}
+
+async function showMcpStatus(results: McpProcInfo[]): Promise<void> {
   for (const r of results) {
     if (r.running) {
       prompts.log.info(`✓ ${r.name} running (pid ${r.pid}) — ${r.url}`)
@@ -808,47 +815,91 @@ async function showMcpStatus(results: McpLifecycle.McpProcessInfo[]): Promise<vo
   prompts.outro(`${results.filter((r) => r.running).length}/${results.length} running`)
 }
 
-export const McpStartCommand = cmd({
+export const McpStartCommand = effectCmd({
   command: "start [name]",
-  describe: "start MCP servers as background processes",
+  describe: "start MCP server(s) as background processes",
   builder: (yargs) =>
     yargs.positional("name", { describe: "server name (omit to start all)", type: "string" }),
-  async handler(args) {
-    if (args.name) {
-      const result = await McpLifecycle.startOne(args.name)
-      await showMcpStatus([result])
-    } else {
-      const results = await McpLifecycle.startAll()
+  handler: Effect.fn("Cli.mcp.start")(function* (args) {
+    const config = yield* Config.Service.use((cfg) => cfg.get())
+    const servers = Object.entries(config.mcp ?? {}).filter(([, s]) => isMcpConfigured(s) && s.enabled !== false)
+
+    const names = args.name ? [args.name] : servers.map(([n]) => n)
+
+yield* Effect.promise(async () => {
+      const results: McpProcInfo[] = []
+      for (const name of names) {
+        const match = servers.find(([n]) => n === name)
+        if (!match) { prompts.log.warn(`Server "${name}" not found in config`); continue }
+        const [, raw] = match
+        if (!isMcpConfigured(raw)) { prompts.log.warn(`Server "${name}" has invalid config`); continue }
+        if (raw.type !== "local") { prompts.log.warn(`Skipping "${name}" — remote server, nothing to start locally`); continue }
+        const port = 9200 + results.length
+        const r = await McpLifecycle.startOne(name, raw.command, port)
+        results.push(r)
+      }
       await showMcpStatus(results)
-    }
-  },
+    })
+  }),
 })
 
-export const McpStopCommand = cmd({
+export const McpStopCommand = effectCmd({
   command: "stop [name]",
   describe: "stop MCP server processes",
   builder: (yargs) =>
     yargs.positional("name", { describe: "server name (omit to stop all)", type: "string" }),
-  async handler(args) {
-    if (args.name) {
-      await McpLifecycle.stopOne(args.name)
-      prompts.log.success(`Stopped ${args.name}`)
-    } else {
-      await McpLifecycle.stopAll()
-      prompts.log.success("All MCP servers stopped")
-    }
-  },
+  handler: Effect.fn("Cli.mcp.stop")(function* (args) {
+    const config = yield* Config.Service.use((cfg) => cfg.get())
+    const locals = Object.entries(config.mcp ?? {}).filter(([, s]) => isMcpConfigured(s) && s.type === "local")
+
+    yield* Effect.promise(async () => {
+      if (args.name) {
+        await McpLifecycle.stopOne(args.name)
+        prompts.log.success(`Stopped ${args.name}`)
+      } else {
+        for (const [name] of locals) {
+          await McpLifecycle.stopOne(name).catch(() => {})
+        }
+        prompts.log.success("All local MCP servers stopped")
+      }
+    })
+  }),
 })
 
-export const McpStatusCommand = cmd({
+export const McpStatusCommand = effectCmd({
   command: "status [name]",
-  describe: "show MCP server process status",
+  describe: "show MCP server status (from config + pidfile)",
   builder: (yargs) =>
     yargs.positional("name", { describe: "server name (omit to show all)", type: "string" }),
-  async handler(args) {
-    const results = await McpLifecycle.status(args.name)
-    await showMcpStatus(results)
-  },
+  handler: Effect.fn("Cli.mcp.status")(function* (args) {
+    const config = yield* Config.Service.use((cfg) => cfg.get())
+    const servers = Object.entries(config.mcp ?? {})
+
+    yield* Effect.promise(async () => {
+      const results: McpProcInfo[] = []
+      if (args.name) {
+        const entry = servers.find(([n]) => n === args.name)
+        if (!entry) { prompts.log.warn(`Server "${args.name}" not found`); return }
+        const [name, cfg] = entry
+        if (isMcpConfigured(cfg) && cfg.type === "local") {
+          results.push(await McpLifecycle.status(name))
+        } else {
+          const url = isMcpConfigured(cfg) && cfg.type === "remote" ? cfg.url : "?"
+          results.push({ name, pid: null, running: false, port: 0, url })
+        }
+      } else {
+        for (const [name, cfg] of servers) {
+          if (isMcpConfigured(cfg) && cfg.type === "local") {
+            results.push(await McpLifecycle.status(name))
+          } else {
+            const url = isMcpConfigured(cfg) && cfg.type === "remote" ? cfg.url : "?"
+            results.push({ name, pid: null, running: false, port: 0, url })
+          }
+        }
+      }
+      await showMcpStatus(results)
+    })
+  }),
 })
 
 export const McpLogsCommand = cmd({
