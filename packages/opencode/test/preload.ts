@@ -65,7 +65,7 @@ delete process.env["KILO_SERVER_PASSWORD"]
 delete process.env["KILO_SERVER_USERNAME"]
 
 // Use in-memory sqlite
-process.env["KILO_DB"] = ":memory:"
+process.env["NOCOWBOY_DB"] = ":memory:"
 
 // Now safe to import from src/
 const { Log } = await import("@opencode-ai/core/util/log")

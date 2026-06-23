@@ -56,7 +56,7 @@ export namespace KilocodeConfigSources {
 
   type Pending = Omit<Source, "order">
 
-  const roots = [".nocowboy", ".nocowboy", ".opencode"] as const
+  const roots = [".kilo", ".nocowboy", ".nocowboy", ".opencode"] as const
   const global = ["config.json", "nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc"] as const
 
   export async function list(input: Input): Promise<Result> {

@@ -7,7 +7,7 @@ export namespace ConfigProtection {
    * Config directory prefixes (relative paths, forward-slash normalized).
    * Matches .nocowboy/, .nocowboy/, .opencode/ at any depth within the project.
    */
-  const CONFIG_DIRS = [".nocowboy/", ".nocowboy/", ".opencode/"]
+  const CONFIG_DIRS = [".kilo/", ".nocowboy/", ".nocowboy/", ".opencode/"]
 
   /**
    * Subdirectories under CONFIG_DIRS that are NOT config files (e.g. plan files).
@@ -19,7 +19,7 @@ export namespace ConfigProtection {
    * Root-level config files that must be protected.
    * Matched only when the relative path has no directory component.
    */
-  const CONFIG_ROOT_FILES = new Set(["nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
+  const CONFIG_ROOT_FILES = new Set(["kilo.json", "kilo.jsonc", "nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
 
   /** Metadata key used to signal the UI to hide the "Allow always" option. */
   export const DISABLE_ALWAYS_KEY = "disableAlways" as const

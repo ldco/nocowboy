@@ -1,8 +1,15 @@
+import { Flag } from "@opencode-ai/core/flag/flag"
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test"
 import { Database } from "../../src/storage/db"
 import { SessionImportService } from "../../src/nocowboy/session-import/service"
 import { resetDatabase } from "../fixture/db"
 import { tmpdir } from "../fixture/fixture"
+
+// Ensure in-memory database for test isolation. Flag reads from env at module
+// load time; overriding the cached property is the only effective mechanism
+// when bun test does not load the test/preload.ts module.
+const savedDb = Flag.NOCOWBOY_DB
+Flag.NOCOWBOY_DB = ":memory:"
 
 let spy: ReturnType<typeof spyOn>
 

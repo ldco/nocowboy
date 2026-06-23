@@ -216,7 +216,7 @@ describe("ModesMigrator", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: code
     name: Code
@@ -256,9 +256,9 @@ describe("ModesMigrator", () => {
       - read`,
           )
 
-          // Create project .kilocodemodes (should win)
+          // Create project .nocowboy-modes (should win)
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate Project
@@ -293,7 +293,7 @@ describe("ModesMigrator", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate

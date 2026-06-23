@@ -19,7 +19,7 @@ describe("KilocodeConfigInjector", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate
@@ -43,7 +43,7 @@ describe("KilocodeConfigInjector", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: code
     name: Code
@@ -64,7 +64,7 @@ describe("KilocodeConfigInjector", () => {
     test("includes workflows as commands in config", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          const workflowsDir = path.join(dir, ".kilocode", "workflows")
+          const workflowsDir = path.join(dir, ".nocowboy", "workflows")
           await Bun.write(
             path.join(workflowsDir, "code-review.md"),
             "# Code Review\n\nPerform a code review.\n\n## Steps\n\n1. Review",
@@ -86,7 +86,7 @@ describe("KilocodeConfigInjector", () => {
         init: async (dir) => {
           // Add a custom mode
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate
@@ -95,7 +95,7 @@ describe("KilocodeConfigInjector", () => {
       - read`,
           )
           // Add a workflow
-          const workflowsDir = path.join(dir, ".kilocode", "workflows")
+          const workflowsDir = path.join(dir, ".nocowboy", "workflows")
           await Bun.write(path.join(workflowsDir, "deploy.md"), "# Deploy\n\nDeploy the app.")
         },
       })
@@ -112,8 +112,8 @@ describe("KilocodeConfigInjector", () => {
     test("includes rules in config", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilocode", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilocode", "rules", "main.md"), "# Rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Rules")
         },
       })
 
@@ -131,8 +131,8 @@ describe("KilocodeConfigInjector", () => {
     test("skips rules when includeRules is false", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilocode", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilocode", "rules", "main.md"), "# Rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Rules")
         },
       })
 
@@ -151,7 +151,7 @@ describe("KilocodeConfigInjector", () => {
         init: async (dir) => {
           // Add custom mode
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate
@@ -160,11 +160,11 @@ describe("KilocodeConfigInjector", () => {
       - read`,
           )
           // Add workflow
-          const workflowsDir = path.join(dir, ".kilocode", "workflows")
+          const workflowsDir = path.join(dir, ".nocowboy", "workflows")
           await Bun.write(path.join(workflowsDir, "deploy.md"), "# Deploy\n\nDeploy the app.")
           // Add rules
-          await fs.mkdir(path.join(dir, ".kilocode", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilocode", "rules", "main.md"), "# Rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Rules")
         },
       })
 
@@ -185,7 +185,7 @@ describe("KilocodeConfigInjector", () => {
     test("adds warnings for legacy rule files", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules"), "# Legacy rules")
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy rules")
         },
       })
 
@@ -200,7 +200,7 @@ describe("KilocodeConfigInjector", () => {
     test("includes ignore patterns in config", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocodeignore"), "secrets/\n*.env")
+          await Bun.write(path.join(dir, ".nocowboyignore"), "secrets/\n*.env")
         },
       })
 
@@ -220,7 +220,7 @@ describe("KilocodeConfigInjector", () => {
     test("skips ignore when includeIgnore is false", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocodeignore"), "secrets/")
+          await Bun.write(path.join(dir, ".nocowboyignore"), "secrets/")
         },
       })
 
@@ -239,7 +239,7 @@ describe("KilocodeConfigInjector", () => {
         init: async (dir) => {
           // Add custom mode
           await Bun.write(
-            path.join(dir, ".kilocodemodes"),
+            path.join(dir, ".nocowboy-modes"),
             `customModes:
   - slug: translate
     name: Translate
@@ -248,7 +248,7 @@ describe("KilocodeConfigInjector", () => {
       - read`,
           )
           // Add ignore patterns
-          await Bun.write(path.join(dir, ".kilocodeignore"), "secrets/")
+          await Bun.write(path.join(dir, ".nocowboyignore"), "secrets/")
         },
       })
 
@@ -267,7 +267,7 @@ describe("KilocodeConfigInjector", () => {
     test("handles negation patterns in ignore file", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocodeignore"), "*.env\n!.env.example")
+          await Bun.write(path.join(dir, ".nocowboyignore"), "*.env\n!.env.example")
         },
       })
 
@@ -293,12 +293,12 @@ describe("KilocodeConfigInjector", () => {
       expect(envVars).toEqual({})
     })
 
-    test("returns KILO_CONFIG_CONTENT for non-empty config", () => {
+    test("returns NOCOWBOY_CONFIG_CONTENT for non-empty config", () => {
       const config = JSON.stringify({ agent: { test: {} } })
       const envVars = KilocodeConfigInjector.getEnvVars(config)
 
       expect(envVars).toEqual({
-        KILO_CONFIG_CONTENT: config,
+        NOCOWBOY_CONFIG_CONTENT: config,
       })
     })
   })

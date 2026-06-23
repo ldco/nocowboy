@@ -190,9 +190,9 @@ describe("Kilo CLI customizations are wired into index.ts", () => {
     // customizations in setup.ts. If a future upstream merge drops them, every Kilo command
     // and the telemetry/lifecycle hooks silently disappear, exactly the regression this guards.
     const index = await file(INDEX)
-    expect(index).toContain("KiloCli.register(")
-    expect(index).toContain("KiloCli.bootstrap(")
-    expect(index).toContain("KiloCli.shutdown(")
+    expect(index).toContain("NocowboyCli.register(")
+    expect(index).toContain("NocowboyCli.bootstrap(")
+    expect(index).toContain("NocowboyCli.shutdown(")
   })
 
   test("registers the local Kilo Console instead of the upstream account console", async () => {

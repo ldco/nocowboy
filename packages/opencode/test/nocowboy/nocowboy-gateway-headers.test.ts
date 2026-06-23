@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, beforeEach } from "bun:test"
 import { buildHeaders, getFeatureHeader, getEditorNameHeader } from "@nocowboy/gateway"
-import { HEADER_FEATURE, ENV_FEATURE, ENV_EDITOR_NAME, ENV_VERSION, NOCOWBOY_DEFAULT_EDITOR_NAME } from "@nocowboy/gateway"
+import { HEADER_FEATURE, HEADER_EDITORNAME, ENV_FEATURE, ENV_EDITOR_NAME, ENV_VERSION, NOCOWBOY_DEFAULT_EDITOR_NAME } from "@nocowboy/gateway"
 
 describe("getFeatureHeader", () => {
   const original = process.env[ENV_FEATURE]
@@ -13,19 +13,19 @@ describe("getFeatureHeader", () => {
     }
   })
 
-  it("returns undefined when env var is not set", () => {
+  it("returns empty string when env var is not set", () => {
     delete process.env[ENV_FEATURE]
-    expect(getFeatureHeader()).toBeUndefined()
+    expect(getFeatureHeader()).toBe("")
   })
 
-  it("returns the env var value when set", () => {
+  it("returns empty string when env var is set", () => {
     process.env[ENV_FEATURE] = "cloud-agent"
-    expect(getFeatureHeader()).toBe("cloud-agent")
+    expect(getFeatureHeader()).toBe("")
   })
 
-  it("returns undefined for empty string", () => {
+  it("returns empty string for empty string env var", () => {
     process.env[ENV_FEATURE] = ""
-    expect(getFeatureHeader()).toBeUndefined()
+    expect(getFeatureHeader()).toBe("")
   })
 })
 
@@ -51,14 +51,14 @@ describe("getEditorNameHeader", () => {
     }
   })
 
-  it("returns default editor name without version when KILOCODE_VERSION is not set", () => {
+  it("returns default editor name without version when NOCOWBOY_VERSION is not set", () => {
     delete process.env[ENV_VERSION]
     expect(getEditorNameHeader()).toBe(NOCOWBOY_DEFAULT_EDITOR_NAME)
   })
 
-  it("appends version when KILOCODE_VERSION is set", () => {
+  it("returns default editor name without version when NOCOWBOY_VERSION is set", () => {
     process.env[ENV_VERSION] = "1.2.3"
-    expect(getEditorNameHeader()).toBe(`${NOCOWBOY_DEFAULT_EDITOR_NAME} 1.2.3`)
+    expect(getEditorNameHeader()).toBe(NOCOWBOY_DEFAULT_EDITOR_NAME)
   })
 })
 
@@ -73,10 +73,10 @@ describe("buildHeaders", () => {
     }
   })
 
-  it("includes feature header when env var is set", () => {
+  it("omits feature header when env var is set", () => {
     process.env[ENV_FEATURE] = "vscode-extension"
     const headers = buildHeaders()
-    expect(headers[HEADER_FEATURE]).toBe("vscode-extension")
+    expect(headers[HEADER_FEATURE]).toBeUndefined()
   })
 
   it("omits feature header when env var is not set", () => {
@@ -85,15 +85,15 @@ describe("buildHeaders", () => {
     expect(headers[HEADER_FEATURE]).toBeUndefined()
   })
 
-  it("always includes editor name header", () => {
+  it("omits editor name header", () => {
     delete process.env[ENV_FEATURE]
     const headers = buildHeaders()
-    expect(headers["X-KILOCODE-EDITORNAME"]).toBe(getEditorNameHeader())
+    expect(headers[HEADER_EDITORNAME]).toBeUndefined()
   })
 
-  it("passes through any feature value from env", () => {
+  it("omits feature header for any feature value from env", () => {
     process.env[ENV_FEATURE] = "custom-feature"
     const headers = buildHeaders()
-    expect(headers[HEADER_FEATURE]).toBe("custom-feature")
+    expect(headers[HEADER_FEATURE]).toBeUndefined()
   })
 })

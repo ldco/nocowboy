@@ -21,7 +21,7 @@ describe("worktree project skills", () => {
           yield* Effect.promise(() => $`git worktree add -b worktree-project-skills ${dir}`.cwd(tmp.path).quiet())
           yield* Effect.promise(() =>
             Bun.write(
-              path.join(tmp.path, ".kilo", "skills", "project-skill", "SKILL.md"),
+              path.join(tmp.path, ".nocowboy", "skills", "project-skill", "SKILL.md"),
               `---
 name: project-skill
 description: A skill installed in the main repository.
@@ -40,7 +40,7 @@ description: A skill installed in the main repository.
           )
 
           expect(list.find((item) => item.name === "project-skill")?.location).toBe(
-            path.join(tmp.path, ".kilo", "skills", "project-skill", "SKILL.md"),
+            path.join(tmp.path, ".nocowboy", "skills", "project-skill", "SKILL.md"),
           )
         }),
       (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),

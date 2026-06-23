@@ -26,13 +26,13 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
-          targets: [".nocowboy"], // nocowboy_change
+          targets: [".kilo", ".nocowboy"], // nocowboy_change
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [".nocowboy"], // nocowboy_change
+      targets: [".kilo", ".nocowboy"], // nocowboy_change
       start: Global.Path.home,
       stop: Global.Path.home,
     })),
