@@ -835,7 +835,7 @@ export const McpStartCommand = effectCmd({
         const match = servers.find(([n]) => n === name)
         if (!match) { prompts.log.warn(`Server "${name}" not found in config`); continue }
         const cmd = await Launcher.command(name)
-        if (!cmd) { prompts.log.warn(`Skipping "${name}" — no launch command defined (add one in ~/.nocowboy/mcp/launch.json)`); continue }
+        if (!cmd) { prompts.log.warn(`Skipping "${name}" — no launch command defined`); continue }
         const port = 9200 + results.length
         const r = await McpLifecycle.startOne(name, cmd, port)
         results.push(r)
@@ -932,6 +932,7 @@ export const McpRemoveCommand = effectCmd({
     const ctx = maybeCtx
     yield* Effect.promise(async () => {
       await McpLifecycle.stopOne(args.name).catch(() => {})
+      await Launcher.save(args.name, null).catch(() => {}) // nocowboy_change — clean launch entry
 
       const [projectConfigPath, globalConfigPath] = await Promise.all([
         resolveConfigPath(ctx.worktree),

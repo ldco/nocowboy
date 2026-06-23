@@ -33,20 +33,6 @@ export namespace Launcher {
     }
   }
 
-  export async function allNames(): Promise<string[]> {
-    try {
-      const raw = await fsp.readFile(LAUNCH_FILE, "utf-8")
-      const map = JSON.parse(raw)
-      return Object.entries(map)
-        .filter(([, v]) => v && typeof v === "object" && "command" in v)
-        .map(([k]) => k)
-    } catch {
-      return Object.entries(DEFAULT_LAUNCHES)
-        .filter(([, v]) => v !== null)
-        .map(([k]) => k)
-    }
-  }
-
   export async function save(name: string, cmd: string | null): Promise<void> {
     let map: Record<string, { command: string } | null>
     try {
