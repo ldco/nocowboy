@@ -1,8 +1,32 @@
 import * as os from "node:os"
 import * as path from "node:path"
 import * as fsp from "node:fs/promises"
+import * as fs from "node:fs"
+import { fileURLToPath } from "node:url"
 
 const LAUNCH_FILE = path.join(os.homedir(), ".nocowboy", "mcp", "launch.json")
+
+function findServerDir(): string | null {
+  // Try resolved from import.meta.url (dev/node_modules source install)
+  const selfPath = fileURLToPath(import.meta.url)
+  const fromSource = path.resolve(path.dirname(selfPath), "../../../../packaging/mcp-servers")
+  if (fs.existsSync(fromSource)) return fromSource
+
+  // Try AUR/system install path
+  if (fs.existsSync("/usr/share/nocowboy/mcp-servers")) return "/usr/share/nocowboy/mcp-servers"
+
+  // Try relative to binary
+  const binary = process.argv[0] ?? process.execPath
+  const fromBinary = path.resolve(path.dirname(binary), "..", "mcp-servers")
+  if (fs.existsSync(fromBinary)) return fromBinary
+
+  return null
+}
+
+const SERVERS_ROOT = findServerDir()
+function serverPath(name: string): string {
+  return SERVERS_ROOT ? path.join(SERVERS_ROOT, name, "dist", "index.js") : ""
+}
 
 const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   context7: { command: "npx -y @upstash/context7-mcp" },
@@ -10,13 +34,13 @@ const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   puppeteer: { command: "npx puppeteer-mcp-claude serve" },
   git: { command: "uvx mcp-server-git" },
   tausik: null,
-  "plugin-registry": { command: "node /usr/share/nocowboy/mcp-servers/plugin-registry/dist/index.js" },
-  constitution: { command: "node /usr/share/nocowboy/mcp-servers/constitution/dist/index.js" },
-  "contract-guard": { command: "node /usr/share/nocowboy/mcp-servers/contract-guard/dist/index.js" },
-  "ncp-validator": { command: "node /usr/share/nocowboy/mcp-servers/ncp-validator/dist/index.js" },
-  "score-engine": { command: "node /usr/share/nocowboy/mcp-servers/score-engine/dist/index.js" },
-  puppetmaster: { command: "node /usr/share/nocowboy/mcp-servers/puppetmaster/dist/index.js" },
-  ralph: { command: "node /usr/share/nocowboy/mcp-servers/ralph/dist/index.js" },
+  "plugin-registry": { command: `node ${serverPath("plugin-registry")}` },
+  constitution: { command: `node ${serverPath("constitution")}` },
+  "contract-guard": { command: `node ${serverPath("contract-guard")}` },
+  "ncp-validator": { command: `node ${serverPath("ncp-validator")}` },
+  "score-engine": { command: `node ${serverPath("score-engine")}` },
+  puppetmaster: { command: `node ${serverPath("puppetmaster")}` },
+  ralph: { command: `node ${serverPath("ralph")}` },
 }
 
 export namespace Launcher {
