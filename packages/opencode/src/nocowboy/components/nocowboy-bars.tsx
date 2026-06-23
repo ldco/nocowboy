@@ -5,7 +5,6 @@ import { resolve } from "node:path"
 import { RGBA, TextAttributes, MouseEvent } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { useSync } from "@tui/context/sync"
-import { useProject } from "@tui/context/project"
 import { Clipboard } from "@tui/util/clipboard"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 
@@ -23,7 +22,7 @@ function gitInfo() {
     const p = resolve(d, ".git/HEAD")
     if (existsSync(p)) { gitDir = d; break }
   }
-  if (!gitDir) return { branch: "", ahead: 0, behind: 0, dirty: 0, untracked: 0 }
+  if (!gitDir) return { branch: "", ahead: 0, behind: 0, dirty: 0, untracked: 0, dir: process.cwd() }
   let branch = ""
   try {
     const head = readFileSync(resolve(gitDir, ".git/HEAD"), "utf-8").trim()
@@ -43,7 +42,7 @@ function gitInfo() {
       else dirty++
     }
   } catch {}
-  return { branch, ahead, behind, dirty, untracked }
+  return { branch, ahead, behind, dirty, untracked, dir: gitDir }
 }
 
 export type Screen = string
@@ -90,12 +89,10 @@ const brandOrange = RGBA.fromInts(0xff, 0x68, 0x00)
 
 export function TopBar() {
   const { theme } = useTheme()
-  const project = useProject()
-  const fullPath = () => project.instance.path().directory || process.cwd()
-  const pathDisplay = createMemo(() => shortPath(fullPath()))
   const [tick, setTick] = createSignal(0)
   onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10_000); onCleanup(() => clearInterval(id)) })
   const git = createMemo(() => { tick(); return gitInfo() })
+  const pathDisplay = createMemo(() => shortPath(git().dir))
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>

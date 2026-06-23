@@ -215,7 +215,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     enabled: true,
     bindings: [
       {
-        key: "ctrl+shift+left",
+        key: "alt+left",
         desc: "Previous tab",
         group: "Sidebar",
         cmd: () => {
@@ -225,7 +225,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         },
       },
       {
-        key: "ctrl+shift+right",
+        key: "alt+right",
         desc: "Next tab",
         group: "Sidebar",
         cmd: () => {
@@ -241,7 +241,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     enabled: tab() === "history",
     bindings: [
       {
-        key: "ctrl+shift+up",
+        key: "alt+up",
         desc: "Previous session",
         group: "Sidebar",
         cmd: () => {
@@ -253,7 +253,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         },
       },
       {
-        key: "ctrl+shift+down",
+        key: "alt+down",
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
