@@ -1515,7 +1515,7 @@ export function Prompt(props: PromptProps) {
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
           border={["left"]}
-          borderColor={theme.backgroundPanel} // nocowboy_change
+          borderColor="#ff6800" // nocowboy_change - brand orange
           customBorderChars={{
             ...SplitBorder.customBorderChars,
             bottomLeft: "╹",
@@ -1656,7 +1656,7 @@ export function Prompt(props: PromptProps) {
           height={1}
           /* nocowboy_change */ flexShrink={0}
           border={["left"]}
-          borderColor={theme.backgroundPanel} // nocowboy_change
+          borderColor="#ff6800" // nocowboy_change - brand orange
           customBorderChars={{
             ...EmptyBorder,
             vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",

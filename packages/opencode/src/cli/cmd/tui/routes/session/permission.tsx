@@ -2,6 +2,7 @@ import { createStore } from "solid-js/store"
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js"
 import { Portal, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import type { TextareaRenderable } from "@opentui/core"
+import { RGBA } from "@opentui/core"
 import { useTheme, selectedForeground } from "../../context/theme"
 import type { PermissionRequest } from "@nocowboy/sdk/v2"
 import { useSDK } from "../../context/sdk"
@@ -421,7 +422,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
           const header = () => (
             <box flexDirection="column" gap={0}>
               <box flexDirection="row" gap={1} flexShrink={0}>
-                <text fg={theme.warning}>{"△"}</text>
+                <text fg={brand}>{"△"}</text>
                 <text fg={theme.text}>Permission required</text>
               </box>
               <box flexDirection="row" gap={1} paddingLeft={2} flexShrink={0}>
@@ -579,6 +580,7 @@ function Prompt<const T extends Record<string, string>>(props: {
   onSelect: (option: keyof T) => void
 }) {
   const { theme } = useTheme()
+  const brand = RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change
   const tuiConfig = useTuiConfig()
   const dimensions = useTerminalDimensions()
   const keys = Object.keys(props.options) as (keyof T)[]
@@ -681,7 +683,7 @@ function Prompt<const T extends Record<string, string>>(props: {
     <box
       backgroundColor={theme.backgroundPanel}
       border={["left"]}
-      borderColor={theme.warning}
+      borderColor={brand}
       customBorderChars={SplitBorder.customBorderChars}
       {...(store.expanded
         ? { top: dimensions().height * -1 + 1, bottom: 1, left: 2, right: 2, position: "absolute" }
@@ -699,7 +701,7 @@ function Prompt<const T extends Record<string, string>>(props: {
           when={props.header}
           fallback={
             <box flexDirection="row" gap={1} paddingLeft={1} flexShrink={0}>
-              <text fg={theme.warning}>{"△"}</text>
+              <text fg={brand}>{"△"}</text>
               <text fg={theme.text}>{props.title}</text>
             </box>
           }
@@ -728,14 +730,14 @@ function Prompt<const T extends Record<string, string>>(props: {
               <box
                 paddingLeft={1}
                 paddingRight={1}
-                backgroundColor={option === store.selected ? theme.warning : theme.backgroundMenu}
+                backgroundColor={option === store.selected ? brand : theme.backgroundMenu}
                 onMouseOver={() => setStore("selected", option)}
                 onMouseUp={() => {
                   setStore("selected", option)
                   props.onSelect(option)
                 }}
               >
-                <text fg={option === store.selected ? selectedForeground(theme, theme.warning) : theme.textMuted}>
+                <text fg={option === store.selected ? selectedForeground(theme, brand) : theme.textMuted}>
                   {props.options[option]}
                 </text>
               </box>

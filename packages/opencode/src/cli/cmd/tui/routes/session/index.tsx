@@ -1485,12 +1485,7 @@ export function Session() {
                     ref={bind}
                   >
                     {/* nocowboy_change — styled input box */}
-                    <box
-                      border
-                      borderStyle="rounded"
-                      borderColor="#ff6800"
-                    >
-                      <Prompt
+                    <Prompt
                         visible={visible()}
                         ref={bind}
                         disabled={disabled()}
@@ -1524,8 +1519,7 @@ export function Session() {
                           </box>
                         }
                       />
-                    </box>
-                  </TuiPluginRuntime.Slot>
+                    </TuiPluginRuntime.Slot>
                 </Show>
                 {/* nocowboy_change end */}
               </box>

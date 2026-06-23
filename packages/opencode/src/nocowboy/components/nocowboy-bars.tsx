@@ -148,6 +148,7 @@ export function BottomBar() {
       </For>
       <text flexGrow={1} />
       <SidebarToggle />
+      {sidebarOpen() && <text fg={theme.textMuted}> ⇄ ⇅ alt+arrows</text>}
     </box>
   )
 }
@@ -161,7 +162,7 @@ function SidebarToggle() {
       paddingRight={1}
       onMouseDown={(e: MouseEvent) => { e.preventDefault?.(); toggleSidebar() }}
     >
-      {sidebarOpen() ? "◀ ctrl+b" : "▶ ctrl+b"}
+      {sidebarOpen() ? "▶ ctrl+b" : "◀ ctrl+b"}
     </text>
   )
 }
