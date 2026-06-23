@@ -101,7 +101,7 @@ export function TopBar() {
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
       <text attributes={TextAttributes.BOLD} fg={brandOrange}> noCowboy</text>
       <text fg={theme.text}>
-        {` ${pathDisplay}`}
+        {` ${pathDisplay()}`}
       </text>
         <text fg={theme.success} flexGrow={1}>
           {` \uf126 ${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}${git().dirty > 0 ? ` !${git().dirty}` : ""}${git().untracked > 0 ? ` ?${git().untracked}` : ""}`}
