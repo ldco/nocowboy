@@ -6,16 +6,43 @@
  *      which would silently reintroduce the regression on refactors.
  *   2. A runtime check: forwarding props through the same pattern used in
  *      slots.tsx preserves reactivity for arbitrary props (not just children).
+ *
+ * Runtime reactivity tests require `--conditions=browser` when running
+ * directly so solid-js resolves to the reactive browser build. The test
+ * runner (script/test-runner.ts) passes this flag automatically.
+ * When conditions are missing the runtime tests are skipped gracefully.
  */
 
 import { describe, expect, test } from "bun:test"
 import fs from "node:fs"
 import path from "node:path"
-import { children, createEffect, createRoot, createSignal, mergeProps } from "solid-js"
+import { createEffect, createRoot, createSignal, mergeProps, children } from "solid-js"
 
 const SLOTS_FILE = path.resolve(import.meta.dir, "../../src/cli/cmd/tui/plugin/slots.tsx")
 
+function hasReactiveEffects(): boolean {
+  let ran = false
+  const [sig] = createSignal(0)
+  const d = createRoot((dispose) => {
+    createEffect(() => {
+      ran = true
+      sig()
+    })
+    return dispose
+  })
+  d()
+  return ran
+}
+
+const describeRuntime = hasReactiveEffects() ? describe : describe.skip
+
 describe("Slot wrapper preserves prop reactivity", () => {
+  test("slots.tsx exists and exports Slot", () => {
+    expect(fs.existsSync(SLOTS_FILE)).toBe(true)
+    const content = fs.readFileSync(SLOTS_FILE, "utf-8")
+    expect(content).toContain("export const Slot")
+  })
+
   test("slots.tsx does not use `{...props}` spread to forward props", () => {
     // Spread on a plain object in Solid evaluates every prop once and freezes
     // it. mergeProps (or a getter per prop) is required to keep reactivity.
@@ -29,9 +56,13 @@ describe("Slot wrapper preserves prop reactivity", () => {
     const content = fs.readFileSync(SLOTS_FILE, "utf-8")
     const wrapper = content.match(/export const Slot[\s\S]*?^}/m)?.[0] ?? ""
     const usesMergeProps = /mergeProps\s*\(/.test(wrapper)
+    const usesChildren = /children\s*\(/.test(wrapper)
     expect(usesMergeProps).toBe(true)
+    expect(usesChildren).toBe(true)
   })
+})
 
+describeRuntime("mergeProps preserves reactivity (requires --conditions=browser)", () => {
   test("mergeProps preserves reactivity of non-children props", () => {
     // Simulates the exact pattern used in slots.tsx: resolve children via the
     // `children()` helper and forward the rest via mergeProps. Non-children

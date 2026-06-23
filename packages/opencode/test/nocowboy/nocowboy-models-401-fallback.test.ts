@@ -38,16 +38,16 @@ const it = testEffect(layer)
 it.live("401 from Kilo models sets provider as failed in ModelCache", () =>
   Effect.gen(function* () {
     const cache = yield* ModelCache.Service
-    yield* cache.fetch("kilo")
-    expect(yield* cache.failedProviders()).toContain("kilo")
-    expect(yield* cache.getFailure("kilo")).toMatchObject({ kind: "unauthorized", status: 401 })
+    yield* cache.fetch("nocowboy")
+    expect(yield* cache.failedProviders()).toContain("nocowboy")
+    expect(yield* cache.getFailure("nocowboy")).toMatchObject({ kind: "unauthorized", status: 401 })
   }),
 )
 
 it.live("401 from Kilo models caches empty models (not undefined)", () =>
   Effect.gen(function* () {
     const cache = yield* ModelCache.Service
-    yield* cache.fetch("kilo")
-    expect(yield* cache.get("kilo")).toEqual({})
+    yield* cache.fetch("nocowboy")
+    expect(yield* cache.get("nocowboy")).toEqual({})
   }),
 )
