@@ -1840,7 +1840,11 @@ export function Prompt(props: PromptProps) {
                       </text>
                     </Match>
                   </Switch>
-                  <text fg={theme.text}>
+                  <text
+                    selectable={false}
+                    fg={theme.text}
+                    onMouseDown={(e: MouseEvent) => { e.preventDefault?.(); command.show() }}
+                  >
                     {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
                 </Match>
