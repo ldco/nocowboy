@@ -311,6 +311,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           <text fg={brand} onMouseDown={() => route.navigate({ type: "home" })}>[+ New Session]</text>
           <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log(`share.click ${s.id}`); shareSession(s.id) } }}>[ Share ]</text>
         </box>
+        <box height={1} flexShrink={0} />
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>
           <scrollbox ref={(r: any) => (_historyScrollbox = r)} flexGrow={1} scrollAcceleration={scrollAcceleration()}>
             <HistoryTab
