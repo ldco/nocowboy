@@ -1,4 +1,6 @@
 // All CommandModules in one place so help.ts and generate-cli-docs.ts can
+import { RepoMapCommand } from "../cli/cmd/repomap" // nocowboy_change
+import { InitCommand } from "../cli/cmd/init" // nocowboy_change
 // introspect them without importing index.ts (which has startup side effects).
 // When upstream adds a new command to index.ts, add it here too.
 import { AcpCommand } from "../cli/cmd/acp"
@@ -51,6 +53,8 @@ const dev = InstallationBuildKind === "release" ? [] : [DevSetupCommand, DevAlia
 export const commands = [
   AcpCommand,
   McpCommand,
+  RepoMapCommand, // nocowboy_change
+  InitCommand, // nocowboy_change
   TuiThreadCommand,
   AttachCommand,
   RunCommand,
