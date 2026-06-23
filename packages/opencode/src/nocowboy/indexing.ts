@@ -243,17 +243,17 @@ export namespace KiloIndexing {
     const dir = Instance.directory
     const baseline = baselineDirectory(dir)
     const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.get()))
+    const globalConfig = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
     if (process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] === "vscode-no-workspace") {
       return track(hit, await inert(() => noWorkspace()))
     }
-    if (!cfg.indexing?.enabled) {
+    if (!cfg.indexing?.enabled && !globalConfig.indexing?.enabled) {
       return track(hit, await inert(() => missing()))
     }
 
     log.info("initializing project indexing", { workspacePath: dir, baselineDirectory: baseline })
     const root = path.join(Global.Path.state, "indexing")
     const auth = await kiloAuth(cfg)
-    const globalConfig = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
     const global = globalConfig.indexing
     const merged = indexingWithNoCowboyDefault({ ...global, ...cfg.indexing }, auth)
     const cfgInput = await model(enrichKilo(input(merged, global), auth), auth)
