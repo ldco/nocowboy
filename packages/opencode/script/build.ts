@@ -253,7 +253,7 @@ for (const item of targets) {
     item.avx2 === false ? "baseline" : undefined,
     item.abi === undefined ? undefined : item.abi,
   ]
-    .filter(Boolean)
+    .filter((x): x is NonNullable<typeof x> => !!x)
     .join("-")
 
   console.log(`building ${name}`)

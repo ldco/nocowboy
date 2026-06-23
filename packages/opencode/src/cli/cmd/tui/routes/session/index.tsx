@@ -268,7 +268,7 @@ export function Session() {
   // nocowboy_change end
 
   const pending = createMemo(() => {
-    return messages().findLast((x) => x.role === "assistant" && !x.time.completed)?.id
+    return messages().findLast((x) => x.role === "assistant" && !('completed' in x.time && x.time.completed))?.id
   })
 
   const lastAssistant = createMemo(() => {
@@ -1705,7 +1705,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
 
   const duration = createMemo(() => {
     if (!final()) return 0
-    if (!props.message.time.completed) return 0
+    if (!('completed' in props.message.time && props.message.time.completed)) return 0
     const user = messages().find((x) => x.role === "user" && x.id === props.message.parentID)
     if (!user || !user.time) return 0
     return props.message.time.completed - user.time.created
@@ -2449,9 +2449,10 @@ function Task(props: ToolProps<typeof TaskTool>) {
 
   const duration = createMemo(() => {
     const first = messages().find((x) => x.role === "user")?.time.created
-    const assistant = messages().findLast((x) => x.role === "assistant")?.time.completed
-    if (!first || !assistant) return 0
-    return assistant - first
+    const last = messages().findLast((x) => x.role === "assistant")
+    const completed = last && 'completed' in last.time && last.time.completed
+    if (!first || !completed) return 0
+    return completed - first
   })
 
   const content = createMemo(() => {

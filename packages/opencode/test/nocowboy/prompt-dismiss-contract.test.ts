@@ -17,7 +17,7 @@ const PROMPT_FILE = path.resolve(import.meta.dir, "../../src/session/prompt.ts")
 describe("prompt.ts Kilo-specific invariants", () => {
   test("imports Suggestion from kilocode/suggestion", () => {
     const content = fs.readFileSync(PROMPT_FILE, "utf-8")
-    expect(content).toMatch(/import\s*\{[^}]*Suggestion[^}]*\}\s*from\s*["']@\/kilocode\/suggestion["']/)
+    expect(content).toMatch(/import\s*\{[^}]*Suggestion[^}]*\}\s*from\s*["']@\/nocowboy\/suggestion["']/)
   })
 
   test("imports Question from the question module", () => {
@@ -38,7 +38,7 @@ describe("prompt.ts Kilo-specific invariants", () => {
     // either of those would abort the running streamText mid-tokens, which was
     // the #9332 regression. Order: dismissAll(Suggestion), question.dismissAll, enqueue.
     const block = content.match(
-      /kilocode_change start[^\n]*unblock tools[\s\S]*?Suggestion\.dismissAll[\s\S]*?question\.dismissAll[\s\S]*?KiloSessionPromptQueue\.enqueue/,
+      /Suggestion\.dismissAll[\s\S]*?question\.dismissAll[\s\S]*?KiloSessionPromptQueue\.enqueue/,
     )
     expect(block).not.toBeNull()
     expect(content).not.toMatch(/state\.cancel\(input\.sessionID\)/)
