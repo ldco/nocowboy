@@ -110,6 +110,7 @@ export const McpCommand = cmd({
       .command(McpStatusCommand) // nocowboy_change
       .command(McpLogsCommand) // nocowboy_change
       .command(McpProxyCommand) // nocowboy_change
+      .command(McpRemoveCommand) // nocowboy_change
       .demandCommand(),
   async handler() {},
 })
@@ -917,6 +918,47 @@ export const McpLogsCommand = cmd({
     }
     console.log(output)
   },
+})
+
+export const McpRemoveCommand = effectCmd({
+  command: "remove <name>",
+  describe: "remove an MCP server from config and stop it",
+  builder: (yargs) =>
+    yargs.positional("name", { describe: "server name", type: "string", demandOption: true }),
+  handler: Effect.fn("Cli.mcp.remove")(function* (args) {
+    const maybeCtx = yield* InstanceRef
+    if (!maybeCtx) return yield* Effect.die("InstanceRef not provided")
+    const ctx = maybeCtx
+    yield* Effect.promise(async () => {
+      await McpLifecycle.stopOne(args.name).catch(() => {})
+
+      const [projectConfigPath, globalConfigPath] = await Promise.all([
+        resolveConfigPath(ctx.worktree),
+        resolveConfigPath(Global.Path.config, true),
+      ])
+
+      const candidates = [projectConfigPath, globalConfigPath]
+      let removed = false
+      for (const configPath of candidates) {
+        if (!await Filesystem.exists(configPath)) continue
+        const text = await Filesystem.readText(configPath)
+        const config = JSON.parse(text)
+        if (config.mcp?.[args.name]) {
+          const edits = modify(text, ["mcp", args.name], undefined, {
+            formattingOptions: { tabSize: 2, insertSpaces: true },
+          })
+          const result = KilocodeMcpConfig.format(configPath, applyEdits(text, edits))
+          await Filesystem.write(configPath, result)
+          removed = true
+          prompts.log.success(`Removed "${args.name}" from ${configPath}`)
+          break
+        }
+      }
+      if (!removed) {
+        prompts.log.warn(`Server "${args.name}" not found in any config`)
+      }
+    })
+  }),
 })
 
 export const McpProxyCommand = cmd({
