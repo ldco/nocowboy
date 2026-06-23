@@ -8,33 +8,35 @@ One meta-package + two platform binary packages + first-party MCP server package
 |---|---|---|
 | `nocowboy` | Meta-package (thin Node.js wrapper) | `packages/nocowboy-cli/` |
 | `nocowboy-linux-x64` | Compiled binary for Linux x64 | `dist/nocowboy-tui-linux-x64/` |
-| `nocowboy-darwin-arm64` | Compiled binary for macOS ARM64 (M1/M2/M3) | `dist/nocowboy-tui-darwin-arm64/` |
-| `@nocowboy/mcp-<name>` | First-party MCP servers — published separately, **NOT** in the meta-package | `packaging/mcp-servers/<name>/` |
+| `nocowboy-darwin-arm64` | Compiled binary for macOS ARM64 | `dist/nocowboy-tui-darwin-arm64/` |
+| `@nocowboy/mcp-<name>` | First-party MCP servers — separate plugins, NOT in meta-package | `packaging/mcp-servers/<name>/` |
 
-**MCP servers are NOT hardcoded in the meta-package.** Each is published independently to npm with a `postinstall` script that automatically configures it via `nocowboy mcp install <name>`.
+**MCP servers are not hardcoded in the meta-package.** Each is published independently with a `postinstall` script that auto-configures it. Plug out/plug in — add or remove servers without touching the core.
 
-User flow:
+### User flow
+
 ```bash
+# Install core (binary + wrapper)
+npm install -g nocowboy
+
+# Install + auto-configure a MCP server
 npm install -g @nocowboy/mcp-constitution
-# ^ postinstall auto-runs → server added to config, started on port 9200+
+# ^ postinstall → nocowboy mcp install constitution → config → started on port 9200+
+
+# Or let nocowboy download it for you
+nocowboy mcp install constitution
+# → "not found. Install from npm?" → yes → npm install -g → postinstall configures
 ```
 
-This is a true **plugin out/plugin in** system:
-- Install a server: `npm install -g @nocowboy/mcp-<name>` — auto-configured
-- Uninstall: `npm uninstall -g @nocowboy/mcp-<name>` — run `mcp remove <name>` first
-- New server published: npm install it, done
-- Deprecated server: uninstall it, no core changes needed
-| `@nocowboy/mcp-constitution` | AI Constitution server — code policy enforcement | `packaging/mcp-servers/constitution/` |
-| `@nocowboy/mcp-contract-guard` | API contract guard server | `packaging/mcp-servers/contract-guard/` |
-| `@nocowboy/mcp-ncp-validator` | NoCowboy Score/Contract guard validator | `packaging/mcp-servers/ncp-validator/` |
-| `@nocowboy/mcp-plugin-registry` | Plugin registry server | `packaging/mcp-servers/plugin-registry/` |
-| `@nocowboy/mcp-puppetmaster` | PM Framework orchestration server | `packaging/mcp-servers/puppetmaster/` |
-| `@nocowboy/mcp-ralph` | Ralph TUI task orchestration server | `packaging/mcp-servers/ralph/` |
-| `@nocowboy/mcp-score-engine` | NoCowboy Score evaluation server | `packaging/mcp-servers/score-engine/` |
+### Plugin lifecycle
 
-Note: `puppetmaster` has no `dist/` built yet — needs `cd packaging/mcp-servers/puppetmaster && npm run build` before publishing.
-
-When a user runs `npm install -g nocowboy` or `bun install -g nocowboy`, npm automatically installs only the platform package matching their OS via `optionalDependencies`. The `bin/nocowboy.mjs` wrapper detects the platform and spawns the correct binary.
+| Action | Command |
+|---|---|
+| Install + auto-configure | `npm install -g @nocowboy/mcp-<name>` |
+| Remove | `nocowboy mcp remove <name> && npm uninstall -g @nocowboy/mcp-<name>` |
+| Add custom server | `nocowboy mcp add` (interactive dialog) |
+| Start all configured | `nocowboy mcp start` |
+| Status | `nocowboy mcp status` |
 
 ## Prerequisites
 
@@ -45,49 +47,32 @@ When a user runs `npm install -g nocowboy` or `bun install -g nocowboy`, npm aut
 
 ## Step 1 — Build platform binaries
 
-Cross-compiles both Linux x64 and macOS ARM64 binaries on a single Linux machine:
-
 ```bash
 cd packages/opencode
-NOCOWBOY_VERSION=0.5.5 NOCOWBOY_RELEASE=true bun run script/build.ts
+NOCOWBOY_VERSION=0.6.0 NOCOWBOY_RELEASE=true bun run script/build.ts
 ```
 
 Outputs:
 - `dist/nocowboy-tui-linux-x64/bin/nocowboy` + sidecars (tree-sitter wasms, models-snapshot)
-- `dist/nocowboy-tui-darwin-arm64/bin/nocowboy` + sidecars
+- `dist/nocowboy-tui-darwin-arm64/bin/nocowboy` + sidecars (if cross-compiled from same machine)
 
-Each dist directory already contains a valid `package.json` with:
-```json
-{
-  "name": "nocowboy-linux-x64",
-  "version": "0.5.5",
-  "os": ["linux"],
-  "cpu": ["x64"],
-  "bin": { "nocowboy": "bin/nocowboy" },
-  "files": ["bin/"],
-  "preferUnplugged": true
-}
-```
+Each dist directory contains a valid `package.json` with platform-specific fields (`os`, `cpu`, `bin`, `files`).
 
-## Step 2 — Publish platform binary package
+## Step 2 — Publish platform binary packages
 
 ```bash
-# Publish Linux x64 (from Arch)
-cd packages/opencode/dist/nocowboy-tui-linux-x64
-npm publish
-
-# Publish macOS ARM64 — build on Mac or cross-compile from Linux
-cd packages/opencode/dist/nocowboy-tui-darwin-arm64
-npm publish
+cd packages/opencode/dist/nocowboy-tui-linux-x64 && npm publish
+cd packages/opencode/dist/nocowboy-tui-darwin-arm64 && npm publish
 ```
 
 ## Step 3 — Publish MCP server packages (independently)
 
-Each first-party MCP server is a **separate npm package**, published independently. Not part of the meta-package.
+Each server is a **separate npm package**, published independently. No coupling to the core.
 
 ```bash
-# Publish one server (repeat for each):
 cd packaging/mcp-servers/constitution && npm publish && cd -
+cd packaging/mcp-servers/contract-guard && npm publish && cd -
+# ... repeat for each server
 
 # puppetmaster needs dist/ built first:
 cd packaging/mcp-servers/puppetmaster && npm run build && npm publish && cd -
@@ -96,26 +81,20 @@ cd packaging/mcp-servers/puppetmaster && npm run build && npm publish && cd -
 ## Step 4 — Publish meta-package
 
 ```bash
-cd packages/nocowboy-cli
-npm publish
+cd packages/nocowboy-cli && npm publish
 ```
 
-The meta-package has `bin: { "nocowboy": "./bin/nocowboy.mjs" }` — a 23-line Node.js
-wrapper that resolves the platform-specific binary and spawns it.
+The meta-package is tiny — just `bin/nocowboy.mjs` (platform wrapper) and `package.json`.
 
-## Step 4 — Verify
+## Step 5 — Verify
 
-```bash
-npm install -g nocowboy
-nocowboy --version
-# → 0.5.5
-```
-
-**Then verify:**
 ```bash
 npm install -g nocowboy
 nocowboy --version    # → 0.6.0
 nocowboy mcp status   # → shows configured servers
+npm install -g @nocowboy/mcp-constitution
+# → postinstall auto-configures → server starts
+nocowboy mcp status   # → constitution running
 ```
 
 ## Bumping version
@@ -124,14 +103,14 @@ Update version in all places:
 - `packages/nocowboy-cli/package.json` — meta-package version
 - `packages/opencode/package.json` — source package (build script fallback)
 - `packages/core/src/installation/version.ts` — `NOCOWBOY_VERSION` fallback
-- `install.sh` — VERSION for the direct-install script
+- `install.sh` — `VERSION` for direct-install script
 - All `packaging/mcp-servers/*/package.json` — MCP server versions
 
 Then build: `NOCOWBOY_VERSION=0.6.1 NOCOWBOY_RELEASE=true bun run script/build.ts`
 
-Update the meta-package's optionalDependencies versions to match.
+Update the meta-package's `optionalDependencies` versions to match.
 
-## Files included in each platform package
+## Files in each platform package
 
 - `bin/nocowboy` — compiled binary (~155 MB)
 - `bin/tree-sitter/*.wasm` — grammar wasm files for code parsing (~50 MB)
