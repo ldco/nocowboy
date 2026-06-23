@@ -1,6 +1,6 @@
 {
   "name": "@nocowboy/mcp-constitution",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": false,
   "publishConfig": { "access": "public" },
   "type": "module",
