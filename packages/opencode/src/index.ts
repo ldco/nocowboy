@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
+import { RepoMapCommand } from "./cli/cmd/repomap" // nocowboy_change
 import { GenerateCommand } from "./cli/cmd/generate"
 import * as Log from "@opencode-ai/core/util/log"
 // import { ConsoleCommand } from "./cli/cmd/account" // nocowboy_change - reserve `kilo console` for local settings
@@ -160,6 +161,7 @@ let cli = yargs(args) // nocowboy_change
   .completion("completion", "generate shell completion script")
   .command(AcpCommand)
   .command(McpCommand)
+  .command(RepoMapCommand) // nocowboy_change
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)
