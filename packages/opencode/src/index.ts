@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
+import { InitCommand } from "./cli/cmd/init" // nocowboy_change
 import { RepoMapCommand } from "./cli/cmd/repomap" // nocowboy_change
 import { GenerateCommand } from "./cli/cmd/generate"
 import * as Log from "@opencode-ai/core/util/log"
@@ -162,6 +163,7 @@ let cli = yargs(args) // nocowboy_change
   .command(AcpCommand)
   .command(McpCommand)
   .command(RepoMapCommand) // nocowboy_change
+  .command(InitCommand) // nocowboy_change
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)
