@@ -226,7 +226,7 @@ const targets = singleFlag
   // nocowboy_change - only build Arch (linux-x64) + macOS; others kept for future
   : allTargets.filter(
       (item) =>
-        item.abi === undefined && item.avx2 !== false && item.os !== "win32" && !(item.os === "linux" && item.arch === "arm64") && !(item.os === "darwin" && item.arch === "x64"),
+        item.abi === undefined && item.avx2 !== false && item.os !== "win32" && !(item.os === "linux" && item.arch === "arm64"),
     )
 
 // nocowboy_change start - prepare one validated models snapshot before any target compile
@@ -386,14 +386,17 @@ for (const item of targets) {
   }
 
   await $`rm -rf ./dist/${name}/bin/tui`
+  const npmName = `nocowboy-${item.os}-${item.arch}` // nocowboy_change
   await Bun.file(`dist/${name}/package.json`).write(
     JSON.stringify(
       {
-        name,
+        name: npmName,
         version: Script.version,
         preferUnplugged: true,
         os: [item.os],
         cpu: [item.arch],
+        bin: { nocowboy: "bin/nocowboy" }, // nocowboy_change
+        files: ["bin/"], // nocowboy_change
         keywords: pkg.keywords, // nocowboy_change
         private: pkg.private, // nocowboy_change
         // nocowboy_change start

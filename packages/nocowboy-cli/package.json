@@ -1,0 +1,19 @@
+{
+  "name": "nocowboy",
+  "version": "0.5.5",
+  "description": "AI-powered development tool — agentic coding for the Russian market",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "nocowboy": "./bin/nocowboy.mjs"
+  },
+  "optionalDependencies": {
+    "nocowboy-linux-x64": "0.5.5",
+    "nocowboy-darwin-arm64": "0.5.5",
+    "nocowboy-darwin-x64": "0.5.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ldco/nocowboy.git"
+  }
+}

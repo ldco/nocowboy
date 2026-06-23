@@ -4,7 +4,7 @@
   "name": "nocowboy-tui",
   "type": "module",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun run script/test-runner.ts",
