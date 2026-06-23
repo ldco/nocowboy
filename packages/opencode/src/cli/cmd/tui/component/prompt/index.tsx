@@ -96,11 +96,6 @@ export type PromptRef = {
   submit(): void
 }
 
-const money = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-})
-
 const DRAFT_RETENTION_MIN_CHARS = 20
 
 function randomIndex(count: number) {
@@ -340,29 +335,6 @@ export function Prompt(props: PromptProps) {
     const messages = sync.data.message[props.sessionID]
     if (!messages) return undefined
     return messages.findLast((m): m is UserMessage => m.role === "user")
-  })
-
-  const usage = createMemo(() => {
-    if (!props.sessionID) return
-    const session = sync.session.get(props.sessionID)
-    const msg = sync.data.message[props.sessionID] ?? []
-    const last = msg.findLast((item): item is AssistantMessage => item.role === "assistant" && item.tokens.output > 0)
-    if (!last) return
-
-    const tokens =
-      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
-    if (tokens <= 0) return
-
-    const model = sync.data.provider.find((item) => item.id === last.providerID)?.models[last.modelID]
-    const pct = model?.limit.context ? `${Math.round((tokens / model.limit.context) * 100)}%` : undefined
-    const cost = session?.cost ?? 0
-    const tokenStr = tokens >= 1000000 ? `${(tokens / 1000000).toFixed(2)}M` : tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}K` : `${tokens}`
-    const fmt = (n: number) => n.toLocaleString("en-US")
-    return {
-      context: pct ? `${tokenStr} (${pct})` : tokenStr,
-      cost: cost > 0 ? money.format(cost) : undefined,
-      breakdown: `In: ${fmt(last.tokens.input)}  Out: ${fmt(last.tokens.output)}  Cache: ${fmt(last.tokens.cache.read + last.tokens.cache.write)}`,
-    }
   })
 
   const [store, setStore] = createStore<{
@@ -1834,14 +1806,7 @@ export function Prompt(props: PromptProps) {
               <Switch>
                 <Match when={store.mode === "normal"}>
                   <Switch>
-                    <Match when={usage()}>
-                      {(item) => (
-                        <text fg={theme.textMuted} wrapMode="none">
-                          {[item().context, item().cost].filter(Boolean).join(" · ")}
-                          {"  "}{item().breakdown}
-                        </text>
-                      )}
-                    </Match>
+
                     <Match when={true}>
                       <text fg={theme.text}>
                         {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
