@@ -12,7 +12,7 @@
     "test:httpapi": "bun run script/httpapi-exercise.ts --mode coverage --fail-on-missing --fail-on-skip && bun run script/httpapi-exercise.ts --mode auth --fail-on-missing --fail-on-skip && bun run script/httpapi-exercise.ts --mode effect --fail-on-missing --fail-on-skip",
     "build": "bun run script/build.ts",
     "fix-node-pty": "bun run script/fix-node-pty.ts",
-    "dev": "NOCOWBOY_VERSION=0.5.1-dev NOCOWBOY_CHANNEL=dev bun --watch --conditions=browser ./src/index.ts",
+    "dev": "NOCOWBOY_VERSION=0.5.2-dev NOCOWBOY_CHANNEL=dev bun --watch --conditions=browser ./src/index.ts",
     "dev:temporary": "bun run --conditions=browser ./src/temporary.ts",
     "db": "bun drizzle-kit"
   },
@@ -113,7 +113,7 @@
     "@opentelemetry/sdk-trace-node": "2.6.1",
     "@opentui/core": "catalog:",
     "@opentui/keymap": "catalog:",
-    "@opentui/solid": "0.2.11",
+    "@opentui/solid": "catalog:",
     "@parcel/watcher": "2.5.1",
     "@secretlint/core": "10.2.2",
     "@secretlint/secretlint-rule-preset-recommend": "10.2.2",

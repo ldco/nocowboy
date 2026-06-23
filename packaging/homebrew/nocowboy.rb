@@ -1,7 +1,7 @@
 class Nocowboy < Formula
   desc "AI-powered development tool for the Russian market"
   homepage "https://github.com/ldco/nocowboy"
-  version "0.5.1"
+  version "0.5.2"
   license "LicenseRef-custom"
 
   release_url = "https://github.com/ldco/nocowboy/raw/master/releases"

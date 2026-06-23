@@ -96,6 +96,11 @@ export type PromptRef = {
   submit(): void
 }
 
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+})
+
 const DRAFT_RETENTION_MIN_CHARS = 20
 
 function randomIndex(count: number) {
