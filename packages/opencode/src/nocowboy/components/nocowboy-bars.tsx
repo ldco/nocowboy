@@ -148,7 +148,7 @@ export function BottomBar() {
       </For>
       <text flexGrow={1} />
       <SidebarToggle />
-      {sidebarOpen() && <text fg={theme.textMuted}> ⇄ ⇅ alt+arrows</text>}
+      {sidebarOpen() && <text selectable={false} fg={theme.textMuted}> ⇄ ⇅ alt+arrows</text>}
     </box>
   )
 }
@@ -157,6 +157,7 @@ function SidebarToggle() {
   const { theme } = useTheme()
   return (
     <text
+      selectable={false}
       fg={sidebarOpen() ? brandOrange : theme.textMuted}
       paddingLeft={1}
       paddingRight={1}

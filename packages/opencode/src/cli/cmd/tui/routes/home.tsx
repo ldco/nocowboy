@@ -91,8 +91,7 @@ export function Home() {
           ref={bind}
         >
           {/* nocowboy_change — same styled input as session */}
-          <box border borderStyle="rounded" borderColor="#ff6800">
-            <Prompt
+          <Prompt
               ref={bind}
               workspaceID={project.workspace.current()}
               right={
@@ -122,8 +121,7 @@ export function Home() {
               }
               placeholders={placeholder}
             />
-          </box>
-        </TuiPluginRuntime.Slot>
+          </TuiPluginRuntime.Slot>
       </box>
       <TuiPluginRuntime.Slot name="home_bottom" />
       <Toast />
