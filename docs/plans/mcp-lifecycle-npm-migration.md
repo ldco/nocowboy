@@ -11,6 +11,9 @@
 - ✅ DONE — Fix pre-existing type errors
 - ❌ PENDING — npm publish pipeline
 - ❌ PENDING — Clean running state (stale systemd units)
+- ❌ PENDING — `nocowboy mcp remove` via jsonc-parser
+- ❌ PENDING — `mcp add` should create launch.json entry for local servers
+- ❌ PENDING — `bun install -g`: resolve MCP server paths from npm package dir
 
 ## Step 1: Build `nocowboy mcp` CLI command
 
@@ -73,12 +76,3 @@ The current `build.ts` creates a tarball with config/mcp-servers/proxy. For npm:
 - Stop all kilocode-mcp services (they're on 82xx; keep them in case User runs Kilo)
 - Remove duplicate nocowboy-mcp systemd user units from `~/.config/systemd/user/`
 - Verify Kilo + NoCowboy coexist without port conflict
-
-## Roadmap (future)
-
-- `nocowboy-ralph` wrapper — arg adapter for Ralph TUI to drive NoCowboy
-  (reorders flags before/after `run`, calls `nocowboy run`)
-- `nocowboy mcp remove <name>` — proper config-entry removal via jsonc-parser
-- `mcp add` should optionally create a launch.json entry for self-managed servers
-- `bun install -g` readiness: resolve MCP server paths from the npm package dir
-- Codewhale review-prompt integration (separate tool, not NoCowboy core)
