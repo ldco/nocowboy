@@ -5,7 +5,6 @@ import { createRequire } from "node:module"
 let subpkg
 if (process.platform === "linux" && process.arch === "x64") subpkg = "nocowboy-linux-x64"
 else if (process.platform === "darwin" && process.arch === "arm64") subpkg = "nocowboy-darwin-arm64"
-else if (process.platform === "darwin" && process.arch === "x64") subpkg = "nocowboy-darwin-x64"
 
 if (!subpkg) {
   console.error(`nocowboy: unsupported platform ${process.platform}-${process.arch}`)
