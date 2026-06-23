@@ -1,6 +1,8 @@
 import type { CodeIndexManager } from "@nocowboy/indexing/engine"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { format } from "node:util"
+import { Database } from "bun:sqlite"
+import path from "path" // kilocode_change
 import type { Request, Result, Event, Log } from "./indexing-worker-protocol"
 import { parseQdrantWarning } from "./indexing-warning"
 
@@ -8,6 +10,7 @@ type Entry = {
   manager: CodeIndexManager
   progress: { dispose(): void }
   telemetry: { dispose(): void }
+  db?: Database
 }
 
 const managers = new Map<string, Entry>()
@@ -39,12 +42,14 @@ async function dispose(key: string) {
   managers.delete(key)
   entry.progress.dispose()
   entry.telemetry.dispose()
+  entry.db?.close()
   await entry.manager.dispose()
 }
 
 async function init(request: Extract<Request, { method: "init" }>) {
   await dispose(request.key)
   if (request.input.lancedbPath) process.env.NOCOWBOY_LANCEDB_PATH = request.input.lancedbPath
+  const sqliteDb = new Database(path.join(request.input.directory, ".kilo", "vectors.db"), { create: true }) // kilocode_change
   const [engine, status] = await Promise.all([
     import("@nocowboy/indexing/engine"),
     import("@nocowboy/indexing/status"),
@@ -53,6 +58,7 @@ async function init(request: Extract<Request, { method: "init" }>) {
     request.input.directory,
     request.input.root,
     request.input.baselineDirectory,
+    sqliteDb, // kilocode_change
   )
   const progress = manager.onProgressUpdate.on(() => {
     send({ type: "event", key: request.key, event: "status", data: status.normalizeIndexingStatus(manager) })
@@ -60,7 +66,7 @@ async function init(request: Extract<Request, { method: "init" }>) {
   const telemetry = manager.onTelemetry.on((data) => {
     send({ type: "event", key: request.key, event: "telemetry", data })
   })
-  managers.set(request.key, { manager, progress, telemetry })
+  managers.set(request.key, { manager, progress, telemetry, db: sqliteDb })
   await manager.initialize(request.input.config)
   send({ type: "result", id: request.id, method: "init", ok: true, value: status.normalizeIndexingStatus(manager) })
 }

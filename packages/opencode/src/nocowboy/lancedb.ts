@@ -23,6 +23,7 @@ export namespace LanceDBRuntime {
   }
 
   export async function ensure(store?: string) {
+    if (store === "sqlite") return
     if (store !== "lancedb") return
     if (process.env[env]) return
     if (process.platform === "darwin" && process.arch === "x64") {
