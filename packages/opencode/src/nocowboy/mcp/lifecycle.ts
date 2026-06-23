@@ -1,20 +1,10 @@
 import * as os from "node:os"
 import * as path from "node:path"
-import * as fs from "node:fs/promises"
+import * as fsp from "node:fs/promises"
+import * as fs from "node:fs"
 import { spawn } from "node:child_process"
-import { createRequire } from "node:module"
-
-const _require = createRequire(import.meta.url)
 
 const MCP_DIR = path.join(os.homedir(), ".nocowboy", "mcp")
-
-function proxyBin(): string {
-  try {
-    return _require.resolve("mcp-proxy/dist/bin/mcp-proxy.mjs")
-  } catch {
-    return "mcp-proxy"
-  }
-}
 
 const MANIFEST: Record<string, { command: string } | null> = {
   context7: { command: "npx -y @upstash/context7-mcp" },
@@ -50,7 +40,7 @@ export namespace McpLifecycle {
   }
 
   async function ensureDir(): Promise<void> {
-    await fs.mkdir(MCP_DIR, { recursive: true })
+    await fsp.mkdir(MCP_DIR, { recursive: true })
   }
 
   export interface McpProcessInfo {
@@ -95,7 +85,7 @@ export namespace McpLifecycle {
       const port = serverPort(n)
       const url = `http://127.0.0.1:${port}/mcp`
       try {
-        const pidStr = await fs.readFile(pidFile(n), "utf-8").catch(() => "")
+        const pidStr = await fsp.readFile(pidFile(n), "utf-8").catch(() => "")
         const pid = pidStr.trim() ? Number(pidStr.trim()) : null
         const running = pid ? await isRunning(pid) : false
         results.push({ name: n, pid, running, port, url })
@@ -117,15 +107,19 @@ export namespace McpLifecycle {
 
     await ensureDir()
     const logPath = logFile(name)
-    const logStream = await fs.open(logPath, "a")
-    const logFd = logStream.fd
 
-    const child = spawn(proxyBin(), ["--port", String(port), "--", ...cmd.split(" ")], {
+    const logFd = fs.openSync(logPath, "a")
+
+    const selfBin = process.argv[0] ?? process.execPath
+    const selfArgs = ["mcp", "_proxy", "--port", String(port), "--", cmd]
+
+    const child = spawn(selfBin, selfArgs, {
       stdio: ["ignore", logFd, logFd],
-      detached: false,
+      detached: true,
     })
+    child.unref()
 
-    await fs.writeFile(pidFile(name), String(child.pid ?? ""))
+    await fsp.writeFile(pidFile(name), String(child.pid ?? ""))
     return { name, pid: child.pid ?? null, running: true, port, url }
   }
 
@@ -149,7 +143,7 @@ export namespace McpLifecycle {
 
   export async function stopOne(name: string): Promise<void> {
     const pf = pidFile(name)
-    const pidStr = await fs.readFile(pf, "utf-8").catch(() => "")
+    const pidStr = await fsp.readFile(pf, "utf-8").catch(() => "")
     if (!pidStr.trim()) return
     const pid = Number(pidStr.trim())
     if (!pid) return
@@ -157,7 +151,7 @@ export namespace McpLifecycle {
       process.kill(pid, "SIGTERM")
       setTimeout(() => { try { process.kill(pid, "SIGKILL") } catch {} }, 3000)
     } catch {}
-    await fs.unlink(pf).catch(() => {})
+    await fsp.unlink(pf).catch(() => {})
   }
 
   export async function stopAll(): Promise<void> {
@@ -168,7 +162,7 @@ export namespace McpLifecycle {
 
   export async function logs(name: string, lines?: number): Promise<string> {
     const lf = logFile(name)
-    const content = await fs.readFile(lf, "utf-8").catch(() => "")
+    const content = await fsp.readFile(lf, "utf-8").catch(() => "")
     const all = content.split("\n").filter(Boolean)
     const n = lines ?? 20
     return all.slice(-n).join("\n")

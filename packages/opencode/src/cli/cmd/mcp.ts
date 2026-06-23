@@ -19,6 +19,7 @@ import { Global } from "@opencode-ai/core/global"
 import { modify, applyEdits } from "jsonc-parser"
 import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp" // nocowboy_change
 import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
+import { McpProxy } from "@/nocowboy/mcp/proxy" // nocowboy_change
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 import { Effect } from "effect"
@@ -108,6 +109,7 @@ export const McpCommand = cmd({
       .command(McpStopCommand) // nocowboy_change
       .command(McpStatusCommand) // nocowboy_change
       .command(McpLogsCommand) // nocowboy_change
+      .command(McpProxyCommand) // nocowboy_change
       .demandCommand(),
   async handler() {},
 })
@@ -863,6 +865,18 @@ export const McpLogsCommand = cmd({
       return
     }
     console.log(output)
+  },
+})
+
+export const McpProxyCommand = cmd({
+  command: "_proxy",
+  describe: false,
+  builder: (yargs) =>
+    yargs
+      .option("port", { type: "number", demandOption: true })
+      .option("command", { type: "string", demandOption: true }),
+  handler(args) {
+    McpProxy.runForeground({ command: args.command, port: args.port })
   },
 })
 // nocowboy_change end
