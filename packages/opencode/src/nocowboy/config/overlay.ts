@@ -71,7 +71,7 @@ export namespace KilocodeConfigOverlay {
   }
 
   const files = ["nocowboy.jsonc", "nocowboy.json", "opencode.jsonc", "opencode.json"] as const
-  const dirs = [".nocowboy", ".nocowboy", ".opencode"] as const
+  const dirs = [".nocowboy", ".opencode"] as const
 
   const fieldPaths = [
     ["model"],

@@ -226,7 +226,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // nocowboy_change start - also load tui.json from .nocowboy/.kilocode
   const dirs = unique(directories).filter(
     (dir) =>
-      dir.endsWith(".nocowboy") || dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
+      dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
   )
   // nocowboy_change end
 

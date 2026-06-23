@@ -55,7 +55,7 @@ const testLayer = Config.layer.pipe(
 test(".gitignore in .kilo config dir includes pnpm and yarn lockfile patterns", async () => {
   await using tmp = await tmpdir()
   const dir = path.join(tmp.path, "a")
-  const kilo = path.join(dir, ".kilo")
+  const kilo = path.join(dir, ".nocowboy")
   await fs.mkdir(kilo, { recursive: true })
 
   await provideTestInstance({

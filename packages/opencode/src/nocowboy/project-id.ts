@@ -44,7 +44,7 @@ function normalizeProjectId(input: string): string {
  */
 async function getProjectIdFromConfig(directory: string): Promise<string | undefined> {
   // Check .kilo first, then legacy .kilocode
-  for (const dir of [".nocowboy", ".nocowboy"]) {
+  for (const dir of [".nocowboy"]) {
     const file = Bun.file(path.join(directory, dir, "config.json"))
     const text = await file.text().catch(() => undefined)
     if (!text) continue

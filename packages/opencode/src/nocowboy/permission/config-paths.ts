@@ -7,7 +7,7 @@ export namespace ConfigProtection {
    * Config directory prefixes (relative paths, forward-slash normalized).
    * Matches .nocowboy/, .nocowboy/, .opencode/ at any depth within the project.
    */
-  const CONFIG_DIRS = [".kilo/", ".nocowboy/", ".nocowboy/", ".opencode/"]
+  const CONFIG_DIRS = [".nocowboy/", ".opencode/"]
 
   /**
    * Subdirectories under CONFIG_DIRS that are NOT config files (e.g. plan files).

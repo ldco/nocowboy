@@ -432,6 +432,6 @@ export namespace KilocodeConfig {
 
   /** Check whether a directory path should be treated as a config directory (for loading config files). */
   export function isConfigDir(dir: string, flagDir?: string): boolean {
-    return dir.endsWith(".nocowboy") || dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === flagDir
+    return dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === flagDir
   }
 }

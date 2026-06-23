@@ -107,11 +107,10 @@ export namespace McpMigrator {
     }
 
     // 2. Project-level MCP settings (if projectDir provided)
-    // Check .nocowboy/mcp.json and .nocowboy/mcp.json for project-level settings
+    // Check .nocowboy/mcp.json for project-level settings
     // (not "mcp_settings.json" which is only used for global settings)
-    // .kilocode is loaded first (lower precedence), .kilo second (higher precedence)
     if (options?.projectDir) {
-      for (const dir of [".nocowboy", ".nocowboy"]) {
+      for (const dir of [".nocowboy"]) {
         const projectSettingsPath = path.join(options.projectDir, dir, "mcp.json")
         const projectSettings = await readMcpSettings(projectSettingsPath)
         if (projectSettings?.mcpServers) {

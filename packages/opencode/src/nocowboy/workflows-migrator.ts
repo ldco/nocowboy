@@ -11,11 +11,8 @@ export namespace WorkflowsMigrator {
   const home = () => process.env.HOME || process.env.USERPROFILE || os.homedir()
 
   // .kilocode first (lower precedence), .kilo second (higher precedence / wins)
-  const KILO_WORKFLOWS_DIRS = [".nocowboy/workflows", ".nocowboy/workflows"]
-  const globalWorkflowsDirs = () => [
-    path.join(home(), ".nocowboy", "workflows"),
-    path.join(home(), ".nocowboy", "workflows"),
-  ]
+  const KILO_WORKFLOWS_DIRS = [".nocowboy/workflows"]
+  const globalWorkflowsDirs = () => [path.join(home(), ".nocowboy", "workflows")]
 
   export interface KilocodeWorkflow {
     name: string

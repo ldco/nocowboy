@@ -8,8 +8,8 @@ export namespace RulesMigrator {
   const home = () => process.env.NOCOWBOY_TEST_HOME || process.env.HOME || process.env.USERPROFILE || os.homedir()
 
   // Directory-based rules (read from both .kilo and .kilocode)
-  const KILO_RULES_DIRS = [".nocowboy/rules", ".nocowboy/rules"]
-  const globalRulesDirs = () => [path.join(home(), ".nocowboy", "rules"), path.join(home(), ".nocowboy", "rules")]
+  const KILO_RULES_DIRS = [".nocowboy/rules"]
+  const globalRulesDirs = () => [path.join(home(), ".nocowboy", "rules")]
 
   // Known modes for mode-specific rule discovery
   const KNOWN_MODES = ["code", "architect", "ask", "debug", "orchestrator"]
@@ -89,7 +89,7 @@ export namespace RulesMigrator {
     for (const mode of KNOWN_MODES) {
       // Mode-specific directories (.nocowboy/rules-{mode}/*.md and .nocowboy/rules-{mode}/*.md)
       const modeSeen = new Set<string>()
-      for (const prefix of [".nocowboy", ".nocowboy"]) {
+      for (const prefix of [".nocowboy"]) {
         const modeDir = path.join(projectDir, `${prefix}/rules-${mode}`)
         if (await isDirectory(modeDir)) {
           const files = await findMarkdownFiles(modeDir)

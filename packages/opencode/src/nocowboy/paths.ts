@@ -29,9 +29,9 @@ export namespace NocowboyPaths {
     }
   }
 
-  /** Global Kilo directories in user home: ~/.kilocode and ~/.kilo (legacy first, .kilo wins later) */
+  /** Global Kilo directories in user home */
   export function globalDirs(): string[] {
-    return [path.join(home(), ".nocowboy"), path.join(home(), ".nocowboy")]
+    return [path.join(home(), ".nocowboy")]
   }
 
   /**
@@ -73,7 +73,7 @@ export namespace NocowboyPaths {
     // Returns parent directories (not skills/) because
     // the glob pattern "skills/[*]/SKILL.md" is applied from the parent
     // Loaded last so project-level skills take precedence over global
-    for (const target of [".nocowboy", ".nocowboy"] as const) {
+    for (const target of [".nocowboy"] as const) {
       const projectDirs = await Array.fromAsync(
         Filesystem.up({
           targets: [target],

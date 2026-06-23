@@ -71,7 +71,7 @@ describe("ConfigValidation.check", () => {
 
   test("validates valid markdown command", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, ".kilo", "command", "test-cmd.md")
+    const filepath = path.join(tmp.path, ".nocowboy", "command", "test-cmd.md")
     await Filesystem.write(
       filepath,
       `---
@@ -90,7 +90,7 @@ Do something useful`,
 
   test("reports schema error for command with invalid field types", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, ".kilo", "command", "bad.md")
+    const filepath = path.join(tmp.path, ".nocowboy", "command", "bad.md")
     // agent expects string but gets number — schema validation fails
     await Filesystem.write(
       filepath,
@@ -112,7 +112,7 @@ Do something`,
 
   test("validates valid markdown agent", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, ".kilo", "agent", "helper.md")
+    const filepath = path.join(tmp.path, ".nocowboy", "agent", "helper.md")
     await Filesystem.write(
       filepath,
       `---
@@ -144,7 +144,7 @@ You are a helpful agent.`,
 
   test("skips plan files (excluded subdir)", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, ".kilo", "plans", "plan.md")
+    const filepath = path.join(tmp.path, ".nocowboy", "plans", "plan.md")
     await Filesystem.write(filepath, "# Plan")
 
     const result = await provideTestInstance({
@@ -160,7 +160,7 @@ You are a helpful agent.`,
       init: async (dir) => {
         // Create a broken agent config that produces a warning at session start
         await Filesystem.write(
-          path.join(dir, ".kilo", "agent", "broken.md"),
+          path.join(dir, ".nocowboy", "agent", "broken.md"),
           `---
 mode: "banana"
 ---
