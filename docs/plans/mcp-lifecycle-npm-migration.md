@@ -3,9 +3,14 @@
 ## Status
 - ✅ DONE — Port renumbering: NoCowboy MCP servers moved from 82xx to 92xx
 - ✅ DONE — Delete per-system packaging (AUR, systemd, homebrew, launchd)
-- ❌ PENDING — `nocowboy mcp` CLI command
+- ✅ DONE — `nocowboy mcp` CLI command (start/stop/status/logs + embedded proxy)
+- ✅ DONE — Remove mcp-proxy external dependency (proxy embedded in binary)
+- ✅ DONE — Launch spec registry (`~/.nocowboy/mcp/launch.json`) read from user config
+- ✅ DONE — Port missing multi-provider.md instruction
+- ✅ DONE — Sync architect agent prompt to full 8330-char version
+- ✅ DONE — Fix pre-existing type errors
 - ❌ PENDING — npm publish pipeline
-- ❌ PENDING — Clean running state
+- ❌ PENDING — Clean running state (stale systemd units)
 
 ## Step 1: Build `nocowboy mcp` CLI command
 
@@ -68,3 +73,12 @@ The current `build.ts` creates a tarball with config/mcp-servers/proxy. For npm:
 - Stop all kilocode-mcp services (they're on 82xx; keep them in case User runs Kilo)
 - Remove duplicate nocowboy-mcp systemd user units from `~/.config/systemd/user/`
 - Verify Kilo + NoCowboy coexist without port conflict
+
+## Roadmap (future)
+
+- `nocowboy-ralph` wrapper — arg adapter for Ralph TUI to drive NoCowboy
+  (reorders flags before/after `run`, calls `nocowboy run`)
+- `nocowboy mcp remove <name>` — proper config-entry removal via jsonc-parser
+- `mcp add` should optionally create a launch.json entry for self-managed servers
+- `bun install -g` readiness: resolve MCP server paths from the npm package dir
+- Codewhale review-prompt integration (separate tool, not NoCowboy core)
