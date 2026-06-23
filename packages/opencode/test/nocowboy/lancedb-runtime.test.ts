@@ -12,7 +12,7 @@ mock.module("@opencode-ai/core/npm", () => ({
   },
 }))
 
-const env = "KILO_LANCEDB_PATH"
+const env = "NOCOWBOY_LANCEDB_PATH"
 const prev = process.env[env]
 
 describe("LanceDBRuntime", () => {
