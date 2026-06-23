@@ -63,6 +63,13 @@
     }
   },
   "lsp": true,
+  "plugin": ["@nocowboy/indexing"],
+  "indexing": {
+    "enabled": true,
+    "provider": "voyage",
+    "model": "voyage-code-3",
+    "vectorStore": "lancedb"
+  },
   "instructions": [
     "/home/ldco/.config/nocowboy/instructions/*.md",
     "/home/ldco/.config/nocowboy/instructions/rules/*.md"

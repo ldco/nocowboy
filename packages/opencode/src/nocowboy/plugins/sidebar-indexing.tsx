@@ -33,7 +33,7 @@ function message(status: IndexingStatus) {
 function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
   const sync = useSync()
-  const enabled = createMemo(() => indexingEnabled(sync.data.config))
+  const enabled = createMemo(() => indexingEnabled(sync.data.config) || indexingEnabled(sync.data.globalConfig))
   const configured = createMemo(
     () => sync.data.config.indexing?.enabled === true || sync.data.globalConfig.indexing?.enabled === true,
   )
