@@ -569,3 +569,93 @@ perf/                   → Performance benchmarks
 - Section 4.2: Servers marked "REMOVE" are not published but exist in `packaging/mcp-servers/`.
 - Section 7: Some steps done (port instructions, commands, agents, skills). MiMo porting (Steps 3-7) not started.
 - Section 8: Paths reference `~/.config/kilo/`. The fork lives in `/run/media/.../NoCowboy/app/`.
+
+---
+
+## 10. MiMo-Code Deep Analysis (2026-06-24)
+
+### Verified: What MiMo-Code actually is
+
+- **10.5k stars**, 136 commits, v0.1.2 (Jun 23, 2026) — actively maintained
+- **MIT license** — legally borrowable
+- **Same fork base** — also forks OpenCode, same as NoCowboy. Code structure compatible.
+- **npm distribution** — `npm install -g @mimo-ai/cli` — same model we're adopting
+- **Effect framework** — heavy use of `effect` npm package for DI, generators, layers. This is the main adaptation barrier.
+
+### Confirmed: Memory module files (6 files, Effect-based)
+
+| File | LOC | Effect dep? | Key capability |
+|------|-----|-------------|----------------|
+| `index.ts` | 1 line | No | Re-exports `Memory` namespace |
+| `service.ts` | ~120 lines | **Heavy** | FTS5 search with BM25 ranking, lazy reconcile, relative score cutoff |
+| `fts-query.ts` | ~40 lines | No (pure) | Token-level FTS5 query builder — turns user query into OR-joined phrase literals |
+| `fts.sql.ts` | ~Maybe 50 lines | Minimal | FTS5 virtual table + triggers for auto-indexing |
+| `paths.ts` | ~30 lines | No | File paths: MEMORY.md, checkpoint.md, notes.md, tasks/<id>/progress.md |
+| `reconcile.ts` | ~80 lines | No | Merge new learnings, remove outdated, deduplicate |
+
+### What we should BORROW (copy-adapt, not reinvent)
+
+| Feature | MiMo source | Adaptation effort | Russian-market impact | Priority |
+|---|---|---|---|---|
+| **FTS5 memory search** | `fts-query.ts` + `fts.sql.ts` | Low (SQL-only, no Effect) | Very High — works with any language, critical for monorepos | **🟡 P1** |
+| **Memory reconcile** | `reconcile.ts` | Low (file I/O, no Effect) | High — keeps MEMORY.md clean, prevents bloat | **🟡 P1** |
+| **Context reconstruction** | `service.ts` checkpoint logic | Medium (hook into our agent loop) | High — prevents context loss on long sessions | **🟢 P2** |
+| **Budgeted injection** | `service.ts` token budget | Medium (need tokenizer) | Medium — better context usage | **🟢 P3** |
+| **Dream command** | `cli/cmd/dream` | Low (pattern is clear) | Medium — unique feature, no competitor has it | **🟡 P1** |
+| **Distill command** | `cli/cmd/distill` | Low | Low — nice to have, not critical | **🟢 P3** |
+| **Goal judge** | `agent/agent.ts` stop logic | Medium (spawn subagent) | Medium — prevents premature stops | **🟡 P2** |
+
+### What we should BUILD OURSELVES (not borrow)
+
+| Feature | Why not borrow | Our approach |
+|---|---|---|
+| **Workflow / Compose** | Effect-heavy, deeply coupled to MiMo's agent loop. 10 files, sandbox mode is x86-only. | Our Ralph MCP + Tausik is richer for project management. Compose mode is specs-driven — we have `/plan` + `/act` + PRD system. |
+| **Task Tree** | MiMo's is simple (7 files, SQLite). Our Tausik MCP is FAR richer (70+ tools, epics/stories/tasks, memory graph, QA gates, sessions, roles, stacks, decisions, explorations). | Keep Tausik as primary. Port MiMo's T-ID format (T1/T1.1) as a lightweight bridge. |
+| **Subagent system** | MiMo's is complex (lifecycle, cancel, background). We already have Agent Manager + `kilo-bg` tmux wrappers. | Keep our existing approach. |
+| **Voice input** | Xiaomi-specific (TenVAD + MiMo ASR). Not relevant for Russian market. | Not a priority for Russia. |
+
+### Adaptation strategy: Effect → Bun APIs
+
+MiMo's memory system uses Effect's `Effect.gen`, `Layer.effect`, `Context.Service`. We need to convert to:
+
+**Effect pattern → Our pattern:**
+```typescript
+// MiMo (Effect):
+const reconcile = Effect.fn("Memory.reconcile")(function* () {
+  const cfg = yield* config.get()
+  return yield* Effect.promise(() => reconcileMemory(...))
+})
+
+// NoCowboy adaptation:
+async function reconcile(): Promise<ReconcileResult> {
+  const cfg = await Config.get()
+  return reconcileMemory(cfg)
+}
+```
+
+This is straightforward for MOST functions — they're just async wrappers. The real value is in the ALGORITHMS (FTS5 query builder, BM25 ranking, relative score cutoff) which are pure logic with no Effect dependency.
+
+### Borrowing priority (ordered by Russian-market impact)
+
+1. **P1a: FTS5 memory tables + search** — copy `fts.sql.ts` (table schema) + `fts-query.ts` (query builder) directly. These have 0 Effect dependency. We already have SQLite via `bun:sqlite`. Add a migration. **Impact:** cross-session knowledge that works with any language (critical for Russian teams using 1C, Python, C++ alongside JS/TS).
+
+2. **P1b: Memory reconcile** — copy `reconcile.ts` directly. Pure file I/O, no Effect. **Impact:** keeps MEMORY.md under 200 lines, removes outdated entries, deduplicates. Critical for long-running projects.
+
+3. **P1c: Dream command** — study MiMo's pattern, implement our version. **Impact:** unique competitive feature — no Claude Code, Cursor, or Copilot automatically extracts knowledge from sessions. Russian teams with high turnover can onboard new devs via auto-generated MEMORY.md.
+
+4. **P2a: Goal judge** — adapt MiMo's stop-condition evaluation. **Impact:** prevents the agent from claiming "done" when tests still fail. Critical for autonomous `/ralph` workflows.
+
+5. **P2b: Context reconstruction** — adapt from `service.ts`. **Impact:** sessions that outgrow the context window can continue working. Critical for complex refactors in large Russian monorepos.
+
+6. **P3: Distill + Budgeted injection** — nice to have, not blocking.
+
+### What we REJECT from MiMo
+
+- **Workflow/Compose mode** — our Ralph/Tausik is superior for project management. Compose adds specs-driven orchestration which overlaps with our existing `/plan` + `/act` + PRD system. Don't port.
+- **Task Tree** — our Tausik has 70+ tools vs MiMo's 7 files. Keep ours. Add T-ID format only.
+- **Voice input** — Xiaomi-specific. Russian market needs Yandex SpeechKit / SaluteSpeech instead. Not MiMo.
+- **Effect framework dependency** — we will NOT adopt Effect. The algorithms are extractable without it.
+
+### Immediate action
+
+Clone MiMo reference and copy `fts-query.ts` + `fts.sql.ts` into our source. These have zero Effect dependencies and provide immediate memory search capability via FTS5. Total effort: ~2 hours including SQLite migration.
