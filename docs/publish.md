@@ -2,13 +2,24 @@
 
 ## Package Architecture
 
-One meta-package + two platform binary packages:
+One meta-package + two platform binary packages + first-party MCP server packages:
 
 | Package | Content | Published from |
 |---|---|---|
 | `nocowboy` | Meta-package (thin Node.js wrapper) | `packages/nocowboy-cli/` |
 | `nocowboy-linux-x64` | Compiled binary for Linux x64 | `dist/nocowboy-tui-linux-x64/` |
 | `nocowboy-darwin-arm64` | Compiled binary for macOS ARM64 (M1/M2/M3) | `dist/nocowboy-tui-darwin-arm64/` |
+| `@nocowboy/mcp-<name>` | First-party MCP servers — published separately, **NOT** in the meta-package | `packaging/mcp-servers/<name>/` |
+
+**MCP servers are NOT hardcoded in the meta-package.** Each is published independently to npm.
+The `launcher.ts` auto-detects them at runtime via `require.resolve("@nocowboy/mcp-<name>/dist/index.js")`.
+Users install only the servers they need: `npm install -g @nocowboy/mcp-constitution`
+Then configure: `nocowboy mcp install constitution`
+
+This is a true **plugin out/plugin in** system:
+- New server: publish `@nocowboy/mcp-new-thing`, user installs it
+- Deprecated server: user uninstalls it, no meta-package changes needed
+- No version coupling between core and servers
 | `@nocowboy/mcp-constitution` | AI Constitution server — code policy enforcement | `packaging/mcp-servers/constitution/` |
 | `@nocowboy/mcp-contract-guard` | API contract guard server | `packaging/mcp-servers/contract-guard/` |
 | `@nocowboy/mcp-ncp-validator` | NoCowboy Score/Contract guard validator | `packaging/mcp-servers/ncp-validator/` |
@@ -66,14 +77,13 @@ cd packages/opencode/dist/nocowboy-tui-darwin-arm64
 npm publish
 ```
 
-## Step 3 — Publish MCP server packages
+## Step 3 — Publish MCP server packages (independently)
 
-Each first-party MCP server is a separate npm package. Publish from the source directory:
+Each first-party MCP server is a **separate npm package**, published independently. Not part of the meta-package.
 
 ```bash
-for pkg in constitution contract-guard ncp-validator plugin-registry ralph score-engine; do
-  cd packaging/mcp-servers/$pkg && npm publish && cd -
-done
+# Publish one server (repeat for each):
+cd packaging/mcp-servers/constitution && npm publish && cd -
 
 # puppetmaster needs dist/ built first:
 cd packaging/mcp-servers/puppetmaster && npm run build && npm publish && cd -

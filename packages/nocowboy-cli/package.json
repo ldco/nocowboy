@@ -9,14 +9,7 @@
   },
   "optionalDependencies": {
     "nocowboy-linux-x64": "0.6.0",
-    "nocowboy-darwin-arm64": "0.6.0",
-    "@nocowboy/mcp-constitution": "0.6.0",
-    "@nocowboy/mcp-contract-guard": "0.6.0",
-    "@nocowboy/mcp-ncp-validator": "0.6.0",
-    "@nocowboy/mcp-plugin-registry": "0.6.0",
-    "@nocowboy/mcp-puppetmaster": "0.6.0",
-    "@nocowboy/mcp-ralph": "0.6.0",
-    "@nocowboy/mcp-score-engine": "0.6.0"
+    "nocowboy-darwin-arm64": "0.6.0"
   },
   "repository": {
     "type": "git",
