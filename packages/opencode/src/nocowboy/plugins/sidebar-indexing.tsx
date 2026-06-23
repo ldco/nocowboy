@@ -33,6 +33,8 @@ function message(status: IndexingStatus) {
 function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
   const sync = useSync()
+  // System-wide (global) config is the primary source. Project-level (config) is
+  // kept for future per-project support — currently unused but both are checked.
   const enabled = createMemo(() => indexingEnabled(sync.data.config) || indexingEnabled(sync.data.globalConfig))
   const configured = createMemo(
     () => sync.data.config.indexing?.enabled === true || sync.data.globalConfig.indexing?.enabled === true,
