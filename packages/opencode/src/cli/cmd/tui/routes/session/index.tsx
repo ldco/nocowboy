@@ -282,10 +282,11 @@ export function Session() {
   createEffect(() => {
     msgCount()
     const msgs = messages()
-    const last = msgs.findLast((m) => m.role === "assistant")?.id
-    for (const m of msgs) {
-      if (m.role === "assistant" && m.id !== last && m.time.completed) {
-        setCollapsed(m.id, true)
+    const lastUserIdx = msgs.findLastIndex((m) => m.role === "user")
+    if (lastUserIdx < 0) return
+    for (let i = 0; i < msgs.length; i++) {
+      if (msgs[i].role === "assistant" && i < lastUserIdx && msgs[i].time.completed) {
+        setCollapsed(msgs[i].id, true)
       }
     }
   })
@@ -1375,7 +1376,7 @@ export function Session() {
                               // Collapse only completed messages (never collapse pending)
                               for (const id of ids) {
                                 const m = msgs.find((x) => x.id === id)
-                                if (m?.time.completed) setCollapsed(id, true)
+                                if (m && 'completed' in m.time && m.time.completed) setCollapsed(id, true)
                               }
                             } else {
                               // All collapsed — expand everything
@@ -1435,7 +1436,7 @@ export function Session() {
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
-                        <Show when={!collapsed[message.id] || !message.time.completed}>{/* nocowboy_change - collapse, never collapse pending */}
+                        <Show when={!collapsed[message.id] || !('completed' in message.time && message.time.completed)}>{/* nocowboy_change - collapse, never collapse pending */}
                         <AssistantMessage
                           last={lastAssistant()?.id === message.id}
                           message={message as AssistantMessage}
@@ -1751,7 +1752,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
               customBorderChars={SplitBorder.customBorderChars}
               borderColor={theme.error}
             >
-              <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
+              <text fg={theme.textMuted}>{String(props.message.error?.data?.message ?? "")}</text>
             </box>
           }
         />
