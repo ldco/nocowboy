@@ -26,16 +26,16 @@ async function update(target: ReturnType<typeof app>, provider: "kilo" | "openro
 }
 
 async function provider(target: ReturnType<typeof app>, directory: string) {
-  const response = await target.request("/config", { headers: { "x-kilo-directory": directory } })
+  const response = await target.request("/config", { headers: { "x-nocowboy-directory": directory } })
   return (await response.json()).indexing?.provider as string | undefined
 }
 
 async function config(dir: string, value: object) {
-  await Bun.write(path.join(dir, "kilo.json"), JSON.stringify(value))
+  await Bun.write(path.join(dir, "opencode.json"), JSON.stringify(value))
 }
 
 async function edit(target: ReturnType<typeof app>, directory: string) {
-  const response = await target.request("/config", { headers: { "x-kilo-directory": directory } })
+  const response = await target.request("/config", { headers: { "x-nocowboy-directory": directory } })
   const body = (await response.json()) as { permission?: unknown }
   return Permission.evaluate(
     "edit",

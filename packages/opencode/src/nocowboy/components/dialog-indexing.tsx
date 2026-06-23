@@ -19,13 +19,13 @@ import * as Log from "@opencode-ai/core/util/log"
 import { hasNoCowboyIndexingAuth, resolveNoCowboyIndexingAuth, shouldDefaultIndexingToNoCowboy } from "../indexing-auth"
 import {
   createIndexingDialogState,
-  currentKiloModel,
+  currentNocowboyModel,
   indexingInheritance,
   indexingPatch,
   indexingScopeConfig,
   inheritedDescription,
-  kiloModelOptions,
-  loadKiloEmbeddingModels,
+  nocowboyModelOptions,
+  loadNocowboyEmbeddingModels,
   mergeIndexingConfig,
   type IndexingScope,
 } from "./indexing-dialog-state"
@@ -102,7 +102,7 @@ function scopedIndexing(data: Config | undefined): IndexingConfig {
   return data?.indexing ?? {}
 }
 
-function hasKiloAuth(sync: ReturnType<typeof useSync>, scope: IndexingScope, indexing: IndexingConfig): boolean {
+function hasNocowboyAuth(sync: ReturnType<typeof useSync>, scope: IndexingScope, indexing: IndexingConfig): boolean {
   const provider = sync.data.provider_next.all.find((item) => item.id === "kilo")
   const config = indexingScopeConfig(scope, sync.data.config, sync.data.globalConfig, indexing)
   return hasNoCowboyIndexingAuth({ config, provider })
@@ -181,7 +181,7 @@ function ProviderSelect(props: SubDialogProps) {
   const options: DialogSelectOption<EmbeddingProvider>[] = (
     Object.entries(PROVIDER_LABELS) as [EmbeddingProvider, string][]
   )
-    .filter(([value]) => value !== "kilo" || hasKiloAuth(sync, props.scope, indexing) || indexing.provider === "kilo")
+    .filter(([value]) => value !== "kilo" || hasNocowboyAuth(sync, props.scope, indexing) || indexing.provider === "kilo")
     .map(([value, title]) => ({
       value,
       title,
@@ -212,14 +212,14 @@ function ProviderSelect(props: SubDialogProps) {
   )
 }
 
-function KiloModelSelect(props: SubDialogProps) {
+function NocowboyModelSelect(props: SubDialogProps) {
   const dialog = useDialog()
   const sync = useSync()
   const sdk = props.useSDK()
   const toast = useToast()
   const indexing = props.indexing
   const [error, setError] = createSignal<string>()
-  const [catalog] = createResource(() => loadKiloEmbeddingModels(setError))
+  const [catalog] = createResource(() => loadNocowboyEmbeddingModels(setError))
   const seen = { error: undefined as string | undefined, state: "" }
   createEffect(() => {
     const message = error()
@@ -237,26 +237,26 @@ function KiloModelSelect(props: SubDialogProps) {
     const state = `${catalog.state}:${cfg?.models.length ?? 0}`
     if (seen.state === state) return
     seen.state = state
-    log.info("Kilo embedding model resource changed", {
+    log.info("NoCowboy embedding model resource changed", {
       state: catalog.state,
       models: cfg?.models.length ?? 0,
-      current: currentKiloModel(cfg as any, indexing.model),
+      current: currentNocowboyModel(cfg as any, indexing.model),
       defaultModel: cfg?.defaultModel || undefined,
       scope: props.scope,
     })
   })
-  const options = createMemo(() => kiloModelOptions(catalog() as any))
-  const current = createMemo(() => currentKiloModel(catalog() as any, indexing.model))
+  const options = createMemo(() => nocowboyModelOptions(catalog() as any))
+  const current = createMemo(() => currentNocowboyModel(catalog() as any, indexing.model))
 
   return (
     <DialogSelect
-      title="Kilo Embedding Model"
+      title="NoCowboy Embedding Model"
       options={options()}
       current={current()}
       renderFilter={(catalog()?.models.length ?? 0) > 0}
       onSelect={async (option) => {
         if (!option.value || !catalog()?.models.some((model) => model.id === option.value)) return
-        log.info("selected Kilo embedding model", { model: option.value, scope: props.scope })
+        log.info("selected NoCowboy embedding model", { model: option.value, scope: props.scope })
         await saveScopedIndexing(
           sdk,
           sync,
@@ -571,7 +571,7 @@ export function DialogIndexing(props: DialogIndexingProps) {
         title: "Embedding Model",
         category: "Embedding",
         description: mark(
-          indexing.provider === "kilo" ? (indexing.model ?? "Kilo catalog") : (indexing.model ?? "default"),
+          indexing.provider === "kilo"             ? (indexing.model ?? "NoCowboy catalog") : (indexing.model ?? "default"),
           [["model"]],
         ),
       },
@@ -581,7 +581,7 @@ export function DialogIndexing(props: DialogIndexingProps) {
         category: "Embedding",
         description:
           indexing.provider === "kilo"
-            ? "provided by Kilo"
+            ? "provided by NoCowboy"
             : mark(indexing.dimension ? String(indexing.dimension) : "auto", [["dimension"]]),
         disabled: indexing.provider === "kilo",
       },
@@ -650,7 +650,7 @@ export function DialogIndexing(props: DialogIndexingProps) {
           case "model": {
             if (indexing.provider === "kilo") {
               dialog.replace(() => (
-                <KiloModelSelect useSDK={props.useSDK} scope={scope()} indexing={indexing} raw={raw} />
+                <NocowboyModelSelect useSDK={props.useSDK} scope={scope()} indexing={indexing} raw={raw} />
               ))
               break
             }

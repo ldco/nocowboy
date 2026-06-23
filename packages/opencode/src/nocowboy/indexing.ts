@@ -22,7 +22,7 @@ import { IndexingWorker } from "./indexing-worker-client"
 import { LanceDBRuntime } from "./lancedb" // nocowboy_change
 import { indexingWithNoCowboyDefault, resolveNoCowboyIndexingAuth, type NoCowboyIndexingAuth } from "./indexing-auth" // nocowboy_change
 
-const log = Log.create({ service: "kilocode-indexing" })
+const log = Log.create({ service: "nocowboy-indexing" })
 const auth = makeRuntime(Auth.Service, Auth.defaultLayer)
 const missing = () => disabledIndexingStatus("Indexing plugin is not enabled for this workspace.")
 const noWorkspace = () =>
@@ -65,12 +65,12 @@ function pending(): z.infer<typeof IndexingStatus> {
   }
 }
 
-async function kiloAuth(cfg: Config.Info): Promise<NoCowboyIndexingAuth> {
+async function nocowboyAuth(cfg: Config.Info): Promise<NoCowboyIndexingAuth> {
   const info = await auth.runPromise((svc) => svc.get("kilo"))
   return resolveNoCowboyIndexingAuth({ config: cfg, auth: info })
 }
 
-function enrichKilo(input: ReturnType<typeof toIndexingConfigInput>, auth: NoCowboyIndexingAuth) {
+function enrichNocowboy(input: ReturnType<typeof toIndexingConfigInput>, auth: NoCowboyIndexingAuth) {
   if (input.embedderProvider !== "kilo") return input
 
   return {
@@ -92,13 +92,13 @@ async function model(input: ReturnType<typeof toIndexingConfigInput>, auth: NoCo
 
   if (!found) {
     if (input.modelId || input.modelDimension) {
-      log.warn("ignoring unsupported Kilo embedding model configuration", { model: input.modelId })
+      log.warn("ignoring unsupported NoCowboy embedding model configuration", { model: input.modelId })
     }
     return { ...input, modelId: undefined, modelDimension: undefined }
   }
 
   if (input.modelId && !chosen) {
-    log.warn("using default Kilo embedding model instead of unsupported configuration", {
+    log.warn("using default NoCowboy embedding model instead of unsupported configuration", {
       model: input.modelId,
       fallback: found.id,
     })
@@ -253,10 +253,10 @@ export namespace KiloIndexing {
 
     log.info("initializing project indexing", { workspacePath: dir, baselineDirectory: baseline })
     const root = path.join(Global.Path.state, "indexing")
-    const auth = await kiloAuth(cfg)
+    const auth = await nocowboyAuth(cfg)
     const global = globalConfig.indexing
     const merged = indexingWithNoCowboyDefault({ ...global, ...cfg.indexing }, auth)
-    const cfgInput = await model(enrichKilo(input(merged, global), auth), auth)
+    const cfgInput = await model(enrichNocowboy(input(merged, global), auth), auth)
     const workspaces = new Set<WorkspaceID | undefined>([WorkspaceContext.workspaceID])
     const box = { status: pending() }
     const warnings = new Map<string, IndexingWarning>()
@@ -470,13 +470,13 @@ export namespace KiloIndexing {
   export async function models() {
     try {
       const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
-      const auth = await kiloAuth(cfg)
+      const auth = await nocowboyAuth(cfg)
       const catalog = await fetchEmbeddingModelCatalog({ baseURL: auth.baseUrl, token: auth.apiKey })
       if (catalog.models.length > 0 || (!auth.baseUrl && !auth.apiKey)) return catalog
       const fallback = await fetchEmbeddingModelCatalog()
       return fallback.models.length > 0 ? fallback : catalog
     } catch (err) {
-      log.warn("falling back to public Kilo embedding model catalog", { err })
+      log.warn("falling back to public NoCowboy embedding model catalog", { err })
       return fetchEmbeddingModelCatalog()
     }
   }

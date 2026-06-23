@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { KiloPtySelfCommand } from "../../src/nocowboy/pty/self-command"
+import { NocowboyPtySelfCommand } from "../../src/nocowboy/pty/self-command"
 
 describe("pty self-command", () => {
   test("does not forward bundled bun entrypoints", () => {
@@ -10,21 +10,21 @@ describe("pty self-command", () => {
       cwd: "/tmp",
     }
 
-    const cmd = KiloPtySelfCommand.command(proc)
+    const cmd = NocowboyPtySelfCommand.command(proc)
     expect(cmd).toStrictEqual({ command: "/tmp/kilo", args: [] })
-    expect(KiloPtySelfCommand.resolve({ command: "kilo", cwd: "/tmp/project" }, cmd)).toStrictEqual({
+    expect(NocowboyPtySelfCommand.resolve({ command: "nocowboy", cwd: "/tmp/project" }, cmd)).toStrictEqual({
       command: "/tmp/kilo",
       args: [],
       cwd: "/tmp/project",
     })
     expect(
-      KiloPtySelfCommand.command({
+      NocowboyPtySelfCommand.command({
         ...proc,
         argv: ["C:/tmp/kilo.exe", "B:/~BUN/root/src/index.js"],
       }).args,
     ).toStrictEqual([])
     expect(
-      KiloPtySelfCommand.command({
+      NocowboyPtySelfCommand.command({
         ...proc,
         argv: ["C:/tmp/kilo.exe", "b:\\~BUN\\root\\src\\index.js"],
       }).args,
@@ -32,7 +32,7 @@ describe("pty self-command", () => {
   })
 
   test("forwards source entrypoints", () => {
-    const cmd = KiloPtySelfCommand.command({
+    const cmd = NocowboyPtySelfCommand.command({
       argv: ["/tmp/bun", "/tmp/kilo/src/index.ts"],
       execArgv: ["--conditions=browser", "--cwd", "packages/opencode"],
       execPath: "/tmp/bun",
@@ -43,7 +43,7 @@ describe("pty self-command", () => {
       args: ["--conditions=browser", "/tmp/kilo/src/index.ts"],
       cwd: "/tmp/kilo",
     })
-    expect(KiloPtySelfCommand.resolve({ command: "kilo", cwd: "/tmp/project" }, cmd)).toStrictEqual({
+    expect(NocowboyPtySelfCommand.resolve({ command: "nocowboy", cwd: "/tmp/project" }, cmd)).toStrictEqual({
       command: "/tmp/bun",
       args: ["--conditions=browser", "/tmp/kilo/src/index.ts", "/tmp/project"],
       cwd: "/tmp/kilo",

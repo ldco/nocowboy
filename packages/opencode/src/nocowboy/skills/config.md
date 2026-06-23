@@ -1,8 +1,8 @@
 # Kilo CLI Configuration Reference
 
-All config lives in `kilo.json` (or `kilo.jsonc`). Precedence low-to-high: remote well-known, global (`~/.config/kilo/kilo.json`), env `KILO_CONFIG`, project `./kilo.json`, `.nocowboy/kilo.json`, `KILO_CONFIG_CONTENT`, managed (see Config File Locations). Deep-merged; later wins.
+All config lives in `nocowboy.json` (or `nocowboy.jsonc`). Precedence low-to-high: remote well-known, global (`~/.config/nocowboy/nocowboy.json`), env `NOCOWBOY_CONFIG`, project `./nocowboy.json`, `.nocowboy/nocowboy.json`, `NOCOWBOY_CONFIG_CONTENT`, managed (see Config File Locations). Deep-merged; later wins.
 
-This also covers where Kilo looks for config files, commands, agents, and skills across project, global, and legacy paths such as `.nocowboy/`, `.nocowboy/`, `.opencode/`, and `~/.config/kilo/`, plus Agent Manager setup/run scripts in the VS Code extension.
+This also covers where Kilo looks for config files, commands, agents, and skills across project, global, and legacy paths such as `.nocowboy/`, `.nocowboy/`, `.opencode/`, and `~/.config/nocowboy/`, plus Agent Manager setup/run scripts in the VS Code extension.
 
 ## Commands (`.nocowboy/command/*.md`)
 
@@ -26,11 +26,11 @@ Template variables: `$1`-`$N` (positional args), `$ARGUMENTS` (full string), `@f
 
 When asked where `/name` lives, do not search only the repo root. Search these roots explicitly, and use an explicit search `path` for each one:
 
-1. `~/.config/kilo/`
+1. `~/.config/nocowboy/`
 2. `~/.nocowboy/`
 3. `~/.nocowboy/`
 4. `~/.opencode/`
-5. The `KILO_CONFIG_DIR` directory (if the env var is set)
+5. The `NOCOWBOY_CONFIG_DIR` directory (if the env var is set)
 6. project `.nocowboy/`, `.nocowboy/`, and `.opencode/` directories from the current working directory up to the worktree root
 
 Use exact patterns first:
@@ -71,7 +71,7 @@ Markdown files in `.nocowboy/workflows/` or `.nocowboy/workflows/` (project-leve
 
 For the full product guidance, use the canonical [Agent Manager reference](https://kilo.ai/docs/automate/agent-manager) and [Agent Manager Workflows guide](https://kilo.ai/docs/automate/agent-manager-workflows). Prefer these links instead of guessing documentation paths.
 
-Agent Manager setup/run scripts are project files in the main repository's `.nocowboy/` directory. They are not `kilo.json` settings and should not be configured inside generated `.nocowboy/worktrees/<name>/` checkouts.
+Agent Manager setup/run scripts are project files in the main repository's `.nocowboy/` directory. They are not `nocowboy.json` settings and should not be configured inside generated `.nocowboy/worktrees/<name>/` checkouts.
 
 Agent Manager worktrees usually live under `.nocowboy/worktrees/`. Think of each worktree as a separate checkout on its own branch: it enables parallel edits, but dependencies, build output, caches, databases, and generated files can consume significant disk space across many worktrees.
 
@@ -288,7 +288,7 @@ Leader key default: `ctrl+x`. Keybinds below use `<leader>` prefix (e.g. `<leade
 | Switch theme | `<leader>t` | `/themes` | Pick from 35+ built-in themes (kilo, catppuccin, dracula, github, gruvbox, nord, tokyonight, etc.) |
 | Toggle appearance (dark/light) | — | — | Ctrl+P → "Toggle appearance" |
 
-Custom themes: place JSON files in `~/.config/kilo/themes/` or `.nocowboy/themes/`.
+Custom themes: place JSON files in `~/.config/nocowboy/themes/` or `.nocowboy/themes/`.
 
 ### Session
 
@@ -319,7 +319,7 @@ Custom themes: place JSON files in `~/.config/kilo/themes/` or `.nocowboy/themes
 
 Toggle animations, Toggle diff wrapping, Toggle sidebar (`<leader>b`), Toggle thinking (`/thinking`), Toggle tool details, Toggle timestamps (`/timestamps`), Toggle scrollbar, Toggle header, Toggle code concealment (`<leader>h`).
 
-Notification settings are managed through `kilo console` under **Settings > CLI > Notifications**, or through `attention` in `tui.json` / `tui.jsonc`. There is no notification slash command or command-palette toggle.
+Notification settings are managed through `nocowboy console` under **Settings > CLI > Notifications**, or through `attention` in `tui.json` / `tui.jsonc`. There is no notification slash command or command-palette toggle.
 
 ### System
 
@@ -332,23 +332,23 @@ Notification settings are managed through `kilo console` under **Settings > CLI 
 
 ## Config File Locations
 
-### Config files (kilo.json)
+### Config files (nocowboy.json)
 
 | Scope | Path |
 |---|---|
-| Project | `./kilo.json`, `./kilo.jsonc`, `./opencode.json` (legacy), `./opencode.jsonc` (legacy) |
-| Global | `~/.config/kilo/kilo.json`, `~/.config/kilo/kilo.jsonc`, `~/.config/kilo/opencode.json` (legacy), `~/.config/kilo/opencode.jsonc` (legacy), `~/.config/kilo/config.json` (legacy) |
-| Managed | Linux: `/etc/kilo/`, macOS: `/Library/Application Support/kilo/`, Windows: `%ProgramData%\kilo\` — loads `kilo.json`, `kilo.jsonc`, `opencode.json`, `opencode.jsonc` (enterprise, highest priority) |
+| Project | `./nocowboy.json`, `./nocowboy.jsonc`, `./opencode.json` (legacy), `./opencode.jsonc` (legacy) |
+| Global | `~/.config/nocowboy/nocowboy.json`, `~/.config/nocowboy/nocowboy.jsonc`, `~/.config/nocowboy/opencode.json` (legacy), `~/.config/nocowboy/opencode.jsonc` (legacy), `~/.config/nocowboy/config.json` (legacy) |
+| Managed | Linux: `/etc/nocowboy/`, macOS: `/Library/Application Support/nocowboy/`, Windows: `%ProgramData%\nocowboy\` — loads `nocowboy.json`, `nocowboy.jsonc`, `opencode.json`, `opencode.jsonc` (enterprise, highest priority) |
 
-Each config directory (`.nocowboy/`, `.nocowboy/`, `.opencode/`) can also contain `kilo.json`, `kilo.jsonc`, `opencode.json`, or `opencode.jsonc`.
+Each config directory (`.nocowboy/`, `.kilocode/`, `.opencode/`) can also contain `nocowboy.json`, `nocowboy.jsonc`, `opencode.json`, or `opencode.jsonc`.
 
 ### Config directories
 
-Three directory names are scanned: `.kilo` (modern), `.kilocode` (legacy), `.opencode` (legacy). All three are checked at each level:
+Three directory names are scanned: `.nocowboy` (modern), `.kilocode` (legacy), `.opencode` (legacy). All three are checked at each level:
 
 - **Project**: walks up from CWD to the git worktree root, checking for all three at each directory level
 - **Home**: `~/.nocowboy/`, `~/.nocowboy/`, `~/.opencode/`
-- **XDG global**: `~/.config/kilo/` (always loaded, lowest file-based precedence)
+- **XDG global**: `~/.config/nocowboy/` (always loaded, lowest file-based precedence)
 
 ### Commands, agents, modes, plugins
 
@@ -361,7 +361,7 @@ Glob patterns run inside every discovered config directory (including legacy):
 | Mode | `{mode,modes}/*.md` |
 | Plugin | `{plugin,plugins}/*.{ts,js}` |
 
-Example: `~/.config/kilo/command/*.md` (modern global), `~/.nocowboy/command/*.md` (legacy global), `.opencode/commands/*.md` (legacy project) all load commands.
+Example: `~/.config/nocowboy/command/*.md` (modern global), `~/.nocowboy/command/*.md` (legacy global), `.opencode/commands/*.md` (legacy project) all load commands.
 
 ### Skills and instructions
 
@@ -374,7 +374,7 @@ Example: `~/.config/kilo/command/*.md` (modern global), `~/.nocowboy/command/*.m
 
 | Variable | Description |
 |---|---|
-| `KILO_CONFIG` | Path to an additional config file (loaded after global) |
-| `KILO_CONFIG_DIR` | Path to an additional config directory (appended to search list) |
-| `KILO_CONFIG_CONTENT` | Inline JSON config string (high precedence, after project dirs) |
+| `NOCOWBOY_CONFIG` | Path to an additional config file (loaded after global) |
+| `NOCOWBOY_CONFIG_DIR` | Path to an additional config directory (appended to search list) |
+| `NOCOWBOY_CONFIG_CONTENT` | Inline JSON config string (high precedence, after project dirs) |
 | `KILO_DISABLE_PROJECT_CONFIG` | Skip all project-level config (files and directories) |

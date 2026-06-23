@@ -2,7 +2,7 @@ import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/
 import { createMemo, Show } from "solid-js"
 import { Global } from "@opencode-ai/core/global"
 
-const id = "internal:kilo-sidebar-footer"
+const id = "internal:nocowboy-sidebar-footer"
 
 function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current

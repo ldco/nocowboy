@@ -113,16 +113,16 @@ export namespace KilocodeConfigSources {
         scope: "env",
         label: "NOCOWBOY_CONFIG",
         file: Flag.NOCOWBOY_CONFIG,
-        reason: "Explicit config file from KILO_CONFIG.",
+        reason: "Explicit config file from NOCOWBOY_CONFIG.",
       }),
     ]
   }
 
   async function projectSources(input: Input): Promise<Pending[]> {
-    const kilo = await projectFiles("kilo", input)
+    const nocowboy = await projectFiles("nocowboy", input)
     const opencode = await projectFiles("opencode", input)
     return Promise.all(
-      [...kilo, ...opencode].map((file) =>
+      [...nocowboy, ...opencode].map((file) =>
         fileSource({ kind: "project-file", scope: "project", label: "Project config", file }),
       ),
     )
@@ -213,11 +213,11 @@ export namespace KilocodeConfigSources {
       {
         kind: "cloud-org",
         scope: "cloud",
-        label: "Kilo Cloud organization config",
+        label: "NoCowboy Cloud organization config",
         source: `${account.url}/api/config`,
         exists: true,
         editable: false,
-        reason: "Active organization config is managed by Kilo Cloud; values are not exposed here.",
+        reason: "Active organization config is managed by NoCowboy Cloud; values are not exposed here.",
       },
     ]
   }
@@ -274,9 +274,9 @@ export namespace KilocodeConfigSources {
 
   function runtimeSources(): Pending[] {
     return [
-      runtimeSource("KILO_PERMISSION", Flag.NOCOWBOY_PERMISSION, "Runtime permission overlay."),
+      runtimeSource("NOCOWBOY_PERMISSION", Flag.NOCOWBOY_PERMISSION, "Runtime permission overlay."),
       runtimeSource("NOCOWBOY_DISABLE_AUTOCOMPACT", process.env.NOCOWBOY_DISABLE_AUTOCOMPACT, "Disables automatic compaction."),
-      runtimeSource("KILO_DISABLE_PRUNE", process.env.NOCOWBOY_DISABLE_PRUNE, "Disables tool-output pruning."),
+      runtimeSource("NOCOWBOY_DISABLE_PRUNE", process.env.NOCOWBOY_DISABLE_PRUNE, "Disables tool-output pruning."),
     ].filter((item): item is Pending => item !== undefined)
   }
 

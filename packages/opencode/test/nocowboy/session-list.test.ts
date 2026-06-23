@@ -15,7 +15,7 @@ afterEach(async () => {
   await disposeAllInstances()
 })
 
-describe("Kilo Session.list", () => {
+describe("NoCowboy Session.list", () => {
   test("includes directory matches from legacy project ids", async () => {
     await using tmp = await tmpdir({ git: true })
     await provideTestInstance({

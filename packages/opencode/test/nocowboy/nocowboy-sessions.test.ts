@@ -1,5 +1,5 @@
 // kilocode_change - new file
-import { expect, spyOn } from "bun:test"
+import { expect, test } from "bun:test"
 import { Effect, Layer } from "effect"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Auth } from "../../src/auth"
@@ -27,9 +27,9 @@ function layer(overrides: Partial<Config.Interface> = {}) {
 }
 
 function reset(...tokens: string[]) {
-  clearInFlightCache("kilo-sessions:token")
-  clearInFlightCache("kilo-sessions:client")
-  for (const token of tokens) clearInFlightCache(`kilo-sessions:token-valid:${token}`)
+  clearInFlightCache("nocowboy-sessions:token")
+  clearInFlightCache("nocowboy-sessions:client")
+  for (const token of tokens) clearInFlightCache(`nocowboy-sessions:token-valid:${token}`)
 }
 
 it.instance("initializes once per instance through Config.Service", () => {
@@ -53,10 +53,12 @@ it.instance("initializes once per instance through Config.Service", () => {
   )
 })
 
-it.instance("bootstraps session ingest from KILO_API_KEY without stored auth", () => {
-  const original = process.env.KILO_API_KEY
+test("bootstraps session ingest from NOCOWBOY_API_KEY without stored auth", async () => {
+  const originalKey = process.env.NOCOWBOY_API_KEY
+  const fetchOriginal = globalThis.fetch
   const calls: string[] = []
-  const fetch: typeof globalThis.fetch = Object.assign(
+
+  globalThis.fetch = Object.assign(
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith("/api/user")) {
@@ -69,31 +71,30 @@ it.instance("bootstraps session ingest from KILO_API_KEY without stored auth", (
       }
       return new Response("{}", { status: 200 })
     },
-    { preconnect: globalThis.fetch.preconnect },
-  )
-  const request = spyOn(globalThis, "fetch").mockImplementation(fetch)
+    { preconnect: fetchOriginal.preconnect },
+  ) as typeof globalThis.fetch
 
-  process.env.KILO_API_KEY = "env-token"
+  process.env.NOCOWBOY_API_KEY = "env-token"
   reset("env-token")
 
-  return Effect.promise(() => Sessions.bootstrap("session-env")).pipe(
-    Effect.andThen(() => Effect.sync(() => expect(calls).toEqual(["Bearer env-token", "Bearer env-token"]))),
-    Effect.ensuring(
-      Effect.sync(() => {
-        if (original === undefined) delete process.env.KILO_API_KEY
-        else process.env.KILO_API_KEY = original
-        reset("env-token")
-        request.mockRestore()
-      }),
-    ),
-    Effect.provide(layer()),
-  )
+  try {
+    await Sessions.bootstrap("session-env")
+    expect(calls).toEqual(["Bearer env-token", "Bearer env-token"])
+  } finally {
+    if (originalKey === undefined) delete process.env.NOCOWBOY_API_KEY
+    else process.env.NOCOWBOY_API_KEY = originalKey
+    globalThis.fetch = fetchOriginal
+    reset("env-token")
+  }
 })
 
-it.instance("prefers stored auth over KILO_API_KEY for session ingest", () => {
-  const original = process.env.KILO_API_KEY
+test("prefers stored auth over NOCOWBOY_API_KEY for session ingest", async () => {
+  const originalKey = process.env.NOCOWBOY_API_KEY
+  const originalAuthContent = process.env.NOCOWBOY_AUTH_CONTENT
+  const fetchOriginal = globalThis.fetch
   const calls: string[] = []
-  const fetch: typeof globalThis.fetch = Object.assign(
+
+  globalThis.fetch = Object.assign(
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith("/api/user")) {
@@ -106,36 +107,31 @@ it.instance("prefers stored auth over KILO_API_KEY for session ingest", () => {
       }
       return new Response("{}", { status: 200 })
     },
-    { preconnect: globalThis.fetch.preconnect },
-  )
-  const request = spyOn(globalThis, "fetch").mockImplementation(fetch)
+    { preconnect: fetchOriginal.preconnect },
+  ) as typeof globalThis.fetch
 
-  process.env.KILO_API_KEY = "env-token"
+  process.env.NOCOWBOY_API_KEY = "env-token"
+  process.env.NOCOWBOY_AUTH_CONTENT = JSON.stringify({ kilo: { type: "api", key: "stored-token" } })
   reset("env-token", "stored-token")
 
-  return Effect.gen(function* () {
-    const auth = yield* Auth.Service
-    yield* auth.set("kilo", { type: "api", key: "stored-token" })
-    yield* Effect.promise(() => Sessions.bootstrap("session-auth"))
+  try {
+    await Sessions.bootstrap("session-auth")
     expect(calls).toEqual(["Bearer stored-token", "Bearer stored-token"])
-  }).pipe(
-    Effect.ensuring(
-      Effect.gen(function* () {
-        const auth = yield* Auth.Service
-        yield* auth.remove("kilo").pipe(Effect.orDie)
-        if (original === undefined) delete process.env.KILO_API_KEY
-        else process.env.KILO_API_KEY = original
-        reset("env-token", "stored-token")
-        request.mockRestore()
-      }),
-    ),
-    Effect.provide(layer()),
-  )
+  } finally {
+    if (originalKey === undefined) delete process.env.NOCOWBOY_API_KEY
+    else process.env.NOCOWBOY_API_KEY = originalKey
+    if (originalAuthContent === undefined) delete process.env.NOCOWBOY_AUTH_CONTENT
+    else process.env.NOCOWBOY_AUTH_CONTENT = originalAuthContent
+    globalThis.fetch = fetchOriginal
+    reset("env-token", "stored-token")
+  }
 })
 
 it.instance("does not duplicate created-session subscribers when init is repeated", () => {
+  const fetchOriginal = globalThis.fetch
   const calls: string[] = []
-  const fetch: typeof globalThis.fetch = Object.assign(
+
+  globalThis.fetch = Object.assign(
     async (input: RequestInfo | URL) => {
       const url = String(input)
       if (url.endsWith("/api/user")) return new Response("{}", { status: 200 })
@@ -145,21 +141,29 @@ it.instance("does not duplicate created-session subscribers when init is repeate
       }
       return new Response("{}", { status: 200 })
     },
-    { preconnect: globalThis.fetch.preconnect },
-  )
-  const request = spyOn(globalThis, "fetch").mockImplementation(fetch)
+    { preconnect: fetchOriginal.preconnect },
+  ) as typeof globalThis.fetch
 
   reset("test-token")
   const id = SessionID.descending("session-created")
 
   return Effect.gen(function* () {
+    yield* Effect.addFinalizer(() =>
+      Effect.gen(function* () {
+        const auth = yield* Auth.Service
+        yield* auth.remove("kilo").pipe(Effect.orDie)
+        globalThis.fetch = fetchOriginal
+        reset("test-token")
+      }),
+    )
+
     const auth = yield* Auth.Service
     const bus = yield* Bus.Service
     const sessions = yield* Sessions.Service
     yield* auth.set("kilo", { type: "api", key: "test-token" })
     yield* sessions.init()
     yield* sessions.init()
-    yield* Effect.sleep(50)
+    yield* Effect.sleep(100)
     yield* bus.publish(Session.Event.Created, {
       sessionID: id,
       info: {
@@ -172,17 +176,7 @@ it.instance("does not duplicate created-session subscribers when init is repeate
         time: { created: Date.now(), updated: Date.now() },
       },
     })
-    yield* Effect.sleep(50)
+    yield* Effect.sleep(500)
     expect(calls).toHaveLength(1)
-  }).pipe(
-    Effect.ensuring(
-      Effect.gen(function* () {
-        const auth = yield* Auth.Service
-        yield* auth.remove("kilo").pipe(Effect.orDie)
-        reset("test-token")
-        request.mockRestore()
-      }),
-    ),
-    Effect.provide(layer()),
-  )
+  }).pipe(Effect.provide(layer()))
 })

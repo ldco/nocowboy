@@ -18,7 +18,7 @@ import { DevSetupCommand, DevAliasCommand } from "@/nocowboy/cli/dev-setup"
 import { RemoteCommand } from "@/cli/cmd/remote"
 import { ConfigCommand as ConfigCLICommand } from "@/cli/cmd/config"
 
-const log = Log.create({ service: "kilocode.cli" })
+const log = Log.create({ service: "nocowboy.cli" })
 
 // All Kilo-specific CLI customization lives here so the shared upstream entrypoint
 // (src/index.ts) only needs a handful of thin call-sites behind nocowboy_change markers.
@@ -47,7 +47,7 @@ export namespace NocowboyCli {
   export async function bootstrap(): Promise<void> {
     if (!process.env[ENV_FEATURE]) process.env[ENV_FEATURE] = process.argv.includes("serve") ? "unknown" : "cli"
     if (!process.env[ENV_VERSION]) process.env[ENV_VERSION] = InstallationVersion
-    process.env.KILO = "1"
+    process.env.NOCOWBOY = "1"
 
     await Telemetry.init()
 

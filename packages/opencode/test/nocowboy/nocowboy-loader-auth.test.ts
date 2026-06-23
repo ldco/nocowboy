@@ -16,8 +16,8 @@ import { testEffect } from "../lib/effect"
 import { provideInstance } from "../fixture/fixture"
 
 const input = {
-  id: "kilo",
-  env: ["KILO_API_KEY"],
+  id: "nocowboy",
+  env: ["NOCOWBOY_API_KEY"],
   models: {
     "free-model": {
       id: "free-model",
@@ -65,7 +65,7 @@ function load(data?: { auth?: object; config?: object; env?: Record<string, stri
     config: () => Effect.succeed(data?.config ?? {}),
     env: () => Effect.succeed(data?.env ?? {}),
     get: () => Effect.succeed(undefined),
-  }).kilo(input)
+  }).nocowboy(input)
 }
 
 function layer() {
@@ -125,11 +125,11 @@ it.live("assembles paid Kilo models without auth", () =>
       Effect.provide(layer()),
       provideInstance(process.cwd()),
     )
-    const kilo = Provider.fromModelsDevProvider(providers.kilo)
+    const nocowboy = Provider.fromModelsDevProvider(providers.nocowboy)
 
-    expect(kilo.models["paid-model"]).toMatchObject({
+    expect(nocowboy.models["paid-model"]).toMatchObject({
       id: "paid-model",
-      providerID: "kilo",
+      providerID: "nocowboy",
       cost: { input: 1, output: 2 },
       isFree: false,
       mayTrainOnYourPrompts: true,
@@ -143,9 +143,9 @@ it.live("does not infer free status from zero catalog prices", () =>
       Effect.provide(layer()),
       provideInstance(process.cwd()),
     )
-    const kilo = Provider.fromModelsDevProvider(providers.kilo)
+    const nocowboy = Provider.fromModelsDevProvider(providers.nocowboy)
 
-    expect(kilo.models["free-model"].isFree).toBeUndefined()
+    expect(nocowboy.models["free-model"].isFree).toBeUndefined()
   }),
 )
 
@@ -159,7 +159,7 @@ it.effect("enables a paid catalog anonymously without auth", () =>
 
 it.effect("enables a paid catalog when config apiKey is present", () =>
   (Effect.gen(function* () {
-    const result = yield* load({ config: { provider: { kilo: { options: { apiKey: "test-key" } } } } })
+    const result = yield* load({ config: { provider: { nocowboy: { options: { apiKey: "test-key" } } } } })
     expect(result.autoload).toBe(true)
     expect(result.options).toEqual({})
   }) as never),

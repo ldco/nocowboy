@@ -335,9 +335,9 @@ Kilocode MCP server configurations are migrated to Opencode's `mcp` config. See 
 
 ## Config file location
 
-The CLI reads global config from `~/.config/kilo/` (see [`global/index.ts`](../../global/index.ts): `Global.Path.config` = `xdgConfig` + `"kilo"`). It merges, in order, `config.json`, `opencode.json`, and `opencode.jsonc` in that directory. You can put MCP config in **`opencode.json`** or **`opencode.jsonc`**.
+The CLI reads global config from `~/.config/nocowboy/` (see [`global/index.ts`](../../global/index.ts): `Global.Path.config` = `xdgConfig` + `"nocowboy"`). It merges, in order, `config.json`, `opencode.json`, and `opencode.jsonc` in that directory. You can put MCP config in **`opencode.json`** or **`opencode.jsonc`**.
 
-- **macOS / Linux:** `~/.config/kilo/opencode.json` (or `opencode.jsonc`)
+- **macOS / Linux:** `~/.config/nocowboy/opencode.json` (or `opencode.jsonc`)
 - **Windows:** Config directory depends on `xdg-basedir` (often under `%LOCALAPPDATA%` or `%USERPROFILE%`); filename is still `opencode.json` or `opencode.jsonc`.
 
 Use a top-level `"mcp"` object. Each key is the server name. For a local server, value must have `type: "local"` and `command: ["executable", "arg1", ...]`. Optional: `environment` (env vars), `enabled` (boolean), `timeout` (ms). See `Config.McpLocal` in [`config.ts`](../../config/config.ts). Restart the CLI after editing.

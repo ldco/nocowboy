@@ -20,7 +20,7 @@ import { fn } from "@/nocowboy/fn"
 import path from "path"
 
 export namespace KiloSession {
-  const log = Log.create({ service: "session.kilo" })
+  const log = Log.create({ service: "session.nocowboy" })
 
   // ---------------------------------------------------------------------------
   // Events
@@ -182,7 +182,7 @@ export namespace KiloSession {
     provider?: Provider.Info
     providerID: string
   }): number | undefined {
-    const isKilo = (input.provider?.id ?? input.providerID) === "kilo"
+    const isNocowboy = (input.provider?.id ?? input.providerID) === "kilo"
 
     const num = (value: unknown): number | undefined => {
       if (value === undefined || value === null) return undefined
@@ -200,7 +200,7 @@ export namespace KiloSession {
       // Kilo doesn't charge a fee on top of the upstream inference cost, so for Kilo
       // prefer the upstream cost (the user's true spend). For the OpenRouter provider
       // itself, the regular `cost` field is what the user is billed.
-      const cost = isKilo && upstream !== undefined ? upstream : regular
+      const cost = isNocowboy && upstream !== undefined ? upstream : regular
       if (cost !== undefined) return cost
     }
 

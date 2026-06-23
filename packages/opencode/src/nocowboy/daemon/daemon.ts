@@ -11,8 +11,8 @@ import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
 
 export namespace Daemon {
-  const username = "kilo"
-  const lock = "kilocode-daemon"
+  const username = "nocowboy"
+  const lock = "nocowboy-daemon"
   export const PortRange = { start: 4097, end: 4116 } as const
 
   export const Network = z.object({
@@ -194,7 +194,7 @@ export namespace Daemon {
           if (alive(current.state.pid)) await terminate(current.state.pid, true)
         }
         await clear()
-        const password = "kilo"
+        const password = "nocowboy"
         const token = auth(password)
         const out = log()
         await mkdir(path.dirname(out), { recursive: true })

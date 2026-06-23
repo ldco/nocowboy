@@ -19,7 +19,7 @@ export namespace ConfigProtection {
    * Root-level config files that must be protected.
    * Matched only when the relative path has no directory component.
    */
-  const CONFIG_ROOT_FILES = new Set(["kilo.json", "kilo.jsonc", "nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
+  const CONFIG_ROOT_FILES = new Set(["nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "AGENTS.md"])
 
   /** Metadata key used to signal the UI to hide the "Allow always" option. */
   export const DISABLE_ALWAYS_KEY = "disableAlways" as const
@@ -67,7 +67,7 @@ export namespace ConfigProtection {
 
   function configs(): string[] {
     return Array.from(
-      new Set([Global.Path.config, process.env.XDG_CONFIG_HOME ? path.join(process.env.XDG_CONFIG_HOME, "kilo") : ""]),
+      new Set([Global.Path.config, process.env.XDG_CONFIG_HOME ? path.join(process.env.XDG_CONFIG_HOME, "nocowboy") : ""]),
     ).filter(Boolean)
   }
 

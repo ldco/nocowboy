@@ -3,19 +3,19 @@ import { createEffect, createRoot, createSignal } from "solid-js"
 import type { Config, IndexingConfig } from "@nocowboy/sdk/v2"
 import {
   createIndexingDialogState,
-  currentKiloModel,
+  currentNocowboyModel,
   indexingInheritance,
   indexingPatch,
   indexingScopeConfig,
   inheritedDescription,
-  kiloModelOptions,
-  loadKiloEmbeddingModels,
+  nocowboyModelOptions,
+  loadNocowboyEmbeddingModels,
   mergeIndexingConfig,
   type IndexingScope,
 } from "../../src/nocowboy/components/indexing-dialog-state"
 
 describe("indexing dialog state", () => {
-  test.serial("loads Kilo models directly from the public catalog", async () => {
+  test.serial("loads NoCowboy models directly from the public catalog", async () => {
     const original = global.fetch
     const calls: string[] = []
     global.fetch = (async (input) => {
@@ -31,7 +31,7 @@ describe("indexing dialog state", () => {
     }) as typeof global.fetch
 
     try {
-      const catalog = await loadKiloEmbeddingModels()
+      const catalog = await loadNocowboyEmbeddingModels()
 
       expect(catalog.models).toHaveLength(1)
       expect(catalog.defaultModel).toBe("kilo/default")
@@ -43,8 +43,8 @@ describe("indexing dialog state", () => {
   })
 
   test("builds stable loading, empty, and loaded model options", () => {
-    expect(kiloModelOptions()).toEqual([{ value: "", title: "Loading supported models..." }])
-    expect(kiloModelOptions({ defaultModel: "", models: [], aliases: {} })).toEqual([
+    expect(nocowboyModelOptions()).toEqual([{ value: "", title: "Loading supported models..." }])
+    expect(nocowboyModelOptions({ defaultModel: "", models: [], aliases: {} })).toEqual([
       { value: "", title: "No supported models available" },
     ])
 
@@ -57,12 +57,12 @@ describe("indexing dialog state", () => {
       aliases: { code: "provider/code" },
     }
 
-    expect(kiloModelOptions(catalog)).toEqual([
+    expect(nocowboyModelOptions(catalog)).toEqual([
       { value: "provider/default", title: "Default (1024d)" },
       { value: "provider/code", title: "Code (code, 1536d)" },
     ])
-    expect(currentKiloModel(catalog, "code")).toBe("provider/code")
-    expect(currentKiloModel(catalog, "missing")).toBe("provider/default")
+    expect(currentNocowboyModel(catalog, "code")).toBe("provider/code")
+    expect(currentNocowboyModel(catalog, "missing")).toBe("provider/default")
   })
 
   test("classifies scalar and partial nested inheritance", () => {

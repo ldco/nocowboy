@@ -6,7 +6,7 @@ import { EffectBridge } from "@/effect/bridge"
 import { lazy } from "@opencode-ai/core/util/lazy"
 import { Plugin } from "@/plugin"
 import { Shell } from "@/shell/shell"
-import { KiloPtySelfCommand } from "@/nocowboy/pty/self-command" // nocowboy_change
+import { NocowboyPtySelfCommand } from "@/nocowboy/pty/self-command" // nocowboy_change
 import type { Proc } from "#pty"
 import * as Log from "@opencode-ai/core/util/log"
 import { PtyID } from "./schema"
@@ -179,7 +179,7 @@ export const layer = Layer.effect(
       const bridge = yield* EffectBridge.make()
       const cfg = yield* config.get()
       const id = PtyID.ascending()
-      const resolved = KiloPtySelfCommand.resolve(input) // nocowboy_change
+      const resolved = NocowboyPtySelfCommand.resolve(input) // nocowboy_change
       const command = resolved.command || Shell.preferred(cfg.shell) // nocowboy_change
       const args = resolved.args || [] // nocowboy_change
       if (Shell.login(command)) {

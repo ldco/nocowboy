@@ -21,7 +21,7 @@ import { McpMigrator } from "../mcp-migrator"
 import { IgnoreMigrator } from "../ignore-migrator"
 
 export namespace KilocodeConfig {
-  const log = Log.create({ service: "kilocode.config" })
+  const log = Log.create({ service: "nocowboy.config" })
 
   // ── Config schema extensions ─────────────────────────────────────────
 
@@ -60,7 +60,7 @@ export namespace KilocodeConfig {
    *
    * This mirrors the Kilo project-config load chain: prefer existing config files
    * in ancestor config directories, then existing root config files, and create
-   * `.nocowboy/kilo.jsonc` when no project config exists yet.
+   * `.nocowboy/nocowboy.jsonc` when no project config exists yet.
    */
   export const projectConfigUpdateTarget = Effect.fn("KilocodeConfig.projectConfigUpdateTarget")(function* (input: {
     fs: AppFileSystem.Interface
@@ -223,16 +223,16 @@ export namespace KilocodeConfig {
       const migration = await ModesMigrator.migrate({ projectDir: input.projectDir })
       if (Object.keys(migration.agents).length > 0) {
         result = input.merge(result, { agent: migration.agents })
-        log.debug("loaded kilocode custom modes", {
+        log.debug("loaded nocowboy custom modes", {
           count: Object.keys(migration.agents).length,
           modes: Object.keys(migration.agents),
         })
       }
       for (const skipped of migration.skipped) {
-        log.debug("skipped kilocode mode", { slug: skipped.slug, reason: skipped.reason })
+        log.debug("skipped nocowboy mode", { slug: skipped.slug, reason: skipped.reason })
       }
     } catch (err) {
-      log.warn("failed to load kilocode modes", { error: err })
+      log.warn("failed to load nocowboy modes", { error: err })
     }
 
     // Load Kilocode workflows as commands
@@ -240,13 +240,13 @@ export namespace KilocodeConfig {
       const migration = await WorkflowsMigrator.migrate({ projectDir: input.projectDir })
       if (Object.keys(migration.commands).length > 0) {
         result = input.merge(result, { command: migration.commands })
-        log.debug("loaded kilocode workflows as commands", {
+        log.debug("loaded nocowboy workflows as commands", {
           count: Object.keys(migration.commands).length,
           commands: Object.keys(migration.commands),
         })
       }
     } catch (err) {
-      log.warn("failed to load kilocode workflows", { error: err })
+      log.warn("failed to load nocowboy workflows", { error: err })
     }
 
     // Load Kilocode rules
@@ -254,16 +254,16 @@ export namespace KilocodeConfig {
       const migration = await RulesMigrator.migrate({ projectDir: input.projectDir })
       if (migration.instructions.length > 0) {
         result = input.merge(result, { instructions: migration.instructions })
-        log.debug("loaded kilocode rules", {
+        log.debug("loaded nocowboy rules", {
           count: migration.instructions.length,
           files: migration.instructions,
         })
       }
       for (const warning of migration.warnings) {
-        log.debug("kilocode rules warning", { warning })
+        log.debug("nocowboy rules warning", { warning })
       }
     } catch (err) {
-      log.warn("failed to load kilocode rules", { error: err })
+      log.warn("failed to load nocowboy rules", { error: err })
     }
 
     // Load Kilocode MCP servers (skip global VSCode extension paths unless running in an editor or Console daemon)
@@ -278,13 +278,13 @@ export namespace KilocodeConfig {
       const permission = await IgnoreMigrator.loadIgnoreConfig(input.projectDir)
       if (Object.keys(permission).length > 0) {
         result = input.merge(result, { permission })
-        log.debug("loaded kilocode ignore patterns", {
+        log.debug("loaded nocowboy ignore patterns", {
           hasRead: !!(permission as Record<string, unknown>).read,
           hasEdit: !!(permission as Record<string, unknown>).edit,
         })
       }
     } catch (err) {
-      log.warn("failed to load kilocode ignore patterns", { error: err })
+      log.warn("failed to load nocowboy ignore patterns", { error: err })
     }
 
     return { config: result, warnings }
@@ -301,9 +301,9 @@ export namespace KilocodeConfig {
   ): Promise<{ agents: Record<string, ConfigAgent.Info>; warnings: Config.Warning[] }> {
     const warnings: Config.Warning[] = []
     try {
-      const kilo = auth["kilo"] as { type?: string; access?: string; accountId?: string } | undefined
-      if (kilo?.type === "oauth" && kilo.access && kilo.accountId) {
-        const modes = await fetchOrganizationModes(kilo.access, kilo.accountId)
+      const cred = auth["kilo"] as { type?: string; access?: string; accountId?: string } | undefined
+      if (cred?.type === "oauth" && cred.access && cred.accountId) {
+        const modes = await fetchOrganizationModes(cred.access, cred.accountId)
         if (modes && modes.length > 0) {
           const agents = ModesMigrator.convertOrganizationModes(modes)
           log.debug("loaded organization custom modes", {

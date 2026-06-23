@@ -29,14 +29,14 @@ import { ProfileCommand } from "../../src/nocowboy/cli/cmd/profile"
 // doesn't resolve in the test environment. Only command/describe matter here.
 const TuiStub = {
   command: "$0 [project]",
-  describe: "start kilo tui",
+  describe: "start nocowboy tui",
   handler() {},
 }
 
 // Stand-in for AttachCommand — same reason as TuiStub above.
 const AttachStub = {
   command: "attach <url>",
-  describe: "attach to a running kilo server",
+  describe: "attach to a running nocowboy server",
   handler() {},
 }
 
@@ -76,23 +76,23 @@ const commands = [
   CompletionStub,
 ] as any[]
 
-describe("kilo help --all (markdown)", () => {
+describe("nocowboy help --all (markdown)", () => {
   test("contains ## heading for each known top-level command", async () => {
     const output = await generateHelp({ all: true, format: "md", commands })
     for (const cmd of ["run", "auth", "debug", "mcp", "session", "agent", "profile"]) {
-      expect(output).toContain(`## kilo ${cmd}`)
+      expect(output).toContain(`## nocowboy ${cmd}`)
     }
   })
 
   test("contains headings for nested subcommands", async () => {
     const output = await generateHelp({ all: true, format: "md", commands })
-    expect(output).toContain("kilo auth login")
-    expect(output).toContain("kilo auth logout")
-    expect(output).toContain("kilo debug config")
+    expect(output).toContain("nocowboy auth login")
+    expect(output).toContain("nocowboy auth logout")
+    expect(output).toContain("nocowboy debug config")
   })
 })
 
-describe("kilo help --all (text)", () => {
+describe("nocowboy help --all (text)", () => {
   test("does NOT contain Markdown ## headings or triple-backtick fences", async () => {
     const output = await generateHelp({ all: true, format: "text", commands })
     expect(output).not.toMatch(/^##\s/m)
@@ -102,23 +102,23 @@ describe("kilo help --all (text)", () => {
   test("still contains each command name", async () => {
     const output = await generateHelp({ all: true, format: "text", commands })
     for (const cmd of ["run", "auth", "debug", "mcp", "session", "agent", "profile"]) {
-      expect(output).toContain(`kilo ${cmd}`)
+      expect(output).toContain(`nocowboy ${cmd}`)
     }
   })
 })
 
-describe("kilo help <command>", () => {
-  test("kilo help auth contains auth subcommand headings", async () => {
+describe("nocowboy help <command>", () => {
+  test("nocowboy help auth contains auth subcommand headings", async () => {
     const output = await generateHelp({ command: "auth", format: "md", commands })
-    expect(output).toContain("kilo auth login")
-    expect(output).toContain("kilo auth logout")
-    expect(output).toContain("kilo auth list")
+    expect(output).toContain("nocowboy auth login")
+    expect(output).toContain("nocowboy auth logout")
+    expect(output).toContain("nocowboy auth list")
   })
 
-  test("kilo help auth does NOT contain run or debug headings", async () => {
+  test("nocowboy help auth does NOT contain run or debug headings", async () => {
     const output = await generateHelp({ command: "auth", format: "md", commands })
-    expect(output).not.toContain("## kilo run")
-    expect(output).not.toContain("## kilo debug")
+    expect(output).not.toContain("## nocowboy run")
+    expect(output).not.toContain("## nocowboy debug")
   })
 })
 
@@ -128,7 +128,7 @@ describe("edge cases", () => {
     expect(/\x1b\[/.test(output)).toBe(false)
   })
 
-  test("kilo help nonexistent throws unknown command error", async () => {
+  test("nocowboy help nonexistent throws unknown command error", async () => {
     await expect(generateHelp({ command: "nonexistent", commands })).rejects.toThrow("unknown command")
   })
 })
@@ -142,13 +142,13 @@ describe("generateCommandTable", () => {
   test("contains rows for known commands", async () => {
     const output = await generateCommandTable({ commands })
     for (const name of ["run", "auth", "debug", "mcp"]) {
-      expect(output).toContain(`kilo ${name}`)
+      expect(output).toContain(`nocowboy ${name}`)
     }
   })
 
-  test("default command appears as kilo [project], not $0", async () => {
+  test("default command appears as nocowboy [project], not $0", async () => {
     const output = await generateCommandTable({ commands })
-    expect(output).toContain("`kilo [project]`")
+    expect(output).toContain("`nocowboy [project]`")
     expect(output).not.toContain("$0")
   })
 
@@ -159,17 +159,17 @@ describe("generateCommandTable", () => {
 
   test("skips commands with no describe", async () => {
     const output = await generateCommandTable({ commands })
-    expect(output).not.toContain("`kilo generate`")
+    expect(output).not.toContain("`nocowboy generate`")
   })
 
-  test("contains kilo completion row", async () => {
+  test("contains nocowboy completion row", async () => {
     const output = await generateCommandTable({ commands })
-    expect(output).toContain("`kilo completion`")
+    expect(output).toContain("`nocowboy completion`")
   })
 
-  test("contains kilo help row", async () => {
+  test("contains nocowboy help row", async () => {
     const output = await generateCommandTable({ commands })
-    expect(output).toContain("`kilo help")
+    expect(output).toContain("`nocowboy help")
   })
 })
 
@@ -179,9 +179,9 @@ describe("Kilo CLI customizations are wired into index.ts", () => {
   const SETUP = "../../src/nocowboy/cli/setup.ts"
   const BARREL = "../../src/nocowboy/commands.ts"
 
-  test("CLI is branded `kilo`, not `opencode`", async () => {
+  test("CLI is branded `nocowboy`, not `opencode`", async () => {
     const index = await file(INDEX)
-    expect(index).toContain('.scriptName("kilo")')
+    expect(index).toContain('.scriptName("nocowboy")')
     expect(index).not.toContain('.scriptName("opencode")')
   })
 

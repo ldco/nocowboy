@@ -7,12 +7,12 @@ export type IndexingScope = "global" | "project"
 
 const log = Log.create({ service: "indexing-model-catalog" })
 
-export async function loadKiloEmbeddingModels(onError?: (message: string) => void) {
+export async function loadNocowboyEmbeddingModels(onError?: (message: string) => void) {
   const endpoint = new URL("embedding-models", resolveGatewayBaseUrl()).toString()
-  log.info("loading Kilo embedding model catalog", { endpoint })
+  log.info("loading NoCowboy embedding model catalog", { endpoint })
   const catalog = await fetchEmbeddingModelCatalog({
     onError: (issue) => {
-      log.warn("failed to load Kilo embedding model catalog", {
+      log.warn("failed to load NoCowboy embedding model catalog", {
         code: issue.code,
         status: issue.status,
         message: issue.message,
@@ -20,14 +20,14 @@ export async function loadKiloEmbeddingModels(onError?: (message: string) => voi
       onError?.(issue.message)
     },
   })
-  log.info("loaded Kilo embedding model catalog", {
+  log.info("loaded NoCowboy embedding model catalog", {
     models: catalog.models.length,
     defaultModel: catalog.defaultModel || undefined,
   })
   return catalog
 }
 
-export function kiloModelOptions(catalog?: KiloEmbeddingModelCatalog) {
+export function nocowboyModelOptions(catalog?: KiloEmbeddingModelCatalog) {
   if (!catalog) return [{ value: "", title: "Loading supported models..." }]
   if (catalog.models.length === 0) return [{ value: "", title: "No supported models available" }]
   return catalog.models.map((model) => ({
@@ -36,7 +36,7 @@ export function kiloModelOptions(catalog?: KiloEmbeddingModelCatalog) {
   }))
 }
 
-export function currentKiloModel(catalog: KiloEmbeddingModelCatalog | undefined, model?: string | null) {
+export function currentNocowboyModel(catalog: KiloEmbeddingModelCatalog | undefined, model?: string | null) {
   if (!catalog) return undefined
   const fallback = catalog.aliases[catalog.defaultModel] ?? catalog.defaultModel
   const current = model ? (catalog.aliases[model] ?? model) : fallback

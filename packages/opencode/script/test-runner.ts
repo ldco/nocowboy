@@ -132,7 +132,7 @@ const pad = String(files.length).length
 
 async function run(file: string): Promise<Result> {
   const target = path.join("test", file)
-  const cmd = ["bun", "test", target, "--conditions=browser", "--timeout", String(timeout)]
+  const cmd = ["bun", "test", target, "--preload", "./test/preload.ts", "--conditions=browser", "--timeout", String(timeout)]
 
   if (ci) {
     const name = file.replace(/[/\\]/g, "_") + ".xml"
