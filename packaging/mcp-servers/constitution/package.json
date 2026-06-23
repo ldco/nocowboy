@@ -12,7 +12,8 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "tsx test/typescript-rules.test.ts",
-    "install-hook": "node dist/index.js install-hook"
+    "install-hook": "node dist/index.js install-hook",
+    "postinstall": "nocowboy mcp install constitution || true"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.1"
