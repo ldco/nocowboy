@@ -89,22 +89,22 @@ interface SearchProvider {
 }
 ```
 
-Default implementations:
+Default implementations — start with DuckDuckGo (no API key needed), add others as optional:
 
-| Provider | Where | How |
-|---|---|---|
-| **Tavily** | `tavily.com` | API key in config, most reliable and similar to Claude's proxy |
-| **Google** | Custom Search JSON API | Needs `GOOGLE_API_KEY` + `GOOGLE_CX` (search engine ID) |
-| **Brave** | `api.search.brave.com` | Free tier available, good for initial launch |
-| **Bing** | Azure Cognitive Services | Paid, requires subscription |
-| **Kilo proxy** | internal | Use if available (same as current Claude subscription path) |
+| Provider | Where | API key? | Priority |
+|---|---|---|---|
+| **DuckDuckGo** | `@phukon/duckduckgo-search` | **None** | **default** — zero config, works out of the box |
+| **Tavily** | `tavily.com` | API key | optional — higher rate limits |
+| **Google** | Custom Search JSON API | `GOOGLE_API_KEY` + `GOOGLE_CX` | optional |
+| **Brave** | `api.search.brave.com` | API key | optional — free tier available |
+| **Bing** | Azure Cognitive Services | API key | optional |
+| **Kilo proxy** | internal | subscription | optional — same as current Claude path |
 
 ## Config format
 
 ```json
 {
-  "provider": "tavily",
-  "tavily": { "apiKey": "tvly-..." },
+  "provider": "duckduckgo",
   "resultsPerPage": 10,
   "cacheTTL": 300000,
   "fetchTimeout": 10000
@@ -136,6 +136,7 @@ cat > package.json << 'EOF'
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.0",
+    "@phukon/duckduckgo-search": "^1.2.0",
     "cheerio": "^1.0.0",
     "@mozilla/readability": "^0.5.0",
     "jsdom": "^25.0.0",
@@ -151,8 +152,31 @@ EOF
 
 ### 2. Provider implementations
 
-Implement `SearchProvider` for each engine. Start with Tavily (simplest, closest to Claude proxy behavior).  
-Each provider reads its config from the tool arguments or process.env.
+Implement `SearchProvider` for each engine. Start with DuckDuckGo (zero config):
+
+```typescript
+import { DDGS } from "@phukon/duckduckgo-search"
+
+export class DuckDuckGoProvider implements SearchProvider {
+  private client = new DDGS()
+
+  async search(query: string, opts: { count?: number; region?: string }): Promise<SearchResult[]> {
+    const results = await this.client.text({
+      keywords: query,
+      maxResults: opts.count ?? 10,
+      region: opts.region ?? "wt-wt",
+    })
+    return results.map((r) => ({
+      title: r.title,
+      url: r.url,
+      snippet: r.description,
+      source: "duckduckgo",
+    }))
+  }
+}
+```
+
+Add Tavily, Google, Brave later as optional providers.
 
 ### 3. Web page fetching
 
@@ -211,10 +235,10 @@ Will be auto-detected by NoCowboy's `launcher.ts` via `require.resolve("@nocowbo
 
 | Item | Status |
 |---|---|
-| Provider abstraction layer | 🟡 design complete, needs implementation |
+| DuckDuckGo provider (default) | 🟡 recommended — `@phukon/duckduckgo-search` found, needs implementation |
 | Tavily provider | 🔴 not started |
 | Google provider | 🔴 not started |
-| Brave provider | 🔴 not started (good for free tier) |
+| Brave provider | 🔴 not started |
 | Web page fetcher | 🔴 not started |
 | Cache layer | 🔴 not started |
 | MCP server entry | 🔴 not started |
