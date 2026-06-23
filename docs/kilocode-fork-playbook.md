@@ -500,3 +500,72 @@ perf/                   → Performance benchmarks
 .kilo/                  → Project-level config
 .kilocode/skills/       → Built-in skills
 ```
+
+---
+
+## 9. Current Status (2026-06-24 — post-fork implementation)
+
+### ✅ DONE — Core NoCowboy infrastructure
+
+| Item | Status | Details |
+|---|---|---|
+| Port renumbering (82xx → 92xx) | ✅ | No collision with Kilo's 8200-8219 |
+| `nocowboy mcp` lifecycle commands | ✅ | start/stop/status/logs/remove — no systemd needed |
+| Embedded MCP proxy | ✅ | Zero external deps — proxy compiled into binary |
+| Plugin out/plugin in MCP | ✅ | `npm install -g @nocowboy/mcp-<name>`, postinstall auto-configures |
+| Launch spec registry (`~/.nocowboy/mcp/launch.json`) | ✅ | User-editable, auto-detected |
+| npm publishing pipeline | ✅ | Platform packages + meta-package ready |
+| Compiled binary (bun build --compile) | ✅ | 57.7 MB tarball, instant startup |
+| Ported all 16 instructions (incl. multi-provider.md) | ✅ | Rebranded Kilo → NoCowboy |
+| Ported all 16 commands | ✅ | Rebranded |
+| Ported all 6 agents (architect + 5 file-based) | ✅ | Architect prompt synced to full 8330 chars |
+| Ported all 8 skills | ✅ | |
+| Per-system packaging REMOVED (AUR, systemd, homebrew) | ✅ | Moved to npm |
+| SQLite vector store (replaced LanceDB) | ✅ | Phase 2 complete — ~15MB saved per platform |
+| All nocowboy tests pass (150 pass, 0 fail) | ✅ | |
+| 39 source "kilo" references rebranded to "nocowboy" | ✅ | Provider IDs + backward compat preserved |
+| Indexing is first-class (not a plugin) | ✅ | Checks `indexing.enabled` directly |
+| Code indexing config has defaults | ✅ | Voyage + LanceDB (now SQLite) |
+
+### ❌ NOT DONE — Original playbook items
+
+| Item | Status | Blocked by |
+|---|---|---|
+| Port MiMo Memory System (Section 3.1) | ❌ | Effect framework — needs adaptation |
+| Port MiMo Workflow + Compose (Section 3.2) | ❌ | Effect framework — needs adaptation |
+| Port MiMo Task Tree (Section 3.3) | ❌ | Lower priority (Tausik is richer) |
+| Port Dream/Distill Commands (Section 3.4-3.5) | ❌ | Not started |
+| Port Goal Judge (Section 3.6) | ❌ | Not started |
+| Remove session-memory/orchestrator/team-coordinator/plugin-registry/hooks MCPs | ❌ | Not published yet anyway |
+
+### 🔮 Roadmap — P0 Russian Market Moats (no competitor can cross)
+
+1. **Russian LLM providers** (YandexGPT, GigaChat) — Western tools will never integrate these
+2. **Offline mode** (local LLM via Ollama/llama.cpp) — when sanctions block APIs, NoCowboy keeps running
+3. **152-FZ compliance** — data localization, consent, right to delete — no foreign tool can claim this
+
+### 🔮 Roadmap — P1 Features Stolen from Western Competitors
+
+4. **Repomap** (from Aider) — token-optimized repo summary using tree-sitter AST. Critical for Russian monorepos.
+5. **Sandbox execution** (from OpenHands) — Docker-insulated commands. Enterprise security requirement.
+6. **Permission model upgrade** (from Claude Code) — per-tool granularity, approval timeout, auto-deny.
+
+### 🔮 Roadmap — P2 Developer Experience
+
+7. **First-run wizard** (`nocowboy init`) — from Cursor/Copilot UX
+8. **Russian-language prompts + error messages** — from scratch
+9. **Search/replace edit format** — from Aider
+10. **MCP server marketplace** (`mcp search`) — from Cline
+
+### 🔮 Roadmap — P3 Ecosystem
+
+11. **GitFlic / GitVerse support** — Russian Git hosts
+12. **Telegram notifications** — primary Russian dev channel
+13. **Yandex Cloud / Selectel deploy**
+
+### ⚠️ NOTES — Outdated sections in this playbook
+
+- Section 4.1: Ports listed are 8200-8219. Now 9200-9219. Lifecycle is `nocowboy mcp start`, not systemd.
+- Section 4.2: Servers marked "REMOVE" are not published but exist in `packaging/mcp-servers/`.
+- Section 7: Some steps done (port instructions, commands, agents, skills). MiMo porting (Steps 3-7) not started.
+- Section 8: Paths reference `~/.config/kilo/`. The fork lives in `/run/media/.../NoCowboy/app/`.
