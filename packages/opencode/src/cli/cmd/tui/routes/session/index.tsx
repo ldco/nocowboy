@@ -284,7 +284,7 @@ export function Session() {
     const msgs = messages()
     const last = msgs.findLast((m) => m.role === "assistant")?.id
     for (const m of msgs) {
-      if (m.role === "assistant" && m.id !== last) {
+      if (m.role === "assistant" && m.id !== last && m.time.completed) {
         setCollapsed(m.id, true)
       }
     }
@@ -1360,13 +1360,26 @@ export function Session() {
                       <Match when={message.role === "user"}>
                         <UserMessage
                           index={index()}
-                          // nocowboy_change - collapse/expand next assistant message
+                          // nocowboy_change - collapse/expand all assistant messages in response group
                           onMouseUp={() => {
                             const msgs = messages()
                             const idx = msgs.indexOf(message)
-                            const next = msgs[idx + 1]
-                            if (next?.role === "assistant") {
-                              setCollapsed(next.id, (prev) => !prev)
+                            const ids: string[] = []
+                            for (let i = idx + 1; i < msgs.length && msgs[i].role === "assistant"; i++) {
+                              ids.push(msgs[i].id)
+                            }
+                            if (ids.length === 0) return
+                            // Toggle: if any completed message in the group is visible, collapse all completed ones
+                            const anyVisible = ids.some((id) => !collapsed[id])
+                            if (anyVisible) {
+                              // Collapse only completed messages (never collapse pending)
+                              for (const id of ids) {
+                                const m = msgs.find((x) => x.id === id)
+                                if (m?.time.completed) setCollapsed(id, true)
+                              }
+                            } else {
+                              // All collapsed — expand everything
+                              for (const id of ids) setCollapsed(id, false)
                             }
                           }}
                           onAction={() => {
@@ -1382,8 +1395,14 @@ export function Session() {
                           collapsedNext={(() => {
                             const msgs = messages()
                             const idx = msgs.indexOf(message)
-                            const next = msgs[idx + 1]
-                            return next?.role === "assistant" ? !!collapsed[next.id] : undefined
+                            let hasAssistant = false
+                            let anyVisible = false
+                            for (let i = idx + 1; i < msgs.length && msgs[i].role === "assistant"; i++) {
+                              hasAssistant = true
+                              if (!collapsed[msgs[i].id]) anyVisible = true
+                            }
+                            if (!hasAssistant) return undefined
+                            return anyVisible ? false : true // false=expanded, true=collapsed
                           })()} // nocowboy_change
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
@@ -1416,7 +1435,7 @@ export function Session() {
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
-                        <Show when={!collapsed[message.id]}>{/* nocowboy_change - collapse */}
+                        <Show when={!collapsed[message.id] || !message.time.completed}>{/* nocowboy_change - collapse, never collapse pending */}
                         <AssistantMessage
                           last={lastAssistant()?.id === message.id}
                           message={message as AssistantMessage}

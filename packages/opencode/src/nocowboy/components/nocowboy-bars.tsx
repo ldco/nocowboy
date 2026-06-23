@@ -1,22 +1,13 @@
 import { For, createSignal, createContext, useContext, createMemo, onMount, onCleanup, type Accessor, type Setter, type JSX } from "solid-js"
 import { readFileSync, existsSync } from "node:fs"
 import { execSync } from "node:child_process"
-import { resolve, dirname } from "node:path"
-import { fileURLToPath } from "node:url"
+import { resolve } from "node:path"
 import { RGBA, TextAttributes, MouseEvent } from "@opentui/core"
-import { icons } from "@/nocowboy/icons"
 import { useTheme } from "@tui/context/theme"
 import { useSync } from "@tui/context/sync"
+import { useProject } from "@tui/context/project"
 import { Clipboard } from "@tui/util/clipboard"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const projectRoot = (() => {
-  const fromDir = resolve(__dirname, "../../../../..")
-  // In dev mode __dirname is a real path — go up to project root
-  // In compiled mode __dirname is /\$bunfs — fall back to process.cwd()
-  return existsSync(fromDir) ? fromDir : process.cwd()
-})() // nocowboy_change
 
 function shortPath(p: string): string {
   const home = process.env.HOME || "/home/" + (process.env.USER || "user")
@@ -99,8 +90,9 @@ const brandOrange = RGBA.fromInts(0xff, 0x68, 0x00)
 
 export function TopBar() {
   const { theme } = useTheme()
-  const fullPath = projectRoot
-  const pathDisplay = shortPath(fullPath)
+  const project = useProject()
+  const fullPath = () => project.instance.path().directory || process.cwd()
+  const pathDisplay = createMemo(() => shortPath(fullPath()))
   const [tick, setTick] = createSignal(0)
   onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10_000); onCleanup(() => clearInterval(id)) })
   const git = createMemo(() => { tick(); return gitInfo() })
