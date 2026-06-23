@@ -32,8 +32,8 @@
       "@types/bun": "1.3.14",
       "@types/cross-spawn": "6.0.6",
       "@octokit/rest": "22.0.0",
-      "@opentui/core": "0.2.11",
-      "@opentui/solid": "0.2.11",
+      "@opentui/core": "0.4.1",
+      "@opentui/solid": "0.4.1",
       "ulid": "3.0.1",
       "@kobalte/core": "0.13.11",
       "@types/luxon": "3.7.1",
@@ -78,7 +78,7 @@
       "solid-js": "1.9.12",
       "vite-plugin-solid": "2.11.10",
       "@lydell/node-pty": "1.2.0-beta.10",
-      "@opentui/keymap": "0.2.11"
+      "@opentui/keymap": "0.4.1"
     }
   },
   "devDependencies": {
@@ -91,12 +91,12 @@
     "@types/bun": "catalog:"
   },
   "dependencies": {
+    "@lancedb/lancedb": "0.26.2",
     "@nocowboy/plugin": "workspace:*",
     "@nocowboy/sdk": "workspace:*",
-    "@opentui/core": "0.4.1",
-    "@opentui/core-linux-x64": "0.4.1",
-    "@opentui/solid": "0.2.11",
-    "solid-js": "1.9.13",
+    "@opentui/core": "catalog:",
+    "@opentui/solid": "catalog:",
+    "solid-js": "catalog:",
     "typescript": "catalog:"
   },
   "repository": {
@@ -104,7 +104,5 @@
     "url": "https://github.com/ldco/nocowboy"
   },
   "license": "SEE LICENSE IN LICENSE",
-  "overrides": {
-    "@opentui/core": "0.4.1"
-  }
+  "overrides": {}
 }

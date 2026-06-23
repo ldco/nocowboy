@@ -285,8 +285,9 @@ export function Session() {
     const lastUserIdx = msgs.findLastIndex((m) => m.role === "user")
     if (lastUserIdx < 0) return
     for (let i = 0; i < msgs.length; i++) {
-      if (msgs[i].role === "assistant" && i < lastUserIdx && msgs[i].time.completed) {
-        setCollapsed(msgs[i].id, true)
+      if (msgs[i].role === "assistant" && i < lastUserIdx) {
+        const t = msgs[i].time
+        if ('completed' in t && t.completed) setCollapsed(msgs[i].id, true)
       }
     }
   })

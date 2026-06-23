@@ -334,7 +334,7 @@ for (const item of targets) {
               name,
             }
           })
-          .filter(Boolean)
+          .filter((x): x is NonNullable<typeof x> => !!x)
         return JSON.stringify(entries.sort((a, b) => a.timestamp - b.timestamp))
       })(),
     },
