@@ -59,7 +59,13 @@
 
 ## ❌ NOT DONE
 
-### P0 — MiMo Memory & Reasoning
+### P0 — Cost Optimization 🤑
+
+| # | Feature | From | Effort | Why |
+|---|---|---|---|---|
+| 1 | **DeepSeek prefix-cache** — structure system prompts for byte-stable prefix | Whale | Medium | 90% cache hit → 30x cheaper per session. $0.001 vs $0.015. **Top priority — saves real money on every API call.** |
+
+### P1 — MiMo Memory & Reasoning
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
@@ -69,9 +75,9 @@
 | 4 | **Goal judge** (native Effect loop) — integrate into agent stop logic | MiMo | High | Currently an instruction file; needs agent-loop integration. |
 | 5 | **Task tree IDs** (T1/T1.1) — lightweight bridge to NUTAUSIK | MiMo | Low | — |
 
-### P1 — UX, Safety & Russian
+### P2 — UX, Safety & Russian
 
-#### P1a: UX & Safety
+#### P2a: UX & Safety
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
 | 1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | Prerequisite for marketplace. No JSON editing. |
@@ -82,7 +88,7 @@
 | 6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
 | 7 | **Test harness** — fix 39 flaky parallel failures | Self | High | In-memory DB + mock providers + isolated MCP ports. |
 
-#### P1b: Russian Agent Intelligence (Qwen Code pattern)
+#### P2b: Russian Agent Intelligence (Qwen Code pattern)
 Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**. NoCowboy equivalent:
 
 | # | Feature | Effort | What |
@@ -93,7 +99,7 @@ Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**
 | 4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
 | 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
 
-#### P1c: 152-FZ Compliance (Big Release)
+#### P2c: 152-FZ Compliance (Big Release)
 Separate major release. Create a **Lawer agent** that audits + refactors all agents for 152-FZ.
 
 | # | Feature | Effort | What |
@@ -105,7 +111,7 @@ Separate major release. Create a **Lawer agent** that audits + refactors all age
 | 5 | **Roskomnadzor notification template** | Low | Art. 22 compliance. |
 | 6 | **Agent audit** — all 6 inherited agents reviewed | High | Lawer agent's primary task. |
 
-### P2 — Ecosystem & Reach
+### P3 — Ecosystem & Reach
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
@@ -113,12 +119,11 @@ Separate major release. Create a **Lawer agent** that audits + refactors all age
 | 2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | Enterprise security. |
 | 3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | — |
 | 4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
-| 8 | **DeepSeek prefix-cache optimization** — structure system prompts for byte-stable prefix (90% cache hit, ~30x cheaper) | Whale | Medium | Whale achieves $0.001 per 5-turn session vs $0.015 for Claude Code. |
 | 5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
 | 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
 | 9 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
 
-### P3 — Future & Infrastructure
+### P4 — Polish & Future
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
