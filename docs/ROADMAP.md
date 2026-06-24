@@ -1,4 +1,4 @@
-# NoCowboy Roadmap — 2026-06-24
+everybody uses lancedb and not sql # NoCowboy Roadmap — 2026-06-24
 
 ## ✅ DONE (v0.6.1)
 
@@ -106,8 +106,9 @@ For NoCowboy: Russian system prompts for all 6 agents, Russian-trained LLM.
 |---|---|---|---|
 | 1 | **Sandbox mode** — Docker-insulated agent command execution | High | Enterprise security. No AI runs raw commands on prod machines. |
 | 2 | **MCP server marketplace** (`mcp search`) — browse `@nocowboy/mcp-*` packages | Medium | Cline has this. Discovery without leaving terminal. |
-| 3 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
-| 4 | **152-FZ compliance** — data localization, consent dialogs, right-to-delete | High | Regulatory moat — no foreign tool can claim this. |
+| 3 | **Vector store switcher** — UI to select SQLite / LanceDB / Qdrant in Settings | Medium | Small projects: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant (external server). |
+| 4 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
+| 5 | **152-FZ compliance** — data localization, consent dialogs, right-to-delete | High | Regulatory moat — no foreign tool can claim this. |
 
 ---
 
