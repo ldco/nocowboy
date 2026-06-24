@@ -135,10 +135,9 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 | # | Feature | Effort | Why |
 |---|---|---|---|
-| 1 | **Custom Distributions** — preconfigured `nocowboy-ru` distro for Russian market | Medium | Goose (Linux Foundation) pattern |
-| 2 | **Channels** — webhooks push CI/chat events into TUI sessions | Medium | Claude Code pattern |
-| 3 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
-| 4 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
+| 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Medium | Claude Code pattern |
+| 2 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
+| 3 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
 
 | # | Feature | Effort |
 |---|---|---|
