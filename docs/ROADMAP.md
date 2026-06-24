@@ -100,6 +100,20 @@ For NoCowboy: Russian system prompts for all 6 agents, Russian-trained LLM.
 | 4 | **`nocowboy.json` `lang` field** | Low | Config entry point |
 | 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface |
 
+### P1c: 152-FZ Compliance (Big Release)
+
+A separate major release. Create a **Lawer agent** that rewrites and refactors all
+agents (ours + inherited from Kilo) for 152-FZ compliance.
+
+| # | Feature | Effort | Why |
+|---|---|---|---|
+| 1 | **Lawer agent** — specialized in 152-FZ personal data law, reviews all agent prompts for compliance | High | New agent type: reads 152-FZ, audits all other agents |
+| 2 | **Data localization enforcement** — all user data stored on local disk, never sent to foreign servers | High | Core requirement of Art. 21 |
+| 3 | **Consent dialogs** — Russian-language consent prompts before collecting any personal data | Medium | Art. 9 compliance — specific, informed, conscious |
+| 4 | **Right to deletion** — `nocowboy forget` command purges all local data | Medium | Art. 14 compliance |
+| 5 | **Roskomnadzor notification template** — auto-generated for companies to file | Low | Art. 22 compliance |
+| 6 | **Agent audit** — all 6 inherited agents + instructions reviewed for 152-FZ violations | High | Lawer agent's primary task |
+
 ## ❌ NOT DONE — P2: Ecosystem & Reach
 
 | # | Feature | Effort | Why |
@@ -108,7 +122,6 @@ For NoCowboy: Russian system prompts for all 6 agents, Russian-trained LLM.
 | 2 | **MCP server marketplace** (`mcp search`) — browse `@nocowboy/mcp-*` packages | Medium | Cline has this. Discovery without leaving terminal. |
 | 3 | **Vector store switcher** — UI to select SQLite / LanceDB / Qdrant in Settings | Medium | Small projects: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant (external server). |
 | 4 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
-| 5 | **152-FZ compliance** — data localization, consent dialogs, right-to-delete | High | Regulatory moat — no foreign tool can claim this. |
 
 ---
 
