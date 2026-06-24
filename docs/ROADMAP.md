@@ -44,7 +44,11 @@
 
 ---
 
-## ❌ NOT DONE — P0: MiMo Borrowings
+## ❌ NOT DONE — P0: Agent Intelligence (MiMo + Russian)
+
+### P0a: MiMo Memory & Reasoning
+
+Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (MIT license, same fork base).
 
 Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (MIT license, same fork base).
 
@@ -56,7 +60,18 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 | 4 | **Goal judge** (native Effect loop) — independent model evaluates stop condition in agent loop | `agent/agent.ts` | High |
 | 5 | **Task tree IDs** (T1/T1.1) — lightweight bridge to Tausik's richer task system | `src/task/` | Low |
 
-### What we ALREADY borrowed from MiMo (done)
+### P0b: Russian Agent Intelligence (Qwen Code pattern)
+
+Qwen Code achieved 3x adoption in China by making the agent THINK in Chinese.
+
+For NoCowboy: Russian system prompts for all 6 agents, plus Russian-trained LLM provider preference.
+
+| # | Feature | Effort | Why |
+|---|---|---|---|
+| 1 | **Russian system prompts** for all 6 agents (architect, code-reviewer, prd, ralph, explore, plan) | Medium | Agent reasons in Russian, understands Russian variable names |
+| 2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions translated | Medium | Agent follows Russian instructions, writes Russian docs |
+| 3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Models trained on Russian data perform better on Russian codebases |
+| 4 | **`nocowboy.json` `lang` field** — switch all prompts to Russian | Low | Configuration entry point for above features |
 
 - [x] FTS5 query builder (`fts-query.ts` — pure, 0 deps)
 - [x] FTS5 schema + migration
@@ -91,9 +106,8 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 |---|---|---|---|
 | 1 | **Sandbox mode** — Docker-insulated agent command execution | High | Enterprise security. No AI runs raw commands on prod machines. |
 | 2 | **MCP server marketplace** (`mcp search`) — browse `@nocowboy/mcp-*` packages | Medium | Cline has this. Discovery without leaving terminal. |
-| 3 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool will integrate these. Regulatory moat. |
-| 4 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
-| 5 | **152-FZ compliance** — data localization, consent dialogs, right-to-delete | High | Regulatory moat — no foreign tool can claim this. |
+| 3 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
+| 4 | **152-FZ compliance** — data localization, consent dialogs, right-to-delete | High | Regulatory moat — no foreign tool can claim this. |
 
 ---
 
@@ -101,7 +115,7 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 
 | # | Feature | Effort |
 |---|---|---|
-| 1 | **UI Russian localization** — TUI/CLI in Russian, language selector in Settings | High |
+| 1 | **UI Russian localization** — TUI labels, error messages, help text in Russian, language selector in Settings | High |
 | 2 | **Turso Database migration** (Phase 1+3) — `bun:sqlite` → `@tursodatabase/database` | High (blocked) |
 | 3 | **Test harness** — fix 39 flaky parallel test failures | High |
 
