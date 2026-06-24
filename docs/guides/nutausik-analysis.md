@@ -39,7 +39,7 @@ The JS fork is called **NUTAUSIK** (New Tausik).
 | **Explorations** | explore agent (read-only code analysis) | **LOW** — different purpose | Keep both. Explore agent for code. NUTAUSIK for research spikes. |
 | **Dead Ends** | None | **NONE** — missing | **Add to NUTAUSIK** — prevents repeating failures |
 | **Verify** | /verify command + /goal judge | **HIGH** | Merge. NUTAUSIK adds structured verification against acceptance criteria. |
-| **Audit** | NoCowboy audit logs (permission/action logging) | **MEDIUM** | Merge. NUTAUSIK adds PM-specific audit trail. |
+| **Audit** | NoCowboy audit logs (permission/action logging) | **MEDIUM** | Merge. NUTAUSIK adds ProjMgmt-specific audit trail. |
 
 ## Architecture decision: thin client vs full engine vs hybrid
 
@@ -47,33 +47,33 @@ The JS fork is called **NUTAUSIK** (New Tausik).
 
 ```
 NoCowboy (TUI) → HTTP/SSE → NUTAUSIK MCP server (port 9204)
-                               └── all PM logic: epics, tasks, gates, memory, audit
+                               └── all ProjMgmt logic: epics, tasks, gates, memory, audit
 ```
 
-- **Pro**: clean separation. NoCowboy is just a UI. NUTAUSIK is the PM engine.
-- **Con**: network dependency for every PM operation. Slow. NoCowboy can't function without NUTAUSIK.
+- **Pro**: clean separation. NoCowboy is just a UI. NUTAUSIK is the ProjMgmt engine.
+- **Con**: network dependency for every ProjMgmt operation. Slow. NoCowboy can't function without NUTAUSIK.
 - **Verdict**: ❌ against NoCowboy's local-first philosophy.
 
 ### Option B: Full incorporation — ALL logic in NoCowboy core
 
 ```
 NoCowboy (TUI)
-  └── src/nocowboy/pm/ — all PM logic built-in
+  └── src/nocowboy/pm/ — all ProjMgmt logic built-in
 ```
 
 - **Pro**: zero latency, local-first, offline.
-- **Con**: bloats the core binary. Every PM feature is a core dependency.
+- **Con**: bloats the core binary. Every ProjMgmt feature is a core dependency.
 - **Verdict**: ❌ against plugin-out/plugin-in architecture.
 
-### Option C: Hybrid (recommended) — Core PM in NUTAUSIK, lightweight in NoCowboy
+### Option C: Hybrid (recommended) — Core ProjMgmt in NUTAUSIK, lightweight in NoCowboy
 
 ```
 NoCowboy (TUI)
   ├── /ralph — PRD → beads → stories workflow (built-in agent)
   ├── /goal + /verify — goal judge + verification (built-in commands)
   ├── /plan → ADRs (built-in)
-  └── NUTAUSIK MCP server (port 9204) — optional PM engine
-        └── heavy PM: gates, stacks, memory graph, dead ends, audit, roles
+  └── NUTAUSIK MCP server (port 9204) — optional ProjMgmt engine
+        └── heavy ProjMgmt: gates, stacks, memory graph, dead ends, audit, roles
 ```
 
 **What stays in NoCowboy core:**
@@ -88,7 +88,7 @@ NoCowboy (TUI)
 - Stacks (decision context, LIFO reasoning)
 - Dead ends (failed approach tracking)
 - Roles (project management roles)
-- Audit (PM-specific audit trail)
+- Audit (ProjMgmt-specific audit trail)
 
 **What's shared (both read/write the same data):**
 - Epics/Stories/Tasks — both Ralph and NUTAUSIK can create tasks
@@ -119,13 +119,13 @@ NoCowboy (TUI)
 
 ## Recommendation
 
-**Option C — Hybrid.** Keep the lightweight, fast, local-first workflow in NoCowboy core (Ralph, goal judge, verify, ADRs). Move the heavy, structured PM features to NUTAUSIK as an optional MCP server. Users who don't need structured PM get the lean core. Users who need full PM install NUTAUSIK: `npm install -g @nocowboy/mcp-tausik`.
+**Option C — Hybrid.** Keep the lightweight, fast, local-first workflow in NoCowboy core (Ralph, goal judge, verify, ADRs). Move the heavy, structured ProjMgmt features to NUTAUSIK as an optional MCP server. Users who don't need structured ProjMgmt get the lean core. Users who need full ProjMgmt install NUTAUSIK: `npm install -g @nocowboy/mcp-tausik`.
 
 ## Open questions (to resolve later)
 
 1. Which task ID format? Ralph uses bead IDs. MiMo uses T1/T1.1. Tausik uses its own. Need a unified format.
 2. Database: NUTAUSIK uses its own SQLite DB or shares NoCowboy's `nocowboy.db`?
-3. Search: Tausik has web search tools (DuckDuckGo, Tavily, Google). Are these PM-specific or general-purpose? If general-purpose, should they be a separate MCP server?
+3. Search: Tausik has web search tools (DuckDuckGo, Tavily, Google). Are these ProjMgmt-specific or general-purpose? If general-purpose, should they be a separate MCP server?
 4. Python → JS port scope: all 70 tools, or MVP of 20?
 
 ## Roadmap impact
