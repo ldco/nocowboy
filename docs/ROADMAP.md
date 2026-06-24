@@ -131,7 +131,8 @@
 |---|---|---|---|---|
 | 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
 | 2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| 3 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
+| 3 | **Share chat / sync between machines** — share context across devices | High | Requires cloud backend API. Share button exists in TUI but not wired. |
+| 4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
 
 ---
 
