@@ -1,136 +1,137 @@
-![NoCowboy](logo.svg)
+<p align="center"><img src="logo.svg" alt="NoCowboy" width="200"></p>
 
-# NoCowboy TUI
+# NoCowboy
 
-**AI under control.** A terminal agent (TUI) that enforces code quality before production.
+**AI under control.** A terminal-first AI coding agent with shared MCP architecture,
+compiled binary, and plugin-out/plugin-in extensibility.
 
-Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. Bun runtime.
+Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. **Bun** runtime.
 
-### What makes it different
+---
 
-| Feature | Anyone else? |
-|---------|-------------|
-| **Code Constitution** — AST rules block bad AI code before it's written | ❌ |
-| **Live Contract Guard** — API changes break frontend builds | ❌ |
-| **NoCowboy Score** — 0-100% quality metric (planned) | ❌ |
+## What makes NoCowboy different
 
-All existing tools make you faster.  
-**NoCowboy makes you safer.**
+| Feature | NoCowboy | Claude Code | Cursor | Copilot |
+|---|---|---|---|---|
+| **Compiled binary** — instant startup | ✅ | ❌ (JS) | ❌ (IDE) | ❌ (IDE) |
+| **Shared MCP servers** — one set, all instances | ✅ | ❌ (per-instance) | — | — |
+| **Plugin out/in** — `npm install -g`, postinstall auto-config | ✅ | ❌ | ❌ | ❌ |
+| **Provider-agnostic** — 200+ models via LiteLLM | ✅ | Anthropic only | Multi-model | GitHub only |
+| **Local-first** — offline capable | ✅ | ❌ | ❌ | ❌ |
+| **Open source** — MIT + Apache 2.0 | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
 ## Installation
 
-### Arch Linux
-
 ```bash
-sudo pacman -U nocowboy-0.4.0-1-x86_64.pkg.tar.zst
+npm install -g nocowboy
+# or
+bun install -g nocowboy
 ```
 
-Installs: `/usr/bin/nocowboy`, `/usr/share/nocowboy/` (config + MCP servers),
-systemd services (constitution, contract-guard, ncp-validator, puppetmaster,
-ralph, score-engine). Run `nocowboy` to start. MCP services auto-start on login.
-
-### macOS
-
+Then:
 ```bash
-# Apple Silicon (M1/M2/M3/M4)
-unzip nocowboy-darwin-arm64.zip
-./install.sh
+nocowboy init          # 2-question setup wizard
+nocowboy mcp start     # start MCP servers
+nocowboy               # start coding
 ```
 
-Copies binary to `~/.nocowboy/bin/nocowboy`, config to `~/.config/nocowboy/`.
-
-### What you get
-
-After install, run:
-```bash
-nocowboy
-```
-The app reads its config from `~/.config/nocowboy/` and data from
-`~/.local/share/nocowboy/`. That's it — no other setup needed.
-
-### Build from source
-
-```bash
-bun install
-NOCOWBOY_RELEASE=true bun run build
-# Archive is at dist/nocowboy-linux-x64.tar.gz
-```
+Config: `~/.config/nocowboy/nocowboy.json` (system-wide)
 
 ---
 
 ## Quick start
 
----
+| Command | What |
+|---|---|
+| `nocowboy` | Start TUI |
+| `nocowboy init` | First-run setup |
+| `nocowboy mcp start` | Start shared MCP servers |
+| `nocowboy mcp install <name>` | Install + auto-configure an MCP server |
+| `nocowboy repomap` | Generate repo structure map |
+| `nocowboy --version` | Show version |
 
-## Views
-
-| View | Button | Shortcut | Description |
-|------|--------|----------|-------------|
-| Chat | — | default | AI agent conversation |
-| API | `API` | `Ctrl+A` | HTTP API client (xh) |
-| Git | `Git` | `Ctrl+G` | Git client (lazygit) |
-| DB | `DB` | `Ctrl+D` | Database client (lazysql) |
-| Files | `Files` | `Ctrl+O` | File browser (nnn) |
-| Edit | `Edit` | `Ctrl+E` | Text editor (neovim) |
-| Commands | `Commands` | `Ctrl+P` | Command palette |
-| Settings | `Settings` | `Ctrl+,` | Configuration |
-| Info | `Info` | `F2` | Diagnostics: MCP, tokens, context |
-| History | `History` | `Ctrl+H` | Session browser |
+Agent commands (in TUI): `/plan`, `/act`, `/goal`, `/verify`, `/commit`, `/memory`, `/dream`, `/repomap`
 
 ---
 
-## Architecture
+## Features
 
-```
-packages/
-├── opencode/              # ⭐ CLI — TUI, agents, tools, MCP, server
-├── core/                  # Data model, schemas (upstream opencode)
-├── ui/                    # SolidJS + OpenTUI component library
-├── llm/                   # LLM abstraction layer
-├── plugin/                # Plugin/tool interface
-├── sdk/js/                # Auto-generated TypeScript SDK
-└── nocowboy-gateway/      # Gateway stubs
-```
+### Core
+- **Compiled binary** — `bun build --compile`, instant startup, 155MB
+- **Shared MCP architecture** — one server set, all sessions connect via HTTP/SSE. No per-instance memory bloat.
+- **Embedded proxy** — MCP lifecycle without systemd, zero external deps
+- **Plugin out/in** — `npm install -g @nocowboy/mcp-<name>` auto-configures via postinstall
+
+### Agent Intelligence
+- **Repomap** — Aider-style token-optimized repo summary, auto-injected every turn
+- **Memory FTS5** — MiMo-Code borrowed: full-text search, cross-session knowledge, `/dream` extraction
+- **Goal judge** — independent subagent verifies task completion
+- **Multi-turn approval memory** — Codex CLI style: approve once, never asked again
+- **Deep context** — repomap + memory merged into system prompt every turn
+- **Voice input** — FFmpeg capture + transcription
+
+### Quality
+- **Constitution** — AST rules block bad AI code
+- **Contract Guard** — API changes break frontend builds
+- **NoCowboy Score** — 0-100% quality metric across 5 dimensions
+- **Indexing** — SQLite vector store for codebase semantic search
+
+### MCP Servers
+- 7 first-party servers (published as `@nocowboy/mcp-*`)
+- 4 third-party via npx (context7, sqlite, puppeteer, git)
+- NUTAUSIK — project management (JS port of Tausik, 62 TS files)
 
 ---
 
 ## Development
 
 ```bash
-npm run dev                # TUI with file polling (every 2s)
-npm run typecheck          # TypeScript check via turbo (10 packages)
+bun install
+bun run dev              # TUI with file polling
+bun run typecheck        # TypeScript check (tsgo --noEmit)
+bun test test/nocowboy/  # Run tests (150+ pass)
 ```
 
-The dev server polls for file changes every 2 seconds. This works on all filesystems including external mounts (unlike `bun --watch`).
+Build release:
+```bash
+NOCOWBOY_VERSION=0.6.1 NOCOWBOY_RELEASE=true bun run script/build.ts
+```
 
 ---
 
-## Quality system (planned)
+## Architecture
 
-| Layer | Stage | What |
-|-------|-------|------|
-| **L1 — NCP** | Before code | YAML spec (entities, endpoints, contracts) |
-| **L2 — Constitution** | During code | AST rules + LLM checks (no `any`, raw SQL, secrets) |
-| **L3 — Contract Guard** | After code | API contract validation at build time |
-| **Score** | Continuous | 0-100% across 5 weighted dimensions |
+```
+packaging/
+├── mcp-servers/      # 7 first-party MCP server implementations
+└── config/           # Default nocowboy.json + agents + instructions + skills
+
+packages/
+├── opencode/         # CLI — TUI, agents, tools, MCP, server
+├── core/             # Data model, schemas
+├── plugin/           # Plugin/tool interface
+├── sdk/js/           # Auto-generated TypeScript SDK
+└── nocowboy-indexing/ # Codebase indexing engine
+```
 
 ---
 
-## Dependencies
+## Roadmap
 
-External tools installed via `npm run setup`:
+See [docs/ROADMAP.md](docs/ROADMAP.md) — complete DONE / NOT DONE / NEXT.
 
-- [lazygit](https://github.com/jesseduffield/lazygit) — Git panel
-- [xh](https://github.com/duca/xh) — HTTP API client
-- [lazysql](https://github.com/jorgerojas26/lazysql) — Database client
-- [nnn](https://github.com/jarun/nnn) — File browser
-- [neovim](https://github.com/neovim/neovim) — Text editor
-- [viu](https://github.com/atanunq/viu) — Image viewer
+---
+
+## Docs
+
+- [ROADMAP.md](docs/ROADMAP.md) — single source of truth
+- [docs/guides/](docs/guides/) — publish, NUTAUSIK, overlap decisions
+- [docs/reference/](docs/reference/) — competitive analysis, playbook, ADRs
 
 ---
 
 ## License
 
-Closed-source commercial. See LICENSE.md.
+MIT + Apache 2.0. See LICENSE.
