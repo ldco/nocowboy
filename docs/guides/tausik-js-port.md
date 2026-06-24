@@ -1,247 +1,60 @@
 # Tausik JS Port Guide
 
-## Overview
+**Status:** IN PROGRESS — JS port exists at `/FABRICA22/nutausik-js/packages/nutausik/`
 
-Tausik is a web search and browsing MCP server. Currently in Python, tightly coupled to Claude's subscription (web search via Claude API proxy). Needs porting to TypeScript as `@nocowboy/mcp-tausik` — a first-class NoCowboy MCP server.
+The Python Tausik (70+ tools) is being ported to TypeScript as **NUTAUSIK**.
+The JS port already has a solid foundation.
 
-**Current Python version:** `~/.kilo/mcp-servers/tausik/` (Kilocode setup).  
-**Target:** standalone `@nocowboy/mcp-tausik` npm package, published independently, auto-detected via `require.resolve`.
+## Current state (2026-06-24)
 
-## Core features
+| Metric | Count |
+|---|---|
+| TypeScript source files | 62 |
+| Modules | 19 |
+| Unit tests | 15 |
+| MCP tools defined | 7 |
+| Backend schema | 534 lines |
+| Package name | `@nocowboy/nutausik` |
+| Version | 0.1.0 |
 
-From the source structure (bootstrap/, server.py, AGENTS.md, CLAUDE.md):
+## Modules implemented
 
-- **Web search** — queries external search APIs (Google, Bing, etc.), returns ranked results
-- **Web page fetching** — fetches and extracts content from URLs (readability, markdown conversion)
-- **Search result caching** — caches recent searches to avoid redundant API calls
-- **Conversation context** — maintains context across sequential searches (user asks follow-up questions)
-- **Claude subscription integration** — uses Claude API proxy for search (current), should be decoupled for NoCowboy
+| Module | Files | What it does |
+|---|---|---|
+| `backend/` | 8 | SQLite DB, schema (534L), CRUD, FTS, graph, migrations, metrics, queries |
+| `mcp/` | 3 | MCP server entry, tools (7 defined), request handlers |
+| `hooks/` | 12 | Session lifecycle hooks: bash-firewall, budgets, git-push-gate, keyword-detect, memory-audit, scope-gate, secret-scan, session-metrics, session-start, task-gate, task-verify, auto-format |
+| `service/` | 6 | Business logic: hierarchy, knowledge, session, task, validation, verification |
+| `gates/` | 5 | QA gates: command-runner, filesize, stack-dispatch, test-resolver, defaults |
+| `verify/` | 4 | Verification: files-hash, git-diff, cache, constants |
+| `providers/` | 4 | Search providers: DuckDuckGo (ready), web-search, registry, types |
+| `crypto/` | 4 | Ed25519 crypto, keys, receipt, sign |
+| `risk/` | 1 | Risk computation |
+| `stacks/` | 1 | Decision stacks registry |
+| `skills/` | 1 | Skills manager |
+| `renar/` | 1 | Renar conformance |
+| `model/` | 1 | LLM routing |
 
-## Architecture for JS port
+## What's still missing from Python Tausik
 
-```
-┌──────────────────────────────────────┐
-│         nocowboy mcp start           │
-│  spawns @nocowboy/mcp-tausik via    │
-│  embedded proxy on port 9204         │
-└──────────┬───────────────────────────┘
-           │ HTTP SSE (http://127.0.0.1:9204/mcp)
-┌──────────▼───────────────────────────┐
-│         @nocowboy/mcp-tausik         │
-│  ┌────────────────────────────────┐  │
-│  │  WebSearchProvider (abstraction)│  │
-│  │  ├── TavilySearchAPI           │  │
-│  │  ├── GoogleCustomSearch        │  │
-│  │  ├── BingSearch                │  │
-│  │  └── BraveSearch               │  │
-│  └────────────────────────────────┘  │
-│  ┌────────────────────────────────┐  │
-│  │  WebPageFetcher                │  │
-│  │  ├── @mozilla/readability      │  │
-│  │  ├── turndown (HTML→MD)        │  │
-│  │  └── JSDOM / Cheerio           │  │
-│  └────────────────────────────────┘  │
-│  ┌────────────────────────────────┐  │
-│  │  ResultCache (lru-cache)       │  │
-│  └────────────────────────────────┘  │
-└──────────────────────────────────────┘
-```
+- [ ] Epics/Stories CRUD (hierarchy.ts has foundations)
+- [ ] Full memory graph (graph.ts exists, needs wiring)
+- [ ] Roles management
+- [ ] Dead end tracking
+- [ ] Audit trail
+- [ ] 60+ remaining MCP tool definitions (7 done, 63 remaining)
+- [ ] Web page fetcher (readability + turndown)
+- [ ] Postinstall: `nocowboy mcp install nutausik || true`
 
-## MCP Tools
+## DuckDuckGo search
 
-### `tausik_search`
-
-```
-Arguments:
-  query        string  — search query
-  count        number  — results count (default: 10)
-  region       string  — region/country code (optional)
-
-Returns:
-  results[] — { title, url, snippet, source }
-  source    — the search provider that returned this result
-```
-
-### `tausik_fetch`
-
-```
-Arguments:
-  url         string   — URL to fetch and extract
-  format      string   — "markdown" | "text" | "html" (default: markdown)
-
-Returns:
-  title       string   — page title
-  content     string   — extracted content
-  url         string   — resolved URL (after redirects)
-```
-
-### `tausik_cache_clear`
-
-Clears the local search result cache.
-
-## Provider abstraction
-
-The search provider MUST be abstracted behind an interface. NoCowboy supports multiple providers, not just Claude.
-
-```typescript
-interface SearchProvider {
-  search(query: string, options: { count?: number; region?: string }): Promise<SearchResult[]>
-}
-```
-
-Default implementations — start with DuckDuckGo (no API key needed), add others as optional:
-
-| Provider | Where | API key? | Priority |
-|---|---|---|---|
-| **DuckDuckGo** | `@phukon/duckduckgo-search` | **None** | **default** — zero config, works out of the box |
-| **Tavily** | `tavily.com` | API key | optional — higher rate limits |
-| **Google** | Custom Search JSON API | `GOOGLE_API_KEY` + `GOOGLE_CX` | optional |
-| **Brave** | `api.search.brave.com` | API key | optional — free tier available |
-| **Bing** | Azure Cognitive Services | API key | optional |
-| **Kilo proxy** | internal | subscription | optional — same as current Claude path |
-
-## Config format
-
-```json
-{
-  "provider": "duckduckgo",
-  "resultsPerPage": 10,
-  "cacheTTL": 300000,
-  "fetchTimeout": 10000
-}
-```
-
-Config is stored in `~/.nocowboy/nocowboy.json` — same as other MCP servers.  
-Provider selection allows users to choose their search backend, no longer tied to Claude.
-
-## Steps to port
-
-### 1. Project scaffold
-
-```bash
-mkdir -p packaging/mcp-servers/tausik/src
-cd packaging/mcp-servers/tausik
-cat > package.json << 'EOF'
-{
-  "name": "@nocowboy/mcp-tausik",
-  "version": "0.1.0",
-  "private": false,
-  "publishConfig": { "access": "public" },
-  "type": "module",
-  "main": "dist/index.js",
-  "files": ["dist/"],
-  "scripts": {
-    "build": "tsc",
-    "postinstall": "nocowboy mcp install tausik || true"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.15.0",
-    "@phukon/duckduckgo-search": "^1.2.0",
-    "cheerio": "^1.0.0",
-    "@mozilla/readability": "^0.5.0",
-    "jsdom": "^25.0.0",
-    "turndown": "^7.2.0",
-    "lru-cache": "^11.0.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.0"
-  }
-}
-EOF
-```
-
-### 2. Provider implementations
-
-Implement `SearchProvider` for each engine. Start with DuckDuckGo (zero config):
-
-```typescript
-import { DDGS } from "@phukon/duckduckgo-search"
-
-export class DuckDuckGoProvider implements SearchProvider {
-  private client = new DDGS()
-
-  async search(query: string, opts: { count?: number; region?: string }): Promise<SearchResult[]> {
-    const results = await this.client.text({
-      keywords: query,
-      maxResults: opts.count ?? 10,
-      region: opts.region ?? "wt-wt",
-    })
-    return results.map((r) => ({
-      title: r.title,
-      url: r.url,
-      snippet: r.description,
-      source: "duckduckgo",
-    }))
-  }
-}
-```
-
-Add Tavily, Google, Brave later as optional providers.
-
-### 3. Web page fetching
-
-Use existing npm packages — no need to implement from scratch:
-- `@mozilla/readability` — extract main content from HTML
-- `turndown` — convert HTML to Markdown (what the LLM prefers)
-- `cheerio` / `jsdom` — parse and traverse HTML
-
-### 4. MCP server entry
-
-Standard NoCowboy MCP server layout:
-
-```
-src/
-├── index.ts          — MCP server entry, registers tools
-├── providers/
-│   ├── types.ts      — SearchResult, SearchProvider interface
-│   ├── tavily.ts     — Tavily search provider
-│   ├── google.ts     — Google Custom Search
-│   └── brave.ts      — Brave Search
-├── fetcher.ts        — Web page fetch + content extraction
-└── cache.ts          — LRU cache implementation
-```
-
-### 5. Package.json postinstall
-
-Already documented — `postinstall` runs `nocowboy mcp install tausik || true`.  
-`McpInstallCommand` handles auto-config (add to config.mcp + launch.json + start).
-
-## Testing
-
-```bash
-# Start the server directly (without nocowboy proxy)
-npm run build && node dist/index.js
-
-# Test via npx
-npx @nocowboy/mcp-tausik
-
-# Test via nocowboy lifecycle
-nocowboy mcp install tausik
-# → auto-detects, adds to config, starts on port 9204
-nocowboy mcp status
-# → tausik running — http://127.0.0.1:9204/mcp
-```
+The DuckDuckGo provider is ready (`providers/duckduckgo.ts`). No API key needed — matches our strategy.
 
 ## Publishing
 
 ```bash
-# After build:
+cd /run/media/ldco/3734114f-7123-41f5-8f63-7f43c94879eb/NEW_ORDER/FABRICA22/nutausik-js/packages/nutausik
 npm publish
 ```
 
-Will be auto-detected by NoCowboy's `launcher.ts` via `require.resolve("@nocowboy/mcp-tausik/dist/index.js")`.
-
-## Status
-
-| Item | Status |
-|---|---|
-| DuckDuckGo provider (default) | 🟡 recommended — `@phukon/duckduckgo-search` found, needs implementation |
-| Tavily provider | 🔴 not started |
-| Google provider | 🔴 not started |
-| Brave provider | 🔴 not started |
-| Web page fetcher | 🔴 not started |
-| Cache layer | 🔴 not started |
-| MCP server entry | 🔴 not started |
-| `postinstall` script | 🟢 ready in template |
-| Launcher auto-detect | 🟢 already works (require.resolve) |
-| Port assignment | 🟢 already works (9200+, MeCpLifecycle) |
+Will be auto-detected by NoCowboy via `require.resolve("@nocowboy/nutausik/dist/index.js")`.
