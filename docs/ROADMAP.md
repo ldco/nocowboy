@@ -44,7 +44,7 @@
 
 ---
 
-## ❌ NOT DONE — P0: Agent Intelligence (MiMo + Russian)
+## ❌ NOT DONE — P0: MiMo Memory & Reasoning
 
 ### P0a: MiMo Memory & Reasoning
 
@@ -60,18 +60,6 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 | 4 | **Goal judge** (native Effect loop) — independent model evaluates stop condition in agent loop | `agent/agent.ts` | High |
 | 5 | **Task tree IDs** (T1/T1.1) — lightweight bridge to Tausik's richer task system | `src/task/` | Low |
 
-### P0b: Russian Agent Intelligence (Qwen Code pattern)
-
-Qwen Code achieved 3x adoption in China by making the agent THINK in Chinese.
-
-For NoCowboy: Russian system prompts for all 6 agents, plus Russian-trained LLM provider preference.
-
-| # | Feature | Effort | Why |
-|---|---|---|---|
-| 1 | **Russian system prompts** for all 6 agents (architect, code-reviewer, prd, ralph, explore, plan) | Medium | Agent reasons in Russian, understands Russian variable names |
-| 2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions translated | Medium | Agent follows Russian instructions, writes Russian docs |
-| 3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Models trained on Russian data perform better on Russian codebases |
-| 4 | **`nocowboy.json` `lang` field** — switch all prompts to Russian | Low | Configuration entry point for above features |
 
 - [x] FTS5 query builder (`fts-query.ts` — pure, 0 deps)
 - [x] FTS5 schema + migration
@@ -88,7 +76,9 @@ For NoCowboy: Russian system prompts for all 6 agents, plus Russian-trained LLM 
 
 ---
 
-## ❌ NOT DONE — P1: UX & Safety
+## ❌ NOT DONE — P1: UX, Safety & Russian
+
+### P1a: UX & Safety
 
 | # | Feature | Effort | Why |
 |---|---|---|---|
@@ -96,9 +86,19 @@ For NoCowboy: Russian system prompts for all 6 agents, plus Russian-trained LLM 
 | 2 | **Search/replace edit format** (Aider-style) | Medium | More reliable than line-based edits |
 | 3 | **Branch-per-task** (`nocowboy plan --branch`) | Medium | Isolation — bad changes don't pollute main |
 | 4 | **Permission timeout** — auto-deny after N seconds | Low | Unblock autonomous workflows |
-| 5 | **Incremental PR review** — code-reviewer checks only git diff files | Low | Already done — verify |
 
----
+### P1b: Russian Agent Intelligence (Qwen Code pattern)
+
+Qwen Code achieved 3x adoption in China by making the agent THINK in Chinese.
+For NoCowboy: Russian system prompts for all 6 agents, Russian-trained LLM.
+
+| # | Feature | Effort | Why |
+|---|---|---|---|
+| 1 | **Russian system prompts** for all 6 agents | Medium | Agent reasons in Russian, understands Russian variables |
+| 2 | **Russian instruction files** (`instructions/ru/`) | Medium | Agent follows Russian instructions |
+| 3 | **Russian LLM provider preference** — YandexGPT/GigaChat when `lang: "ru"` | Medium | Russian-trained models perform better |
+| 4 | **`nocowboy.json` `lang` field** | Low | Config entry point |
+| 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface |
 
 ## ❌ NOT DONE — P2: Ecosystem & Reach
 
@@ -115,9 +115,7 @@ For NoCowboy: Russian system prompts for all 6 agents, plus Russian-trained LLM 
 
 | # | Feature | Effort |
 |---|---|---|
-| 1 | **UI Russian localization** — TUI labels, error messages, help text in Russian, language selector in Settings | High |
-| 2 | **Turso Database migration** (Phase 1+3) — `bun:sqlite` → `@tursodatabase/database` | High (blocked) |
-| 3 | **Test harness** — fix 39 flaky parallel test failures | High |
+| 1 | **Test harness** — fix 39 flaky parallel test failures | High |
 
 ### About Turso
 
