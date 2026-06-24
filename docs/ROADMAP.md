@@ -128,7 +128,7 @@ New agent specialized in 152-FZ personal data law.
 |---|---|---|---|---|
 | 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
 | 2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| 3 | **Refactor all agents for 152-FZ** — review 6 agents + 16 instructions + 16 commands, fix violations | High | Inherited from Kilo/OpenCode — may contain non-compliant patterns. Separate from Lawer agent. |
+| 3 | **Refactor all agents** — review 6 agents + 16 instructions + 16 commands inherited from Kilo/OpenCode. General cleanup, consistency, correctness. | High | Inherited code needs modernization. |
 | 4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
 
 ---
