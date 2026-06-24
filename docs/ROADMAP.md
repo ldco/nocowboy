@@ -59,11 +59,12 @@
 
 ## ❌ NOT DONE
 
-### P0 — Cost Optimization 🤑
+### P0 — Cost & Size Optimization 🤑
 
 | # | Feature | From | Effort | Why |
 |---|---|---|---|---|
-| 1 | **DeepSeek prefix-cache** — structure system prompts for byte-stable prefix | Whale | Medium | 90% cache hit → 30x cheaper per session. $0.001 vs $0.015. **Top priority — saves real money on every API call.** |
+| 1 | **DeepSeek prefix-cache** — structure system prompts for byte-stable prefix | Whale | Medium | 90% cache hit → 30x cheaper per session. $0.001 vs $0.015. Saves real money on every API call. |
+| 2 | **Lazy-load tree-sitter WASMs** — detect project languages, load only matching parsers. Fallback to top 5. | Self | Medium | 37 WASMs → ~10MB. 40MB saved, faster startup, less memory. |
 
 ### P1 — MiMo Memory & Reasoning
 
