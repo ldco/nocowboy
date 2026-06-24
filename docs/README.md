@@ -7,6 +7,7 @@
 - [publish.md](guides/publish.md) — npm publishing
 - [tausik-js-port.md](guides/tausik-js-port.md) — Tausik JS port
 - [nutausik-analysis.md](guides/nutausik-analysis.md) — NUTAUSIK strategic analysis
+- [feature-overlap-decisions.md](guides/feature-overlap-decisions.md) — what goes where (NC vs NT vs MM)
 
 ## Reference
 - [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep manual
