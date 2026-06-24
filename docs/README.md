@@ -1,23 +1,24 @@
 # NoCowboy Documentation
 
 ## Start here
-- **[ROADMAP.md](ROADMAP.md)** — what's done, what's not, what's next
+- **[ROADMAP.md](../ROADMAP.md)** — what's done, what's next
 
 ## Guides
-- [publish.md](publish.md) — npm publishing instructions
-- [tausik-js-port.md](tausik-js-port.md) — Tausik JS port guide
-- [kilocode-fork-playbook.md](kilocode-fork-playbook.md) — deep reference manual
+- [publish.md](guides/publish.md) — npm publishing
+- [tausik-js-port.md](guides/tausik-js-port.md) — Tausik JS port
 
-## Analysis
-- [competitive-analysis.md](competitive-analysis.md) — competitive landscape
-- [ADRs](adr/) — Architectural Decision Records
-- [known-test-failures.md](known-test-failures.md) — documented test gaps
+## Reference
+- [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep manual
+- [competitive-analysis.md](reference/competitive-analysis.md) — competitors
+- [glossary.md](reference/glossary.md) — terminology
+- [design-layout.md](reference/design-layout.md) — TUI layout
+- [design-session.md](reference/design-session.md) — session UX
+- [sidebar-scroll-postmortem.md](reference/sidebar-scroll-postmortem.md)
+- [tui-layout-architecture.md](reference/tui-layout-architecture.md)
+- [known-test-failures.md](reference/known-test-failures.md)
 
-## Design
-- [design-layout.md](design-layout.md) — TUI layout design
-- [design-session.md](design-session.md) — session UX design
-- [glossary.md](glossary.md) — terminology
-- [sidebar-scroll-postmortem.md](sidebar-scroll-postmortem.md) — scrolling bug analysis
+## ADRs
+- [adr/turso-database-adoption.md](adr/turso-database-adoption.md)
 
 ## Archive
-- [archive/](archive/) — old plans, outdated strategies, historical docs
+- [archive/](archive/) — old plans, genesis, marketing
