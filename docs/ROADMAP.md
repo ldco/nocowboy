@@ -77,7 +77,8 @@
 
 ### P2 — UX, Safety & Russian
 
-#### P2a: UX & Safety
+| # | Feature | From | Effort | What |
+|---|---|---|---|
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
 | 1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | Prerequisite for marketplace. No JSON editing. |
@@ -88,9 +89,6 @@
 | 6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
 | 7 | **Test harness** — fix 39 flaky parallel failures | Self | High | In-memory DB + mock providers + isolated MCP ports. |
 
-#### P2b: Russian Agent Intelligence (Qwen Code pattern)
-Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**. NoCowboy equivalent:
-
 | # | Feature | Effort | What |
 |---|---|---|---|
 | 1 | **Russian system prompts** for all 6 agents | Medium | Agent reasons in Russian, understands Russian variable names. |
@@ -98,9 +96,6 @@ Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**
 | 3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Russian-trained models perform better. |
 | 4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
 | 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
-
-#### P2c: Analyze & optimize all agents
-First make order, then add new. Review what we inherited.
 
 | # | Feature | Effort | What |
 |---|---|---|---|
