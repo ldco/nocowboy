@@ -128,6 +128,12 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 ## ❌ NOT DONE — P3: Polish & Future
 
+| # | Feature | Effort | Why |
+|---|---|---|---|
+| 1 | **NUTAUSIK integration** — hybrid architecture. Keep light workflow in core (Ralph, goal judge, verify). Move heavy ProjMgmt to NUTAUSIK MCP (gates, stacks, memory graph, dead ends, audit, roles). See docs/guides/nutausik-analysis.md | High | JS port at nutausik-js — 62 TS files, 19 modules, 7 MCP tools |
+| 2 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
+| 3 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
+
 | # | Feature | Effort |
 |---|---|---|
 
