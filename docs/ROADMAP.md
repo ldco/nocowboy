@@ -116,9 +116,6 @@
 | 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
 | 7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
 
-### P3b: Lawer Agent (152-FZ)
-New agent specialized in 152-FZ personal data law. Built AFTER existing agents are optimized.
-
 | # | Feature | Effort | What |
 |---|---|---|---|
 | 1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code. |
