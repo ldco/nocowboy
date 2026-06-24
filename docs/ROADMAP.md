@@ -99,17 +99,16 @@ Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**
 | 4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
 | 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
 
-#### P2c: 152-FZ Compliance (Big Release)
-Separate major release. Create a **Lawer agent** that audits + refactors all agents for 152-FZ.
+#### P2c: Lawer Agent (152-FZ)
+New agent specialized in 152-FZ personal data law.
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| 1 | **Lawer agent** — specialized in 152-FZ, reviews all agent prompts | High | New agent type. |
-| 2 | **Data localization** — all user data on local disk | High | Art. 21 compliance. |
-| 3 | **Consent dialogs** — Russian-language, Art. 9 compliance | Medium | Specific, informed, conscious. |
-| 4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14 compliance. |
-| 5 | **Roskomnadzor notification template** | Low | Art. 22 compliance. |
-| 6 | **Agent audit** — all 6 inherited agents reviewed | High | Lawer agent's primary task. |
+| 1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code for compliance. Like architect/code-reviewer but legal. |
+| 2 | **Consent dialogs** — Russian-language, Art. 9 | Medium | Specific, informed, conscious consent prompts. |
+| 3 | **Data localization enforcement** — Art. 21 | High | Ensure all user data stays on local disk. |
+| 4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14 — purge all local data. |
+| 5 | **Roskomnadzor notification template** | Low | Art. 22 — auto-generate for companies. |
 
 ### P3 — Ecosystem & Reach
 
@@ -129,7 +128,8 @@ Separate major release. Create a **Lawer agent** that audits + refactors all age
 |---|---|---|---|---|
 | 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
 | 2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| 3 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
+| 3 | **Refactor all agents for 152-FZ** — review 6 agents + 16 instructions + 16 commands, fix violations | High | Inherited from Kilo/OpenCode — may contain non-compliant patterns. Separate from Lawer agent. |
+| 4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
 
 ---
 
