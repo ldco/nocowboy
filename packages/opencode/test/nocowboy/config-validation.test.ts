@@ -29,7 +29,7 @@ describe("ConfigValidation.check", () => {
 
   test("validates valid JSONC config", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, "kilo.json")
+    const filepath = path.join(tmp.path, "nocowboy.json")
     await Filesystem.write(filepath, JSON.stringify({ model: "anthropic/claude-sonnet-4-20250514" }))
 
     const result = await provideTestInstance({
@@ -42,7 +42,7 @@ describe("ConfigValidation.check", () => {
 
   test("reports JSONC syntax errors", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, "kilo.json")
+    const filepath = path.join(tmp.path, "nocowboy.json")
     await Filesystem.write(filepath, '{ "model": "test/model" "extra": true }')
 
     const result = await provideTestInstance({
@@ -56,7 +56,7 @@ describe("ConfigValidation.check", () => {
 
   test("reports schema validation errors for unknown fields", async () => {
     await using tmp = await tmpdir({ git: true })
-    const filepath = path.join(tmp.path, "kilo.json")
+    const filepath = path.join(tmp.path, "nocowboy.json")
     // Config.Info uses .strict() so unknown fields produce errors
     await Filesystem.write(filepath, JSON.stringify({ notAField: true }))
 
@@ -169,7 +169,7 @@ Broken agent`,
       },
     })
 
-    const filepath = path.join(tmp.path, "kilo.json")
+    const filepath = path.join(tmp.path, "nocowboy.json")
     await Filesystem.write(filepath, JSON.stringify({ model: "anthropic/claude-sonnet-4-20250514" }))
 
     const result = await provideTestInstance({

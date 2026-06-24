@@ -8,13 +8,14 @@ import { PluginLoader } from "@/plugin/loader"
 const atomic = "@nocowboy/plugin-atomic-chat"
 
 describe("kilocode default atomic chat plugin", () => {
-  test("injects atomic chat without registering an external plugin origin", () => {
+  test("does not inject atomic chat as a bundled plugin", () => {
     const external: ConfigPlugin.Origin = { spec: "global-plugin", source: "global", scope: "global" }
     const cfg = { plugin: [external.spec], plugin_origins: [external] }
 
     KilocodeDefaultPlugins.apply(cfg, { disabled: false })
 
-    expect(hasAtomicChatPlugin(cfg.plugin)).toBe(true)
+    expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
+    expect(cfg.plugin).toEqual([external.spec])
     expect(cfg.plugin_origins).toEqual([external])
   })
 
@@ -25,54 +26,60 @@ describe("kilocode default atomic chat plugin", () => {
     expect(cfg.plugin).toEqual(["global-plugin-1"])
   })
 
-  test("removes a persisted atomic chat marker from external plugin origins", () => {
+  test("keeps a persisted atomic chat marker in external plugin origins", () => {
     const external: ConfigPlugin.Origin = { spec: "global-plugin", source: "global", scope: "global" }
+    const marker: ConfigPlugin.Origin = { spec: atomic, source: "builtin", scope: "global" }
     const cfg = {
       plugin: [atomic, external.spec],
-      plugin_origins: [{ spec: atomic, source: "builtin", scope: "global" as const }, external],
+      plugin_origins: [marker, external],
     }
 
     KilocodeDefaultPlugins.apply(cfg, { disabled: true })
 
     expect(cfg.plugin).toEqual([atomic, external.spec])
-    expect(cfg.plugin_origins).toEqual([external])
+    expect(cfg.plugin_origins).toEqual([marker, external])
   })
 
-  test("does not duplicate atomic chat plugin", () => {
+  test("does not recognize an existing atomic chat spec as bundled", () => {
     const cfg = { plugin: [atomic] }
     KilocodeDefaultPlugins.apply(cfg, { disabled: false })
-    expect(cfg.plugin.filter((plugin) => hasAtomicChatPlugin([plugin])).length).toBe(1)
+    expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
+    expect(cfg.plugin).toEqual([atomic])
   })
 
-  test("treats a versioned atomic chat package as the bundled plugin", () => {
+  test("does not treat a versioned atomic chat package as bundled", () => {
     const spec = `${atomic}@7.3.46`
+    const origin: ConfigPlugin.Origin = { spec, source: "global", scope: "global" }
     const cfg = {
       plugin: [spec],
-      plugin_origins: [{ spec, source: "global", scope: "global" as const }],
+      plugin_origins: [origin],
     }
 
     KilocodeDefaultPlugins.apply(cfg, { disabled: false })
 
-    expect(cfg.plugin.filter((plugin) => hasAtomicChatPlugin([plugin]))).toEqual([spec])
-    expect(cfg.plugin_origins).toEqual([])
+    expect(cfg.plugin).toEqual([spec])
+    expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
+    expect(cfg.plugin_origins).toEqual([origin])
   })
 
-  test("treats npm aliases as the bundled plugin", () => {
+  test("does not treat npm aliases as bundled", () => {
     for (const spec of [
       `npm:${atomic}`,
       `npm:${atomic}@7.3.46`,
       `atomic@npm:${atomic}`,
       `atomic@npm:${atomic}@7.3.46`,
     ]) {
+      const origin: ConfigPlugin.Origin = { spec, source: "global", scope: "global" }
       const cfg = {
         plugin: [spec],
-        plugin_origins: [{ spec, source: "global", scope: "global" as const }],
+        plugin_origins: [origin],
       }
 
       KilocodeDefaultPlugins.apply(cfg, { disabled: false })
 
-      expect(cfg.plugin.filter((plugin) => hasAtomicChatPlugin([plugin]))).toEqual([spec])
-      expect(cfg.plugin_origins).toEqual([])
+      expect(cfg.plugin).toEqual([spec])
+      expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
+      expect(cfg.plugin_origins).toEqual([origin])
     }
   })
 
@@ -83,7 +90,7 @@ describe("kilocode default atomic chat plugin", () => {
 
     KilocodeDefaultPlugins.apply(cfg, { disabled: false })
 
-    expect(cfg.plugin).toContain(atomic)
+    expect(cfg.plugin).toEqual([spec])
     expect(cfg.plugin_origins).toEqual([origin])
   })
 
@@ -94,13 +101,13 @@ describe("kilocode default atomic chat plugin", () => {
 
     KilocodeDefaultPlugins.apply(cfg, { disabled: false })
 
-    expect(cfg.plugin).toContain(spec)
-    expect(cfg.plugin).toContain(atomic)
+    expect(cfg.plugin).toEqual([spec])
+    expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
     expect(cfg.plugin_origins).toEqual([origin])
   })
 
-  test("external loader skips bundled atomic chat before npm installation", async () => {
-    const install = spyOn(Npm, "add").mockRejectedValue(new Error("unexpected install"))
+  test("external loader no longer skips atomic chat specs as bundled", async () => {
+    const install = spyOn(Npm, "add").mockRejectedValue(new Error("install attempted"))
     const specs = [atomic, `${atomic}@7.3.46`, `npm:${atomic}`, `atomic@npm:${atomic}@7.3.46`]
 
     try {
@@ -110,7 +117,7 @@ describe("kilocode default atomic chat plugin", () => {
       })
 
       expect(loaded).toEqual([])
-      expect(install).not.toHaveBeenCalled()
+      expect(install).toHaveBeenCalled()
     } finally {
       install.mockRestore()
     }

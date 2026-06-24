@@ -15,7 +15,7 @@ describe("skill slash commands", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Bun.write(
-              path.join(dir, ".kilo", "skill", "review", "SKILL.md"),
+              path.join(dir, ".nocowboy", "skill", "review", "SKILL.md"),
               `---
 name: review
 description: Skill with command conflict.

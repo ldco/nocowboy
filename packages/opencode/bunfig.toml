@@ -3,3 +3,10 @@ preload = ["@opentui/solid/preload"]
 # timeout is not actually parsed from bunfig.toml (see src/bunfig.zig in oven-sh/bun)
 # using --timeout in package.json scripts instead
 # https://github.com/oven-sh/bun/issues/7789
+
+# Run the test bootstrap (in-memory db, isolated XDG dirs, cleared provider env)
+# for every `bun test` invocation, not just the custom test-runner. Without this,
+# `bun test test/path/to.test.ts` skips test/preload.ts, leaves NOCOWBOY_DB unset,
+# and resetDatabase() trips its disk-database safety guard.
+[test]
+preload = ["./test/preload.ts"]

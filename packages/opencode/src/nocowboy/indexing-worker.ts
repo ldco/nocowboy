@@ -2,6 +2,7 @@ import type { CodeIndexManager } from "@nocowboy/indexing/engine"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { format } from "node:util"
 import { Database } from "bun:sqlite"
+import { mkdirSync } from "node:fs" // kilocode_change
 import path from "path" // kilocode_change
 import type { Request, Result, Event, Log } from "./indexing-worker-protocol"
 import { parseQdrantWarning } from "./indexing-warning"
@@ -49,7 +50,9 @@ async function dispose(key: string) {
 async function init(request: Extract<Request, { method: "init" }>) {
   await dispose(request.key)
   if (request.input.lancedbPath) process.env.NOCOWBOY_LANCEDB_PATH = request.input.lancedbPath
-  const sqliteDb = new Database(path.join(request.input.directory, ".kilo", "vectors.db"), { create: true }) // kilocode_change
+  const dir = path.join(request.input.directory, ".nocowboy") // kilocode_change
+  mkdirSync(dir, { recursive: true }) // kilocode_change
+  const sqliteDb = new Database(path.join(dir, "vectors.db"), { create: true }) // kilocode_change
   const [engine, status] = await Promise.all([
     import("@nocowboy/indexing/engine"),
     import("@nocowboy/indexing/status"),

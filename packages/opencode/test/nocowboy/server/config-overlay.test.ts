@@ -35,7 +35,7 @@ function req(dir: string, input: string, init?: RequestInit) {
   return Server.Default().app.request(input, {
     ...init,
     headers: {
-      "x-kilo-directory": dir,
+      "x-nocowboy-directory": dir,
       ...init?.headers,
     },
   })
@@ -49,7 +49,7 @@ function request(target: ReturnType<typeof app>, dir: string | undefined, input:
   return target.request(input, {
     ...init,
     headers: {
-      ...(dir ? { "x-kilo-directory": dir } : {}),
+      ...(dir ? { "x-nocowboy-directory": dir } : {}),
       ...init?.headers,
     },
   })
@@ -61,7 +61,7 @@ async function json<T>(response: Response) {
 }
 
 async function config(dir: string, value: unknown) {
-  await Bun.write(path.join(dir, "kilo.json"), JSON.stringify(value, null, 2))
+  await Bun.write(path.join(dir, "opencode.json"), JSON.stringify(value, null, 2))
 }
 
 async function setGlobal(dir: string, value: Config.Info) {
@@ -183,7 +183,7 @@ describe("config overlay routes", () => {
     expect(body.fields["indexing.ollama.baseUrl"].value).toBeUndefined()
   })
 
-  test.serial("writes project indexing overrides to .kilo/kilo.jsonc", async () => {
+  test.serial("writes project indexing overrides to .nocowboy/nocowboy.jsonc", async () => {
     await using global = await tmpdir()
     await using project = await tmpdir()
     await setGlobal(global.path, { indexing: { enabled: true, provider: "openai" } })
@@ -199,11 +199,11 @@ describe("config overlay routes", () => {
       }),
     )
 
-    const file = path.join(project.path, ".kilo", "kilo.jsonc")
+    const file = path.join(project.path, ".nocowboy", "nocowboy.jsonc")
     const saved = (await Bun.file(file).json()) as { indexing: Record<string, unknown> }
     const body = await json<Overlay>(await req(project.path, "/config/overlay?scope=project"))
 
-    expect(await Bun.file(path.join(project.path, ".kilo", "kilo.json")).exists()).toBe(false)
+    expect(await Bun.file(path.join(project.path, ".nocowboy", "nocowboy.json")).exists()).toBe(false)
     expect(saved.indexing).toEqual({
       enabled: false,
       provider: "ollama",
@@ -251,7 +251,7 @@ describe("config overlay routes", () => {
       }),
     )
 
-    const saved = (await Bun.file(path.join(project.path, ".kilo", "kilo.jsonc")).json()) as {
+    const saved = (await Bun.file(path.join(project.path, ".nocowboy", "nocowboy.jsonc")).json()) as {
       mcp: Record<string, unknown>
     }
     expect(Object.keys(saved.mcp)).toEqual(["local"])
@@ -272,7 +272,7 @@ describe("config overlay routes", () => {
       }),
     )
 
-    const saved = (await Bun.file(path.join(project.path, ".kilo", "kilo.jsonc")).json()) as {
+    const saved = (await Bun.file(path.join(project.path, ".nocowboy", "nocowboy.jsonc")).json()) as {
       mcp: Record<string, unknown>
     }
     expect(saved.mcp).toEqual({ shared: { enabled: false } })

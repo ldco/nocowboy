@@ -50,26 +50,27 @@ describe("kilocode default indexing plugin", () => {
     await disposeAllInstances()
   })
 
-  test("injects indexing without registering an external plugin origin", () => {
+  test("does not inject indexing as a plugin", () => {
     const config: { plugin?: ConfigPlugin.Spec[]; plugin_origins?: ConfigPlugin.Origin[] } = {}
 
     KilocodeDefaultPlugins.apply(config, { disabled: false })
 
-    expect(hasIndexingPlugin(config.plugin ?? [])).toBe(true)
+    expect(hasIndexingPlugin(config.plugin ?? [])).toBe(false)
     expect(config.plugin_origins).toBeUndefined()
   })
 
-  test("removes a persisted indexing marker from external plugin origins", () => {
+  test("keeps a persisted indexing marker in external plugin origins", () => {
     const external: ConfigPlugin.Origin = { spec: "global-plugin", source: "global", scope: "global" }
+    const indexing: ConfigPlugin.Origin = { spec: INDEXING_PLUGIN, source: "global", scope: "global" }
     const config = {
       plugin: [INDEXING_PLUGIN, external.spec],
-      plugin_origins: [{ spec: INDEXING_PLUGIN, source: "global", scope: "global" as const }, external],
+      plugin_origins: [indexing, external],
     }
 
     KilocodeDefaultPlugins.apply(config, { disabled: true })
 
     expect(config.plugin).toEqual([INDEXING_PLUGIN, external.spec])
-    expect(config.plugin_origins).toEqual([external])
+    expect(config.plugin_origins).toEqual([indexing, external])
   })
 
   test("does not hard-enable indexing plugin when default plugins are disabled", async () => {

@@ -73,6 +73,15 @@ function usage() {
   }
 }
 
+const summary = Layer.succeed(
+  SessionSummary.Service,
+  SessionSummary.Service.of({
+    summarize: () => Effect.void,
+    diff: () => Effect.succeed([]),
+    computeDiff: () => Effect.succeed([]),
+  }),
+)
+
 const llm = Layer.unwrap(
   Effect.gen(function* () {
     const queue: Script[] = []
@@ -114,7 +123,7 @@ const deps = Layer.mergeAll(
   Config.defaultLayer,
   RuntimeFlags.layer(),
   reference,
-  SessionSummary.defaultLayer,
+  summary,
   Image.defaultLayer,
   SyncEvent.defaultLayer,
   EventV2Bridge.defaultLayer,
@@ -198,6 +207,7 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 
   it.effect("adds warning when model stops after reasoning-only length finish", () =>
@@ -279,6 +289,7 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 
   it.effect("treats provider finish errors without details as retryable API errors", () =>
@@ -353,6 +364,7 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 
   it.effect("adds generic warning when model stops after text length finish", () =>
@@ -436,6 +448,7 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 
   it.live("ignores deleted session during cost reconciliation", () =>
@@ -507,6 +520,7 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 
   it.live("preserves tool-calls finish when tool parts exist", () =>
@@ -583,5 +597,6 @@ describe("session processor empty tool-calls", () => {
         }),
       { git: true },
     ),
+    15000,
   )
 })

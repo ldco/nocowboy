@@ -21,10 +21,10 @@ async function withHome<T>(home: string, fn: () => Promise<T>): Promise<T> {
 
 describe("RulesMigrator", () => {
   describe("discoverRules", () => {
-    test("discovers legacy .kilocoderules file", async () => {
+    test("discovers legacy .nocowboyrules file", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules"), "# Project rules")
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Project rules")
         },
       })
 
@@ -32,16 +32,16 @@ describe("RulesMigrator", () => {
 
       expect(rules).toHaveLength(1)
       expect(rules[0].source).toBe("legacy")
-      expect(rules[0].path).toContain(".kilocoderules")
+      expect(rules[0].path).toContain(".nocowboyrules")
       expect(rules[0].mode).toBeUndefined()
     })
 
-    test("discovers .kilo/rules/ directory", async () => {
+    test("discovers .nocowboy/rules/ directory", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "coding.md"), "# Coding rules")
-          await Bun.write(path.join(dir, ".kilo", "rules", "testing.md"), "# Testing rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "coding.md"), "# Coding rules")
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "testing.md"), "# Testing rules")
         },
       })
 
@@ -52,11 +52,11 @@ describe("RulesMigrator", () => {
       expect(rules.every((r) => r.mode === undefined)).toBe(true)
     })
 
-    test("discovers rules from legacy .kilocode/rules/", async () => {
+    test("discovers rules from .nocowboy/rules/", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilocode", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilocode", "rules", "legacy.md"), "# Legacy rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "legacy.md"), "# Legacy rules")
         },
       })
 
@@ -65,29 +65,27 @@ describe("RulesMigrator", () => {
       expect(rules.some((r) => r.path.includes("legacy.md"))).toBe(true)
     })
 
-    test(".kilo/rules/ takes precedence over .kilocode/rules/ for same filename", async () => {
+    test("deduplicates rules by filename within .nocowboy/rules/", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "main.md"), "# New rules")
-          await fs.mkdir(path.join(dir, ".kilocode", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilocode", "rules", "main.md"), "# Old rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# New rules")
         },
       })
 
       const rules = await RulesMigrator.discoverRules(tmp.path)
       const mainRules = rules.filter((r) => r.path.includes("main.md"))
 
-      // Only one main.md should be found (.kilo wins)
+      // Only one main.md should be found from the single .nocowboy/rules source
       expect(mainRules).toHaveLength(1)
-      expect(mainRules[0].path).toContain(`.kilo${path.sep}`)
+      expect(mainRules[0].path).toContain(`.nocowboy${path.sep}`)
     })
 
     test("discovers mode-specific directory rules", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules-code"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules-code", "style.md"), "# Code style")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules-code"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules-code", "style.md"), "# Code style")
         },
       })
 
@@ -115,10 +113,10 @@ describe("RulesMigrator", () => {
     test("ignores non-markdown files in rules directory", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "rules.md"), "# Rules")
-          await Bun.write(path.join(dir, ".kilo", "rules", "notes.txt"), "Notes")
-          await Bun.write(path.join(dir, ".kilo", "rules", "config.json"), "{}")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "rules.md"), "# Rules")
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "notes.txt"), "Notes")
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "config.json"), "{}")
         },
       })
 
@@ -140,10 +138,10 @@ describe("RulesMigrator", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           // Legacy file
-          await Bun.write(path.join(dir, ".kilocoderules"), "# Legacy rules")
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy rules")
           // Directory rules
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "main.md"), "# Main rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Main rules")
           // Mode-specific
           await Bun.write(path.join(dir, ".kilocoderules-code"), "# Code rules")
         },
@@ -157,11 +155,11 @@ describe("RulesMigrator", () => {
       expect(rules.some((r) => r.mode === "code")).toBe(true)
     })
 
-    test("discovers global rules from ~/.kilo/rules/", async () => {
+    test("discovers global rules from ~/.nocowboy/rules/", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "global.md"), "# Global rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "global.md"), "# Global rules")
           await fs.mkdir(path.join(dir, "repo"), { recursive: true })
         },
       })
@@ -169,7 +167,7 @@ describe("RulesMigrator", () => {
       const rules = await withHome(tmp.path, () => RulesMigrator.discoverRules(path.join(tmp.path, "repo")))
 
       expect(
-        rules.some((r) => r.source === "global" && r.path.includes(path.join(".kilo", "rules", "global.md"))),
+        rules.some((r) => r.source === "global" && r.path.includes(path.join(".nocowboy", "rules", "global.md"))),
       ).toBe(true)
     })
   })
@@ -178,8 +176,8 @@ describe("RulesMigrator", () => {
     test("returns instructions array with discovered rules", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "main.md"), "# Main rules")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Main rules")
         },
       })
 
@@ -192,14 +190,14 @@ describe("RulesMigrator", () => {
     test("warns about legacy files", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules"), "# Legacy rules")
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy rules")
         },
       })
 
       const result = await RulesMigrator.migrate({ projectDir: tmp.path })
 
       expect(result.warnings.some((w) => w.includes("Legacy"))).toBe(true)
-      expect(result.warnings.some((w) => w.includes(".kilo/rules/"))).toBe(true)
+      expect(result.warnings.some((w) => w.includes(".nocowboy/rules/"))).toBe(true)
     })
 
     test("skips mode-specific rules when includeModeSpecific is false", async () => {
@@ -242,9 +240,9 @@ describe("RulesMigrator", () => {
     test("combines all rule sources", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules"), "# Legacy")
-          await fs.mkdir(path.join(dir, ".kilo", "rules"), { recursive: true })
-          await Bun.write(path.join(dir, ".kilo", "rules", "main.md"), "# Main")
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Main")
           await Bun.write(path.join(dir, ".kilocoderules-architect"), "# Architect")
         },
       })

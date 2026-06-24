@@ -11,9 +11,22 @@
   "permission": {
     "edit": {
       "packages/opencode/migration/*": "deny",
+      "*": "ask",
     },
   },
-  "mcp": {},
+  "mcp": {
+    "local": {
+      "type": "local",
+      "command": [
+        "node",
+        "local.js"
+      ],
+      "enabled": true
+    },
+    "shared": {
+      "enabled": false
+    }
+  },
   "tools": {
     "github-triage": false,
     "github-pr-search": false,
@@ -22,4 +35,11 @@
   "lsp": false,
   "username": "patched-user",
   "formatter": false,
+  "indexing": {
+    "enabled": false,
+    "provider": "ollama",
+    "ollama": {
+      "baseUrl": "http://127.0.0.1:11434"
+    }
+  },
 }

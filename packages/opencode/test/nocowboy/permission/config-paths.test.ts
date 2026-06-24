@@ -46,7 +46,7 @@ describe("ConfigProtection.isRequest", () => {
     const result = ConfigProtection.isRequest({
       permission: "external_directory",
       patterns: [config + "/*"],
-      metadata: { filepath: path.join(config, "kilo.json"), parentDir: config },
+      metadata: { filepath: path.join(config, "nocowboy.json"), parentDir: config },
     })
     expect(result).toBe(false)
   })
@@ -126,7 +126,7 @@ describe("ConfigProtection.isRequest", () => {
   test("returns true for edit targeting relative config path via patterns", () => {
     const result = ConfigProtection.isRequest({
       permission: "edit",
-      patterns: [".kilo/command/foo.md"],
+      patterns: [".nocowboy/command/foo.md"],
     })
     expect(result).toBe(true)
   })
@@ -134,7 +134,7 @@ describe("ConfigProtection.isRequest", () => {
   test("returns false for edit targeting excluded subdir (plans)", () => {
     const result = ConfigProtection.isRequest({
       permission: "edit",
-      patterns: [".kilo/plans/plan.md"],
+      patterns: [".nocowboy/plans/plan.md"],
     })
     expect(result).toBe(false)
   })
@@ -142,7 +142,7 @@ describe("ConfigProtection.isRequest", () => {
   test("returns false for read permission", () => {
     const result = ConfigProtection.isRequest({
       permission: "read",
-      patterns: [".kilo/config.json"],
+      patterns: [".nocowboy/config.json"],
     })
     expect(result).toBe(false)
   })
@@ -156,7 +156,7 @@ describe("ConfigProtection.isRequest", () => {
   })
 
   test("returns true for edit targeting root config files", () => {
-    for (const file of ["kilo.json", "kilo.jsonc", "AGENTS.md"]) {
+    for (const file of ["nocowboy.json", "nocowboy.jsonc", "AGENTS.md"]) {
       const result = ConfigProtection.isRequest({
         permission: "edit",
         patterns: [file],

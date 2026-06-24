@@ -18,12 +18,9 @@ import { zod as toZod } from "@opencode-ai/core/effect-zod"
 import { ENV_FEATURE } from "@nocowboy/gateway"
 import { fn } from "@/nocowboy/fn"
 import path from "path"
-import { reconcile } from "../memory/reconcile" // nocowboy_change
 
 export namespace KiloSession {
   const log = Log.create({ service: "session.nocowboy" })
-  // Reconcile memory FTS5 at startup
-  try { reconcile() } catch { /* memory dir may not exist yet */ }
 
   // ---------------------------------------------------------------------------
   // Events
