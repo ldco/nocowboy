@@ -280,7 +280,6 @@ for (const item of targets) {
     // nocowboy_change end
     external: ["node-gyp", ...LanceDBRuntime.external], // nocowboy_change
     format: "esm",
-    minify: true,
     // nocowboy_change start - disable code-splitting to avoid a Bun 1.3.14 codegen bug.
     // With splitting:true Bun emits cross-chunk re-exports like `import{vn as G9}` whose
     // binding isn't top-level, so the compiled binary crashes at startup on the baseline

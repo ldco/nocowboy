@@ -59,10 +59,12 @@ export namespace McpLifecycle {
     const logFd = fs.openSync(logPath, "a")
     const cmd = command
 
-    const selfBin = process.argv[0] ?? process.execPath
+    const selfBin = process.argv[0]
+    const env: Record<string, string | undefined> = { ...process.env, KILO_SKIP_MIGRATIONS: "1", NOCOWBOY_SKIP_MIGRATIONS: "1" } 
     const selfArgs = ["mcp", "_proxy", "--port", String(port), "--", cmd]
 
     const child = spawn(selfBin, selfArgs, {
+      env,
       stdio: ["ignore", logFd, logFd],
       detached: true,
     })

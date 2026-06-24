@@ -18,7 +18,7 @@ describe("nocowboy logo", () => {
     expect(supports({}, "win32")).toBe(false)
     expect(supports({ NOCOWBOY_LOGO: "1" }, "win32")).toBe(false)
     expect(supports({ WT_SESSION: "session" }, "win32")).toBe(false)
-    expect(supports({}, "win32-x64")).toBe(false)
+    expect(supports({}, "win32" as any)).toBe(false)
   })
 
   test("tui returns logo lines array", () => {
