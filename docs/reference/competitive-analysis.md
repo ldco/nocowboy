@@ -277,3 +277,66 @@ In distribution and DX:
 4. **NoCowboy** (compiled binary, fast but large)
 5. OpenHands (Docker, heavy)
 
+
+---
+
+## 2026-06-24 — Deep Re-analysis (Docs Verified)
+
+### Claude Code — borrowings
+
+| Feature | We have it? | Action |
+|---|---|---|
+| `CLAUDE.md` instructions | ✅ `nocowboy.json` + `MEMORY.md` | — |
+| Auto memory (cross-session learning) | ✅ `/dream` + FTS5 | — |
+| Skills (packaged workflows) | ✅ skill system | — |
+| Hooks (pre/post action shell) | ✅ NUTAUSIK hooks | — |
+| Sub-agents (parallel work) | ✅ Agent Manager | — |
+| **Channels** (webhooks → session) | ❌ | 🆕 P3 — CI alerts, chat into TUI sessions |
+| Desktop app | ❌ | P2 — future |
+| Agent SDK | ⚠️ partial (plugin system) | — |
+| Routines (scheduled cloud) | ❌ — requires cloud | reject (local-first) |
+| Remote control (phone→desktop) | ❌ — requires cloud | reject (local-first) |
+
+### Goose (AAIF/Linux Foundation) — borrowings
+
+| Feature | We have it? | Action |
+|---|---|---|
+| Compiled binary (Rust) | ✅ compiled binary (Bun) | — |
+| Multi-provider (15+) | ✅ 200+ via LiteLLM | — |
+| MCP-native design (70+ extensions) | ✅ shared MCP + plugin system | — |
+| CLI + API | ✅ TUI + HTTP API | — |
+| **Custom Distributions** (preconfigured distro) | ❌ | 🆕 P3 — ship `nocowboy-ru` distro for Russian market |
+| Desktop app | ❌ | P2 |
+
+### Plandex — borrowings
+
+| Feature | We have it? | Action |
+|---|---|---|
+| 2M token context window | ❌ (default ~200K) | 🆕 P2 — deep context mode with token budgeting |
+| Tree-sitter project maps (30+ languages) | ✅ repomap (regex-based, not tree-sitter) | upgrade repomap to use tree-sitter AST |
+| **Diff review sandbox** (changes isolated until accepted) | ❌ | 🆕 P2 — safety feature: AI-generated changes in a sandbox |
+| **Configurable autonomy** (full auto ↔ step-by-step) | ⚠️ partial | 🆕 P1 — autonomy level slider in Settings |
+| Controlled command execution with rollback | ⚠️ partial (permission system) | improve with sandbox mode |
+| Versioned plans with branches | ❌ | 🆕 P2 — branch-per-task with plan versions |
+| REPL mode with fuzzy auto-complete | ❌ | P2 — nice UX |
+| Context caching (OpenAI/Anthropic/Google) | ⚠️ partial | P2 — cost optimization |
+
+### Qwen Code (Alibaba) — already analyzed
+
+Chinese-first agent prompts → 3x adoption. Russian equivalent in P1b.
+
+### Warp (Terminal with Agent)
+
+Warp's agent is built INTO the terminal, not a separate TUI. Different product category.
+We evaluated this as "not relevant" — confirmed.
+
+### What we should ADD to the roadmap
+
+| # | Feature | From | Priority |
+|---|---|---|---|
+| 1 | **Autonomy level slider** — full auto / ask per step / step-by-step guide | Plandex | P1 |
+| 2 | **Diff review sandbox** — AI changes isolated until accepted | Plandex | P2 |
+| 3 | **2M token context window** — deep context mode with token budgeting | Plandex / Claude Code | P2 |
+| 4 | **Channels** — webhooks (CI, alerts, chat) push events into TUI session | Claude Code | P3 |
+| 5 | **Custom Distributions** — preconfigured `nocowboy-ru` distro | Goose | P3 |
+| 6 | **Upgrade repomap** — tree-sitter AST parsing (30+ languages, we have 37 WASMs) | Plandex | P2 |

@@ -87,8 +87,8 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 | 3 | **Branch-per-task** (`nocowboy plan --branch`) | Medium | Isolation — bad changes don't pollute main |
 | 4 | **Permission timeout** — auto-deny after N seconds | Low | Unblock autonomous workflows |
 | 5 | **Test harness** — fix 39 flaky parallel test failures | High | In-memory DB + mock providers + isolated MCP ports |
-
-| 5 | **NUTAUSIK integration** — hybrid ProjMgmt architecture (gates, stacks, memory graph → NUTAUSIK MCP server. Ralph, goal judge, verify stay in core.) | High | See docs/guides/nutausik-analysis.md |
+| 6 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Low | Plandex configurable autonomy |
+| 7 | **NUTAUSIK integration** — hybrid ProjMgmt architecture (gates, stacks, memory graph → NUTAUSIK MCP server. Ralph, goal judge, verify stay in core.) | High | See docs/guides/nutausik-analysis.md |
 
 ### P1b: Russian Agent Intelligence (Qwen Code pattern)
 
@@ -121,10 +121,13 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 | # | Feature | Effort | Why |
 |---|---|---|---|
-| 1 | **Sandbox mode** — Docker-insulated agent command execution | High | Enterprise security. No AI runs raw commands on prod machines. |
-| 2 | **MCP server marketplace** (`mcp search`) — browse `@nocowboy/mcp-*` packages | Medium | Cline has this. Discovery without leaving terminal. |
-| 3 | **Vector store switcher** — UI to select SQLite / LanceDB / Qdrant in Settings | Medium | Small projects: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant (external server). |
-| 4 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
+| 1 | **Diff review sandbox** — AI changes isolated until accepted (Plandex pattern) | High | Safety: no AI changes touch real files until reviewed |
+| 2 | **Sandbox mode** — Docker-insulated agent command execution | High | Enterprise security. No AI runs raw commands on prod machines. |
+| 3 | **2M token context** — deep context with token budgeting | High | Claude Code + Plandex pattern |
+| 4 | **Tree-sitter repomap** — upgrade regex → AST (30+ languages, we have 37 WASMs) | Medium | Plandex pattern |
+| 5 | **MCP server marketplace** (`mcp search`) — browse `@nocowboy/mcp-*` packages | Medium | Cline has this. Discovery without leaving terminal. |
+| 6 | **Vector store switcher** — UI to select SQLite / LanceDB / Qdrant in Settings | Medium | Small projects: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant (external server). |
+| 7 | **Offline mode** — local LLM via Ollama, zero API keys needed | Medium | Sanctions-proof. Works without internet. |
 
 ---
 
@@ -132,8 +135,10 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 | # | Feature | Effort | Why |
 |---|---|---|---|
-| 1 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
-| 2 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
+| 1 | **Custom Distributions** — preconfigured `nocowboy-ru` distro for Russian market | Medium | Goose (Linux Foundation) pattern |
+| 2 | **Channels** — webhooks push CI/chat events into TUI sessions | Medium | Claude Code pattern |
+| 3 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
+| 4 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
 
 | # | Feature | Effort |
 |---|---|---|
