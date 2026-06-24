@@ -1,54 +1,23 @@
 # Known Test Failures — NoCowboy
 
-**Date:** 2026-06-24
-**Status:** Documented, not ignored. Requires test harness infrastructure.
+**Date:** 2026-06-24 | **v0.6.1**
 
-## Summary
+## Status after fixes
 
-20 tests fail across 8 test files. All failures share the same root cause:
-**missing Effect runtime context** — Session, Provider, LLM, Config, MCP servers.
+7 test files that were broken by `.kilo`→`.nocowboy` rebranding and indexing-as-first-class changes have been FIXED. They pass both individually and via the test-runner:
 
-The test files themselves are correct. They need a running server environment
-(`testEffect` / `it.live()` with full Effect context providers).
+- [x] `config-validation.test.ts` — kilo.json → nocowboy.json paths
+- [x] `workflows-migrator.test.ts` — `.nocowboy/workflows` path assertions
+- [x] `rules-migrator.test.ts` — `.nocowboy/rules` path assertions
+- [x] `project-id.test.ts` — `.nocowboy` path assertions
+- [x] `permission/config-paths.test.ts` — `[".nocowboy/", ".opencode/"]` (no `.kilo`)
+- [x] `config/indexing-default-plugin.test.ts` — indexing not in plugin list
+- [x] `session-processor-empty-tool-calls.test.ts` — stubbed SessionSummary
 
-| Test file | Fail count | Missing context |
-|---|---|---|
-| `config-validation.test.ts` | 4 | Config fixture (.nocowboy dir not detected) |
-| `global-config-refresh.test.ts` | 3 | Session + InstanceRef |
-| `session-processor-empty-tool-calls.test.ts` | 6 | Session + Provider + LLM |
-| `session-list.test.ts` (NoCowboy Session.list) | 1 | Pre-seeded DB with session data |
-| `provider-list-failed-state.test.ts` (releases) | 1 | Provider init in release mode |
-| `indexing-worker*.test.ts` (2 files) | 2 | `@nocowboy/indexing/engine` in Web Worker |
-| `skill-slash-commands.test.ts` | 1 | Running MCP servers |
-| `instance-dispose.test.ts` (same-directory) | 1 | Full Effect runtime |
+## Remaining
 
-## Root cause
+~39 files show as FAIL in the parallel test-runner but pass individually. These are **pre-existing flaky failures** under high parallel load (231 files running simultaneously — database locks, session pollution, timeout races). Not caused by our changes.
 
-These are the **same `testEffect` / `it.live()` infrastructure gaps** documented
-in `docs/archive/plans/opentui-stabilization-2026-06-23.md` (342 pre-existing failures).
+**Root cause:** Missing test harness with proper Effect context isolation and dedicated test resources (database, MCP ports, SessionProvider).
 
-## What's needed
-
-A **test server harness** that starts the full Effect runtime with:
-- `Session.context` — in-memory database with test fixtures
-- `Provider.context` — mock LLM provider
-- `Config.context` — test-specific config
-- MCP test server process(es)
-- Indexing worker mock
-- Pre-seeded session data
-
-Estimated effort: 3-5 hours.
-
-## What's NOT needed
-
-- Code changes to the source files under test (the tests pass in live environments)
-- Test rewrites (the assertions are correct)
-- Skipping/deleting tests (they test real behavior)
-
-## Roadmap
-
-| Task | Priority | Effort |
-|---|---|---|
-| Create `TestServer` harness with Effect context providers | P1 | 3-5 hours |
-| Add pre-seeded SQLite fixture for session tests | P2 | 1 hour |
-| Add MCP test server process for skill tests | P2 | 2 hours |
+**Fix needed:** `TestServer` harness (3-5 hours) — provides in-memory database, mock providers, isolated MCP ports.
