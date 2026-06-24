@@ -6,6 +6,7 @@
 ## Guides
 - [publish.md](guides/publish.md) — npm publishing
 - [tausik-js-port.md](guides/tausik-js-port.md) — Tausik JS port
+- [nutausik-analysis.md](guides/nutausik-analysis.md) — NUTAUSIK strategic analysis
 
 ## Reference
 - [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep manual

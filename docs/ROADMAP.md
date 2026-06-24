@@ -86,6 +86,7 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 | 2 | **Search/replace edit format** (Aider-style) | Medium | More reliable than line-based edits |
 | 3 | **Branch-per-task** (`nocowboy plan --branch`) | Medium | Isolation — bad changes don't pollute main |
 | 4 | **Permission timeout** — auto-deny after N seconds | Low | Unblock autonomous workflows |
+| 5 | **Test harness** — fix 39 flaky parallel test failures | High | In-memory DB + mock providers + isolated MCP ports |
 
 ### P1b: Russian Agent Intelligence (Qwen Code pattern)
 
@@ -129,7 +130,6 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 | # | Feature | Effort |
 |---|---|---|
-| 1 | **Test harness** — fix 39 flaky parallel test failures | High |
 
 ### About Turso
 
