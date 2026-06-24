@@ -1,4 +1,7 @@
 # Kilocode Fork Playbook — Complete Reference
+# > **NOTE:** The [ROADMAP.md](ROADMAP.md) is the single source of truth for status.
+# > This document is the deep reference manual — architecture decisions, MiMo borrowings, competitive analysis.
+
 
 **Purpose:** This document tells the fork agent EXACTLY what to do. It covers three repos, what to keep, what to port, what to add, and what to remove.
 
@@ -1120,3 +1123,31 @@ Russian developer salaries are 3-5× lower than US/EU. Enterprise customers pay 
 | 🟢 P2 | Russian-language UX and prompts | In-house | Medium — adoption in non-English-speaking orgs |
 | 🟢 P3 | GitFlic / GitVerse support | Russian Git hosts | Low — niche |
 | 🟢 P3 | Telegram notifications | In-house | Low — nice to have |
+
+---
+
+## 13. Implementation Log (2026-06-24)
+
+### Morning
+- [x] Repomap — `nocowboy repomap` command + auto-injection into system prompt every turn
+- [x] Multi-turn approval memory — per-session approval cache (Codex CLI style)
+- [x] Global-only init wizard — `nocowboy init` (2 questions, global config)
+- [x] /verify command — plan-verify loop (lint + typecheck + tests + diff)
+- [x] Goal judge — enhanced /goal with independent subagent evaluation
+- [x] Deep context mode — repomap + memory merged into system prompt
+- [x] Incremental PR review — code-reviewer only checks git diff files
+- [x] Russian localization — architect prompt placeholder in `agent/ru/`
+- [x] MiMo FTS5 memory system — schema, migration, service, reconcile, dream command
+- [x] Docs cleanup — deleted 11 obsolete files, created ROADMAP.md
+
+### Afternoon
+- [x] 7 broken test files fixed (kilo→nocowboy paths + indexing first-class)
+- [x] Removed module-level reconcile() from session/index.ts
+- [x] Full nocowboy test suite: 150+ pass, 0 fail (individual), ~39 flaky (parallel runner)
+- [x] v0.6.1 built — binary confirmed 0.6.1
+
+### Blocked
+- [ ] npm publish: meta-package + 7 MCP servers — waiting on @nocowboy npm org
+- [ ] Test harness: 39 flaky parallel failures — needs TestServer infrastructureENDOFSECTION
+
+git add docs/kilocode-fork-playbook.md && git commit -m "docs: update playbook with 2026-06-24 implementation log"
