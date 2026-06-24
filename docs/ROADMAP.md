@@ -107,6 +107,7 @@ First make order, then add new. Review what we inherited.
 | 1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
 | 2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
 | 3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
+| 4 | **Revise MCP server framework** — review all 7 first-party + 4 third-party MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
 
 ### P3 — Ecosystem, Lawer & Reach
 
