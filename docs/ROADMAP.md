@@ -121,7 +121,7 @@ Separate major release. Create a **Lawer agent** that audits + refactors all age
 | 4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
 | 5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
 | 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
-| 9 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+| 7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
 
 ### P4 — Polish & Future
 
