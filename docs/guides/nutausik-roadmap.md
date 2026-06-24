@@ -25,29 +25,29 @@ NUTAUSIK JS port: **62 TS files, 7 MCP tools, 15 tests, partial features**.
 
 ### 🔴 P0 — Core Trust & Enforcement (not optional)
 
-| # | Feature | Original | What to build |
-|---|---|---|---|
-| 1 | **Signed receipts (ed25519)** | `crypto/*` + receipts | Wire `crypto/receipt.ts` into verify pipeline. Every verification produces a signed receipt bound to commit SHA. |
-| 2 | **QG-0 gate** — no code without a task | `scripts/gates/qg0.py` | Block agent tool calls until a task is open with acceptance criteria. |
-| 3 | **QG-2 gate** — no close without verify | `scripts/gates/qg2.py` | Block `task done` until valid signed receipt exists for HEAD commit. |
+| # | Feature | Original code | Docs | What to build |
+|---|---|---|---|---|
+| 1 | **Signed receipts (ed25519)** | `crypto/*` + receipts | [receipts.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/receipts.md) · [no-sdk-verify.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/no-sdk-verify.md) | Wire `crypto/receipt.ts` into verify pipeline. Every verification produces a signed receipt bound to commit SHA. |
+| 2 | **QG-0 gate** — no code without a task | `scripts/gates/qg0.py` | [workflow.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/workflow.md) · [plan-review.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/plan-review.md) | Block agent tool calls until a task is open with acceptance criteria. |
+| 3 | **QG-2 gate** — no close without verify | `scripts/gates/qg2.py` | [workflow.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/workflow.md) · [verify-glossary.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/verify-glossary.md) | Block `task done` until valid signed receipt exists for HEAD commit. |
 
 ### 🟡 P1 — MCP Tools (project management)
 
-| # | Feature | Original tools | What to build |
-|---|---|---|---|
-| 4 | **Epic/Story/Task CRUD** | `epic_*`, `story_*`, `task_*` (20+ tools) | Full CRUD in `service/hierarchy.ts` + `service/task.ts`. Wire to MCP tools. |
-| 5 | **Decision tracking** | `decision_record`, `decision_review` | `service/knowledge.ts` — lightweight ADR-like decisions linked to tasks. |
-| 6 | **Dead end tracking** | `deadend_record` | Record failed approaches programmatically. `/dream` reads them for MEMORY.md. |
-| 7 | **Audit trail** | `audit_*` | All project management actions logged with timestamps. |
-| 8 | **Role management** | `role_*` | Assign roles to epics/stories. |
+| # | Feature | Original tools | Docs | What to build |
+|---|---|---|---|---|
+| 4 | **Epic/Story/Task CRUD** | `epic_*`, `story_*`, `task_*` (20+ tools) | [task-archive-spec.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/task-archive-spec.md) · [workflow.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/workflow.md) | Full CRUD in `service/hierarchy.ts` + `service/task.ts`. Wire to MCP tools. |
+| 5 | **Decision tracking** | `decision_record`, `decision_review` | [brain-artifact-taxonomy.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/brain-artifact-taxonomy.md) | `service/knowledge.ts` — lightweight ADR-like decisions linked to tasks. |
+| 6 | **Dead end tracking** | `deadend_record` | [brain-artifact-taxonomy.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/brain-artifact-taxonomy.md) | Record failed approaches programmatically. `/dream` reads them for MEMORY.md. |
+| 7 | **Audit trail** | `audit_*` | [security.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/security.md) · [brain-db-schema.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/brain-db-schema.md) | All project management actions logged with timestamps. |
+| 8 | **Role management** | `role_*` | [roles.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/roles.md) | Assign roles to epics/stories. |
 
 ### 🟢 P2 — Verify + Metrics
 
-| # | Feature | Original | What to build |
-|---|---|---|---|
-| 9 | **Verify suites** (25 total) | pytest, ruff, mypy, tsc, eslint, cargo, go vet, etc. | Port the 25 verify suites. Use `verify/` module as base. |
-| 10 | **Metrics & routing** | throughput, first-pass success, defect-escape, lead-time | `backend/metrics.ts` — track and expose via MCP tools. |
-| 11 | **Complexity-aware model routing** | per-task cost/token budgets | `model/routing.ts` — route simple tasks to cheap models, complex to powerful ones. |
+| # | Feature | Original | Docs | What to build |
+|---|---|---|---|---|
+| 9 | **Verify suites** (25 total) | pytest, ruff, mypy, tsc, eslint, cargo, go vet, etc. | [verify-glossary.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/verify-glossary.md) · [testing-principles.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/testing-principles.md) | Port the 25 verify suites. Use `verify/` module as base. |
+| 10 | **Metrics & routing** | throughput, first-pass success, defect-escape, lead-time | [cost-telemetry.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/cost-telemetry.md) | `backend/metrics.ts` — track and expose via MCP tools. |
+| 11 | **Complexity-aware model routing** | per-task cost/token budgets | [model-providers.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/model-providers.md) | `model/routing.ts` — route simple tasks to cheap models, complex to powerful ones. |
 
 ## NUTAUSIK vs MiMo Memory — No Overlap, Complementary
 
@@ -61,13 +61,24 @@ NUTAUSIK JS port: **62 TS files, 7 MCP tools, 15 tests, partial features**.
 
 **Decision:** Keep all three. `/dream` reads NUTAUSIK graph and writes human-readable summaries to MEMORY.md. MiMo FTS5 indexes everything — files AND NT records — for unified search.
 
-### 🔵 P3 — DeepSeek Optimization
+### 🔵 P3 — DeepSeek Optimization (NEW — not in original Tausik)
 
 | # | Feature | From | What |
 |---|---|---|---|
-| 12 | **DeepSeek prefix-cache optimization** | Whale (MIT) | Structure system prompts for byte-stable prefix. Whale achieves 90% cache hit rate → ~30x cheaper. |
-| 13 | **Per-task cost tracking** | Whale / Original | Show cost per task in MCP tools and UI. |
-| 14 | **Multi-agent fan-out workflows** | Whale Dynamic Workflows | JavaScript-orchestrated parallel agent execution. |
+| 12 | **DeepSeek prefix-cache** 🆕 | Whale (MIT) | Structure system prompts for byte-stable prefix. 90% cache hit → ~30x cheaper. NOT in original Tausik (Claude-first). |
+| 13 | **Per-task cost tracking** | Whale / [cost-telemetry.md](https://github.com/Kibertum/tausik-core/blob/main/docs/en/cost-telemetry.md) | Show cost per task in MCP tools and UI. |
+| 14 | **Multi-agent fan-out** 🆕 | Whale Dynamic Workflows | JavaScript-orchestrated parallel agent execution. NOT in original Tausik. |
+
+### What NUTAUSIK adds that the original DOESN'T have
+
+| Feature | Original Tausik | NUTAUSIK |
+|---|---|---|
+| Language | Python 3.11+ | TypeScript (Node.js/Bun) |
+| Install | `git submodule` + `bootstrap.py` | `npm install -g @nocowboy/nutausik` |
+| Search | Claude subscription proxy | DuckDuckGo (no API key) + Tavily/Google/Brave |
+| Model | Claude-first + z.ai GLM | DeepSeek-first + multi-model |
+| IDE hooks | Claude/Qwen-specific | MCP-server only (any IDE) |
+| Publishing | GitHub releases | npm registry |
 
 ## What the original has that we ALREADY ported
 
