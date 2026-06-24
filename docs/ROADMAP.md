@@ -99,18 +99,16 @@ Qwen Code achieved 3x adoption in China by making the agent **think in Chinese**
 | 4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
 | 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
 
-#### P2c: Lawer Agent (152-FZ)
-New agent specialized in 152-FZ personal data law.
+#### P2c: Analyze & optimize all agents
+First make order, then add new. Review what we inherited.
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| 1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code for compliance. Like architect/code-reviewer but legal. |
-| 2 | **Consent dialogs** — Russian-language, Art. 9 | Medium | Specific, informed, conscious consent prompts. |
-| 3 | **Data localization enforcement** — Art. 21 | High | Ensure all user data stays on local disk. |
-| 4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14 — purge all local data. |
-| 5 | **Roskomnadzor notification template** | Low | Art. 22 — auto-generate for companies. |
+| 1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
+| 2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
+| 3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
 
-### P3 — Ecosystem & Reach
+### P3 — Ecosystem, Lawer & Reach
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
@@ -122,14 +120,25 @@ New agent specialized in 152-FZ personal data law.
 | 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
 | 7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
 
+### P3b: Lawer Agent (152-FZ)
+New agent specialized in 152-FZ personal data law. Built AFTER existing agents are optimized.
+
+| # | Feature | Effort | What |
+|---|---|---|---|
+| 1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code. |
+| 2 | **Consent dialogs** — Russian, Art. 9 | Medium | Specific, informed, conscious. |
+| 3 | **Data localization** — Art. 21 | High | All user data on local disk. |
+| 4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14. |
+| 5 | **Roskomnadzor template** | Low | Art. 22. |
+| — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+
 ### P4 — Polish & Future
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
 | 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
 | 2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| 3 | **Analyze & optimize all agents/commands/instructions** — review 6 agents + 16 instructions + 16 commands. Merge, remove, enhance, rewrite as needed. | High | Inherited from Kilo/OpenCode — may have redundancies, obsolete patterns, or missing capabilities. |
-| 4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
+| 3 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
 
 ---
 
