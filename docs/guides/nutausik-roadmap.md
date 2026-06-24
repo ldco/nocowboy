@@ -49,6 +49,18 @@ NUTAUSIK JS port: **62 TS files, 7 MCP tools, 15 tests, partial features**.
 | 10 | **Metrics & routing** | throughput, first-pass success, defect-escape, lead-time | `backend/metrics.ts` — track and expose via MCP tools. |
 | 11 | **Complexity-aware model routing** | per-task cost/token budgets | `model/routing.ts` — route simple tasks to cheap models, complex to powerful ones. |
 
+## NUTAUSIK vs MiMo Memory — No Overlap, Complementary
+
+**Both use SQLite + FTS5. They do NOT overlap — they complement.**
+
+| Layer | Engine | Data Model | Access | Example Query |
+|---|---|---|---|---|
+| **Agent memory** (per-session) | MiMo FTS5 (NoCowboy core) | File-based: `MEMORY.md`, `checkpoint.md` | Human-readable + FTS5 search | "What build commands do we use?" → FTS5 search across MEMORY.md |
+| **Project knowledge** (cross-session) | MiMo `/dream` (NoCowboy core) | Free-text extraction from sessions → MEMORY.md | Agent writes, human reads | Agent extracts "Use pnpm, not npm" from 5 sessions → writes to MEMORY.md |
+| **Task memory** (per-task, relational) | NUTAUSIK `graph.ts` + `knowledge.ts` | Structured: tasks↔decisions↔dead ends↔explorations | MCP tools query relationally | "Which tasks were affected by decision X?" → NT graph query |
+
+**Decision:** Keep all three. `/dream` reads NUTAUSIK graph and writes human-readable summaries to MEMORY.md. MiMo FTS5 indexes everything — files AND NT records — for unified search.
+
 ### 🔵 P3 — DeepSeek Optimization
 
 | # | Feature | From | What |
@@ -70,6 +82,13 @@ NUTAUSIK JS port: **62 TS files, 7 MCP tools, 15 tests, partial features**.
 | Stacks registry | ✅ |
 | Skills manager | ✅ |
 | File verification (hash + diff) | ✅ |
+
+## Methodology: SENAR + RENAR
+
+- **SENAR** (senar.tech) — engineering standard. Gates, sessions, metrics, verification checklists.
+- **RENAR** (renar.tech) — requirements engineering standard. BR→SR→TR hierarchy, 9 SPEC types, V1-V6 substrate, 5 maturity levels.
+- RENAR complements SENAR: SENAR handles HOW to build, RENAR handles WHAT to build.
+- TAUSIK is the reference implementation for SENAR. NUTAUSIK will also implement RENAR.
 
 ## DeepSeek-first Architecture (vs Claude-first original)
 
