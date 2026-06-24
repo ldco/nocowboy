@@ -11,7 +11,8 @@
     "setup": "bash packages/opencode/bin/install-deps.sh",
     "typecheck": "bun turbo typecheck",
     "test": "echo 'do not run tests from root' && exit 1",
-    "dev-setup": "bun run --cwd packages/opencode --conditions=browser src/index.ts dev-setup"
+    "dev-setup": "bun run --cwd packages/opencode --conditions=browser src/index.ts dev-setup",
+    "prepare": "husky"
   },
   "workspaces": {
     "packages": [
@@ -88,7 +89,8 @@
     "glob": "13.0.5",
     "semver": "^7.6.0",
     "turbo": "2.9.14",
-    "@types/bun": "catalog:"
+    "@types/bun": "catalog:",
+    "husky": "^9.1.7"
   },
   "dependencies": {
     "@lancedb/lancedb": "0.26.2",
