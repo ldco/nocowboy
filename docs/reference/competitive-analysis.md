@@ -340,3 +340,17 @@ We evaluated this as "not relevant" — confirmed.
 | 4 | **Channels** — webhooks (CI, alerts, chat) push events into TUI session | Claude Code | P3 |
 | 5 | **Custom Distributions** — preconfigured `nocowboy-ru` distro | Goose | P3 |
 | 6 | **Upgrade repomap** — tree-sitter AST parsing (30+ languages, we have 37 WASMs) | Plandex | P2 |
+
+### Whale (DeepSeek-native) — NEW
+
+Analyzed 2026-06-24 from whale-site.pages.dev
+
+| Feature | We have it? | Action |
+|---|---|---|
+| DeepSeek prefix-cache optimization (90% cache hit) | ❌ | 🆕 P2 — structure system prompts for byte-stable prefix. 30x cheaper than Claude Code. |
+| Cost tracking per task ($0.001 per 5-turn session) | ❌ | 🆕 P2 — show cost in UI. |
+| Dynamic Workflows (JS multi-agent orchestration) | ⚠️ partial (Agent Manager) | — Whale's is JS-scriptable, ours is worktree-based. |
+| TUI/CLI dual mode | ✅ | — |
+| MCP + Skills support | ✅ | — |
+
+**Key takeaway:** Whale proves DeepSeek can be 30x cheaper than Claude Code for coding tasks. We should adopt their prefix-cache optimization pattern.

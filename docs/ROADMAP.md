@@ -113,9 +113,10 @@ Separate major release. Create a **Lawer agent** that audits + refactors all age
 | 2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | Enterprise security. |
 | 3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | — |
 | 4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
+| 8 | **DeepSeek prefix-cache optimization** — structure system prompts for byte-stable prefix (90% cache hit, ~30x cheaper) | Whale | Medium | Whale achieves $0.001 per 5-turn session vs $0.015 for Claude Code. |
 | 5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
 | 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
-| 7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+| 9 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
 
 ### P3 — Future & Infrastructure
 
