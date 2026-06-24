@@ -88,6 +88,8 @@ Memory, workflow, dream, distill, goal judge — ported from Xiaomi MiMo-Code (M
 | 4 | **Permission timeout** — auto-deny after N seconds | Low | Unblock autonomous workflows |
 | 5 | **Test harness** — fix 39 flaky parallel test failures | High | In-memory DB + mock providers + isolated MCP ports |
 
+| 5 | **NUTAUSIK integration** — hybrid ProjMgmt architecture (gates, stacks, memory graph → NUTAUSIK MCP server. Ralph, goal judge, verify stay in core.) | High | See docs/guides/nutausik-analysis.md |
+
 ### P1b: Russian Agent Intelligence (Qwen Code pattern)
 
 Qwen Code achieved 3x adoption in China by making the agent THINK in Chinese.
@@ -130,9 +132,8 @@ agents (ours + inherited from Kilo) for 152-FZ compliance.
 
 | # | Feature | Effort | Why |
 |---|---|---|---|
-| 1 | **NUTAUSIK integration** — hybrid architecture. Keep light workflow in core (Ralph, goal judge, verify). Move heavy ProjMgmt to NUTAUSIK MCP (gates, stacks, memory graph, dead ends, audit, roles). See docs/guides/nutausik-analysis.md | High | JS port at nutausik-js — 62 TS files, 19 modules, 7 MCP tools |
-| 2 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
-| 3 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
+| 1 | **Russian LLM providers** (YandexGPT, GigaChat) | High | No Western tool integrates these |
+| 2 | **Turso driver swap** — blocked on drizzle-orm/libsql | High (blocked) |
 
 | # | Feature | Effort |
 |---|---|---|
