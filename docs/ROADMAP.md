@@ -1,6 +1,6 @@
 # NoCowboy — Roadmap
 
-**v0.6.1** | 2026-06-25 | Single source of truth + P0
+**v0.6.1** | 2026-06-25 | Single source of truth + P0 + P1
 
 ---
 
@@ -59,81 +59,88 @@
 
 | # | Feature | Done | How |
 |---|---|---|---|
-| 1 | **DeepSeek prefix-cache** | ✅ | Reordered system prompt so stable prefix (soul + prompt + instructions + skills) comes **before** dynamic env (repomap + memory). Before: `[...env, ...instructions, ...skills]` → every request had a unique start token. After: `[...instructions, ...skills, ...env]` → first ~4KB are byte-stable across turns. DeepSeek's automatic prefix caching caches these repeated tokens server-side. **1 line changed in `prompt.ts:1969`.** |
-| 2 | **Lazy-load tree-sitter WASMs** | ✅ | Replaced 130-line switch/case with declarative `EXTENSION_MAP`. Added `detectProjectLanguages(dir)` — targeted glob `**/*.{js,ts,...}` scans only supported extensions. Added `loadProjectLanguageParsers(dir)` — loads detected WASMs in **parallel** via `Promise.allSettled`. Integrated into `CodeParser.preloadProjectParsers()` called from service factory. Reverse index `LANGUAGE_PARSER_KEYS` avoids O(L×E) inner loop. Dead code removed: `extToParserKey`, `extToQuery`, `fallbackQuery`. **3 files: `languageParser.ts`, `parser.ts`, `service-factory.ts`.** |
+| P0.1 | **DeepSeek prefix-cache** | ✅ | Reordered system prompt so stable prefix (soul + prompt + instructions + skills) comes **before** dynamic env (repomap + memory). Before: `[...env, ...instructions, ...skills]` → every request had a unique start token. After: `[...instructions, ...skills, ...env]` → first ~4KB are byte-stable across turns. DeepSeek's automatic prefix caching caches these repeated tokens server-side. **1 line changed in `prompt.ts:1969`.** |
+| P0.2 | **Lazy-load tree-sitter WASMs** | ✅ | Replaced 130-line switch/case with declarative `EXTENSION_MAP`. Added `detectProjectLanguages(dir)` — targeted glob `**/*.{js,ts,...}` scans only supported extensions. Added `loadProjectLanguageParsers(dir)` — loads detected WASMs in **parallel** via `Promise.allSettled`. Integrated into `CodeParser.preloadProjectParsers()` called from service factory. Reverse index `LANGUAGE_PARSER_KEYS` avoids O(L×E) inner loop. Dead code removed: `extToParserKey`, `extToQuery`, `fallbackQuery`. **3 files: `languageParser.ts`, `parser.ts`, `service-factory.ts`.** |
+
+### P1 — MiMo Memory & Reasoning 🧠
+
+| # | Feature | Done | What |
+|---|---|---|---|
+| P1.1 | **Memory System** — paths, memory service, FTS5 scope/scope_id filters, lazy reconcile | ✅ | ~20 files ported from MiMo. `checkpoint-paths`, `checkpoint-templates`, `memory/paths`, memory service upgrade. |
+| P1.2 | **Checkpoint writer** — boundary, context, validator, progress-reconcile, retry, templates, saver | ✅ | `checkpoint-context`, `checkpoint-validator`, `checkpoint-progress-reconcile`, `checkpoint-retry`, `checkpoint-saver`, `checkpoint.ts` (computeBoundary, composeWriterPrompt, renderRebuildContext). Hooks into compaction flow. |
+| P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `goal.ts`. Set/get/clear/bumpReact/evaluate. Uses `generateObject` with temperature=0. |
+| P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | ✅ | `auto-dream.ts`. `shouldAutoDream()`/`shouldAutoDistill()` check session table for last run. |
+| P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/task.sql.ts`, `task/registry.ts`, `task/gate.ts`, `task/gate-state.ts`. |
 
 ---
 
 ## ❌ NOT DONE
 
-### P1 — MiMo Memory & Reasoning
-
-| # | Feature | From | Effort | What |
-|---|---|---|---|---|
-| 1 | **Memory System** (full) — auto-inject, checkpoint on context pressure, context reconstruction | MiMo | High | Effect→Bun adaptation needed. 6 files in `src/memory/`. |
-| 2 | **Dream command** (programmatic) — scan traces → extract knowledge → MEMORY.md | MiMo | Medium | Currently an agent instruction; needs code. |
-| 3 | **Distill command** — discover workflows → generate skills/commands | MiMo | Medium | — |
-| 4 | **Goal judge** (native Effect loop) — integrate into agent stop logic | MiMo | High | Currently an instruction file; needs agent-loop integration. |
-| 5 | **Task tree IDs** (T1/T1.1) — lightweight bridge to NUTAUSIK | MiMo | Low | — |
-
 ### P2 — UX, Safety & Russian
 
-| # | Feature | From | Effort | What |
-|---|---|---|---|
+#### P2-A UX & Safety
+
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
-| 1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | Prerequisite for marketplace. No JSON editing. |
-| 2 | **Search/replace edit format** | Aider | Medium | More reliable than line-based edits. |
-| 3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium | Isolation — bad changes don't pollute main. |
-| 4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | Unblock autonomous workflows. |
-| 5 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | Configurable autonomy levels. |
-| 6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
-| 7 | **Test harness** — fix 39 flaky parallel failures | Self | High | In-memory DB + mock providers + isolated MCP ports. |
+| P2-A1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | Prerequisite for marketplace. No JSON editing. |
+| P2-A2 | **Search/replace edit format** | Aider | Medium | More reliable than line-based edits. |
+| P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium | Isolation — bad changes don't pollute main. |
+| P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | Unblock autonomous workflows. |
+| P2-A5 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | Configurable autonomy levels. |
+| P2-A6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
+| P2-A7 | **Test harness** — fix 39 flaky parallel failures | Self | High | In-memory DB + mock providers + isolated MCP ports. |
+
+#### P2-B Russian Language
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| 1 | **Russian system prompts** for all 6 agents | Medium | Agent reasons in Russian, understands Russian variable names. |
-| 2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions | Medium | Agent follows Russian instructions. |
-| 3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Russian-trained models perform better. |
-| 4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
-| 5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
+| P2-B1 | **Russian system prompts** for all 6 agents | Medium | Agent reasons in Russian, understands Russian variable names. |
+| P2-B2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions | Medium | Agent follows Russian instructions. |
+| P2-B3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Russian-trained models perform better. |
+| P2-B4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
+| P2-B5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
+
+#### P2-C Codebase Optimization
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| 1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
-| 2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
-| 3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
-| 4 | **Revise MCP server framework** — review all 7 first-party + 4 third-party MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
+| P2-C1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
+| P2-C2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
+| P2-C3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
+| P2-C4 | **Revise MCP server framework** — review all 7 first-party + 4 third-party MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
 
 ### P3 — Ecosystem, Lawer & Reach
 
+#### P3-A Ecosystem
+
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
-| 1 | **Diff review sandbox** — AI changes isolated until accepted | Plandex | High | Safety: no AI changes touch real files until reviewed. |
-| 2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | Enterprise security. |
-| 3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | — |
-| 4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
-| 5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
-| 6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
-| 7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+| P3-A1 | **Diff review sandbox** — AI changes isolated until accepted | Plandex | High | Safety: no AI changes touch real files until reviewed. |
+| P3-A2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | Enterprise security. |
+| P3-A3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | — |
+| P3-A4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
+| P3-A5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
+| P3-A6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
+| P3-A7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+
+#### P3-B Lawer (152-ФЗ)
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| 1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code. |
-| 2 | **Consent dialogs** — Russian, Art. 9 | Medium | Specific, informed, conscious. |
-| 3 | **Data localization** — Art. 21 | High | All user data on local disk. |
-| 4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14. |
-| 5 | **Roskomnadzor template** | Low | Art. 22. |
-| — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+| P3-B1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code. |
+| P3-B2 | **Consent dialogs** — Russian, Art. 9 | Medium | Specific, informed, conscious. |
+| P3-B3 | **Data localization** — Art. 21 | High | All user data on local disk. |
+| P3-B4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14. |
+| P3-B5 | **Roskomnadzor template** | Low | Art. 22. |
 
 ### P4 — Polish & Future
 
 | # | Feature | From | Effort | What |
 |---|---|---|---|---|
-| 1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
-| 2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| 3 | **Share chat / sync between machines** — share context across devices | High | Requires cloud backend API. Share button exists in TUI but not wired. |
-| 4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
+| P4.1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
+| P4.2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
+| P4.3 | **Share chat / sync between machines** — share context across devices | Self | High | Requires cloud backend API. Share button exists in TUI but not wired. |
+| P4.4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
 
 ---
 
