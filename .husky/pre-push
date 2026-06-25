@@ -1,1 +1,1 @@
-cd packages/opencode && bun test test/nocowboy/ --concurrency 1 2>&1 | grep -E "^(test/|\(pass|\(fail|\(skip|Ran |error:)" || true
+cd packages/opencode && bun test test/nocowboy/ --concurrency 2 2>&1 | grep -E "^(test/|\(pass|\(fail|\(skip|Ran |error:)" || true
