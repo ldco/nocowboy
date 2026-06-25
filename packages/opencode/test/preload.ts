@@ -10,10 +10,12 @@ import { remove as cleanup } from "./nocowboy/cleanup" // kilocode_change
 const dir = path.join(os.tmpdir(), "opencode-test-data-" + process.pid)
 await fs.mkdir(dir, { recursive: true })
 
-// Assign a randomized port per test process to prevent OAuth port contention.
-// The source code reads NOCOWBOY_TEST_OAUTH_PORT to override its default 1455.
-process.env["NOCOWBOY_TEST_OAUTH_PORT"] = String(1455 + (process.pid % 1000))
-process.env["NOCOWBOY_TEST_OAUTH_CALLBACK_PORT"] = String(19876 + (process.pid % 1000))
+// Use the full PID for port randomization to eliminate collisions.
+// PIDs on Linux are typically > 1000 and < 65535, giving a range of ~64000
+// unique ports. The source reads NOCOWBOY_TEST_OAUTH_PORT to override 1455.
+const basePort = 10000 + (process.pid % 50000)
+process.env["NOCOWBOY_TEST_OAUTH_PORT"] = String(basePort)
+process.env["NOCOWBOY_TEST_OAUTH_CALLBACK_PORT"] = String(basePort + 100)
 afterAll(async () => {
   const { SessionExport } = await import("../src/nocowboy/session-export") // kilocode_change
   const { Database } = await import("../src/storage/db")
@@ -69,8 +71,17 @@ delete process.env["SAMBANOVA_API_KEY"]
 delete process.env["KILO_SERVER_PASSWORD"]
 delete process.env["KILO_SERVER_USERNAME"]
 
-// Use in-memory sqlite
+// Use in-memory sqlite. Some code paths reopen the database by path;
+// fall through to per-process temp file when needed.
 process.env["NOCOWBOY_DB"] = ":memory:"
+process.env["NOCOWBOY_TEST_DB_PATH"] = path.join(dir, "test.db")
+
+// Map NOCOWBOY_* to KILO_* for source code that still reads the old names.
+process.env["KILO_ORG_ID"] = process.env.NOCOWBOY_ORG_ID ?? process.env.KILO_ORG_ID
+process.env["KILO_API_KEY"] = process.env.NOCOWBOY_API_KEY ?? process.env.KILO_API_KEY
+process.env["KILO_SESSION_EXPORT_AUTH_TOKEN"] = process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN ?? process.env.KILO_SESSION_EXPORT_AUTH_TOKEN
+process.env["KILO_CLIENT"] = process.env.NOCOWBOY_CLIENT ?? process.env.KILO_CLIENT
+process.env["KILO_DISABLE_CODEBASE_INDEXING"] = process.env.NOCOWBOY_DISABLE_CODEBASE_INDEXING ?? process.env.KILO_DISABLE_CODEBASE_INDEXING
 
 // Now safe to import from src/
 const { Log } = await import("@opencode-ai/core/util/log")
