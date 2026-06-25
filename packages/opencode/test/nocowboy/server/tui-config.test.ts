@@ -18,7 +18,7 @@ describe("TUI config routes", () => {
   test("gets effective project TUI config", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const cfg = path.join(dir, ".kilo")
+        const cfg = path.join(dir, ".nocowboy")
         await fs.mkdir(cfg, { recursive: true })
         await Bun.write(
           path.join(cfg, "tui.json"),
@@ -82,14 +82,14 @@ describe("TUI config routes", () => {
     expect(body.theme).toBe("nord")
     expect(body.title_icon).toBe("emojis")
 
-    const saved = await Bun.file(path.join(tmp.path, ".kilo", "tui.json")).json()
+    const saved = await Bun.file(path.join(tmp.path, ".nocowboy", "tui.json")).json()
     expect(saved).toEqual({ theme: "nord", title_icon: "emojis" })
   })
 
   test("patches attention config without dropping advanced notification settings", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        const cfg = path.join(dir, ".kilo")
+        const cfg = path.join(dir, ".nocowboy")
         await fs.mkdir(cfg, { recursive: true })
         await Bun.write(
           path.join(cfg, "tui.json"),
@@ -120,7 +120,7 @@ describe("TUI config routes", () => {
     })
 
     expect(response.status).toBe(200)
-    const saved = await Bun.file(path.join(tmp.path, ".kilo", "tui.json")).json()
+    const saved = await Bun.file(path.join(tmp.path, ".nocowboy", "tui.json")).json()
     expect(saved).toEqual({
       attention: {
         enabled: true,

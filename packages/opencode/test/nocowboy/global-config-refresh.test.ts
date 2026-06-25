@@ -17,7 +17,7 @@ function app() {
   return Server.Default().app
 }
 
-async function update(target: ReturnType<typeof app>, provider: "nocowboy" | "openrouter") {
+async function update(target: ReturnType<typeof app>, provider: "kilo" | "openrouter") {
   return target.request("/global/config", {
     method: "PATCH",
     headers: { "content-type": "application/json" },
@@ -69,7 +69,7 @@ describe("global config refresh", () => {
       await release.promise
     })
     try {
-      const pending = update(target, "nocowboy")
+      const pending = update(target, "kilo")
       await started.promise
       const early = await Promise.race([pending.then(() => true), Bun.sleep(10).then(() => false)])
       expect(early).toBe(false)
@@ -92,7 +92,7 @@ describe("global config refresh", () => {
     }
     GlobalBus.on("event", listener)
     try {
-      expect((await update(target, "nocowboy")).status).toBe(200)
+      expect((await update(target, "kilo")).status).toBe(200)
     } finally {
       GlobalBus.off("event", listener)
     }
