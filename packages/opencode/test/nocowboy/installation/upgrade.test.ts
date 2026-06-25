@@ -52,7 +52,7 @@ function layer(
   return Installation.layer.pipe(Layer.provide(http(request)), Layer.provide(proc))
 }
 
-describe("Kilo installation upgrade", () => {
+describe("NoCowboy installation upgrade", () => {
   const release: string[] = []
   testEffect(
     layer(
@@ -79,11 +79,11 @@ describe("Kilo installation upgrade", () => {
         return json({ version: "8.8.8" })
       },
     ),
-  ).effect("reads yarn versions from the NoCowboy package registry", () =>
+  ).effect("reads NoCowboy versions from the NoCowboy package registry", () =>
     Effect.gen(function* () {
       const result = yield* Installation.Service.use((svc) => svc.latest("yarn"))
       expect(result).toBe("8.8.8")
-      expect(urls).toContain(`https://registry.npmjs.org/@nocowboycode%2fcli/${InstallationChannel}`)
+      expect(urls).toContain(`https://registry.npmjs.org/@nocowboy%2fcli/${InstallationChannel}`)
     }),
   )
 
@@ -144,28 +144,28 @@ describe("Kilo installation upgrade", () => {
   testEffect(upgrade).effect("installs the NoCowboy npm package", () =>
     Effect.gen(function* () {
       yield* Installation.Service.use((svc) => svc.upgrade("npm", "9.9.9"))
-      expect(calls).toContain("npm install -g @nocowboycode/cli@9.9.9")
+      expect(calls).toContain("npm install -g @nocowboy/cli@9.9.9")
     }),
   )
 
   testEffect(upgrade).effect("installs the NoCowboy yarn package", () =>
     Effect.gen(function* () {
       yield* Installation.Service.use((svc) => svc.upgrade("yarn", "9.9.9"))
-      expect(calls).toContain("yarn global add @nocowboycode/cli@9.9.9")
+      expect(calls).toContain("yarn global add @nocowboy/cli@9.9.9")
     }),
   )
 
   testEffect(upgrade).effect("installs the NoCowboy pnpm package", () =>
     Effect.gen(function* () {
       yield* Installation.Service.use((svc) => svc.upgrade("pnpm", "9.9.9"))
-      expect(calls).toContain("pnpm install -g @nocowboycode/cli@9.9.9")
+      expect(calls).toContain("pnpm install -g @nocowboy/cli@9.9.9")
     }),
   )
 
   testEffect(upgrade).effect("installs the NoCowboy bun package", () =>
     Effect.gen(function* () {
       yield* Installation.Service.use((svc) => svc.upgrade("bun", "9.9.9"))
-      expect(calls).toContain("bun install -g @nocowboycode/cli@9.9.9")
+      expect(calls).toContain("bun install -g @nocowboy/cli@9.9.9")
     }),
   )
 
