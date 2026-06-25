@@ -39,7 +39,7 @@ describe("NoCowboy PublicApi OpenAPI contract", () => {
   test("uses NoCowboy branding", () => {
     const spec = OpenApi.fromApi(PublicApi)
     expect(spec.info.title).toBe("nocowboy")
-    expect(spec.info.description).toBe("kilo api")
+    expect(spec.info.description).toBe("nocowboy api")
   })
 
   test("constrains embedding model metadata", () => {

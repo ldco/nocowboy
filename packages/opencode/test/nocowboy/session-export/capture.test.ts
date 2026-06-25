@@ -84,7 +84,7 @@ describe("Capture", () => {
     expect(msg.envelope.type).toBe("llm_request_started")
     expect(msg.envelope.seq).toBe(7)
     expect(msg.envelope.agentVersion).toBe("v0")
-    expect(msg.envelope.model.providerId).toBe("kilo")
+    expect(msg.envelope.model.providerId).toBe("nocowboy")
     expect(msg.envelope.model.modelId).toBe("free-1")
   })
 
