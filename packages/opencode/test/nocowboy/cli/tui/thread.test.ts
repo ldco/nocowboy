@@ -4,7 +4,7 @@ import path from "path"
 import { tmpdir } from "../../../fixture/fixture"
 import { resolveThreadDirectory } from "../../../../src/cli/cmd/tui/thread"
 
-describe("kilo tui thread", () => {
+describe("nocowboy tui thread", () => {
   test("ignores stale PWD after cwd is changed by a process wrapper", async () => {
     await using root = await tmpdir()
     const pkg = path.join(root.path, "packages", "opencode")
@@ -13,7 +13,7 @@ describe("kilo tui thread", () => {
     expect(resolveThreadDirectory(".", root.path, pkg)).toBe(pkg)
   })
 
-  test("uses kilo-dev caller directory when running through package cwd", async () => {
+  test("uses nocowboy-dev caller directory when running through package cwd", async () => {
     await using root = await tmpdir()
     const pkg = path.join(root.path, "packages", "opencode")
     await fs.mkdir(pkg, { recursive: true })
