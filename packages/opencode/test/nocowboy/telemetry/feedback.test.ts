@@ -4,6 +4,6 @@ import { TelemetryEvent } from "@nocowboy/telemetry"
 
 describe("TelemetryEvent.FEEDBACK_SUBMITTED", () => {
   test("enum value is human-readable title case", () => {
-    expect(String(TelemetryEvent.FEEDBACK_SUBMITTED)).toBe("Feedback Submitted")
+    expect(String(TelemetryEvent.FEEDBACK_SUBMITTED)).toBe("nocowboy.feedback.submitted")
   })
 })
