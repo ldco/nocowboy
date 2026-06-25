@@ -38,7 +38,7 @@ type Body = {
 describe("NoCowboy PublicApi OpenAPI contract", () => {
   test("uses NoCowboy branding", () => {
     const spec = OpenApi.fromApi(PublicApi)
-    expect(spec.info.title).toBe("kilo")
+    expect(spec.info.title).toBe("nocowboy")
     expect(spec.info.description).toBe("kilo api")
   })
 
