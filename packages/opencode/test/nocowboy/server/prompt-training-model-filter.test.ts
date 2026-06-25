@@ -37,7 +37,7 @@ function record(input: unknown): input is Record<string, unknown> {
 
 function models(input: unknown, key: "all" | "providers") {
   if (!record(input) || !Array.isArray(input[key])) return []
-  const kilo = input[key].find((provider) => record(provider) && provider.id === "kilo")
+  const kilo = input[key].find((provider) => record(provider) && (provider.id === "kilo" || provider.id === "nocowboy"))
   if (!record(kilo) || !record(kilo.models)) return []
   return Object.keys(kilo.models)
 }
