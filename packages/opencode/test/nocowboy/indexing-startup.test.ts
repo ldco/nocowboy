@@ -162,7 +162,7 @@ describe("indexing model catalog", () => {
     }) as typeof fetch
 
     const response = await Server.Default().app.request("/indexing/models", {
-      headers: { "x-kilo-directory": tmp.extra.project },
+      headers: { "x-nocowboy-directory": tmp.extra.project },
     })
 
     const catalogs = calls.filter((url) => url.includes("embedding-models"))
@@ -184,7 +184,7 @@ describe("indexing startup degradation", () => {
 
       const config = await app.request("/config", {
         headers: {
-          "x-kilo-directory": tmp.path,
+          "x-nocowboy-directory": tmp.path,
         },
       })
       expect(config.status).toBe(200)
@@ -192,7 +192,7 @@ describe("indexing startup degradation", () => {
       const body = await wait(async () => {
         const status = await app.request("/indexing/status", {
           headers: {
-            "x-kilo-directory": tmp.path,
+            "x-nocowboy-directory": tmp.path,
           },
         })
         expect(status.status).toBe(200)
@@ -270,7 +270,7 @@ describe("indexing startup degradation", () => {
         for (const _ of Array.from({ length: 100 })) {
           const response = await app.request("/indexing/warnings", {
             headers: {
-              "x-kilo-directory": tmp.path,
+              "x-nocowboy-directory": tmp.path,
             },
           })
           expect(response.status).toBe(200)
@@ -384,7 +384,7 @@ describe("indexing startup degradation", () => {
 
       const config = await app.request("/config", {
         headers: {
-          "x-kilo-directory": tmp.path,
+          "x-nocowboy-directory": tmp.path,
         },
       })
       expect(config.status).toBe(200)
@@ -392,7 +392,7 @@ describe("indexing startup degradation", () => {
 
       const status = await app.request("/indexing/status", {
         headers: {
-          "x-kilo-directory": tmp.path,
+          "x-nocowboy-directory": tmp.path,
         },
       })
       expect(status.status).toBe(200)

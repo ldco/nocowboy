@@ -44,7 +44,7 @@ function models(input: unknown, key: "all" | "providers") {
 
 function request(path: string, dir: string) {
   return Effect.promise(async () => {
-    const result = await Server.Default().app.request(path, { headers: { "x-kilo-directory": dir } })
+    const result = await Server.Default().app.request(path, { headers: { "x-nocowboy-directory": dir } })
     expect(result.status).toBe(200)
     return result.json()
   })

@@ -53,14 +53,14 @@ describe("AllowEverythingPermission", () => {
       fn: async () => {
         const enable = await Server.Default().app.request("/permission/allow-everything", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "x-kilo-directory": tmp.path },
+          headers: { "Content-Type": "application/json", "x-nocowboy-directory": tmp.path },
           body: JSON.stringify({ enable: true }),
         })
         expect(enable.status).toBe(200)
 
         const disable = await Server.Default().app.request("/permission/allow-everything", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "x-kilo-directory": tmp.path },
+          headers: { "Content-Type": "application/json", "x-nocowboy-directory": tmp.path },
           body: JSON.stringify({ enable: false }),
         })
         expect(disable.status).toBe(200)

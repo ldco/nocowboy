@@ -21,7 +21,7 @@ function req(dir: string, input: string, init?: RequestInit) {
   return Server.Default().app.request(input, {
     ...init,
     headers: {
-      "x-kilo-directory": dir,
+      "x-nocowboy-directory": dir,
       ...init?.headers,
     },
   })

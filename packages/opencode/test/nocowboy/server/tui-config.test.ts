@@ -28,7 +28,7 @@ describe("TUI config routes", () => {
     })
 
     const response = await Server.Default().app.request("/tui/config", {
-      headers: { "x-kilo-directory": tmp.path },
+      headers: { "x-nocowboy-directory": tmp.path },
     })
 
     expect(response.status).toBe(200)
@@ -47,7 +47,7 @@ describe("TUI config routes", () => {
     await using tmp = await tmpdir()
 
     const response = await Server.Default().app.request("/tui/keybinds", {
-      headers: { "x-kilo-directory": tmp.path },
+      headers: { "x-nocowboy-directory": tmp.path },
     })
 
     expect(response.status).toBe(200)
@@ -72,7 +72,7 @@ describe("TUI config routes", () => {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
-        "x-kilo-directory": tmp.path,
+        "x-nocowboy-directory": tmp.path,
       },
       body: JSON.stringify({ theme: "nord", title_icon: "emojis" }),
     })
@@ -112,7 +112,7 @@ describe("TUI config routes", () => {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
-        "x-kilo-directory": tmp.path,
+        "x-nocowboy-directory": tmp.path,
       },
       body: JSON.stringify({
         attention: { enabled: true, notifications: false, sound: true, volume: 0.25 },
@@ -144,7 +144,7 @@ describe("TUI config routes", () => {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          "x-kilo-directory": tmp.path,
+          "x-nocowboy-directory": tmp.path,
         },
         body: JSON.stringify({ keybinds: { app_exit: "ctrl+q" } }),
       })

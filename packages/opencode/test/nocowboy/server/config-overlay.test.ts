@@ -344,7 +344,7 @@ describe("config overlay routes", () => {
     await using global = await tmpdir()
     await using project = await tmpdir()
     ;(Global.Path as { config: string }).config = global.path
-    const headers = { "x-kilo-directory": project.path }
+    const headers = { "x-nocowboy-directory": project.path }
     const created = await Server.Default().app.request(PtyPaths.create, {
       method: "POST",
       headers: { ...headers, "content-type": "application/json" },

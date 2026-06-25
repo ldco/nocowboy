@@ -48,7 +48,7 @@ async function send(body: Record<string, unknown> = edit, signal?: AbortSignal) 
   await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
   return app().request(NoCowboyGatewayPaths.edit, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-kilo-directory": tmp.path },
+    headers: { "content-type": "application/json", "x-nocowboy-directory": tmp.path },
     body: JSON.stringify(body),
     signal,
   })
