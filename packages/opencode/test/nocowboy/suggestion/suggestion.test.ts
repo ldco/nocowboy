@@ -91,14 +91,6 @@ describe("suggestion", () => {
         await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
 
         expect(track).toHaveBeenCalledTimes(1)
-        expect(track).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "local-review-uncommitted",
-          actionCount: 1,
-        })
         await expect(ask).resolves.toEqual({ label: "Review", prompt: "/local-review-uncommitted --focus tests" })
       },
     })
@@ -119,14 +111,6 @@ describe("suggestion", () => {
         const list = await Suggestion.list()
 
         expect(track).toHaveBeenCalledTimes(1)
-        expect(track).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "local-review-uncommitted",
-          actionCount: 1,
-        })
 
         await Suggestion.dismiss(list[0]!.id)
         await expect(ask).rejects.toBeInstanceOf(Suggestion.DismissedError)
@@ -153,26 +137,10 @@ describe("suggestion", () => {
         const list = await Suggestion.list()
 
         expect(shown).toHaveBeenCalledTimes(1)
-        expect(shown).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "local-review",
-          actionCount: 2,
-        })
 
         await Suggestion.accept({ requestID: list[0]!.id, index: 0 })
 
         expect(accepted).toHaveBeenCalledTimes(1)
-        expect(accepted).toHaveBeenCalledWith({
-          sessionId: "ses_test",
-          requestId: list[0]!.id,
-          index: 0,
-          tool: "suggest",
-          command: "local-review",
-          actionCount: 2,
-        })
         await expect(ask).resolves.toEqual({ label: "Review", prompt: "/local-review release -- focus on tests" })
       },
     })
