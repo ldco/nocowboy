@@ -366,7 +366,7 @@ describe("RemoteSender", () => {
       {
         sessionID: SessionID.make("ses_x"),
         parts: [{ type: "text", text: "hello" }],
-        model: { providerID: ProviderID.make("kilo"), modelID: ModelID.make("anthropic/claude-sonnet-4-20250514") },
+        model: { providerID: ProviderID.make("nocowboy"), modelID: ModelID.make("anthropic/claude-sonnet-4-20250514") },
       },
     ])
   })
@@ -390,7 +390,7 @@ describe("RemoteSender", () => {
       data: {
         sessionID: "ses_x",
         parts: [{ type: "text", text: "hello" }],
-        model: "kilocode/gpt-5-mini",
+        model: "nocowboy/gpt-5-mini",
       },
     })
 
@@ -400,7 +400,7 @@ describe("RemoteSender", () => {
       {
         sessionID: SessionID.make("ses_x"),
         parts: [{ type: "text", text: "hello" }],
-        model: { providerID: ProviderID.make("kilo"), modelID: ModelID.make("gpt-5-mini") },
+        model: { providerID: ProviderID.make("nocowboy"), modelID: ModelID.make("gpt-5-mini") },
       },
     ])
   })
@@ -422,7 +422,7 @@ describe("RemoteSender", () => {
       data: {
         sessionID: "ses_x",
         parts: [{ type: "text", text: "hello" }],
-        model: { providerID: "kilocode", modelID: "gpt-5-mini" },
+        model: { providerID: "nocowboy", modelID: "gpt-5-mini" },
       },
     })
 
@@ -462,7 +462,7 @@ describe("RemoteSender", () => {
       {
         sessionID: SessionID.make("ses_x"),
         parts: [{ type: "text", text: "hello" }],
-        model: { providerID: ProviderID.make("kilo"), modelID: ModelID.make("kilo/gpt-5-mini") },
+        model: { providerID: ProviderID.make("nocowboy"), modelID: ModelID.make("kilo/gpt-5-mini") },
       },
     ])
   })
