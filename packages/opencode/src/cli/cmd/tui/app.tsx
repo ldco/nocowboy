@@ -141,6 +141,10 @@ function rendererConfig(_config: TuiConfig.Resolved): CliRendererConfig {
     autoFocus: false,
     openConsoleOnError: false,
     useMouse: mouseEnabled,
+    // Fallback dimensions when terminal queries (ESC[14t]) don't receive
+    // responses from piped/non-interactive terminals.
+    width: process.stdout.columns || 80,
+    height: process.stdout.rows || 24,
     consoleOptions: {
       keyBindings: [{ name: "y", ctrl: true, action: "copy-selection" }],
       onCopySelection: (text) => {
