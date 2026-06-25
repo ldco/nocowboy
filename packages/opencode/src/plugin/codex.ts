@@ -12,7 +12,7 @@ const log = Log.create({ service: "plugin.codex" })
 const CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
 const ISSUER = "https://auth.openai.com"
 const CODEX_API_ENDPOINT = "https://chatgpt.com/backend-api/codex/responses"
-const OAUTH_PORT = Number(process.env["NOCOWBOY_TEST_OAUTH_PORT"]) || 1455
+const OAUTH_PORT = 1455
 const OAUTH_POLLING_SAFETY_MARGIN_MS = 3000
 const ALLOWED_MODELS = new Set([
   "gpt-5.5",

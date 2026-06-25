@@ -39,10 +39,9 @@ export function getChannelPath(flags: Pick<DatabaseFlags, "disableChannelDb"> = 
 }
 
 export const getPath = (flags?: Pick<DatabaseFlags, "disableChannelDb">) => {
-  const env = process.env["NOCOWBOY_DB"]
-  if (env) {
-    if (env === ":memory:" || path.isAbsolute(env)) return env
-    return path.join(Global.Path.data, env)
+  if (Flag.NOCOWBOY_DB) {
+    if (Flag.NOCOWBOY_DB === ":memory:" || path.isAbsolute(Flag.NOCOWBOY_DB)) return Flag.NOCOWBOY_DB
+    return path.join(Global.Path.data, Flag.NOCOWBOY_DB)
   }
   return getChannelPath(flags)
 }

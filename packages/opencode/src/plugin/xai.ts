@@ -37,7 +37,7 @@ const OAUTH_POLLING_SAFETY_MARGIN_MS = 3_000
 // Grok-CLI client. The host:port pair is part of the registration, so we have
 // to bind the loopback server to this exact port.
 const OAUTH_HOST = "127.0.0.1"
-const OAUTH_PORT = Number(process.env["NOCOWBOY_TEST_OAUTH_PORT"]) || 56121
+const OAUTH_PORT = 56121
 const OAUTH_REDIRECT_PATH = "/callback"
 const REDIRECT_URI = `http://${OAUTH_HOST}:${OAUTH_PORT}${OAUTH_REDIRECT_PATH}`
 

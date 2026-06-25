@@ -145,17 +145,6 @@ export const NoCowboyGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Import a cloud session into the local instance.",
           }),
         ),
-        HttpApiEndpoint.post("edit", NoCowboyGatewayPaths.edit, {
-          query: WorkspaceRoutingQuery,
-          success: described(Schema.Any, "Edit result"),
-          error: HttpApiError.BadRequest,
-        }).annotateMerge(
-          OpenApi.annotations({
-            identifier: "kilo.edit",
-            summary: "Next edit",
-            description: "Proxies a next-edit request to the Kilo Gateway.",
-          }),
-        ),
         HttpApiEndpoint.get("clawStatus", NoCowboyGatewayPaths.clawStatus, {
           query: WorkspaceRoutingQuery,
           success: described(ClawStatusResponse, "Claw status"),
@@ -165,42 +154,6 @@ export const NoCowboyGatewayApi = HttpApi.make("nocowboy-gateway")
             identifier: "kilo.clawStatus",
             summary: "Claw status",
             description: "Returns the status of the KiloClaw worker.",
-          }),
-        ),
-        HttpApiEndpoint.post("organization", NoCowboyGatewayPaths.organization, {
-          query: WorkspaceRoutingQuery,
-          success: described(
-            Schema.Struct({ organizationId: Schema.NullOr(Schema.String) }),
-            "Organization",
-          ),
-          error: HttpApiError.BadRequest,
-        }).annotateMerge(
-          OpenApi.annotations({
-            identifier: "kilo.organization",
-            summary: "Organization",
-            description: "Organization management.",
-          }),
-        ),
-        HttpApiEndpoint.post("profile", NoCowboyGatewayPaths.profile, {
-          query: WorkspaceRoutingQuery,
-          success: described(Schema.Any, "Profile"),
-          error: HttpApiError.BadRequest,
-        }).annotateMerge(
-          OpenApi.annotations({
-            identifier: "kilo.profile",
-            summary: "Profile",
-            description: "Profile management.",
-          }),
-        ),
-        HttpApiEndpoint.post("audioTranscriptions", NoCowboyGatewayPaths.audioTranscriptions, {
-          query: WorkspaceRoutingQuery,
-          success: described(Schema.Any, "Audio transcriptions"),
-          error: HttpApiError.BadRequest,
-        }).annotateMerge(
-          OpenApi.annotations({
-            identifier: "kilo.audioTranscriptions",
-            summary: "Audio transcriptions",
-            description: "Audio transcription management.",
           }),
         ),
       )

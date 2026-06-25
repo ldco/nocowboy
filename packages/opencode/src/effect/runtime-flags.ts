@@ -19,7 +19,7 @@ export class Service extends ConfigService.Service<Service>()("@opencode/Runtime
   disableEmbeddedWebUi: bool("KILO_DISABLE_EMBEDDED_WEB_UI"),
   disableExternalSkills: bool("KILO_DISABLE_EXTERNAL_SKILLS"),
   disableLspDownload: bool("KILO_DISABLE_LSP_DOWNLOAD"),
-  skipMigrations: bool("KILO_SKIP_MIGRATIONS") || bool("NOCOWBOY_SKIP_MIGRATIONS"),
+  skipMigrations: bool("KILO_SKIP_MIGRATIONS"),
   disableClaudeCodePrompt: Config.all({
     broad: bool("KILO_DISABLE_CLAUDE_CODE"),
     direct: bool("KILO_DISABLE_CLAUDE_CODE_PROMPT"),

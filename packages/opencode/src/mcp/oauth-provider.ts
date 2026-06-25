@@ -11,7 +11,7 @@ import * as Log from "@opencode-ai/core/util/log"
 
 const log = Log.create({ service: "mcp.oauth" })
 
-const OAUTH_CALLBACK_PORT = Number(process.env["NOCOWBOY_TEST_OAUTH_CALLBACK_PORT"]) || 19876
+const OAUTH_CALLBACK_PORT = 19876
 const OAUTH_CALLBACK_PATH = "/mcp/oauth/callback"
 
 export interface McpOAuthConfig {

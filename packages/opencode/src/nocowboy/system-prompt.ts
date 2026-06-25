@@ -27,21 +27,19 @@ export namespace KilocodeSystemPrompt {
     // Deep context injection — repomap + memory for project understanding
     try {
       const dir = input.ctx.directory || process.cwd()
-
+      
       // Repomap: token-optimized repository structure
       const repomap = RepoMap.generate(dir, 40)
       if (repomap) lines.push(repomap)
 
       // Memory: reconcile FTS5 index, load MEMORY.md content
       reconcile()
-
-      // Load MEMORY.md content outside batch (file I/O doesn't need reactive wrapping)
       const fs = require("node:fs")
       const path = require("node:path")
       const os = require("node:os")
       const memPath = path.join(os.homedir(), ".nocowboy", "memory", "MEMORY.md")
       if (fs.existsSync(memPath)) {
-        const memory = fs.readFileSync(memPath, "utf-8").slice(0, 2000)
+        const memory = fs.readFileSync(memPath, "utf-8").slice(0, 2000) // first 2000 chars (~500 tokens)
         if (memory.trim()) {
           lines.push([
             "## Project Memory (from MEMORY.md)",
