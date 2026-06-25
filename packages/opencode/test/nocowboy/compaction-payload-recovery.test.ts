@@ -215,7 +215,7 @@ afterEach(() => {
 })
 
 describe("KiloCompactionPayloadRecovery", () => {
-  test("detects Kilo gateway payload-size errors", () => {
+  test("detects NoCowboy gateway payload-size errors", () => {
     const error = new MessageV2.ContextOverflowError({
       message: "Request Entity Too Large",
       responseBody: "Request Entity Too Large\n\nFUNCTION_PAYLOAD_TOO_LARGE",

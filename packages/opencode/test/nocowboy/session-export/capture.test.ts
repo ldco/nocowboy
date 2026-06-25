@@ -69,7 +69,7 @@ describe("Capture", () => {
     const cap = new Capture({ worker, agentVersion: "v0", nowMs: () => 100, syncSeq: () => 7 })
     cap.beforeRequest({
       input: {
-        model: { api: { npm: "@nocowboy/gateway" }, isFree: true, providerID: "kilo", id: "free-1" },
+        model: { api: { npm: "@nocowboy/gateway" }, isFree: true, providerID: "nocowboy", id: "free-1" },
         org: { type: "personal" },
       },
       requestMeta: meta("s1"),
@@ -99,7 +99,7 @@ describe("Capture", () => {
     const cap = new Capture({ worker: cloneWorker, agentVersion: "v0", nowMs: () => 100, syncSeq: () => 7 })
     cap.beforeRequest({
       input: {
-        model: { api: { npm: "@nocowboy/gateway" }, isFree: true, providerId: "kilo", modelId: "free-1" },
+        model: { api: { npm: "@nocowboy/gateway" }, isFree: true, providerId: "nocowboy", modelId: "free-1" },
         org: { type: "personal" },
       },
       requestMeta: meta("s1"),

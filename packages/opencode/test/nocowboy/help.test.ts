@@ -185,7 +185,7 @@ describe("Kilo CLI customizations are wired into index.ts", () => {
     expect(index).not.toContain('.scriptName("opencode")')
   })
 
-  test("index.ts invokes the KiloCli integration points", async () => {
+  test("index.ts invokes the NoCowboyCli integration points", async () => {
     // These thin call-sites are the only wiring between upstream index.ts and the Kilo
     // customizations in setup.ts. If a future upstream merge drops them, every Kilo command
     // and the telemetry/lifecycle hooks silently disappear, exactly the regression this guards.
@@ -195,7 +195,7 @@ describe("Kilo CLI customizations are wired into index.ts", () => {
     expect(index).toContain("NocowboyCli.shutdown(")
   })
 
-  test("registers the local Kilo Console instead of the upstream account console", async () => {
+  test("registers the local NoCowboy Console instead of the upstream account console", async () => {
     const index = await file(INDEX)
     const setup = await file(SETUP)
     expect(setup).toContain("KiloConsoleCommand")

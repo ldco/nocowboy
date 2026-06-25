@@ -36,7 +36,7 @@ describe("worker entry", () => {
         userMessageId: "u1",
         agent: "claude",
         modeId: "build",
-        model: { providerId: "kilo", modelId: "free-1", isFree: true },
+        model: { providerId: "nocowboy", modelId: "free-1", isFree: true },
         input: { system: ["hi"], messages: [], tools: {}, permissions: [], params: {} },
         time: { created: 0 },
       },

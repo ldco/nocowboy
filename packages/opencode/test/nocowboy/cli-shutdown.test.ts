@@ -85,7 +85,7 @@ for (const path of [
   }))
 }
 
-describe("KiloCli.shutdown", () => {
+describe("NoCowboyCli.shutdown", () => {
   beforeEach(() => {
     calls.length = 0
     timeouts.length = 0
