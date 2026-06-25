@@ -8,10 +8,22 @@
 
 | Step | Task | Status |
 |---|---|---|
-| 1 | Find when test failures appeared in git history | 🚧 |
-| 2 | Identify root cause commit | ⬜ |
-| 3 | Fix root cause in source code | ⬜ |
-| 4 | Verify all tests pass without concurrency hacks | ⬜ |
+| 1 | Find when test failures appeared in git history | ✅ Found: Flag.NOCOWBOY_DB static capture + preload not auto-loading |
+| 2 | Identify root cause commit | ✅ Multiple commits; preload auto-detect never worked |
+| 3 | Fix root cause in source code | ✅ Flag getter/setter, direct env reads, resetDatabase expanded |
+| 4 | Verify all tests pass without concurrency hacks | 🚧 Pre-push passes with --preload + --concurrency 2 |
+
+**Root cause**: bun does NOT auto-detect `test/preload.ts`. The preload file sets
+`NOCOWBOY_DB=:memory:`, `XDG_*` env vars, and port randomization. Without the
+preload running, tests used the real file database and shared config paths,
+causing 254+ concurrent failures and "Refusing to reset non-test database" errors.
+
+**Secondary cause**: `Flag.NOCOWBOY_DB` was a static property that captured
+`process.env.NOCOWBOY_DB` once at module load time. Changed to a getter that
+reads the env var live, with a setter that mirrors to `process.env`.
+
+**Fix applied**: `--preload ./test/preload.ts` in pre-push hook and bunfig.toml.
+All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 
 ---
 
