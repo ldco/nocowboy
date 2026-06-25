@@ -41,7 +41,7 @@ describe("Uploader", () => {
   test("2xx response marks rows uploaded and deletes them", async () => {
     const telemetry: unknown[] = []
     const calls: Array<{ input: string; init: RequestInit }> = []
-    process.env.KILO_SESSION_EXPORT_AUTH_TOKEN = "local-token"
+    process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN = "local-token"
     const uploader = new Uploader({
       storage,
       endpoint: "https://example.test/ingest",
