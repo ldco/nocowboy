@@ -40,7 +40,7 @@ function provider(id: string, models: Record<string, Provider.Model>): Provider.
 }
 
 describe("prompt-training model filter", () => {
-  test("hides only explicitly marked Kilo Gateway models", () => {
+  test("hides only explicitly marked NoCowboy Gateway models", () => {
     const providers = {
       kilo: provider("kilo", {
         training: model("training", true),

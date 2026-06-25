@@ -83,7 +83,7 @@ function post(path: string, body: Record<string, unknown>) {
   return HttpClientRequest.post(path).pipe(HttpClientRequest.bodyJson(body), Effect.flatMap(HttpClient.execute))
 }
 
-describe("Kilo gateway HttpApi statuses", () => {
+describe("NoCowboy Gateway HttpApi statuses", () => {
   it.live("reports locally stored API authentication without a Gateway request", () =>
     Effect.gen(function* () {
       yield* stub(() => Promise.reject(new Error("unexpected Gateway request")))

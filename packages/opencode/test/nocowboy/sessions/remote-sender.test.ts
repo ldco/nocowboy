@@ -432,7 +432,7 @@ describe("RemoteSender", () => {
     expect(sent[0].error).toContain("invalid send_message data")
   })
 
-  test("send_message does not special-case kilo-prefixed model", async () => {
+  test("send_message does not special-case nocowboy-prefixed model", async () => {
     const { conn, sent } = fakeConn()
     const calls: SessionPrompt.PromptInput[] = []
     const sender = RemoteSender.create({

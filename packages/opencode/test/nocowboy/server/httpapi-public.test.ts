@@ -35,8 +35,8 @@ type Body = {
   content?: Record<string, { schema?: Schema }>
 }
 
-describe("Kilo PublicApi OpenAPI contract", () => {
-  test("uses Kilo branding", () => {
+describe("NoCowboy PublicApi OpenAPI contract", () => {
+  test("uses NoCowboy branding", () => {
     const spec = OpenApi.fromApi(PublicApi)
     expect(spec.info.title).toBe("kilo")
     expect(spec.info.description).toBe("kilo api")
@@ -115,7 +115,7 @@ describe("Kilo PublicApi OpenAPI contract", () => {
     }
   })
 
-  test("keeps workspace routing queries on all Kilo-owned routed endpoints", () => {
+  test("keeps workspace routing queries on all NoCowboy-owned routed endpoints", () => {
     const spec = OpenApi.fromApi(PublicApi)
     const routes = [
       { method: "post", path: AgentBuilderPaths.preview },
@@ -155,7 +155,7 @@ describe("Kilo PublicApi OpenAPI contract", () => {
     expect(props?.organizationId).toEqual({ anyOf: [{ type: "string" }, { type: "null" }] })
   })
 
-  test("keeps Kilo gateway responses nullable", () => {
+  test("keeps NoCowboy Gateway responses nullable", () => {
     const spec = OpenApi.fromApi(PublicApi)
     const response = (path: string) => {
       const body = spec.paths[path]?.get?.responses?.["200"] as Body | undefined
