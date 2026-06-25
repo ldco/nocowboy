@@ -145,6 +145,17 @@ export const NoCowboyGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Import a cloud session into the local instance.",
           }),
         ),
+        HttpApiEndpoint.post("edit", NoCowboyGatewayPaths.edit, {
+          query: WorkspaceRoutingQuery,
+          success: described(Schema.Any, "Edit result"),
+          error: HttpApiError.BadRequest,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "kilo.edit",
+            summary: "Next edit",
+            description: "Proxies a next-edit request to the Kilo Gateway.",
+          }),
+        ),
         HttpApiEndpoint.get("clawStatus", NoCowboyGatewayPaths.clawStatus, {
           query: WorkspaceRoutingQuery,
           success: described(ClawStatusResponse, "Claw status"),
