@@ -18,7 +18,7 @@ type Options = Parameters<ModelCache.KiloModels["fetch"]>[0]
 
 function layer(info: Auth.Info | undefined, captured: Ref.Ref<Options | undefined>) {
   const auth = Layer.mock(Auth.Service)({
-    get: (id) => Effect.succeed(id === "kilo" ? info : undefined),
+    get: (id) => Effect.succeed(id === "nocowboy" ? info : undefined),
   })
   const models = Layer.succeed(
     ModelCache.KiloModelsService,
@@ -58,7 +58,7 @@ it.live("model fetch uses accountId from OAuth auth as kilocodeOrganizationId", 
       expires: Date.now() + 3600000,
       accountId: "org-enterprise-123",
     })
-    yield* ModelCache.Service.use((cache) => cache.fetch("kilo")).pipe(Effect.provide(layer(info, captured)))
+    yield* ModelCache.Service.use((cache) => cache.fetch("nocowboy")).pipe(Effect.provide(layer(info, captured)))
     expect(yield* Ref.get(captured)).toMatchObject({
       kilocodeToken: "test-oauth-token",
       kilocodeOrganizationId: "org-enterprise-123",
@@ -75,7 +75,7 @@ it.live("model fetch without OAuth accountId does not set kilocodeOrganizationId
       refresh: "test-refresh-token",
       expires: Date.now() + 3600000,
     })
-    yield* ModelCache.Service.use((cache) => cache.fetch("kilo")).pipe(Effect.provide(layer(info, captured)))
+    yield* ModelCache.Service.use((cache) => cache.fetch("nocowboy")).pipe(Effect.provide(layer(info, captured)))
     expect(yield* Ref.get(captured)).toMatchObject({ kilocodeToken: "test-personal-token" })
     expect((yield* Ref.get(captured))?.kilocodeOrganizationId).toBeUndefined()
   }),
@@ -93,18 +93,18 @@ it.live("ModelCache.clear removes cached entry so next fetch hits the network", 
     })
     yield* ModelCache.Service.use((cache) =>
       Effect.gen(function* () {
-        yield* cache.fetch("kilo")
+        yield* cache.fetch("nocowboy")
         expect(yield* Ref.get(captured)).toBeDefined()
 
         yield* Ref.set(captured, undefined)
-        yield* cache.fetch("kilo")
+        yield* cache.fetch("nocowboy")
         expect(yield* Ref.get(captured)).toBeUndefined()
-        expect(yield* cache.get("kilo")).toBeDefined()
+        expect(yield* cache.get("nocowboy")).toBeDefined()
 
-        yield* cache.clear("kilo")
-        expect(yield* cache.get("kilo")).toBeUndefined()
+        yield* cache.clear("nocowboy")
+        expect(yield* cache.get("nocowboy")).toBeUndefined()
 
-        yield* cache.fetch("kilo")
+        yield* cache.fetch("nocowboy")
         expect(yield* Ref.get(captured)).toBeDefined()
       }),
     ).pipe(Effect.provide(layer(info, captured)))

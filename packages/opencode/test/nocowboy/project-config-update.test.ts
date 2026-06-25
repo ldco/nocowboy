@@ -51,17 +51,17 @@ const save = (config: Config.Info) =>
   Effect.runPromise(Config.Service.use((svc) => svc.update(config)).pipe(Effect.scoped, Effect.provide(layer)))
 
 async function writeConfig(dir: string, config: unknown) {
-  await Filesystem.write(path.join(dir, "kilo.json"), JSON.stringify(config, null, 2))
+  await Filesystem.write(path.join(dir, "nocowboy.json"), JSON.stringify(config, null, 2))
 }
 
-test("project config update creates .kilo/kilo.jsonc and reloads it", async () => {
+test("project config update creates .nocowboy/nocowboy.jsonc and reloads it", async () => {
   await using tmp = await tmpdir()
   await provideTestInstance({
     directory: tmp.path,
     fn: async () => {
       await save({ model: "updated/model" } as any)
 
-      const written = await Filesystem.readJson<{ model: string }>(path.join(tmp.path, ".kilo", "kilo.jsonc"))
+      const written = await Filesystem.readJson<{ model: string }>(path.join(tmp.path, ".nocowboy", "nocowboy.jsonc"))
       expect(written.model).toBe("updated/model")
 
       const loaded = await load()
@@ -77,12 +77,12 @@ test("project config update skips empty delete-only writes when no config exists
     fn: async () => {
       await save({ provider: { missing: null } } as any)
 
-      await expect(fs.access(path.join(tmp.path, ".kilo", "kilo.jsonc"))).rejects.toThrow()
+      await expect(fs.access(path.join(tmp.path, ".nocowboy", "nocowboy.jsonc"))).rejects.toThrow()
     },
   })
 })
 
-test("project config update prefers existing root kilo.json", async () => {
+test("project config update prefers existing root nocowboy.json", async () => {
   await using tmp = await tmpdir()
   await writeConfig(tmp.path, { username: "alice" })
 
@@ -91,19 +91,19 @@ test("project config update prefers existing root kilo.json", async () => {
     fn: async () => {
       await save({ model: "updated/model" } as any)
 
-      const merged = await Filesystem.readJson<{ model: string; username: string }>(path.join(tmp.path, "kilo.json"))
+      const merged = await Filesystem.readJson<{ model: string; username: string }>(path.join(tmp.path, "nocowboy.json"))
       expect(merged.model).toBe("updated/model")
       expect(merged.username).toBe("alice")
     },
   })
 })
 
-test("project config update patches ancestor .kilo/kilo.json from nested directory", async () => {
+test("project config update patches ancestor .nocowboy/nocowboy.json from nested directory", async () => {
   await using tmp = await tmpdir()
   const child = path.join(tmp.path, "nested", "workspace")
   await fs.mkdir(child, { recursive: true })
-  await fs.mkdir(path.join(tmp.path, ".kilo"), { recursive: true })
-  await writeConfig(path.join(tmp.path, ".kilo"), { username: "alice" })
+  await fs.mkdir(path.join(tmp.path, ".nocowboy"), { recursive: true })
+  await writeConfig(path.join(tmp.path, ".nocowboy"), { username: "alice" })
 
   await provideTestInstance({
     directory: child,
@@ -111,11 +111,11 @@ test("project config update patches ancestor .kilo/kilo.json from nested directo
       await save({ model: "updated/model" } as any)
 
       const merged = await Filesystem.readJson<{ model: string; username: string }>(
-        path.join(tmp.path, ".kilo", "kilo.json"),
+        path.join(tmp.path, ".nocowboy", "nocowboy.json"),
       )
       expect(merged.model).toBe("updated/model")
       expect(merged.username).toBe("alice")
-      await expect(fs.access(path.join(child, ".kilo", "kilo.json"))).rejects.toThrow()
+      await expect(fs.access(path.join(child, ".nocowboy", "nocowboy.json"))).rejects.toThrow()
     },
   })
 })
