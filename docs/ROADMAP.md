@@ -71,7 +71,7 @@
 | P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `goal.ts`. Set/get/clear/bumpReact/evaluate. Uses `generateObject` with temperature=0. |
 | P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | ✅ | `auto-dream.ts`. `shouldAutoDream()`/`shouldAutoDistill()` check session table for last run. |
 | P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/task.sql.ts`, `task/registry.ts`, `task/gate.ts`, `task/gate-state.ts`. |
-| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | Port randomization (codex/digitalocean/xai/MCP), ~20 bugfix commits, ~70 test files fixed. Major: x-kilo-directory→x-nocowboy-directory (9 files), NOCOWBOY_CLIENT env var (1 file), .kilo→.nocowboy paths (5 files). Remaining: ~30 fixture-specific (source response format changed) + ~160 parallelism-only. |
+| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | Port randomization (codex/digitalocean/xai/MCP), ~20 bugfix commits, ~70 test files fixed. Major: x-kilo-directory→x-nocowboy-directory (9 files), NOCOWBOY_CLIENT env var (1 file), .kilo→.nocowboy paths (5 files). Remaining: httpapi-edit (7, endpoint removed), httpapi-public (4, OpenAPI format), indexing-startup (15, async), ~160 parallelism-only. |
 
 ---
 
