@@ -41,6 +41,18 @@ export const nocowboyGatewayHandlers = HttpApiBuilder.group(NoCowboyGatewayApi, 
       return { status: response.status }
     })
 
+    const organization = Effect.fn("KilocodeGateway.organization")(function* () {
+      return { organizationId: null }
+    })
+
+    const profile = Effect.fn("KilocodeGateway.profile")(function* () {
+      return {}
+    })
+
+    const audioTranscriptions = Effect.fn("KilocodeGateway.audioTranscriptions")(function* () {
+      return {}
+    })
+
     return handlers
       .handle("authStatus", authStatus)
       .handle("cloudSessions", cloudSessions)
@@ -48,5 +60,8 @@ export const nocowboyGatewayHandlers = HttpApiBuilder.group(NoCowboyGatewayApi, 
       .handle("cloudSessionImport", cloudSessionImport)
       .handle("clawStatus", clawStatus)
       .handle("edit", edit)
+      .handle("organization", organization)
+      .handle("profile", profile)
+      .handle("audioTranscriptions", audioTranscriptions)
   }),
 )

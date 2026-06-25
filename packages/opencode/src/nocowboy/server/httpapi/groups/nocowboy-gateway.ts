@@ -167,6 +167,42 @@ export const NoCowboyGatewayApi = HttpApi.make("nocowboy-gateway")
             description: "Returns the status of the KiloClaw worker.",
           }),
         ),
+        HttpApiEndpoint.post("organization", NoCowboyGatewayPaths.organization, {
+          query: WorkspaceRoutingQuery,
+          success: described(
+            Schema.Struct({ organizationId: Schema.NullOr(Schema.String) }),
+            "Organization",
+          ),
+          error: HttpApiError.BadRequest,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "kilo.organization",
+            summary: "Organization",
+            description: "Organization management.",
+          }),
+        ),
+        HttpApiEndpoint.post("profile", NoCowboyGatewayPaths.profile, {
+          query: WorkspaceRoutingQuery,
+          success: described(Schema.Any, "Profile"),
+          error: HttpApiError.BadRequest,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "kilo.profile",
+            summary: "Profile",
+            description: "Profile management.",
+          }),
+        ),
+        HttpApiEndpoint.post("audioTranscriptions", NoCowboyGatewayPaths.audioTranscriptions, {
+          query: WorkspaceRoutingQuery,
+          success: described(Schema.Any, "Audio transcriptions"),
+          error: HttpApiError.BadRequest,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "kilo.audioTranscriptions",
+            summary: "Audio transcriptions",
+            description: "Audio transcription management.",
+          }),
+        ),
       )
       .annotateMerge(
         OpenApi.annotations({
