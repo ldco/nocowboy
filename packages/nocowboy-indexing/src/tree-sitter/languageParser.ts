@@ -41,6 +41,166 @@ export interface LanguageParser {
   }
 }
 
+interface ExtensionEntry {
+  languageName: string
+  parserKey: string
+  query: string
+}
+
+const EXTENSION_MAP: Record<string, ExtensionEntry> = {
+  js: { languageName: "javascript", parserKey: "js", query: javascriptQuery },
+  jsx: { languageName: "javascript", parserKey: "jsx", query: javascriptQuery },
+  json: { languageName: "javascript", parserKey: "json", query: javascriptQuery },
+  ts: { languageName: "typescript", parserKey: "ts", query: typescriptQuery },
+  tsx: { languageName: "tsx", parserKey: "tsx", query: tsxQuery },
+  py: { languageName: "python", parserKey: "py", query: pythonQuery },
+  rs: { languageName: "rust", parserKey: "rs", query: rustQuery },
+  go: { languageName: "go", parserKey: "go", query: goQuery },
+  cpp: { languageName: "cpp", parserKey: "cpp", query: cppQuery },
+  hpp: { languageName: "cpp", parserKey: "hpp", query: cppQuery },
+  c: { languageName: "c", parserKey: "c", query: cQuery },
+  h: { languageName: "c", parserKey: "h", query: cQuery },
+  cs: { languageName: "c_sharp", parserKey: "cs", query: csharpQuery },
+  rb: { languageName: "ruby", parserKey: "rb", query: rubyQuery },
+  java: { languageName: "java", parserKey: "java", query: javaQuery },
+  php: { languageName: "php", parserKey: "php", query: phpQuery },
+  html: { languageName: "html", parserKey: "html", query: htmlQuery },
+  swift: { languageName: "swift", parserKey: "swift", query: swiftQuery },
+  kt: { languageName: "kotlin", parserKey: "kt", query: kotlinQuery },
+  kts: { languageName: "kotlin", parserKey: "kts", query: kotlinQuery },
+  css: { languageName: "css", parserKey: "css", query: cssQuery },
+  ml: { languageName: "ocaml", parserKey: "ml", query: ocamlQuery },
+  mli: { languageName: "ocaml", parserKey: "mli", query: ocamlQuery },
+  scala: { languageName: "scala", parserKey: "scala", query: luaQuery },
+  sol: { languageName: "solidity", parserKey: "sol", query: solidityQuery },
+  toml: { languageName: "toml", parserKey: "toml", query: tomlQuery },
+  vue: { languageName: "vue", parserKey: "vue", query: vueQuery },
+  lua: { languageName: "lua", parserKey: "lua", query: luaQuery },
+  rdl: { languageName: "systemrdl", parserKey: "rdl", query: systemrdlQuery },
+  tla: { languageName: "tlaplus", parserKey: "tla", query: tlaPlusQuery },
+  zig: { languageName: "zig", parserKey: "zig", query: zigQuery },
+  ejs: { languageName: "embedded_template", parserKey: "embedded_template", query: embeddedTemplateQuery },
+  erb: { languageName: "embedded_template", parserKey: "embedded_template", query: embeddedTemplateQuery },
+  el: { languageName: "elisp", parserKey: "el", query: elispQuery },
+  ex: { languageName: "elixir", parserKey: "ex", query: elixirQuery },
+  exs: { languageName: "elixir", parserKey: "exs", query: elixirQuery },
+}
+
+function extToLanguageName(ext: string): string | undefined {
+  return EXTENSION_MAP[ext]?.languageName
+}
+
+function extToEntry(ext: string): ExtensionEntry | undefined {
+  return EXTENSION_MAP[ext]
+}
+
+// Reverse index: language name → all parserKeys for that language.
+const LANGUAGE_PARSER_KEYS: Record<string, string[]> = {}
+for (const entry of Object.values(EXTENSION_MAP)) {
+  (LANGUAGE_PARSER_KEYS[entry.languageName] ??= []).push(entry.parserKey)
+}
+
+export const TOP_5_LANGUAGES = ["javascript", "typescript", "python", "rust", "go"]
+
+/**
+ * Scan a project directory for supported file extensions and return a
+ * deduplicated list of tree-sitter language names to load. Falls back to
+ * TOP_5_LANGUAGES when the scan yields fewer than that many results (ensuring
+ * common languages are always available for one-off file requests even in
+ * non-standard projects).
+ */
+const SUPPORTED_GLOB_PATTERN = (() => {
+  const exts = Object.keys(EXTENSION_MAP)
+  return `**/*.{${exts.join(",")}}`
+})()
+
+export async function detectProjectLanguages(dir: string): Promise<string[]> {
+  const { glob } = require("glob")
+  let files: string[]
+  try {
+    files = await glob(SUPPORTED_GLOB_PATTERN, {
+      cwd: dir,
+      nodir: true,
+      dot: false,
+      ignore: "**/node_modules/**",
+    })
+  } catch {
+    return [...TOP_5_LANGUAGES]
+  }
+  const langs = new Set<string>()
+  for (const file of files) {
+    const ext = path.extname(file).toLowerCase().slice(1)
+    const lang = extToLanguageName(ext)
+    if (lang) langs.add(lang)
+  }
+  if (langs.size < TOP_5_LANGUAGES.length) {
+    for (const lang of TOP_5_LANGUAGES) langs.add(lang)
+  }
+  return [...langs]
+}
+
+/**
+ * Load tree-sitter parsers for every language detected in `dir` (via
+ * detectProjectLanguages). Returns the loaded parsers keyed by parserKey.
+ * The core tree-sitter runtime is initialized once and reused.
+ */
+export async function loadProjectLanguageParsers(
+  dir: string,
+  sourceDirectory?: string,
+): Promise<LanguageParser> {
+  const { Parser, Query } = require("web-tree-sitter")
+  if (!isParserInitialized) {
+    try {
+      const runtimeWasmPath = resolveCoreRuntimeWasmPath(sourceDirectory)
+      await (runtimeWasmPath
+        ? Parser.init({
+            locateFile() {
+              return runtimeWasmPath
+            },
+          })
+        : Parser.init())
+      isParserInitialized = true
+    } catch (error) {
+      log.error("Failed to initialize tree-sitter parser", {
+        err: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  }
+  const languageNames = await detectProjectLanguages(dir)
+  const parsers: LanguageParser = {}
+  const loaded = new Set<string>()
+  const loadResults = await Promise.allSettled(
+    [...new Set(languageNames)].map(async (lang) => {
+      const queryText = extToQueryForLanguageName(lang)
+      if (!queryText) return null
+      const language = await loadLanguage(lang, sourceDirectory)
+      const query = new Query(language, queryText)
+      const parser = new Parser()
+      parser.setLanguage(language)
+      return { lang, parser, query }
+    }),
+  )
+  for (const result of loadResults) {
+    if (result.status === "rejected" || !result.value) {
+      if (result.status === "rejected") log.warn("failed to load project language parser", { err: result.reason })
+      continue
+    }
+    const { lang, parser, query } = result.value
+    const keys = LANGUAGE_PARSER_KEYS[lang]
+    if (keys) {
+      for (const key of keys) parsers[key] = { parser, query }
+    }
+  }
+  return parsers
+}
+
+function extToQueryForLanguageName(langName: string): string | undefined {
+  for (const entry of Object.values(EXTENSION_MAP)) {
+    if (entry.languageName === langName) return entry.query
+  }
+}
+
 export function resolveModulePath(specifier: string): string | undefined {
   try {
     return require.resolve(specifier)
@@ -160,139 +320,14 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
   const parsers: LanguageParser = {}
 
   for (const ext of extensionsToLoad) {
-    let language: LanguageT
-    let query: QueryT
-    let parserKey = ext
+    const entry = extToEntry(ext)
+    if (!entry) throw new Error(`Unsupported language: ${ext}`)
 
-    switch (ext) {
-      case "js":
-      case "jsx":
-      case "json":
-        language = await loadLanguage("javascript", sourceDirectory)
-        query = new Query(language, javascriptQuery)
-        break
-      case "ts":
-        language = await loadLanguage("typescript", sourceDirectory)
-        query = new Query(language, typescriptQuery)
-        break
-      case "tsx":
-        language = await loadLanguage("tsx", sourceDirectory)
-        query = new Query(language, tsxQuery)
-        break
-      case "py":
-        language = await loadLanguage("python", sourceDirectory)
-        query = new Query(language, pythonQuery)
-        break
-      case "rs":
-        language = await loadLanguage("rust", sourceDirectory)
-        query = new Query(language, rustQuery)
-        break
-      case "go":
-        language = await loadLanguage("go", sourceDirectory)
-        query = new Query(language, goQuery)
-        break
-      case "cpp":
-      case "hpp":
-        language = await loadLanguage("cpp", sourceDirectory)
-        query = new Query(language, cppQuery)
-        break
-      case "c":
-      case "h":
-        language = await loadLanguage("c", sourceDirectory)
-        query = new Query(language, cQuery)
-        break
-      case "cs":
-        language = await loadLanguage("c_sharp", sourceDirectory)
-        query = new Query(language, csharpQuery)
-        break
-      case "rb":
-        language = await loadLanguage("ruby", sourceDirectory)
-        query = new Query(language, rubyQuery)
-        break
-      case "java":
-        language = await loadLanguage("java", sourceDirectory)
-        query = new Query(language, javaQuery)
-        break
-      case "php":
-        language = await loadLanguage("php", sourceDirectory)
-        query = new Query(language, phpQuery)
-        break
-      case "swift":
-        language = await loadLanguage("swift", sourceDirectory)
-        query = new Query(language, swiftQuery)
-        break
-      case "kt":
-      case "kts":
-        language = await loadLanguage("kotlin", sourceDirectory)
-        query = new Query(language, kotlinQuery)
-        break
-      case "css":
-        language = await loadLanguage("css", sourceDirectory)
-        query = new Query(language, cssQuery)
-        break
-      case "html":
-        language = await loadLanguage("html", sourceDirectory)
-        query = new Query(language, htmlQuery)
-        break
-      case "ml":
-      case "mli":
-        language = await loadLanguage("ocaml", sourceDirectory)
-        query = new Query(language, ocamlQuery)
-        break
-      case "scala":
-        language = await loadLanguage("scala", sourceDirectory)
-        query = new Query(language, luaQuery) // COMPAT: Uses Lua query until Scala is implemented
-        break
-      case "sol":
-        language = await loadLanguage("solidity", sourceDirectory)
-        query = new Query(language, solidityQuery)
-        break
-      case "toml":
-        language = await loadLanguage("toml", sourceDirectory)
-        query = new Query(language, tomlQuery)
-        break
-      case "vue":
-        language = await loadLanguage("vue", sourceDirectory)
-        query = new Query(language, vueQuery)
-        break
-      case "lua":
-        language = await loadLanguage("lua", sourceDirectory)
-        query = new Query(language, luaQuery)
-        break
-      case "rdl":
-        language = await loadLanguage("systemrdl", sourceDirectory)
-        query = new Query(language, systemrdlQuery)
-        break
-      case "tla":
-        language = await loadLanguage("tlaplus", sourceDirectory)
-        query = new Query(language, tlaPlusQuery)
-        break
-      case "zig":
-        language = await loadLanguage("zig", sourceDirectory)
-        query = new Query(language, zigQuery)
-        break
-      case "ejs":
-      case "erb":
-        parserKey = "embedded_template"
-        language = await loadLanguage("embedded_template", sourceDirectory)
-        query = new Query(language, embeddedTemplateQuery)
-        break
-      case "el":
-        language = await loadLanguage("elisp", sourceDirectory)
-        query = new Query(language, elispQuery)
-        break
-      case "ex":
-      case "exs":
-        language = await loadLanguage("elixir", sourceDirectory)
-        query = new Query(language, elixirQuery)
-        break
-      default:
-        throw new Error(`Unsupported language: ${ext}`)
-    }
-
+    const language = await loadLanguage(entry.languageName, sourceDirectory)
+    const query = new Query(language, entry.query)
     const parser = new Parser()
     parser.setLanguage(language)
-    parsers[parserKey] = { parser, query }
+    parsers[entry.parserKey] = { parser, query }
   }
 
   return parsers

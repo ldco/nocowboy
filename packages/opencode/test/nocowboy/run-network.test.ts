@@ -115,7 +115,7 @@ function instant() {
 
 async function run(sdk: Record<string, unknown>) {
   mock.module("@nocowboy/sdk/v2", () => ({
-    createKiloClient: () => sdk,
+    createNocowboyClient: () => sdk,
   }))
 
   Object.defineProperty(process.stdin, "isTTY", {

@@ -2,7 +2,11 @@ import { readFile } from "fs/promises"
 import { createHash } from "crypto"
 import * as path from "path"
 import { Node } from "web-tree-sitter"
-import { type LanguageParser, loadRequiredLanguageParsers } from "../../tree-sitter/languageParser"
+import {
+  type LanguageParser,
+  loadRequiredLanguageParsers,
+  loadProjectLanguageParsers,
+} from "../../tree-sitter/languageParser"
 import { parseMarkdown } from "../../tree-sitter/markdownParser"
 import type { ICodeParser, CodeBlock } from "../interfaces"
 import { scannerExtensions, shouldUseFallbackChunking } from "../shared/supported-extensions"
@@ -20,6 +24,47 @@ export class CodeParser implements ICodeParser {
   private pendingLoads: Map<string, Promise<LanguageParser>> = new Map()
   private failedParsers: Set<string> = new Set()
   private parserFallbackNotified: Set<string> = new Set()
+  private projectParsersLoaded = false
+  private projectParsersLoading: Promise<void> | null = null
+
+  /**
+   * Pre-load tree-sitter parsers for all languages detected in the given
+   * project directory. Detects languages by scanning for supported file
+   * extensions, loads matching WASMs in parallel, and seeds the parser
+   * cache so per-file parseFile calls skip individual lazy loading.
+   *
+   * Idempotent — safe to call multiple times. The first call wins and
+   * subsequent calls are no-ops.
+   */
+  async preloadProjectParsers(dir: string): Promise<void> {
+    if (this.projectParsersLoaded) return
+    if (this.projectParsersLoading) return this.projectParsersLoading
+    this.projectParsersLoading = this._doPreloadProjectParsers(dir)
+    try {
+      await this.projectParsersLoading
+    } finally {
+      this.projectParsersLoading = null
+      this.projectParsersLoaded = true
+    }
+  }
+
+  private async _doPreloadProjectParsers(dir: string): Promise<void> {
+    try {
+      const parsers = await loadProjectLanguageParsers(dir)
+      if (parsers && Object.keys(parsers).length > 0) {
+        this.loadedParsers = { ...this.loadedParsers, ...parsers }
+        log.info("pre-loaded project language parsers", {
+          dir,
+          languages: Object.keys(parsers),
+        })
+      }
+    } catch (error) {
+      log.warn("failed to pre-load project language parsers, falling back to per-file lazy loading", {
+        dir,
+        err: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
   // Markdown files are now supported using the custom markdown parser
   // which extracts headers and sections for semantic indexing
 

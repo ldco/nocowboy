@@ -1,6 +1,6 @@
 # NoCowboy — Roadmap
 
-**v0.6.1** | 2026-06-24 | Single source of truth
+**v0.6.1** | 2026-06-25 | Single source of truth + P0
 
 ---
 
@@ -55,16 +55,16 @@
 | 7 broken files fixed | ✅ (`kilo→nocowboy` paths + indexing first-class) |
 | 39 flaky under parallel load | ❌ needs test harness |
 
+### P0 — Cost & Size Optimization 🤑
+
+| # | Feature | Done | How |
+|---|---|---|---|
+| 1 | **DeepSeek prefix-cache** | ✅ | Reordered system prompt so stable prefix (soul + prompt + instructions + skills) comes **before** dynamic env (repomap + memory). Before: `[...env, ...instructions, ...skills]` → every request had a unique start token. After: `[...instructions, ...skills, ...env]` → first ~4KB are byte-stable across turns. DeepSeek's automatic prefix caching caches these repeated tokens server-side. **1 line changed in `prompt.ts:1969`.** |
+| 2 | **Lazy-load tree-sitter WASMs** | ✅ | Replaced 130-line switch/case with declarative `EXTENSION_MAP`. Added `detectProjectLanguages(dir)` — targeted glob `**/*.{js,ts,...}` scans only supported extensions. Added `loadProjectLanguageParsers(dir)` — loads detected WASMs in **parallel** via `Promise.allSettled`. Integrated into `CodeParser.preloadProjectParsers()` called from service factory. Reverse index `LANGUAGE_PARSER_KEYS` avoids O(L×E) inner loop. Dead code removed: `extToParserKey`, `extToQuery`, `fallbackQuery`. **3 files: `languageParser.ts`, `parser.ts`, `service-factory.ts`.** |
+
 ---
 
 ## ❌ NOT DONE
-
-### P0 — Cost & Size Optimization 🤑
-
-| # | Feature | From | Effort | Why |
-|---|---|---|---|---|
-| 1 | **DeepSeek prefix-cache** — structure system prompts for byte-stable prefix | Whale | Medium | 90% cache hit → 30x cheaper per session. $0.001 vs $0.015. Saves real money on every API call. |
-| 2 | **Lazy-load tree-sitter WASMs** — detect project languages, load only matching parsers. Fallback to top 5. | Self | Medium | 37 WASMs → ~10MB. 40MB saved, faster startup, less memory. |
 
 ### P1 — MiMo Memory & Reasoning
 

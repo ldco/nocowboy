@@ -288,6 +288,10 @@ export class CodeIndexServiceFactory {
     const scanner = this.createDirectoryScanner(embedder, vectorStore, parser, ignoreInstance)
     const fileWatcher = this.createFileWatcher(embedder, vectorStore, cacheManager, ignoreInstance)
 
+    // Pre-load tree-sitter WASMs for languages detected in the project
+    // instead of loading them one-at-a-time during scanning.
+    codeParser.preloadProjectParsers(this.workspacePath).catch(() => {})
+
     log.info("indexing services created", {
       workspacePath: this.workspacePath,
       provider: embedder.embedderInfo.name,

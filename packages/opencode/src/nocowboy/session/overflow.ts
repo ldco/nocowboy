@@ -4,6 +4,9 @@ import type { MessageV2 } from "@/session/message-v2"
 import { Token } from "@/util/token"
 import type { ModelMessage } from "ai"
 
+const COMPACTION_BUFFER = 20_000
+const OUTPUT_CAP = 20_000
+
 // Token.estimate undercounts provider tokenizers, especially for code and JSON payloads.
 const FACTOR = 1.3
 const MEDIA = "[encoded media]"
@@ -94,5 +97,65 @@ export namespace KiloSessionOverflow {
     if (stats.continuation) return false
     const tokens = "tokens" in stats ? stats.tokens : stats.normalized
     return tokens >= limit(input)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Context pressure detection (adapted from MiMo session/overflow.ts)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Compute the usable context window for a model: context - output reserve - compaction buffer.
+   */
+  export function usable(input: { cfg: Config.Info; model: Provider.Model }) {
+    const context = input.model.limit.context
+    if (context === 0) return 0
+
+    const reserved =
+      input.cfg.compaction?.reserved ?? Math.min(COMPACTION_BUFFER, input.model.limit.output || OUTPUT_CAP)
+    const outputReserve = Math.min(input.model.limit.output || OUTPUT_CAP, OUTPUT_CAP)
+
+    return input.model.limit.input
+      ? Math.max(0, input.model.limit.input - reserved)
+      : Math.max(0, context - outputReserve - reserved)
+  }
+
+  /**
+   * Returns true when the session's token count exceeds the usable window.
+   */
+  export function isOverflow(input: { cfg: Config.Info; tokens: MessageV2.Assistant["tokens"]; model: Provider.Model }) {
+    if (input.cfg.compaction?.auto === false) return false
+    if (input.model.limit.context === 0) return false
+
+    const tokenCount =
+      input.tokens.total || input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
+    return tokenCount >= usable(input)
+  }
+
+  /**
+   * Returns a pressure level 0-3 based on how full the context window is.
+   *   0: < 50%  — no pressure
+   *   1: 50-70% — mild pressure
+   *   2: 70-85% — moderate pressure
+   *   3: > 85%  — high pressure, compaction recommended
+   */
+  export function pressureLevel(input: {
+    cfg: Config.Info
+    tokens: MessageV2.Assistant["tokens"]
+    model: Provider.Model
+  }): 0 | 1 | 2 | 3 {
+    if (input.cfg.compaction?.auto === false) return 0
+    if (input.model.limit.context === 0) return 0
+
+    const tokenCount =
+      input.tokens.total ||
+      input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
+    const limitValue = usable(input)
+    if (limitValue === 0) return 0
+
+    const ratio = tokenCount / limitValue
+    if (ratio < 0.5) return 0
+    if (ratio < 0.7) return 1
+    if (ratio < 0.85) return 2
+    return 3
   }
 }

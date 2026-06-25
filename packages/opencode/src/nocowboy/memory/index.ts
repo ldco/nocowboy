@@ -1,5 +1,10 @@
 import { buildFtsQuery } from "./fts-query"
+import { reconcile } from "./reconcile"
 import type { Database as BunDatabase } from "bun:sqlite"
+import * as path from "node:path"
+import * as os from "node:os"
+
+const MEMORY_ROOT = path.join(os.homedir(), ".local/share/kilo/storage/memory")
 
 export interface MemorySearchResult {
   path: string
@@ -7,6 +12,7 @@ export interface MemorySearchResult {
   score: number
   scope: string
   type: string
+  scope_id?: string
 }
 
 export interface MemoryIndexInput {
@@ -17,32 +23,54 @@ export interface MemoryIndexInput {
   scope_id?: string
 }
 
+export interface MemorySearchOptions {
+  scope?: string
+  scope_id?: string
+  type?: string
+  limit?: number
+  /** Minimum BM25 score ratio relative to the top hit (default 0.15, 0 disables). */
+  scoreFloor?: number
+  /** When true, reconcile memory files before searching (default true). */
+  reconcileFirst?: boolean
+}
+
 export namespace MemoryService {
-  function db(): BunDatabase {
-    // Use the same database instance as the main app
-    const { Database } = require("bun:sqlite")
-    const home = require("os").homedir()
-    const dbPath = require("path").join(home, ".local/share/kilo/storage/nocowboy.db")
-    return new Database(dbPath)
+  export function root(): string {
+    return MEMORY_ROOT
   }
 
-  export function search(query: string, opts?: {
-    scope?: string
-    type?: string
-    limit?: number
-  }): MemorySearchResult[] {
+  function db(): BunDatabase {
+    const { Database } = require("bun:sqlite")
+    return new Database(path.join(MEMORY_ROOT, "..", "nocowboy.db"))
+  }
+
+  export function search(query: string, opts?: MemorySearchOptions): MemorySearchResult[] {
+    // Lazy reconcile before search so the index is fresh.
+    if (opts?.reconcileFirst ?? true) {
+      try {
+        reconcile()
+      } catch {
+        // non-critical — proceed with stale index
+      }
+    }
+
     const ftsQuery = buildFtsQuery(query)
     if (!ftsQuery) return []
 
     const database = db()
     try {
       const limit = opts?.limit ?? 10
+      const scoreFloor = opts?.scoreFloor ?? 0.15
       const conditions: string[] = []
       const params: (string | number)[] = [ftsQuery]
 
       if (opts?.scope) {
         conditions.push("memory_fts.scope = ?")
         params.push(opts.scope)
+      }
+      if (opts?.scope_id) {
+        conditions.push("memory_fts.scope_id = ?")
+        params.push(opts.scope_id)
       }
       if (opts?.type) {
         conditions.push("memory_fts.type = ?")
@@ -52,7 +80,7 @@ export namespace MemoryService {
       const whereClause = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : ""
 
       const sql = `
-        SELECT memory_fts.path, memory_fts.scope, memory_fts.type,
+        SELECT memory_fts.path, memory_fts.scope, memory_fts.scope_id, memory_fts.type,
                snippet(memory_fts_idx, 0, '<<', '>>', '...', 32) AS snippet,
                bm25(memory_fts_idx) AS score
         FROM memory_fts_idx
@@ -62,22 +90,26 @@ export namespace MemoryService {
         ORDER BY score
         LIMIT ?
       `
-      params.push(limit * 3)
+      const fetchLimit = Math.min(limit * 3, 50)
+      params.push(fetchLimit)
       const rows = database.query(sql).all(...params) as any[]
 
+      // FTS5 bm25() returns lower = better; invert for caller
       const mapped = rows.map((r: any) => ({
         path: r.path,
         snippet: r.snippet,
-        score: -r.score, // BM25: lower = better; invert for higher = better
+        score: -r.score,
         scope: r.scope,
+        scope_id: r.scope_id ?? "",
         type: r.type,
       }))
 
       if (mapped.length === 0) return []
 
-      // Keep results scoring at least 15% of top hit
+      // Relative score floor: drop rows scoring below `scoreFloor` of top hit
       const topScore = mapped[0].score
-      const cutoff = topScore * 0.15
+      const cutoff = scoreFloor > 0 ? topScore * scoreFloor : -Infinity
+      // Always keep #1, filter trailing
       return mapped.filter((r, i) => i === 0 || r.score >= cutoff).slice(0, limit)
     } finally {
       database.close()
