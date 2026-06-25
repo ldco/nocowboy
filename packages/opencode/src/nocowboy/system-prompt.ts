@@ -1,5 +1,4 @@
 // nocowboy_change - new file
-import { batch } from "solid-js" // nocowboy_change
 
 import { Global } from "@opencode-ai/core/global"
 import { staticEnvLines, type EditorContext } from "@/nocowboy/editor-context"
@@ -29,15 +28,12 @@ export namespace KilocodeSystemPrompt {
     try {
       const dir = input.ctx.directory || process.cwd()
 
-      // SolidJS batch: group reactive updates from repomap + memory into one render
-      batch(() => {
-        // Repomap: token-optimized repository structure
-        const repomap = RepoMap.generate(dir, 40)
-        if (repomap) lines.push(repomap)
+      // Repomap: token-optimized repository structure
+      const repomap = RepoMap.generate(dir, 40)
+      if (repomap) lines.push(repomap)
 
-        // Memory: reconcile FTS5 index, load MEMORY.md content
-        reconcile()
-      })
+      // Memory: reconcile FTS5 index, load MEMORY.md content
+      reconcile()
 
       // Load MEMORY.md content outside batch (file I/O doesn't need reactive wrapping)
       const fs = require("node:fs")
