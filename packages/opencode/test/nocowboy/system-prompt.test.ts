@@ -9,7 +9,7 @@ import PROMPT_BEAST from "../../src/session/prompt/beast.txt"
 import PROMPT_CODEX from "../../src/session/prompt/codex.txt"
 import PROMPT_GEMINI from "../../src/session/prompt/gemini.txt"
 import PROMPT_GPT from "../../src/session/prompt/gpt.txt"
-import PROMPT_GPT55 from "../../src/session/prompt/kilocode-gpt-5.5.txt"
+import PROMPT_GPT55 from "../../src/session/prompt/nocowboy-gpt-5.5.txt"
 import PROMPT_LING from "../../src/session/prompt/ling.txt"
 import PROMPT_TRINITY from "../../src/session/prompt/trinity.txt"
 
