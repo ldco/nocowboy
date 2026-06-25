@@ -83,7 +83,7 @@ describe("agent builder routes", () => {
 
     expect(saved.status).toBe(200)
     const output = (await saved.json()) as Output
-    expect(output.path).toBe(path.join(tmp.path, ".kilo", "agent", "reviewer.md"))
+    expect(output.path).toBe(path.join(tmp.path, ".nocowboy", "agent", "reviewer.md"))
     expect(await Bun.file(output.path).text()).toBe(output.markdown)
 
     const agents = (await (await req(tmp.path, "/agent")).json()) as Agent[]
@@ -107,7 +107,7 @@ describe("agent builder routes", () => {
     expect(saved.status).toBe(200)
     const output = (await saved.json()) as Output
     expect(output.id).toBe("canonical")
-    expect(output.path).toBe(path.join(tmp.path, ".kilo", "agent", "canonical.md"))
+    expect(output.path).toBe(path.join(tmp.path, ".nocowboy", "agent", "canonical.md"))
     expect(await Bun.file(output.path).exists()).toBe(true)
   })
 
@@ -153,7 +153,7 @@ describe("agent builder routes", () => {
       })
 
       expect(saved.status).toBe(400)
-      expect(await Bun.file(path.join(tmp.path, ".kilo", "agent", "bad:id.md")).exists()).toBe(false)
+      expect(await Bun.file(path.join(tmp.path, ".nocowboy", "agent", "bad:id.md")).exists()).toBe(false)
     })
   }
 
