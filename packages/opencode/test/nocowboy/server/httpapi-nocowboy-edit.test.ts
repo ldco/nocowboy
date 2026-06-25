@@ -94,8 +94,8 @@ afterEach(async () => {
   await resetDatabase()
 })
 
-describe("HttpApi Kilo next edit", () => {
-  test("requires Kilo Gateway authentication for the Kilo-backed model", async () => {
+describe("HttpApi NoCowboy next edit", () => {
+  test("requires NoCowboy Gateway authentication for the NoCowboy-backed model", async () => {
     process.env.KILO_AUTH_CONTENT = "{}"
     expect((await send()).status).toBe(401)
   })
