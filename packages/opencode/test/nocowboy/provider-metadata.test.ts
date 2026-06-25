@@ -17,10 +17,10 @@ describe("providerMetadata", () => {
     })
   })
 
-  test("uses the Kilo icon for Kilo Gateway", () => {
+  test("uses the NoCowboy icon for NoCowboy Gateway", () => {
     expect(providerMetadata("nocowboy")).toEqual({
-      noteKey: "settings.providers.note.kilo",
-      icon: "kilo",
+      icon: "synthetic",
+      noteKey: "settings.providers.note.nocowboy",
       priority: 0,
     })
   })

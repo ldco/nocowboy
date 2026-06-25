@@ -71,6 +71,7 @@
 | P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `goal.ts`. Set/get/clear/bumpReact/evaluate. Uses `generateObject` with temperature=0. |
 | P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | ✅ | `auto-dream.ts`. `shouldAutoDream()`/`shouldAutoDistill()` check session table for last run. |
 | P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/task.sql.ts`, `task/registry.ts`, `task/gate.ts`, `task/gate-state.ts`. |
+| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | In-memory DB, randomized ports, mock providers, isolated Effect state. |
 
 ---
 
@@ -88,7 +89,6 @@
 | P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | Unblock autonomous workflows. |
 | P2-A5 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | Configurable autonomy levels. |
 | P2-A6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
-| P2-A7 | **Test harness** — fix 39 flaky parallel failures | Self | High | In-memory DB + mock providers + isolated MCP ports. |
 
 #### P2-B Russian Language
 

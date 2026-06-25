@@ -9,6 +9,10 @@ import { remove as cleanup } from "./nocowboy/cleanup" // kilocode_change
 // Set XDG env vars FIRST, before any src/ imports
 const dir = path.join(os.tmpdir(), "opencode-test-data-" + process.pid)
 await fs.mkdir(dir, { recursive: true })
+
+// Assign a randomized port per test process to prevent OAuth port contention.
+// The source code reads NOCOWBOY_TEST_OAUTH_PORT to override its default 1455.
+process.env["NOCOWBOY_TEST_OAUTH_PORT"] = String(1455 + (process.pid % 1000))
 afterAll(async () => {
   const { SessionExport } = await import("../src/nocowboy/session-export") // kilocode_change
   const { Database } = await import("../src/storage/db")
