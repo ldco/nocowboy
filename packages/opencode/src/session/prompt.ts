@@ -1798,48 +1798,64 @@ export const layer = Layer.effect(
           continue
         }
 
-        if (task?.type === "compaction") {
-          const result = yield* compaction.process({
-            messages: msgs,
-            parentID: lastUser.id,
-            sessionID,
-            auto: task.auto,
-            overflow: task.overflow,
-          })
-          // nocowboy_change start - compaction.process only returns "stop" after
-          // setting ContextOverflowError on the summary message; surface as turn error
-          if (result === "stop") {
-            closeReasons.set(sessionID, "error")
-            break
-          }
-          // nocowboy_change end
-          continue
-        }
+          if (task?.type === "compaction") {
+            // nocowboy_change start — save checkpoint before compaction
+            const { markCheckpointOverflow } = yield* Effect.promise(() =>
+              import("@/nocowboy/session/checkpoint-saver").then((m) => ({
+                markCheckpointOverflow: m.markCheckpointOverflow,
+              })),
+            )
+            yield* Effect.promise(() => markCheckpointOverflow(sessionID, { summary: "compaction-task" }))
+            // nocowboy_change end
 
-        if (
-          lastFinished &&
-          lastFinished.summary !== true &&
-          (yield* compaction.isOverflow({ tokens: lastFinished.tokens, model }))
-        ) {
-          // nocowboy_change start
-          const guard = KiloSessionPrompt.guardCompactionAttempt({
-            sessionID,
-            attempts: compactionAttempts,
-            closeReasons,
-            message: lastFinished,
-          })
-          if (guard.exhausted) {
-            // lastFinished is a prior turn's assistant — record exhaustion on the
-            // message whose size tipped us past the compaction cap.
-            yield* sessions.updateMessage(lastFinished)
-            yield* bus.publish(Session.Event.Error, { sessionID, error: guard.error })
-            break
+            const result = yield* compaction.process({
+              messages: msgs,
+              parentID: lastUser.id,
+              sessionID,
+              auto: task.auto,
+              overflow: task.overflow,
+            })
+            // nocowboy_change start - compaction.process only returns "stop" after
+            // setting ContextOverflowError on the summary message; surface as turn error
+            if (result === "stop") {
+              closeReasons.set(sessionID, "error")
+              break
+            }
+            // nocowboy_change end
+            continue
           }
-          compactionAttempts++
-          // nocowboy_change end
-          yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: true })
-          continue
-        }
+
+          if (
+            lastFinished &&
+            lastFinished.summary !== true &&
+            (yield* compaction.isOverflow({ tokens: lastFinished.tokens, model }))
+          ) {
+            // nocowboy_change start
+            const guard = KiloSessionPrompt.guardCompactionAttempt({
+              sessionID,
+              attempts: compactionAttempts,
+              closeReasons,
+              message: lastFinished,
+            })
+            if (guard.exhausted) {
+              // lastFinished is a prior turn's assistant — record exhaustion on the
+              // message whose size tipped us past the compaction cap.
+              yield* sessions.updateMessage(lastFinished)
+              yield* bus.publish(Session.Event.Error, { sessionID, error: guard.error })
+              break
+            }
+            compactionAttempts++
+            // Save a checkpoint entry before compaction so the writer can detect
+            // coverage gaps from the checkpoint.md timeline.
+            yield* Effect.promise(() =>
+              import("@/nocowboy/session/checkpoint-saver").then((m) =>
+                m.markCheckpointOverflow(sessionID, { summary: "context-overflow" }),
+              ),
+            )
+            // nocowboy_change end
+            yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: true })
+            continue
+          }
 
         const agent = yield* agents.get(lastUser.agent)
         if (!agent) {

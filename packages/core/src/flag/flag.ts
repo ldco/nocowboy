@@ -80,7 +80,13 @@ export const Flag = {
   NOCOWBOY_MODELS_URL: process.env["NOCOWBOY_MODELS_URL"],
   NOCOWBOY_MODELS_PATH: process.env["NOCOWBOY_MODELS_PATH"],
   NOCOWBOY_DISABLE_EMBEDDED_WEB_UI: truthy("NOCOWBOY_DISABLE_EMBEDDED_WEB_UI"),
-  NOCOWBOY_DB: process.env["NOCOWBOY_DB"],
+  get NOCOWBOY_DB() {
+    return process.env["NOCOWBOY_DB"]
+  },
+  set NOCOWBOY_DB(value: string | undefined) {
+    if (value === undefined) delete process.env["NOCOWBOY_DB"]
+    else process.env["NOCOWBOY_DB"] = value
+  },
   NOCOWBOY_DISABLE_CHANNEL_DB: truthy("NOCOWBOY_DISABLE_CHANNEL_DB"),
   NOCOWBOY_SKIP_MIGRATIONS: truthy("NOCOWBOY_SKIP_MIGRATIONS"),
   NOCOWBOY_STRICT_CONFIG_DEPS: truthy("NOCOWBOY_STRICT_CONFIG_DEPS"),
