@@ -69,6 +69,7 @@ describe("Uploader", () => {
     expect(headers.get("x-kilo-export-client-sent-at")).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     expect(headers.get("x-kilo-export-payload-sha256")).toBe(await sha256(body))
     expect(headers.get("authorization")).toBe("Bearer local-token")
+    delete process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN
     expect(storage.pendingEvents({ now: Date.now(), limitBytes: 1_000_000 }).length).toBe(0)
     expect(telemetry.some((item) => (item as { name?: string }).name === "session_export.uploaded")).toBe(true)
   })
