@@ -27,7 +27,7 @@ import { Option } from "../../src/question"
 
 const SOURCE = path.resolve(import.meta.dir, "../../src/question/index.ts")
 
-describe("QuestionOption schema — Kilo-specific field contract", () => {
+describe("QuestionOption schema — NoCowboy-specific field contract", () => {
   test("Option class accepts and round-trips the mode field", () => {
     const raw = { label: "Continue here", description: "Implement the plan in this session", mode: "code" }
     const decoded = Schema.decodeUnknownSync(Option)(raw)

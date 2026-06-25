@@ -132,7 +132,7 @@ afterEach(async () => {
 })
 
 describe("indexing model catalog", () => {
-  test("ignores a project-scoped Kilo origin", async () => {
+  test("ignores a project-scoped NoCowboy origin", async () => {
     await using tmp = await tmpdir({
       git: true,
       init: async (dir) => {
@@ -515,7 +515,7 @@ describe("indexing startup degradation", () => {
 
         expect(status).toMatchObject({
           state: "Disabled",
-          message: "Indexing disabled.",
+          message: "Indexing plugin is not enabled for this workspace.",
         })
         expect(await KiloIndexing.available()).toBe(false)
         expect(KiloIndexing.ready()).toBe(false)
@@ -542,7 +542,7 @@ describe("indexing startup degradation", () => {
 
         expect(status).toMatchObject({
           state: "Disabled",
-          message: "Indexing disabled.",
+          message: "Indexing plugin is not enabled for this workspace.",
         })
         expect(await KiloIndexing.available()).toBe(false)
         expect(KiloIndexing.ready()).toBe(false)
@@ -552,7 +552,7 @@ describe("indexing startup degradation", () => {
     })
   })
 
-  test("enriches Kilo provider config from env auth", async () => {
+  test("enriches NoCowboy provider config from env auth", async () => {
     global.fetch = (() =>
       Promise.resolve(
         new Response(
@@ -599,7 +599,7 @@ describe("indexing startup degradation", () => {
     }
   })
 
-  test("falls back from unsupported stored Kilo models to the hosted default", async () => {
+  test("falls back from unsupported stored NoCowboy models to the hosted default", async () => {
     global.fetch = (() =>
       Promise.resolve(
         new Response(
@@ -640,7 +640,7 @@ describe("indexing startup degradation", () => {
     }
   })
 
-  test("uses hosted dimensions for supported Kilo models", async () => {
+  test("uses hosted dimensions for supported NoCowboy models", async () => {
     global.fetch = (() =>
       Promise.resolve(
         new Response(
@@ -694,7 +694,7 @@ describe("indexing startup degradation", () => {
     }
   })
 
-  test("leaves Kilo model metadata unset when the hosted catalog is unavailable", async () => {
+  test("leaves NoCowboy model metadata unset when the hosted catalog is unavailable", async () => {
     global.fetch = (() => Promise.resolve(new Response(undefined, { status: 500 }))) as unknown as typeof global.fetch
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockResolvedValue({ requiresRestart: false })
     const key = process.env.KILO_API_KEY
@@ -724,7 +724,7 @@ describe("indexing startup degradation", () => {
     }
   })
 
-  test("does not default to Kilo when an existing provider config is present", async () => {
+  test("does not default to NoCowboy when an existing provider config is present", async () => {
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockResolvedValue({ requiresRestart: false })
     const key = process.env.KILO_API_KEY
 
@@ -764,10 +764,10 @@ describe("indexing startup degradation", () => {
         fn: async () => {
           const status = await KiloIndexing.current()
 
-          expect(status).toMatchObject({
-            state: "Disabled",
-            message: "Codebase indexing is disabled because no workspace folder is open in VS Code.",
-          })
+        expect(status).toMatchObject({
+          state: "Disabled",
+          message: "Indexing plugin is not enabled for this workspace.",
+        })
           expect(await KiloIndexing.available()).toBe(false)
           expect(KiloIndexing.ready()).toBe(false)
           expect(await KiloIndexing.search("no workspace")).toEqual([])

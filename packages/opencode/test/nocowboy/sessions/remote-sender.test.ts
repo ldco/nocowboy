@@ -371,7 +371,7 @@ describe("RemoteSender", () => {
     ])
   })
 
-  test("send_message keeps kilocode-prefixed model unchanged before internal conversion", async () => {
+  test("send_message keeps nocowboy-prefixed model unchanged before internal conversion", async () => {
     const { conn } = fakeConn()
     const calls: SessionPrompt.PromptInput[] = []
     const sender = RemoteSender.create({

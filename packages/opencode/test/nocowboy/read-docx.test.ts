@@ -108,7 +108,7 @@ const document = async (paragraphs: string[], extra = "") => {
   return writer.close()
 }
 
-describe("kilocode DOCX reads", () => {
+describe("NoCowboy DOCX reads", () => {
   it.live("extracts paragraph text from .docx and .DOCX files", () =>
     Effect.gen(function* () {
       const dir = yield* tmpdirScoped()

@@ -25,7 +25,7 @@ afterEach(async () => {
   await disposeAllInstances()
 })
 
-describe("kilocode tool registry indexing", () => {
+describe("NoCowboy tool registry indexing", () => {
   const logger = Log.create({ service: "kilocode-tool-registry" })
 
   it.live("omits semantic_search without waiting for slow indexing startup", () =>
@@ -191,7 +191,7 @@ describe("kilocode tool registry indexing", () => {
     expect(NocowboyToolRegistry.indexing({}, { indexing: { enabled: true } })).toBe(true)
   })
 
-  test("conditionally includes Kilo registry extras", () => {
+  test("conditionally includes NoCowboy registry extras", () => {
     const prev = process.env["KILO_CLIENT"]
     const def = (id: string): Tool.Def => ({
       id,
