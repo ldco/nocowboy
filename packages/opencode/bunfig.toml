@@ -1,9 +1,10 @@
 [test]
+# Preload env vars, port randomization, and database isolation before each test.
+preload = "./test/preload.ts"
+
 # Cap concurrency to prevent CPU starvation with 235+ test files.
-# The bottleneck is shared I/O (git subprocesses, port allocation) rather than CPU.
-# Each test file runs in its own subprocess; 8 concurrent is a good balance
-# between throughput and stability on a 20-core machine.
-concurrency = 8
+concurrency = 4
+
 # Increase default timeout from 5000ms. Under concurrent load, CPU scheduling
 # delays mean a test may not get 5000ms of wall-clock time.
 timeout = 15000

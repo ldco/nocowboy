@@ -1,6 +1,17 @@
 # NoCowboy — Roadmap
 
-**v0.6.1** | 2026-06-25 | Single source of truth + P0 + P1
+**v0.6.1** | 2026-06-25 | Single source of truth + P0 + P1 + P1.6
+
+---
+
+## 🔥 ACTIVE — P1.6 Test Harness & Root Cause Debug
+
+| Step | Task | Status |
+|---|---|---|
+| 1 | Find when test failures appeared in git history | 🚧 |
+| 2 | Identify root cause commit | ⬜ |
+| 3 | Fix root cause in source code | ⬜ |
+| 4 | Verify all tests pass without concurrency hacks | ⬜ |
 
 ---
 
