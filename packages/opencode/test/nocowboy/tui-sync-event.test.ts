@@ -88,7 +88,7 @@ describe("TUI sync event wire format", () => {
                 cost: 0,
                 tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
                 modelID: "kilo-auto/free",
-                providerID: "kilo",
+                providerID: "nocowboy",
                 time: { created: 1 },
               },
             },
