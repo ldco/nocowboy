@@ -71,7 +71,7 @@
 | P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `goal.ts`. Set/get/clear/bumpReact/evaluate. Uses `generateObject` with temperature=0. |
 | P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | ✅ | `auto-dream.ts`. `shouldAutoDream()`/`shouldAutoDistill()` check session table for last run. |
 | P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/task.sql.ts`, `task/registry.ts`, `task/gate.ts`, `task/gate-state.ts`. |
-| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | In-memory DB, randomized ports, mock providers, isolated Effect state. |
+| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | Port randomization (codex/digitalocean/xai/MCP), 10 bugfix commits, ~50 assertion fixes. Remaining: ~200 parallelism (shared DB/singletons) + ~30 fixture-specific (Effect mock wiring, VS Code detection). Upgrade tests ✅, provider metadata ✅, OAuth branding ✅. |
 
 ---
 
