@@ -40,8 +40,8 @@ export namespace KilocodeConfig {
   /** Kilo-specific config file names (highest-to-lowest precedence within kilo). */
   export const NOCOWBOY_CONFIG_FILES = ["nocowboy.jsonc", "nocowboy.json"] as const
 
-  /** All config file names in precedence order (nocowboy + kilo + opencode). */
-  export const ALL_CONFIG_FILES = ["nocowboy.jsonc", "nocowboy.json", "kilo.jsonc", "kilo.json", "opencode.jsonc", "opencode.json"] as const
+  /** All config file names in precedence order (kilo + opencode). */
+  export const ALL_CONFIG_FILES = ["nocowboy.jsonc", "nocowboy.json", "opencode.jsonc", "opencode.json"] as const
 
   /** Directory suffixes that Kilo recognizes in addition to .opencode. */
   export const NOCOWBOY_DIR_SUFFIXES = [".nocowboy"] as const
@@ -432,6 +432,6 @@ export namespace KilocodeConfig {
 
   /** Check whether a directory path should be treated as a config directory (for loading config files). */
   export function isConfigDir(dir: string, flagDir?: string): boolean {
-    return dir.endsWith(".nocowboy") || dir.endsWith(".kilo") || dir.endsWith(".opencode") || dir === flagDir
+    return dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === flagDir
   }
 }

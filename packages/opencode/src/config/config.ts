@@ -558,8 +558,6 @@ export const layer = Layer.effect(
       // nocowboy_change start
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.json")))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.jsonc")))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "kilo.json")))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "kilo.jsonc")))
       // nocowboy_change end
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json")))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc")))
@@ -786,7 +784,7 @@ export const layer = Layer.effect(
 
         if (!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
           // nocowboy_change start - also discover kilo.json project files
-          for (const name of ["nocowboy", "kilo", "opencode"] as const) {
+          for (const name of ["nocowboy", "opencode"] as const) {
             for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.project.worktree).pipe(Effect.orDie)) {
               yield* merge(
                 file,
