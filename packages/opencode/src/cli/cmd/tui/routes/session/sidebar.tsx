@@ -96,7 +96,7 @@ function SettingsTab() {
   const sdk = useSDK()
   const project = useProject()
 
-  const lspDisabled = () => sync.data.config?.lsp === false
+  const lspDisabled = () => !sync.data.config?.lsp
 
   const toggleLsp = async () => {
     const dir = project.instance.directory() ?? ""
