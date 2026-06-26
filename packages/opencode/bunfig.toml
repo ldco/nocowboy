@@ -1,3 +1,6 @@
+# Required: opentui/solid JSX transform — without this, TUI renders blank/black screen
+preload = ["@opentui/solid/preload"]
+
 [test]
 # Preload env vars, port randomization, and database isolation before each test.
 preload = "./test/preload.ts"
