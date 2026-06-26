@@ -5,7 +5,7 @@ import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { Spinner } from "@tui/component/spinner" // nocowboy_change
 import { useLocal } from "@tui/context/local" // nocowboy_change
-import type { AssistantMessage } from "@nocowboy/sdk/v2"
+import type { AssistantMessage, Provider } from "@nocowboy/sdk/v2"
 import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
@@ -48,17 +48,37 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
-  // nocowboy_change start — total spend from session data
+  // nocowboy_change start — DeepSeek balance from API
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   })
 
-  const totalSpent = createMemo(() =>
-    sync.data.session.reduce((sum: number, s: { cost?: number }) => sum + (s.cost ?? 0), 0),
-  )
+  const deepseekKey = createMemo(() => {
+    for (const p of sync.data.provider as Provider[]) {
+      if (p.id === "deepseek") return p.key ?? null
+    }
+    return null
+  })
+
+  const fetchDeepSeekBalance = async (key: string): Promise<number> => {
+    try {
+      const res = await fetch("https://api.deepseek.com/user/balance", {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
+      const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
+      return usd ? parseFloat(usd.total_balance) : 0
+    } catch {
+      return 0
+    }
+  }
+
+  const [balanceData] = createResource(deepseekKey, fetchDeepSeekBalance)
+
+  const balance = createMemo(() => balanceData() ?? 0)
   const balanceFg = createMemo(() => {
-    const b = totalSpent()
+    const b = balance()
     if (b > 10) return theme.success
     if (b >= 3) return theme.warning
     return theme.error
@@ -126,7 +146,7 @@ export function SubagentFooter() {
               )}
             </Show>
             <text fg={balanceFg()} wrapMode="none">
-              {money.format(totalSpent())}
+              {money.format(balance())}
             </text>
           </box>
           <box flexDirection="row" gap={2}>
