@@ -96,16 +96,11 @@ function SettingsTab() {
   const sdk = useSDK()
   const project = useProject()
 
-  const lspState = () => {
-    const v = sync.data.config?.lsp
-    if (v === true) return "enabled"
-    if (v === false) return "disabled"
-    return "absent"
-  }
+  const lspDisabled = () => sync.data.config?.lsp === false
 
   const toggleLsp = async () => {
     const dir = project.instance.directory() ?? ""
-    if (lspState() !== "enabled") {
+    if (lspDisabled()) {
       await sdk.client.config.update({ directory: dir, config: { lsp: true } as any })
     } else {
       await sdk.client.config.update({ directory: dir, config: { lsp: false } as any })
@@ -133,29 +128,14 @@ function SettingsTab() {
       </text>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={lspState() === "absent" ? theme.warning : theme.textMuted} onMouseDown={() => toggleLsp()}>
-          {lspState() === "enabled" ? "Enabled — click to disable" : lspState() === "disabled" ? "Disabled — click to enable" : "Not configured — click to enable"}
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+          {lspDisabled() ? "Disabled — click to enable" : "Enabled — click to disable"}
         </text>
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
-        <text
-          fg={(() => {
-            const s = sync.data.indexing?.state as string
-            if (!s) return theme.warning
-            if (s === "Error") return theme.error
-            if (s === "Complete") return theme.success
-            return theme.textMuted
-          })()}
-          onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}
-        >
-          {(() => {
-            const s = sync.data.indexing?.state as string
-            if (!s) return "Not configured — click to configure"
-            if (s === "Error") return "Error — click to configure"
-            if (s === "Complete") return "Ready — click to configure"
-            return `${s} — click to configure`
-          })()}
+        <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
+          Open indexing configuration →
         </text>
       </box>
     </box>
