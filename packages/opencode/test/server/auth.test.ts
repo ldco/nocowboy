@@ -28,7 +28,7 @@ describe("ServerAuth", () => {
     Flag.NOCOWBOY_SERVER_USERNAME = undefined
 
     expect(ServerAuth.headers()).toEqual({
-      Authorization: `Basic ${Buffer.from("kilo:secret").toString("base64")}`, // kilocode_change
+      Authorization: `Basic ${Buffer.from("nocowboy:secret").toString("base64")}`, // kilocode_change
     })
   })
 
