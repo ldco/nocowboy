@@ -5,7 +5,7 @@ import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { Spinner } from "@tui/component/spinner" // nocowboy_change
 import { useLocal } from "@tui/context/local" // nocowboy_change
-import type { AssistantMessage, Provider } from "@nocowboy/sdk/v2"
+import type { AssistantMessage, Message, Provider, Session } from "@nocowboy/sdk/v2"
 import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
@@ -19,7 +19,7 @@ export function SubagentFooter() {
   const session = createMemo(() => sync.session.get(route.sessionID))
 
   // nocowboy_change start
-  const lastAssistant = createMemo(() => messages().findLast((m) => m.role === "assistant"))
+  const lastAssistant = createMemo(() => messages().findLast((m: Message) => m.role === "assistant"))
 
   const isRunning = createMemo(() => {
     const status = sync.data.session_status?.[route.sessionID]
@@ -41,9 +41,9 @@ export function SubagentFooter() {
     if (!s.parentID) return { label, index: 0, total: 0 }
 
     const siblings = sync.data.session
-      .filter((x) => x.parentID === s.parentID)
-      .toSorted((a, b) => a.time.created - b.time.created)
-    const index = siblings.findIndex((x) => x.id === s.id)
+      .filter((x: Session) => x.parentID === s.parentID)
+      .toSorted((a: Session, b: Session) => a.time.created - b.time.created)
+    const index = siblings.findIndex((x: Session) => x.id === s.id)
 
     return { label, index: index + 1, total: siblings.length }
   })
@@ -118,14 +118,14 @@ export function SubagentFooter() {
 
   const usage = createMemo(() => {
     const msg = messages()
-    const last = msg.findLast((item): item is AssistantMessage => item.role === "assistant" && item.tokens.output > 0)
+    const last = msg.findLast((item: Message): item is AssistantMessage => item.role === "assistant" && (item as any).tokens?.output > 0)
     if (!last) return
 
     const tokens =
       last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
     if (tokens <= 0) return
 
-    const model = sync.data.provider.find((item) => item.id === last.providerID)?.models[last.modelID]
+    const model = (sync.data.provider as Provider[]).find((item: Provider) => item.id === last.providerID)?.models[last.modelID]
     const pct = model?.limit.context ? `${Math.round((tokens / model.limit.context) * 100)}%` : undefined
 
     return {
@@ -169,10 +169,10 @@ export function SubagentFooter() {
               <Spinner color={agentColor()} />
             </Show>
             {/* nocowboy_change end */}
-            <Show when={usage()}>
-              {(item) => (
+            <Show when={usage()} keyed={true}>
+              {(item: { context: string }) => (
                 <text fg={theme.textMuted} wrapMode="none">
-                  {item().context}
+                  {item.context}
                 </text>
               )}
             </Show>
