@@ -100,10 +100,10 @@ function SettingsTab() {
 
   const toggleLsp = async () => {
     const dir = project.instance.directory() ?? ""
-    if (lspEnabled()) {
-      await sdk.client.config.update({ directory: dir, config: { lsp: false } as any })
-    } else {
-      await sdk.client.config.update({ directory: dir, config: { lsp: true } as any })
+    try {
+      await sdk.client.config.update({ directory: dir, config: { lsp: !lspEnabled() } as any })
+    } catch (err) {
+      console.error("LSP toggle failed", err)
     }
   }
 
@@ -126,11 +126,10 @@ function SettingsTab() {
       <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
         + Connect a provider
       </text>
-      <box paddingTop={1} gap={1} onMouseDown={() => toggleLsp()}>
+      <box paddingTop={1} flexDirection="row">
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={lspEnabled() ? theme.success : theme.accent}>
-          {lspEnabled() ? "Enabled" : "Disabled — click to enable"}
-        </text>
+        <text fg={theme.textMuted}> {lspEnabled() ? "Enabled" : "Disabled"}</text>
+        <text fg={theme.accent} onMouseDown={() => toggleLsp()}> — click to {lspEnabled() ? "disable" : "enable"}</text>
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
