@@ -101,6 +101,9 @@ function SettingsTab() {
     if (event.ctrl && event.code === "KeyL") {
       toggleLsp()
     }
+    if (event.ctrl && event.code === "KeyI") {
+      dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)
+    }
   })
 
   const lspEnabled = () => sync.data.config?.lsp === true

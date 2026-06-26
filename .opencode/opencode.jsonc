@@ -32,7 +32,11 @@
     "github-pr-search": false,
   },
   "disabled_providers": [],
+  "lsp": true,
   "username": "patched-user",
   "formatter": false,
+  "indexing": {
+    "enabled": true,
+    "provider": "voyage",
   },
 }
