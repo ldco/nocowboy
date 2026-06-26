@@ -1,4 +1,4 @@
-import { createMemo, createSignal, Show } from "solid-js"
+import { createMemo, createResource, createSignal, Show } from "solid-js"
 import { useRouteData } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { useTheme } from "@tui/context/theme"
@@ -10,6 +10,7 @@ import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
 import { useCommandShortcut } from "../../keymap"
+import { fetchBalance } from "@nocowboy/gateway"
 
 export function SubagentFooter() {
   const route = useRouteData("session")
@@ -48,6 +49,31 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
+  // nocowboy_change start — balance from gateway
+  const money = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  })
+
+  const [balanceData] = createResource(async () => {
+    try {
+      const result = await fetchBalance() as { balance: number } | null
+      if (!result || typeof result.balance !== "number") return 0
+      return result.balance
+    } catch {
+      return 0
+    }
+  })
+
+  const balance = createMemo(() => balanceData() ?? 0)
+  const balanceFg = createMemo(() => {
+    const b = balance()
+    if (b > 10) return theme.success
+    if (b >= 3) return theme.warning
+    return theme.error
+  })
+  // nocowboy_change end
+
   const usage = createMemo(() => {
     const msg = messages()
     const last = msg.findLast((item): item is AssistantMessage => item.role === "assistant" && item.tokens.output > 0)
@@ -59,16 +85,9 @@ export function SubagentFooter() {
 
     const model = sync.data.provider.find((item) => item.id === last.providerID)?.models[last.modelID]
     const pct = model?.limit.context ? `${Math.round((tokens / model.limit.context) * 100)}%` : undefined
-    const cost = session()?.cost ?? 0
-
-    const money = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    })
 
     return {
       context: pct ? `${Locale.number(tokens)} (${pct})` : Locale.number(tokens),
-      cost: cost > 0 ? money.format(cost) : undefined,
     }
   })
 
@@ -111,10 +130,13 @@ export function SubagentFooter() {
             <Show when={usage()}>
               {(item) => (
                 <text fg={theme.textMuted} wrapMode="none">
-                  {[item().context, item().cost].filter(Boolean).join(" · ")}
+                  {item().context}
                 </text>
               )}
             </Show>
+            <text fg={balanceFg()} wrapMode="none">
+              {money.format(balance())}
+            </text>
           </box>
           <box flexDirection="row" gap={2}>
             <box
