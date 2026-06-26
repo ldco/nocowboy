@@ -10,6 +10,7 @@ import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { RGBA, TextAttributes } from "@opentui/core"
+import { useKeyboard } from "@opentui/solid"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
@@ -96,15 +97,18 @@ function SettingsTab() {
   const sdk = useSDK()
   const project = useProject()
 
+  useKeyboard((event: { ctrl: boolean; code?: string }) => {
+    if (event.ctrl && event.code === "KeyL") {
+      toggleLsp()
+    }
+  })
+
   const lspEnabled = () => sync.data.config?.lsp === true
 
   const toggleLsp = async () => {
-    console.error("LSP toggle: clicked")
     const dir = project.instance.directory() ?? ""
-    console.error("LSP toggle: dir=", dir, "enabled=", lspEnabled())
     try {
       await sdk.client.config.update({ directory: dir, config: { lsp: !lspEnabled() } as any })
-      console.error("LSP toggle: success")
     } catch (err) {
       console.error("LSP toggle failed", err)
     }
