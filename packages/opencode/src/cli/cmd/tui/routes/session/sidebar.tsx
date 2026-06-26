@@ -129,10 +129,8 @@ function SettingsTab() {
       <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
         + Connect a provider
       </text>
-      <box paddingTop={1} flexDirection="row" onMouseDown={() => toggleLsp()}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={lspEnabled() ? theme.success : theme.accent}> {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}</text>
-      </box>
+      <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
+      <text fg={lspEnabled() ? theme.success : theme.accent} onMouseDown={() => toggleLsp()}> {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}</text>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
         <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
