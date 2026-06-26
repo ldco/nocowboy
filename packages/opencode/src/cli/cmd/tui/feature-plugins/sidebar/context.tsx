@@ -20,6 +20,7 @@ const BALANCE_APIS: Record<string, BalanceFetcher> = {
       const res = await fetch("https://api.deepseek.com/user/balance", {
         headers: { Authorization: `Bearer ${key}` },
       })
+      if (!res.ok) return 0
       const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
       const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
       return usd ? parseFloat(usd.total_balance) : 0
@@ -32,6 +33,7 @@ const BALANCE_APIS: Record<string, BalanceFetcher> = {
       const res = await fetch("https://api.openai.com/v1/dashboard/billing/credit_grants", {
         headers: { Authorization: `Bearer ${key}` },
       })
+      if (!res.ok) return 0
       const data = await res.json() as { total_available?: number }
       return data.total_available ?? 0
     } catch {
