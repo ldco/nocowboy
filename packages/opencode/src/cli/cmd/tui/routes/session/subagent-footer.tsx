@@ -98,7 +98,14 @@ export function SubagentFooter() {
     return null
   })
 
-  const [balanceData] = createResource(providerBalance, (info) => info.fetcher(info.key))
+  const [balanceData] = createResource(
+    () => {
+      const info = providerBalance()
+      if (!info) return null
+      return { key: info.key, fetcher: info.fetcher, version: messages().length }
+    },
+    (input) => input.fetcher(input.key),
+  )
 
   const balance = createMemo(() => balanceData() ?? 0)
   const balanceFg = createMemo(() => {

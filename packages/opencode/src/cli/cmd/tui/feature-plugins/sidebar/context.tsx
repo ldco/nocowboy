@@ -63,8 +63,12 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   })
 
   const [balance] = createResource(
-    providerInfo,
-    (info) => info.fetcher(info.key),
+    () => {
+      const info = providerInfo()
+      if (!info) return null
+      return { key: info.key, fetcher: info.fetcher, version: msg().length }
+    },
+    (input) => input.fetcher(input.key),
   )
 
   const state = createMemo(() => {
