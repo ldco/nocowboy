@@ -10,7 +10,6 @@ import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
 import { useCommandShortcut } from "../../keymap"
-import { fetchBalance } from "@nocowboy/gateway"
 
 export function SubagentFooter() {
   const route = useRouteData("session")
@@ -49,25 +48,17 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
-  // nocowboy_change start — balance from gateway
+  // nocowboy_change start — total spend from session data
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   })
 
-  const [balanceData] = createResource(async () => {
-    try {
-      const result = await fetchBalance() as { balance: number } | null
-      if (!result || typeof result.balance !== "number") return 0
-      return result.balance
-    } catch {
-      return 0
-    }
-  })
-
-  const balance = createMemo(() => balanceData() ?? 0)
+  const totalSpent = createMemo(() =>
+    sync.data.session.reduce((sum: number, s: { cost?: number }) => sum + (s.cost ?? 0), 0),
+  )
   const balanceFg = createMemo(() => {
-    const b = balance()
+    const b = totalSpent()
     if (b > 10) return theme.success
     if (b >= 3) return theme.warning
     return theme.error
@@ -135,7 +126,7 @@ export function SubagentFooter() {
               )}
             </Show>
             <text fg={balanceFg()} wrapMode="none">
-              {money.format(balance())}
+              {money.format(totalSpent())}
             </text>
           </box>
           <box flexDirection="row" gap={2}>
