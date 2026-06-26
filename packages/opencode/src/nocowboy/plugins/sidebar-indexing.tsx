@@ -78,8 +78,8 @@ function View(props: { api: TuiPluginApi }) {
           </text>
         </box>
         <Show when={msg()}>
-          <text fg={theme().textMuted} onMouseUp={() => refresh()} wrapMode="word">
-            {msg()} — click to retry
+          <text fg={theme().textMuted} wrapMode="word">
+            {msg()}
           </text>
         </Show>
         </Show>
