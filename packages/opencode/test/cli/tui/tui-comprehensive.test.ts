@@ -106,3 +106,47 @@ test("B6. Theme mappings use semantic names (warning, error, success)", async ()
   expect(t.theme.primary).toBeDefined()
   expect(t.theme.accent).toBeDefined()
 })
+
+test("B7. LSP text is wrapped in box paddingTop=1 (required for click events)", async () => {
+  const f = await Bun.file(SRC + "/routes/session/sidebar.tsx").text()
+  // The LSP section must wrap its text elements in a <box paddingTop={1}>
+  // to match the original structure where clicks work.
+  // Find the LSP section: between LSP label and Code Indexing label
+  const lspIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>")
+  const ciIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>")
+  expect(lspIdx).toBeGreaterThan(-1)
+  expect(ciIdx).toBeGreaterThan(-1)
+  const lspSection = f.substring(lspIdx - 100, ciIdx)
+  expect(lspSection).toContain("<box paddingTop={1}>")
+  expect(lspSection).toContain("onMouseDown")
+})
+
+test("B8. Sidebar indexing info tab has NO clickable elements (info only)", async () => {
+  const f = await Bun.file(import.meta.dirname + "/../../../src/nocowboy/plugins/sidebar-indexing.tsx").text()
+  // The sidebar indexing plugin should NOT have onMouseUp/onMouseDown handlers
+  // in the info tab. It should show status, not be interactive.
+  expect(f).not.toContain("onMouseUp={() => refresh()}")
+  expect(f).not.toContain("onMouseDown")
+  expect(f).not.toContain("click to retry")
+})
+
+test("B9. Settings tab has onMouseDown for LSP and Indexing links", async () => {
+  const f = await Bun.file(SRC + "/routes/session/sidebar.tsx").text()
+  // LSP toggle must have onMouseDown
+  expect(f).toContain("onMouseDown={() => toggleLsp()}")
+  // Indexing link must have onMouseDown
+  expect(f).toContain("onMouseDown={() => dialog.replace(() => <DialogIndexing")
+  // Keyboard shortcuts must exist
+  expect(f).toContain("useKeyboard")
+  expect(f).toContain("KeyL")
+  expect(f).toContain("KeyI")
+})
+
+test("B10. Theme warning color stays yellow #ffff00, not changed to brand", async () => {
+  const t = JSON.parse(await Bun.file(SRC + "/context/theme/nocowboy.json").text())
+  // warning must stay yellow, not brand orange
+  expect(t.defs.darkYellow).toBe("#ffff00")
+  // brand color darkPrimary must stay orange
+  expect(t.theme.primary).toBeDefined()
+  expect(t.theme.primary.dark).toBe("darkPrimary")  // #ff6800
+})
