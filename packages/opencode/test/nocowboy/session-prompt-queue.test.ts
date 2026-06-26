@@ -422,7 +422,7 @@ describe("session prompt queue", () => {
         git: true,
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "nocowboy.json"),
             JSON.stringify({
               $schema: "https://opencode.ai/config.json",
               enabled_providers: ["alibaba"],
@@ -550,7 +550,7 @@ describe("session prompt queue", () => {
         git: true,
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "nocowboy.json"),
             JSON.stringify({
               $schema: "https://opencode.ai/config.json",
               enabled_providers: ["alibaba"],
@@ -641,7 +641,7 @@ describe("session prompt queue", () => {
         git: true,
         init: async (dir) => {
           await Bun.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "nocowboy.json"),
             JSON.stringify({
               $schema: "https://opencode.ai/config.json",
               enabled_providers: ["alibaba"],

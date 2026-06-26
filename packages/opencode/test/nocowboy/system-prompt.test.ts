@@ -130,13 +130,13 @@ describe("SystemPrompt.provider", () => {
 describe("environmentDetails", () => {
   test("includes cwd and worktree in dynamic context", () => {
     const result = environmentDetails({
-      directory: "/repo/.kilo/worktrees/feature",
-      worktree: "/repo/.kilo/worktrees/feature",
+      directory: "/repo/.nocowboy/worktrees/feature",
+      worktree: "/repo/.nocowboy/worktrees/feature",
       activeFile: "src/app.ts",
     })
 
-    expect(result).toContain("Working directory: /repo/.kilo/worktrees/feature")
-    expect(result).toContain("Workspace root folder: /repo/.kilo/worktrees/feature")
+    expect(result).toContain("Working directory: /repo/.nocowboy/worktrees/feature")
+    expect(result).toContain("Workspace root folder: /repo/.nocowboy/worktrees/feature")
     expect(result).toContain("Active file: src/app.ts")
   })
 })

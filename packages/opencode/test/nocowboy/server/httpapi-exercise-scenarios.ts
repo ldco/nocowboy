@@ -245,10 +245,10 @@ export const kiloScenarios: Scenario[] = [
       Effect.gen(function* () {
         const location = yield* file(
           ctx,
-          ".opencode/skill/httpapi-remove/SKILL.md",
+          ".nocowboy/skill/httpapi-remove/SKILL.md",
           "---\nname: httpapi-remove\ndescription: HTTP API removal fixture.\n---\n# HTTP API remove\n",
         )
-        const sentinel = yield* file(ctx, ".opencode/skill/httpapi-remove/KEEP.txt", "synthetic sentinel\n")
+        const sentinel = yield* file(ctx, ".nocowboy/skill/httpapi-remove/KEEP.txt", "synthetic sentinel\n")
         return { location, sentinel }
       }),
     )
@@ -274,7 +274,7 @@ export const kiloScenarios: Scenario[] = [
     .post("/kilocode/agent/remove", "kilocode.removeAgent")
     .mutating()
     .seeded((ctx) =>
-      file(ctx, ".opencode/agent/httpapi-remove.md", "---\ndescription: HTTP API remove\n---\nRemove me.\n"),
+      file(ctx, ".nocowboy/agent/httpapi-remove.md", "---\ndescription: HTTP API remove\n---\nRemove me.\n"),
     )
     .at((ctx) => ({ path: "/kilocode/agent/remove", headers: ctx.headers(), body: { name: "httpapi-remove" } }))
     .jsonEffect(200, (body, ctx) =>

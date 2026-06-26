@@ -29,7 +29,7 @@ const env = {
   NOCOWBOY_CONFIG: process.env.NOCOWBOY_CONFIG,
   NOCOWBOY_CONFIG_CONTENT: process.env.NOCOWBOY_CONFIG_CONTENT,
   NOCOWBOY_CONFIG_DIR: process.env.NOCOWBOY_CONFIG_DIR,
-  NOCOWBOY_DISABLE_PROJECT_CONFIG: process.env.NOCOWBOY_DISABLE_PROJECT_CONFIG,
+  KILO_DISABLE_PROJECT_CONFIG: process.env.KILO_DISABLE_PROJECT_CONFIG,
   NOCOWBOY_TEST_MANAGED_CONFIG_DIR: process.env.NOCOWBOY_TEST_MANAGED_CONFIG_DIR,
   flagConfig: Flag.NOCOWBOY_CONFIG,
 }
@@ -44,7 +44,7 @@ function restore() {
   set("NOCOWBOY_CONFIG", env.NOCOWBOY_CONFIG)
   set("NOCOWBOY_CONFIG_CONTENT", env.NOCOWBOY_CONFIG_CONTENT)
   set("NOCOWBOY_CONFIG_DIR", env.NOCOWBOY_CONFIG_DIR)
-  set("NOCOWBOY_DISABLE_PROJECT_CONFIG", env.NOCOWBOY_DISABLE_PROJECT_CONFIG)
+  set("KILO_DISABLE_PROJECT_CONFIG", env.KILO_DISABLE_PROJECT_CONFIG)
   set("NOCOWBOY_TEST_MANAGED_CONFIG_DIR", env.NOCOWBOY_TEST_MANAGED_CONFIG_DIR)
   Flag.NOCOWBOY_CONFIG = env.flagConfig
 }
@@ -76,7 +76,7 @@ describe("config source routes", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Bun.write(path.join(dir, "env.json"), "{}")
-        await Bun.write(path.join(dir, "opencode.json"), "{}")
+        await Bun.write(path.join(dir, "nocowboy.json"), "{}")
 
         const local = path.join(dir, ".nocowboy")
         await fs.mkdir(local, { recursive: true })
@@ -84,19 +84,19 @@ describe("config source routes", () => {
 
         const extra = path.join(dir, "extra")
         await fs.mkdir(extra, { recursive: true })
-        await Bun.write(path.join(extra, "opencode.json"), "{}")
+        await Bun.write(path.join(extra, "nocowboy.json"), "{}")
 
         const managed = path.join(dir, "managed")
         await fs.mkdir(managed, { recursive: true })
-        await Bun.write(path.join(managed, "opencode.json"), "{}")
+        await Bun.write(path.join(managed, "nocowboy.json"), "{}")
       },
     })
 
     const envFile = path.join(tmp.path, "env.json")
-    const projectFile = path.join(tmp.path, "opencode.json")
+    const projectFile = path.join(tmp.path, "nocowboy.json")
     const configFile = path.join(tmp.path, ".nocowboy", "nocowboy.jsonc")
-    const extraFile = path.join(tmp.path, "extra", "opencode.json")
-    const managedFile = path.join(tmp.path, "managed", "opencode.json")
+    const extraFile = path.join(tmp.path, "extra", "nocowboy.json")
+    const managedFile = path.join(tmp.path, "managed", "nocowboy.json")
 
     process.env.NOCOWBOY_CONFIG = envFile
     Flag.NOCOWBOY_CONFIG = envFile
@@ -131,19 +131,19 @@ describe("config source routes", () => {
   test("shows project config disabled by environment", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
-        await Bun.write(path.join(dir, "opencode.json"), "{}")
+        await Bun.write(path.join(dir, "nocowboy.json"), "{}")
         await fs.mkdir(path.join(dir, ".nocowboy"), { recursive: true })
         await Bun.write(path.join(dir, ".nocowboy", "nocowboy.json"), "{}")
       },
     })
 
-    process.env.NOCOWBOY_DISABLE_PROJECT_CONFIG = "1"
+    process.env.KILO_DISABLE_PROJECT_CONFIG = "1"
 
     const body = await sources(tmp.path)
 
-    expect(body.sources.some((source) => source.path === path.join(tmp.path, "opencode.json"))).toBe(false)
+    expect(body.sources.some((source) => source.path === path.join(tmp.path, "nocowboy.json"))).toBe(false)
     expect(body.sources.some((source) => source.path === path.join(tmp.path, ".nocowboy", "nocowboy.json"))).toBe(false)
-    expect(body.sources.find((source) => source.source === "NOCOWBOY_DISABLE_PROJECT_CONFIG")).toMatchObject({
+    expect(body.sources.find((source) => source.source === "KILO_DISABLE_PROJECT_CONFIG")).toMatchObject({
       kind: "runtime-env",
       scope: "env",
       exists: true,

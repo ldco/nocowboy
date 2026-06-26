@@ -61,7 +61,7 @@ async function json<T>(response: Response) {
 }
 
 async function config(dir: string, value: unknown) {
-  await Bun.write(path.join(dir, "opencode.json"), JSON.stringify(value, null, 2))
+  await Bun.write(path.join(dir, "nocowboy.json"), JSON.stringify(value, null, 2))
 }
 
 async function setGlobal(dir: string, value: Config.Info) {
@@ -226,7 +226,7 @@ describe("config overlay routes", () => {
       }),
     )
     const body = await json<Overlay>(await req(project.path, "/config/overlay?scope=project"))
-    const saved = (await Bun.file(path.join(project.path, "opencode.json")).json()) as Record<string, unknown>
+    const saved = (await Bun.file(path.join(project.path, "nocowboy.json")).json()) as Record<string, unknown>
 
     expect(body.fields.model).toMatchObject({ source: "global", inherited: true })
     expect(saved.model).toBeUndefined()

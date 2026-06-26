@@ -52,7 +52,7 @@ const saveGlobal = (config: Config.Info) =>
 const saveProject = (config: Config.Info) =>
   Effect.runPromise(Config.Service.use((svc) => svc.update(config)).pipe(Effect.scoped, Effect.provide(layer)))
 
-async function writeConfig(dir: string, config: object, name = "opencode.json") {
+async function writeConfig(dir: string, config: object, name = "nocowboy.json") {
   await Filesystem.write(path.join(dir, name), JSON.stringify(config))
 }
 
@@ -237,7 +237,7 @@ describe("kilocode indexing config", () => {
 describe("custom provider model config", () => {
   test("persists and removes reasoning across a global config reload", async () => {
     await using globalTmp = await tmpdir()
-    const file = path.join(globalTmp.path, "opencode.json")
+    const file = path.join(globalTmp.path, "nocowboy.json")
     const prev = Global.Path.config
     ;(Global.Path as { config: string }).config = globalTmp.path
     await clear()
@@ -414,7 +414,7 @@ describe("bash permission migration", () => {
 }`
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Filesystem.write(path.join(dir, "opencode.jsonc"), input)
+          await Filesystem.write(path.join(dir, "nocowboy.jsonc"), input)
         },
       })
 
@@ -426,7 +426,7 @@ describe("bash permission migration", () => {
       try {
         await KilocodeConfig.migrateBashPermission()
 
-        const file = path.join(tmp.path, "opencode.jsonc")
+        const file = path.join(tmp.path, "nocowboy.jsonc")
         const text = await Filesystem.readText(file)
         const parsed = ConfigParse.schema(Config.Info, ConfigParse.jsonc(text, file), file)
         expect(text).toBe(input)
@@ -446,7 +446,7 @@ describe("bash permission migration", () => {
       })
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Filesystem.write(path.join(dir, "opencode.json"), input)
+          await Filesystem.write(path.join(dir, "nocowboy.json"), input)
         },
       })
 
@@ -458,7 +458,7 @@ describe("bash permission migration", () => {
       try {
         await KilocodeConfig.migrateBashPermission()
 
-        const file = path.join(tmp.path, "opencode.json")
+        const file = path.join(tmp.path, "nocowboy.json")
         const text = await Filesystem.readText(file)
         const parsed = ConfigParse.schema(Config.Info, ConfigParse.jsonc(text, file), file)
         expect(text).toBe(input)
@@ -476,7 +476,7 @@ describe("bash permission migration", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await Filesystem.write(
-          path.join(dir, "opencode.jsonc"),
+          path.join(dir, "nocowboy.jsonc"),
           `{
   "$schema": "https://app.kilo.ai/config.json",
   "permission": {
@@ -495,7 +495,7 @@ describe("bash permission migration", () => {
     try {
       await KilocodeConfig.migrateBashPermission()
 
-      const file = path.join(tmp.path, "opencode.jsonc")
+      const file = path.join(tmp.path, "nocowboy.jsonc")
       const text = await Filesystem.readText(file)
       const parsed = ConfigParse.schema(Config.Info, ConfigParse.jsonc(text, file), file)
       expect(parsed.permission?.read).toBe("allow")

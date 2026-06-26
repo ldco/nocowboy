@@ -41,7 +41,7 @@ it.live("nvidia billing origin header can be overridden from config", () =>
     Effect.gen(function* () {
       yield* Effect.promise(() =>
         Bun.write(
-          path.join(dir, "opencode.json"),
+          path.join(dir, "nocowboy.json"),
           JSON.stringify({
             $schema: "https://app.kilo.ai/config.json",
             provider: {

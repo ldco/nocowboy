@@ -154,20 +154,20 @@ describe("filesystem", () => {
       const nested = path.join(project, "nested")
       await fs.mkdir(nested, { recursive: true })
 
-      await fs.writeFile(path.join(tmp.path, "opencode.json"), "{}", "utf-8")
-      await fs.writeFile(path.join(tmp.path, "opencode.jsonc"), "{}", "utf-8")
-      await fs.writeFile(path.join(project, "opencode.json"), "{}", "utf-8")
-      await fs.writeFile(path.join(project, "opencode.jsonc"), "{}", "utf-8")
+      await fs.writeFile(path.join(tmp.path, "nocowboy.json"), "{}", "utf-8")
+      await fs.writeFile(path.join(tmp.path, "nocowboy.jsonc"), "{}", "utf-8")
+      await fs.writeFile(path.join(project, "nocowboy.json"), "{}", "utf-8")
+      await fs.writeFile(path.join(project, "nocowboy.jsonc"), "{}", "utf-8")
 
-      const result = await Filesystem.findUp(["opencode.json", "opencode.jsonc"], nested, tmp.path, {
+      const result = await Filesystem.findUp(["nocowboy.json", "nocowboy.jsonc"], nested, tmp.path, {
         rootFirst: true,
       })
 
       expect(result).toEqual([
-        path.join(tmp.path, "opencode.json"),
-        path.join(tmp.path, "opencode.jsonc"),
-        path.join(project, "opencode.json"),
-        path.join(project, "opencode.jsonc"),
+        path.join(tmp.path, "nocowboy.json"),
+        path.join(tmp.path, "nocowboy.jsonc"),
+        path.join(project, "nocowboy.json"),
+        path.join(project, "nocowboy.jsonc"),
       ])
     })
   })

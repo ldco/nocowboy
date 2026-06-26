@@ -31,7 +31,7 @@ async function provider(target: ReturnType<typeof app>, directory: string) {
 }
 
 async function config(dir: string, value: object) {
-  await Bun.write(path.join(dir, "opencode.json"), JSON.stringify(value))
+  await Bun.write(path.join(dir, "nocowboy.json"), JSON.stringify(value))
 }
 
 async function edit(target: ReturnType<typeof app>, directory: string) {

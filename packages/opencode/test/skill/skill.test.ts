@@ -65,7 +65,7 @@ const discovered = <T extends { location: string }>(list: readonly T[]) =>
 
 describe("skill", () => {
   // kilocode_change start
-  it.live("discovers skills from .kilo/skill/ directory", () =>
+  it.live("discovers skills from .nocowboy/skill/ directory", () =>
     // kilocode_change end
     provideTmpdirInstance(
       (dir) =>
@@ -127,7 +127,7 @@ description: Skill for dirs test.
   )
 
   // kilocode_change start
-  it.live("discovers multiple skills from .kilo/skill/ directory", () =>
+  it.live("discovers multiple skills from .nocowboy/skill/ directory", () =>
     // kilocode_change end
     provideTmpdirInstance(
       (dir) =>
@@ -194,7 +194,7 @@ Just some content without YAML frontmatter.
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Bun.write(
-              path.join(dir, ".opencode", "skill", "manual-skill", "SKILL.md"),
+              path.join(dir, ".nocowboy", "skill", "manual-skill", "SKILL.md"),
               `---
 name: manual-skill
 ---
@@ -453,10 +453,10 @@ description: A skill in the .agents/skills directory.
 `,
               ),
               Bun.write(
-                path.join(dir, ".opencode", "skill", "opencode-skill", "SKILL.md"),
+                path.join(dir, ".nocowboy", "skill", "opencode-skill", "SKILL.md"),
                 `---
 name: opencode-skill
-description: A skill in the .opencode/skill directory.
+description: A skill in the .nocowboy/skill directory.
 ---
 
 # OpenCode Skill
@@ -500,20 +500,20 @@ description: A skill in the .agents/skills directory.
 `,
               ),
               Bun.write(
-                path.join(dir, ".opencode", "skill", "agent-skill", "SKILL.md"),
+                path.join(dir, ".nocowboy", "skill", "agent-skill", "SKILL.md"),
                 `---
 name: opencode-skill
-description: A skill in the .opencode/skill directory.
+description: A skill in the .nocowboy/skill directory.
 ---
 
 # OpenCode Skill
 `,
               ),
               Bun.write(
-                path.join(dir, ".opencode", "skills", "agent-skill", "SKILL.md"),
+                path.join(dir, ".nocowboy", "skills", "agent-skill", "SKILL.md"),
                 `---
 name: opencode-skill
-description: A skill in the .opencode/skills directory.
+description: A skill in the .nocowboy/skills directory.
 ---
 
 # OpenCode Skill

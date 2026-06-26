@@ -23,7 +23,7 @@ describe("RuntimeFlags", () => {
         Effect.provide(
           fromConfig({
             NOCOWBOY_PURE: "true",
-            NOCOWBOY_DISABLE_DEFAULT_PLUGINS: "true",
+            KILO_DISABLE_DEFAULT_PLUGINS: "true",
             KILO_DISABLE_CHANNEL_DB: "true",
             KILO_AUTO_SHARE: "true",
             KILO_DISABLE_EMBEDDED_WEB_UI: "true",
@@ -35,7 +35,7 @@ describe("RuntimeFlags", () => {
             KILO_ENABLE_PARALLEL: "true",
             KILO_ENABLE_EXPERIMENTAL_MODELS: "true",
             KILO_ENABLE_QUESTION_TOOL: "true",
-            NOCOWBOY_CLIENT: "desktop",
+            KILO_CLIENT: "desktop",
           }),
         ),
       )
@@ -304,14 +304,14 @@ describe("RuntimeFlags", () => {
           ConfigProvider.layer(
             ConfigProvider.fromUnknown({
             NOCOWBOY_PURE: "true",
-              NOCOWBOY_DISABLE_DEFAULT_PLUGINS: "true",
+              KILO_DISABLE_DEFAULT_PLUGINS: "true",
               KILO_DISABLE_EXTERNAL_SKILLS: "true",
               KILO_DISABLE_LSP_DOWNLOAD: "true",
               KILO_SKIP_MIGRATIONS: "true",
               KILO_EXPERIMENTAL: "true",
               KILO_ENABLE_EXA: "true",
               KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234",
-              NOCOWBOY_CLIENT: "desktop",
+              KILO_CLIENT: "desktop",
             }),
           ),
         ),

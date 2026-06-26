@@ -23,7 +23,7 @@ const it = testEffect(env)
 
 afterAll(async () => {
   const dir = Global.Path.config
-  for (const file of ["nocowboy.jsonc", "nocowboy.json", "config.json", "opencode.json", "opencode.jsonc"]) {
+  for (const file of ["nocowboy.jsonc", "nocowboy.json", "config.json", "nocowboy.json", "nocowboy.jsonc"]) {
     await fs.rm(path.join(dir, file), { force: true }).catch(() => {})
   }
   await Effect.runPromise(

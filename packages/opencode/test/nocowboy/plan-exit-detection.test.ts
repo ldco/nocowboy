@@ -165,7 +165,7 @@ describe("plan_exit detection", () => {
           {
             tool: "plan_exit",
             input: {},
-            output: "Plan is ready at .kilo/plans/plan.md. Ending planning turn.",
+            output: "Plan is ready at .nocowboy/plans/plan.md. Ending planning turn.",
           },
         ],
       })
@@ -304,9 +304,9 @@ describe("plan_exit detection", () => {
 
   test("JetBrains client enables plan follow-up with custom answer", () =>
     withInstance(async () => {
-      const prev = process.env.NOCOWBOY_CLIENT
+      const prev = process.env.KILO_CLIENT
       try {
-        process.env.NOCOWBOY_CLIENT = "jetbrains"
+        process.env.KILO_CLIENT = "jetbrains"
         const seeded = await seed({
           text: "Here is the plan",
           tools: [
@@ -345,8 +345,8 @@ describe("plan_exit detection", () => {
         await questions.reject(question.id)
         await expect(pending).resolves.toBe("break")
       } finally {
-        if (prev === undefined) delete process.env.NOCOWBOY_CLIENT
-        else process.env.NOCOWBOY_CLIENT = prev
+        if (prev === undefined) delete process.env.KILO_CLIENT
+        else process.env.KILO_CLIENT = prev
       }
     }))
 

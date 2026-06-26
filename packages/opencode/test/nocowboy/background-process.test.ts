@@ -113,8 +113,8 @@ setInterval(() => {}, 1_000)
 `,
         ),
       )
-      const client = process.env["NOCOWBOY_CLIENT"]
-      process.env["NOCOWBOY_CLIENT"] = "vscode"
+      const client = process.env["KILO_CLIENT"]
+      process.env["KILO_CLIENT"] = "vscode"
 
       try {
         const info = yield* Effect.promise(() =>
@@ -130,8 +130,8 @@ setInterval(() => {}, 1_000)
         expect(info.ports).toEqual([listen])
       } finally {
         yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID))
-        if (client === undefined) delete process.env["NOCOWBOY_CLIENT"]
-        else process.env["NOCOWBOY_CLIENT"] = client
+        if (client === undefined) delete process.env["KILO_CLIENT"]
+        else process.env["KILO_CLIENT"] = client
       }
     }),
   )
@@ -149,9 +149,9 @@ setInterval(() => {}, 1_000)
 `,
         ),
       )
-      const client = process.env["NOCOWBOY_CLIENT"]
+      const client = process.env["KILO_CLIENT"]
       const scans = process.env["KILO_BACKGROUND_PROCESS_PORTS"]
-      process.env["NOCOWBOY_CLIENT"] = "cli"
+      process.env["KILO_CLIENT"] = "cli"
       process.env["KILO_BACKGROUND_PROCESS_PORTS"] = "true"
 
       try {
@@ -173,8 +173,8 @@ setInterval(() => {}, 1_000)
         expect(found?.ports).toEqual(process.platform === "win32" ? [] : [listen])
       } finally {
         yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID))
-        if (client === undefined) delete process.env["NOCOWBOY_CLIENT"]
-        else process.env["NOCOWBOY_CLIENT"] = client
+        if (client === undefined) delete process.env["KILO_CLIENT"]
+        else process.env["KILO_CLIENT"] = client
         if (scans === undefined) delete process.env["KILO_BACKGROUND_PROCESS_PORTS"]
         else process.env["KILO_BACKGROUND_PROCESS_PORTS"] = scans
       }
@@ -194,9 +194,9 @@ setInterval(() => {}, 1_000)
 `,
         ),
       )
-      const client = process.env["NOCOWBOY_CLIENT"]
+      const client = process.env["KILO_CLIENT"]
       const scans = process.env["KILO_BACKGROUND_PROCESS_PORTS"]
-      process.env["NOCOWBOY_CLIENT"] = "cli"
+      process.env["KILO_CLIENT"] = "cli"
       delete process.env["KILO_BACKGROUND_PROCESS_PORTS"]
 
       try {
@@ -213,8 +213,8 @@ setInterval(() => {}, 1_000)
         expect(found?.ports).toEqual([])
       } finally {
         yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID))
-        if (client === undefined) delete process.env["NOCOWBOY_CLIENT"]
-        else process.env["NOCOWBOY_CLIENT"] = client
+        if (client === undefined) delete process.env["KILO_CLIENT"]
+        else process.env["KILO_CLIENT"] = client
         if (scans === undefined) delete process.env["KILO_BACKGROUND_PROCESS_PORTS"]
         else process.env["KILO_BACKGROUND_PROCESS_PORTS"] = scans
       }
@@ -234,8 +234,8 @@ setInterval(() => {}, 1_000)
 `,
         ),
       )
-      const client = process.env["NOCOWBOY_CLIENT"]
-      process.env["NOCOWBOY_CLIENT"] = "vscode"
+      const client = process.env["KILO_CLIENT"]
+      process.env["KILO_CLIENT"] = "vscode"
 
       try {
         const info = yield* Effect.promise(() =>
@@ -251,8 +251,8 @@ setInterval(() => {}, 1_000)
         expect(found?.ports).toEqual([])
       } finally {
         yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID))
-        if (client === undefined) delete process.env["NOCOWBOY_CLIENT"]
-        else process.env["NOCOWBOY_CLIENT"] = client
+        if (client === undefined) delete process.env["KILO_CLIENT"]
+        else process.env["KILO_CLIENT"] = client
       }
     }),
   )

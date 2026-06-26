@@ -122,7 +122,7 @@ function writeProviderAuthPlugin(dir: string) {
     yield* Effect.promise(() => preparePluginDependencies(dir)) // kilocode_change
 
     yield* fs.writeWithDirs(
-      path.join(dir, ".opencode", "plugin", "provider-oauth-parity.ts"),
+      path.join(dir, ".nocowboy", "plugin", "provider-oauth-parity.ts"),
       [
         "export default {",
         '  id: "test.provider-oauth-parity",',
@@ -157,7 +157,7 @@ function writeProviderAuthValidationPlugin(dir: string) {
     yield* Effect.promise(() => preparePluginDependencies(dir)) // kilocode_change
 
     yield* fs.writeWithDirs(
-      path.join(dir, ".opencode", "plugin", "provider-oauth-validation.ts"),
+      path.join(dir, ".nocowboy", "plugin", "provider-oauth-validation.ts"),
       [
         "export default {",
         '  id: "test.provider-oauth-validation",',
@@ -199,7 +199,7 @@ function writeFunctionOptionsPlugin(dir: string) {
     yield* Effect.promise(() => preparePluginDependencies(dir)) // kilocode_change
 
     yield* fs.writeWithDirs(
-      path.join(dir, ".opencode", "plugin", "provider-function-options.ts"),
+      path.join(dir, ".nocowboy", "plugin", "provider-function-options.ts"),
       [
         "export default {",
         '  id: "test.provider-function-options",',
@@ -231,7 +231,7 @@ function writeProviderModelsMutationPlugin(dir: string) {
     yield* Effect.promise(() => preparePluginDependencies(dir)) // kilocode_change
 
     yield* fs.writeWithDirs(
-      path.join(dir, ".opencode", "plugin", "provider-models-mutation.ts"),
+      path.join(dir, ".nocowboy", "plugin", "provider-models-mutation.ts"),
       [
         "export default {",
         '  id: "test.provider-models-mutation",',

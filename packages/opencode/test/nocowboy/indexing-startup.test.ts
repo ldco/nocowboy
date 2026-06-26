@@ -77,7 +77,7 @@ const staleKilo: Partial<Config.Info> = {
     vectorStore: "qdrant",
   },
 }
-const configDir = process.env["KILO_CONFIG_DIR"]
+const configDir = process.env["NOCOWBOY_CONFIG_DIR"]
 const disabled = process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"]
 const error = new Error("test indexing initialization failed")
 
@@ -123,8 +123,8 @@ beforeEach(() => {
 
 afterEach(async () => {
   IndexingWorker.override()
-  if (configDir === undefined) delete process.env["KILO_CONFIG_DIR"]
-  else process.env["KILO_CONFIG_DIR"] = configDir
+  if (configDir === undefined) delete process.env["NOCOWBOY_CONFIG_DIR"]
+  else process.env["NOCOWBOY_CONFIG_DIR"] = configDir
   if (disabled === undefined) delete process.env["KILO_DISABLE_CODEBASE_INDEXING"]
   else process.env["KILO_DISABLE_CODEBASE_INDEXING"] = disabled
   global.fetch = fetch
@@ -148,7 +148,7 @@ describe("indexing model catalog", () => {
         return { global, project }
       },
     })
-    process.env["KILO_CONFIG_DIR"] = tmp.extra.global
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.extra.global
     const calls: string[] = []
     globalThis.fetch = (async (input) => {
       calls.push(String(input))
@@ -177,7 +177,7 @@ describe("indexing startup degradation", () => {
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockRejectedValue(error)
 
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
 
     try {
       const app = Server.Default().app
@@ -241,7 +241,7 @@ describe("indexing startup degradation", () => {
     })
 
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const on = (data: {
       directory?: string
       workspace?: string
@@ -345,7 +345,7 @@ describe("indexing startup degradation", () => {
     }))
 
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const events: KiloIndexing.Status[] = []
     const on = (data: {
       directory?: string
@@ -375,7 +375,7 @@ describe("indexing startup degradation", () => {
 
   test("reports routes as in progress while initialization is in flight", async () => {
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const gate = Promise.withResolvers<{ requiresRestart: boolean }>()
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockImplementation(() => gate.promise)
 
@@ -410,7 +410,7 @@ describe("indexing startup degradation", () => {
 
   test("does not publish initialized status after in-flight startup is disposed", async () => {
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const gate = Promise.withResolvers<{ requiresRestart: boolean }>()
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockImplementation(() => gate.promise)
     const events: KiloIndexing.Status[] = []
@@ -451,7 +451,7 @@ describe("indexing startup degradation", () => {
     const dispose = spyOn(CodeIndexManager.prototype, "dispose")
 
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
 
     try {
       await provideTestInstance({
@@ -476,7 +476,7 @@ describe("indexing startup degradation", () => {
 
   test("reports not ready while initialization is in flight", async () => {
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const gate = Promise.withResolvers<{ requiresRestart: boolean }>()
     const init = spyOn(CodeIndexManager.prototype, "initialize").mockImplementation(() => gate.promise)
 
@@ -505,7 +505,7 @@ describe("indexing startup degradation", () => {
 
   test("stays disabled when indexing enablement is unset", async () => {
     await using tmp = await tmpdir({ git: true, config: unset })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     const init = spyOn(CodeIndexManager.prototype, "initialize")
 
     await provideTestInstance({
@@ -533,7 +533,7 @@ describe("indexing startup degradation", () => {
     })
 
     await using tmp = await tmpdir({ git: true, config: inactive })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
 
     await provideTestInstance({
       directory: tmp.path,
@@ -570,7 +570,7 @@ describe("indexing startup degradation", () => {
     const org = process.env.KILO_ORG_ID
 
     await using tmp = await tmpdir({ git: true, config: kilo })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env.KILO_API_KEY = "kilo-token"
     process.env.KILO_ORG_ID = "org_123"
 
@@ -613,7 +613,7 @@ describe("indexing startup degradation", () => {
     const key = process.env.KILO_API_KEY
 
     await using tmp = await tmpdir({ git: true, config: staleKilo })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env.KILO_API_KEY = "kilo-token"
 
     try {
@@ -665,7 +665,7 @@ describe("indexing startup degradation", () => {
     }
 
     await using tmp = await tmpdir({ git: true, config })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env.KILO_API_KEY = "kilo-token"
 
     try {
@@ -692,7 +692,7 @@ describe("indexing startup degradation", () => {
     const key = process.env.KILO_API_KEY
 
     await using tmp = await tmpdir({ git: true, config: staleKilo })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env.KILO_API_KEY = "kilo-token"
 
     try {
@@ -721,7 +721,7 @@ describe("indexing startup degradation", () => {
     const key = process.env.KILO_API_KEY
 
     await using tmp = await tmpdir({ git: true, config: implicitOpenAi })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env.KILO_API_KEY = "kilo-token"
 
     try {
@@ -745,7 +745,7 @@ describe("indexing startup degradation", () => {
 
   test("stays disabled when VS Code starts without a workspace folder", async () => {
     await using tmp = await tmpdir({ git: true, config: cfg })
-    process.env["KILO_CONFIG_DIR"] = tmp.path
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
     process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] = "vscode-no-workspace"
     const init = spyOn(CodeIndexManager.prototype, "initialize")
 

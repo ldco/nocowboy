@@ -81,7 +81,7 @@ describe("kilocode default indexing plugin", () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Filesystem.write(
-            path.join(dir, "opencode.json"),
+            path.join(dir, "nocowboy.json"),
             JSON.stringify({
               $schema: "https://app.kilo.ai/config.json",
               plugin: ["global-plugin-1"],
