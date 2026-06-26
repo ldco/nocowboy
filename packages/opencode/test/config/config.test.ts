@@ -192,13 +192,13 @@ test("creates global jsonc config with schema when no global configs exist", asy
   }
 })
 
-test("does not create global config when KILO_CONFIG_DIR is set", async () => {
+test("does not create global config when NOCOWBOY_CONFIG_DIR is set", async () => {
   await using tmp = await tmpdir()
   await using custom = await tmpdir()
   const prevConfig = Global.Path.config
-  const prevEnv = process.env.KILO_CONFIG_DIR
+  const prevEnv = process.env.NOCOWBOY_CONFIG_DIR
   ;(Global.Path as { config: string }).config = tmp.path
-  process.env.KILO_CONFIG_DIR = custom.path
+  process.env.NOCOWBOY_CONFIG_DIR = custom.path
   await clear(true)
 
   try {
@@ -212,8 +212,8 @@ test("does not create global config when KILO_CONFIG_DIR is set", async () => {
     expect(await Filesystem.exists(path.join(tmp.path, "opencode.jsonc"))).toBe(false)
   } finally {
     ;(Global.Path as { config: string }).config = prevConfig
-    if (prevEnv === undefined) delete process.env.KILO_CONFIG_DIR
-    else process.env.KILO_CONFIG_DIR = prevEnv
+    if (prevEnv === undefined) delete process.env.NOCOWBOY_CONFIG_DIR
+    else process.env.NOCOWBOY_CONFIG_DIR = prevEnv
     await clear(true)
   }
 })
@@ -1129,7 +1129,7 @@ test("gets config directories", async () => {
   })
 })
 
-test("does not try to install dependencies in read-only KILO_CONFIG_DIR", async () => {
+test("does not try to install dependencies in read-only NOCOWBOY_CONFIG_DIR", async () => {
   if (process.platform === "win32") return
 
   await using tmp = await tmpdir<string>({
@@ -1146,8 +1146,8 @@ test("does not try to install dependencies in read-only KILO_CONFIG_DIR", async 
     },
   })
 
-  const prev = process.env.KILO_CONFIG_DIR
-  process.env.KILO_CONFIG_DIR = tmp.extra
+  const prev = process.env.NOCOWBOY_CONFIG_DIR
+  process.env.NOCOWBOY_CONFIG_DIR = tmp.extra
 
   try {
     await withTestInstance({
@@ -1157,12 +1157,12 @@ test("does not try to install dependencies in read-only KILO_CONFIG_DIR", async 
       },
     })
   } finally {
-    if (prev === undefined) delete process.env.KILO_CONFIG_DIR
-    else process.env.KILO_CONFIG_DIR = prev
+    if (prev === undefined) delete process.env.NOCOWBOY_CONFIG_DIR
+    else process.env.NOCOWBOY_CONFIG_DIR = prev
   }
 })
 
-test("installs dependencies in writable KILO_CONFIG_DIR", async () => {
+test("installs dependencies in writable NOCOWBOY_CONFIG_DIR", async () => {
   await using tmp = await tmpdir<string>({
     init: async (dir) => {
       const cfg = path.join(dir, "configdir")
@@ -1171,8 +1171,8 @@ test("installs dependencies in writable KILO_CONFIG_DIR", async () => {
     },
   })
 
-  const prev = process.env.KILO_CONFIG_DIR
-  process.env.KILO_CONFIG_DIR = tmp.extra
+  const prev = process.env.NOCOWBOY_CONFIG_DIR
+  process.env.NOCOWBOY_CONFIG_DIR = tmp.extra
 
   const testLayer = Config.layer.pipe(
     Layer.provide(testFlock),
@@ -1209,8 +1209,8 @@ test("installs dependencies in writable KILO_CONFIG_DIR", async () => {
     expect(await Filesystem.exists(path.join(tmp.extra, ".gitignore"))).toBe(true)
     expect(await Filesystem.readText(path.join(tmp.extra, ".gitignore"))).toContain("package-lock.json")
   } finally {
-    if (prev === undefined) delete process.env.KILO_CONFIG_DIR
-    else process.env.KILO_CONFIG_DIR = prev
+    if (prev === undefined) delete process.env.NOCOWBOY_CONFIG_DIR
+    else process.env.NOCOWBOY_CONFIG_DIR = prev
   }
 })
 
@@ -2474,10 +2474,10 @@ describe("deduplicatePluginOrigins", () => {
   })
 })
 
-describe("KILO_DISABLE_PROJECT_CONFIG", () => {
+describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
   test("skips project config files when flag is set", async () => {
-    const originalEnv = process.env["KILO_DISABLE_PROJECT_CONFIG"]
-    process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
+    const originalEnv = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
+    process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir({
@@ -2504,17 +2504,17 @@ describe("KILO_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+        delete process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["KILO_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
   test("skips project .kilo/ directories when flag is set", async () => {
     // kilocode_change - test .kilo/ directory (the test body writes to .kilo/command/)
-    const originalEnv = process.env["KILO_DISABLE_PROJECT_CONFIG"]
-    process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
+    const originalEnv = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
+    process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir({
@@ -2536,16 +2536,16 @@ describe("KILO_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+        delete process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["KILO_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
   test("still loads global config when flag is set", async () => {
-    const originalEnv = process.env["KILO_DISABLE_PROJECT_CONFIG"]
-    process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
+    const originalEnv = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
+    process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir()
@@ -2560,21 +2560,21 @@ describe("KILO_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalEnv === undefined) {
-        delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+        delete process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["KILO_DISABLE_PROJECT_CONFIG"] = originalEnv
+        process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = originalEnv
       }
     }
   })
 
   test("skips relative instructions with warning when flag is set but no config dir", async () => {
-    const originalDisable = process.env["KILO_DISABLE_PROJECT_CONFIG"]
-    const originalConfigDir = process.env["KILO_CONFIG_DIR"]
+    const originalDisable = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
+    const originalConfigDir = process.env["NOCOWBOY_CONFIG_DIR"]
 
     try {
       // Ensure no config dir is set
-      delete process.env["KILO_CONFIG_DIR"]
-      process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
+      delete process.env["NOCOWBOY_CONFIG_DIR"]
+      process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
 
       await using tmp = await tmpdir({
         init: async (dir) => {
@@ -2605,21 +2605,21 @@ describe("KILO_DISABLE_PROJECT_CONFIG", () => {
       })
     } finally {
       if (originalDisable === undefined) {
-        delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+        delete process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["KILO_DISABLE_PROJECT_CONFIG"] = originalDisable
+        process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = originalDisable
       }
       if (originalConfigDir === undefined) {
-        delete process.env["KILO_CONFIG_DIR"]
+        delete process.env["NOCOWBOY_CONFIG_DIR"]
       } else {
-        process.env["KILO_CONFIG_DIR"] = originalConfigDir
+        process.env["NOCOWBOY_CONFIG_DIR"] = originalConfigDir
       }
     }
   })
 
-  test("KILO_CONFIG_DIR still works when flag is set", async () => {
-    const originalDisable = process.env["KILO_DISABLE_PROJECT_CONFIG"]
-    const originalConfigDir = process.env["KILO_CONFIG_DIR"]
+  test("NOCOWBOY_CONFIG_DIR still works when flag is set", async () => {
+    const originalDisable = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
+    const originalConfigDir = process.env["NOCOWBOY_CONFIG_DIR"]
 
     try {
       await using configDirTmp = await tmpdir({
@@ -2648,38 +2648,38 @@ describe("KILO_DISABLE_PROJECT_CONFIG", () => {
         },
       })
 
-      process.env["KILO_DISABLE_PROJECT_CONFIG"] = "true"
-      process.env["KILO_CONFIG_DIR"] = configDirTmp.path
+      process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
+      process.env["NOCOWBOY_CONFIG_DIR"] = configDirTmp.path
 
       await withTestInstance({
         directory: projectTmp.path,
         fn: async (ctx) => {
           const config = await load(ctx)
-          // Should load from KILO_CONFIG_DIR, not project
+          // Should load from NOCOWBOY_CONFIG_DIR, not project
           expect(config.model).toBe("configdir/model")
         },
       })
     } finally {
       if (originalDisable === undefined) {
-        delete process.env["KILO_DISABLE_PROJECT_CONFIG"]
+        delete process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
       } else {
-        process.env["KILO_DISABLE_PROJECT_CONFIG"] = originalDisable
+        process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = originalDisable
       }
       if (originalConfigDir === undefined) {
-        delete process.env["KILO_CONFIG_DIR"]
+        delete process.env["NOCOWBOY_CONFIG_DIR"]
       } else {
-        process.env["KILO_CONFIG_DIR"] = originalConfigDir
+        process.env["NOCOWBOY_CONFIG_DIR"] = originalConfigDir
       }
     }
   })
 })
 
-describe("KILO_CONFIG_CONTENT token substitution", () => {
-  test("substitutes {env:} tokens in KILO_CONFIG_CONTENT", async () => {
-    const originalEnv = process.env["KILO_CONFIG_CONTENT"]
+describe("NOCOWBOY_CONFIG_CONTENT token substitution", () => {
+  test("substitutes {env:} tokens in NOCOWBOY_CONFIG_CONTENT", async () => {
+    const originalEnv = process.env["NOCOWBOY_CONFIG_CONTENT"]
     const originalTestVar = process.env["TEST_CONFIG_VAR"]
     process.env["TEST_CONFIG_VAR"] = "test_api_key_12345"
-    process.env["KILO_CONFIG_CONTENT"] = JSON.stringify({
+    process.env["NOCOWBOY_CONFIG_CONTENT"] = JSON.stringify({
       $schema: "https://opencode.ai/config.json",
       username: "{env:TEST_CONFIG_VAR}",
     })
@@ -2695,9 +2695,9 @@ describe("KILO_CONFIG_CONTENT token substitution", () => {
       })
     } finally {
       if (originalEnv !== undefined) {
-        process.env["KILO_CONFIG_CONTENT"] = originalEnv
+        process.env["NOCOWBOY_CONFIG_CONTENT"] = originalEnv
       } else {
-        delete process.env["KILO_CONFIG_CONTENT"]
+        delete process.env["NOCOWBOY_CONFIG_CONTENT"]
       }
       if (originalTestVar !== undefined) {
         process.env["TEST_CONFIG_VAR"] = originalTestVar
@@ -2707,14 +2707,14 @@ describe("KILO_CONFIG_CONTENT token substitution", () => {
     }
   })
 
-  test("substitutes {file:} tokens in KILO_CONFIG_CONTENT", async () => {
-    const originalEnv = process.env["KILO_CONFIG_CONTENT"]
+  test("substitutes {file:} tokens in NOCOWBOY_CONFIG_CONTENT", async () => {
+    const originalEnv = process.env["NOCOWBOY_CONFIG_CONTENT"]
 
     try {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Filesystem.write(path.join(dir, "api_key.txt"), "secret_key_from_file")
-          process.env["KILO_CONFIG_CONTENT"] = JSON.stringify({
+          process.env["NOCOWBOY_CONFIG_CONTENT"] = JSON.stringify({
             $schema: "https://opencode.ai/config.json",
             username: "{file:./api_key.txt}",
           })
@@ -2729,9 +2729,9 @@ describe("KILO_CONFIG_CONTENT token substitution", () => {
       })
     } finally {
       if (originalEnv !== undefined) {
-        process.env["KILO_CONFIG_CONTENT"] = originalEnv
+        process.env["NOCOWBOY_CONFIG_CONTENT"] = originalEnv
       } else {
-        delete process.env["KILO_CONFIG_CONTENT"]
+        delete process.env["NOCOWBOY_CONFIG_CONTENT"]
       }
     }
   })

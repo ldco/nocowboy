@@ -304,9 +304,9 @@ describe("plan_exit detection", () => {
 
   test("JetBrains client enables plan follow-up with custom answer", () =>
     withInstance(async () => {
-      const prev = process.env.KILO_CLIENT
+      const prev = process.env.NOCOWBOY_CLIENT
       try {
-        process.env.KILO_CLIENT = "jetbrains"
+        process.env.NOCOWBOY_CLIENT = "jetbrains"
         const seeded = await seed({
           text: "Here is the plan",
           tools: [
@@ -345,8 +345,8 @@ describe("plan_exit detection", () => {
         await questions.reject(question.id)
         await expect(pending).resolves.toBe("break")
       } finally {
-        if (prev === undefined) delete process.env.KILO_CLIENT
-        else process.env.KILO_CLIENT = prev
+        if (prev === undefined) delete process.env.NOCOWBOY_CLIENT
+        else process.env.NOCOWBOY_CLIENT = prev
       }
     }))
 

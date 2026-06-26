@@ -192,7 +192,7 @@ describe("NoCowboy tool registry indexing", () => {
   })
 
   test("conditionally includes NoCowboy registry extras", () => {
-    const prev = process.env["KILO_CLIENT"]
+    const prev = process.env["NOCOWBOY_CLIENT"]
     const prevNcn = process.env["NOCOWBOY_CLIENT"]
     const def = (id: string): Tool.Def => ({
       id,
@@ -209,7 +209,7 @@ describe("NoCowboy tool registry indexing", () => {
     }
 
     try {
-      process.env["KILO_CLIENT"] = "cli"
+      process.env["NOCOWBOY_CLIENT"] = "cli"
       process.env["NOCOWBOY_CLIENT"] = "cli"
       expect(NocowboyToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual([
         "semantic_search",
@@ -220,7 +220,7 @@ describe("NoCowboy tool registry indexing", () => {
         ["codebase_search", "semantic_search", "recall", "background_process"],
       )
 
-      process.env["KILO_CLIENT"] = "vscode"
+      process.env["NOCOWBOY_CLIENT"] = "vscode"
       process.env["NOCOWBOY_CLIENT"] = "vscode"
       expect(NocowboyToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
         ["codebase_search", "semantic_search", "recall", "background_process", "agent_manager"],
@@ -231,12 +231,12 @@ describe("NoCowboy tool registry indexing", () => {
         "agent_manager",
       ])
 
-      process.env["KILO_CLIENT"] = "desktop"
+      process.env["NOCOWBOY_CLIENT"] = "desktop"
       process.env["NOCOWBOY_CLIENT"] = "desktop"
       expect(NocowboyToolRegistry.extra(tools, {}).map((tool) => tool.id)).toEqual(["semantic_search", "recall"])
     } finally {
-      if (prev === undefined) delete process.env["KILO_CLIENT"]
-      if (prev !== undefined) process.env["KILO_CLIENT"] = prev
+      if (prev === undefined) delete process.env["NOCOWBOY_CLIENT"]
+      if (prev !== undefined) process.env["NOCOWBOY_CLIENT"] = prev
       if (prevNcn === undefined) delete process.env["NOCOWBOY_CLIENT"]
       if (prevNcn !== undefined) process.env["NOCOWBOY_CLIENT"] = prevNcn
     }

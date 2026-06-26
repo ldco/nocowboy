@@ -68,8 +68,8 @@ describe("ProxyUtil", () => {
     test("strips opencode-specific headers", () => {
       const req = new Request("http://localhost", {
         headers: {
-          "x-kilo-directory": "/home/user/project",
-          "x-kilo-workspace": "ws_123",
+          "x-nocowboy-directory": "/home/user/project",
+          "x-nocowboy-workspace": "ws_123",
           "accept-encoding": "gzip",
           "x-custom": "keep",
         },

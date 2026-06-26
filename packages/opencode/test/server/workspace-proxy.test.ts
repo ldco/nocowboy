@@ -125,8 +125,8 @@ describe("HttpApi workspace proxy", () => {
       const request = HttpServerRequest.fromWeb(
         new Request("http://localhost/test", {
           headers: {
-            "x-kilo-directory": "/secret/path",
-            "x-kilo-workspace": "ws_123",
+            "x-nocowboy-directory": "/secret/path",
+            "x-nocowboy-workspace": "ws_123",
             "x-custom": "preserved",
           },
         }),

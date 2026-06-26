@@ -50,7 +50,7 @@ const httpApiServerLayer = servedRoutes.pipe(
 const it = testEffect(Layer.mergeAll(testStateLayer, httpApiServerLayer))
 const handlerContext = Context.empty() as Context.Context<unknown>
 
-const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-kilo-directory", dir)
+const directoryHeader = (dir: string) => HttpClientRequest.setHeader("x-nocowboy-directory", dir)
 
 describe("instance HttpApi", () => {
   it.live("serves the OpenAPI document", () =>
@@ -127,7 +127,7 @@ describe("instance HttpApi", () => {
           HttpApiApp.webHandler().handler(
             new Request(`http://localhost${path}`, {
               ...init,
-              headers: { "x-kilo-directory": dir, "content-type": "application/json", ...init?.headers },
+              headers: { "x-nocowboy-directory": dir, "content-type": "application/json", ...init?.headers },
             }),
             handlerContext,
           ),

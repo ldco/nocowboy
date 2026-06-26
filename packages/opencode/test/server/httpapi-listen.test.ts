@@ -69,7 +69,7 @@ async function requestTicket(
     method: "POST",
     headers: {
       authorization: authorization(),
-      "x-kilo-directory": dir,
+      "x-nocowboy-directory": dir,
       ...(options?.ticketHeader === false ? {} : { "x-kilo-ticket": "1" }),
       ...(options?.origin ? { origin: options.origin } : {}),
     },
@@ -89,7 +89,7 @@ async function createCat(listener: Awaited<ReturnType<typeof startListener>>, di
     method: "POST",
     headers: {
       authorization: authorization(),
-      "x-kilo-directory": dir,
+      "x-nocowboy-directory": dir,
       "content-type": "application/json",
     },
     body: JSON.stringify({ command: "/bin/cat", title: "listen-smoke" }),
@@ -174,7 +174,7 @@ describe("HttpApi Server.listen", () => {
     let stopped = false
     try {
       const response = await fetch(new URL(PtyPaths.shells, listener.url), {
-        headers: { authorization: authorization(), "x-kilo-directory": tmp.path },
+        headers: { authorization: authorization(), "x-nocowboy-directory": tmp.path },
       })
       expect(response.status).toBe(200)
       expect(await response.json()).toEqual(

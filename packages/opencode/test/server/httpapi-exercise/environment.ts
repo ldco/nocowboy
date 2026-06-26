@@ -19,7 +19,7 @@ const preserveExerciseDatabase = !!process.env.KILO_HTTPAPI_EXERCISE_DB
 export const exerciseDatabasePath =
   process.env.KILO_HTTPAPI_EXERCISE_DB ??
   path.join(process.env.TMPDIR ?? "/tmp", `opencode-httpapi-exercise-${process.pid}.db`)
-process.env.KILO_DB = exerciseDatabasePath
+process.env.NOCOWBOY_DB = exerciseDatabasePath
 Flag.NOCOWBOY_DB = exerciseDatabasePath
 
 export const original = {

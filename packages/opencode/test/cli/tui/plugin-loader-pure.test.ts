@@ -33,9 +33,9 @@ test("skips external tui plugins in pure mode", async () => {
     },
   })
 
-  const pure = process.env.KILO_PURE
+  const pure = process.env.NOCOWBOY_PURE
   const meta = process.env.KILO_PLUGIN_META_FILE
-  process.env.KILO_PURE = "1"
+  process.env.NOCOWBOY_PURE = "1"
   process.env.KILO_PLUGIN_META_FILE = tmp.extra.meta
 
   const config = createTuiResolvedConfig({
@@ -59,9 +59,9 @@ test("skips external tui plugins in pure mode", async () => {
     cwd.mockRestore()
     wait.mockRestore()
     if (pure === undefined) {
-      delete process.env.KILO_PURE
+      delete process.env.NOCOWBOY_PURE
     } else {
-      process.env.KILO_PURE = pure
+      process.env.NOCOWBOY_PURE = pure
     }
     if (meta === undefined) {
       delete process.env.KILO_PLUGIN_META_FILE

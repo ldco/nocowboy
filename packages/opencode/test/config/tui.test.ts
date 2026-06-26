@@ -21,7 +21,7 @@ const globalConfigFiles = ["kilo.json", "kilo.jsonc", "tui.json", "tui.jsonc"].m
 
 const cleanState = Effect.gen(function* () {
   const fs = yield* AppFileSystem.Service
-  delete process.env.KILO_CONFIG
+  delete process.env.NOCOWBOY_CONFIG
   delete process.env.NOCOWBOY_TUI_CONFIG
   yield* Effect.forEach(globalConfigFiles, (file) => fs.remove(file, { force: true }).pipe(Effect.ignore), {
     discard: true,
@@ -412,7 +412,7 @@ it.instance("top-level keys in tui.json take precedence over nested tui key", ()
   ),
 )
 
-it.instance("project config takes precedence over NOCOWBOY_TUI_CONFIG (matches KILO_CONFIG)", () =>
+it.instance("project config takes precedence over NOCOWBOY_TUI_CONFIG (matches NOCOWBOY_CONFIG)", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -654,7 +654,7 @@ it.instance("NOCOWBOY_TUI_CONFIG provides settings when no project config exists
   ),
 )
 
-it.instance("does not derive tui path from KILO_CONFIG", () =>
+it.instance("does not derive tui path from NOCOWBOY_CONFIG", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -665,7 +665,7 @@ it.instance("does not derive tui path from KILO_CONFIG", () =>
       yield* fs.writeJson(path.join(customDir, "tui.json"), { theme: "should-not-load" })
 
       yield* withEnv(
-        "KILO_CONFIG",
+        "NOCOWBOY_CONFIG",
         path.join(customDir, "kilo.json"),
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)

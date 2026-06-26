@@ -59,8 +59,8 @@ describe("session.created event", () => {
   })
 
   test("session.created event should be emitted before session.updated", async () => {
-    const previous = process.env.KILO_EXPERIMENTAL_WORKSPACES
-    delete process.env.KILO_EXPERIMENTAL_WORKSPACES
+    const previous = process.env.NOCOWBOY_EXPERIMENTAL_WORKSPACES
+    delete process.env.NOCOWBOY_EXPERIMENTAL_WORKSPACES
     try {
       await provideTestInstance({
         directory: projectRoot,
@@ -93,8 +93,8 @@ describe("session.created event", () => {
         },
       })
     } finally {
-      if (previous === undefined) delete process.env.KILO_EXPERIMENTAL_WORKSPACES
-      else process.env.KILO_EXPERIMENTAL_WORKSPACES = previous
+      if (previous === undefined) delete process.env.NOCOWBOY_EXPERIMENTAL_WORKSPACES
+      else process.env.NOCOWBOY_EXPERIMENTAL_WORKSPACES = previous
     }
   })
 })

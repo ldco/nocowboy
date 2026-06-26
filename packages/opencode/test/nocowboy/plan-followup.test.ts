@@ -24,7 +24,7 @@ import fs from "fs/promises"
 import { tmpdir } from "../fixture/fixture"
 
 Log.init({ print: false })
-process.env.KILO_CLIENT = "cli"
+process.env.NOCOWBOY_CLIENT = "cli"
 
 const runtime = makeRuntime(Question.Service, Question.defaultLayer)
 const question = {
@@ -346,9 +346,9 @@ describe("plan follow-up", () => {
 
   test("ask - hides custom answer row on VS Code where the main prompt input handles typed replies", () =>
     withInstance(async () => {
-      const prev = process.env.KILO_CLIENT
+      const prev = process.env.NOCOWBOY_CLIENT
       try {
-        process.env.KILO_CLIENT = "vscode"
+        process.env.NOCOWBOY_CLIENT = "vscode"
         const seeded = await seed({ text: "1. Build" })
         const pending = PlanFollowup.ask({
           question,
@@ -371,7 +371,7 @@ describe("plan follow-up", () => {
         await question.reject(item.id)
         await expect(pending).resolves.toBe("break")
       } finally {
-        process.env.KILO_CLIENT = prev
+        process.env.NOCOWBOY_CLIENT = prev
       }
     }))
 

@@ -11,7 +11,7 @@ import { disposeAllInstances, tmpdir } from "../../fixture/fixture"
 void Log.init({ print: false })
 
 const env = {
-  KILO_AUTH_CONTENT: process.env.KILO_AUTH_CONTENT,
+  NOCOWBOY_AUTH_CONTENT: process.env.NOCOWBOY_AUTH_CONTENT,
   INCEPTION_API_KEY: process.env.INCEPTION_API_KEY,
 }
 
@@ -70,7 +70,7 @@ function completion(input: RequestInfo | URL) {
 }
 
 function authenticate() {
-  process.env.KILO_AUTH_CONTENT = JSON.stringify({
+  process.env.NOCOWBOY_AUTH_CONTENT = JSON.stringify({
     kilo: {
       type: "oauth",
       refresh: "refresh-token",
@@ -96,12 +96,12 @@ afterEach(async () => {
 
 describe.skip("HttpApi NoCowboy next edit", () => {
   test("requires NoCowboy Gateway authentication for the NoCowboy-backed model", async () => {
-    process.env.KILO_AUTH_CONTENT = "{}"
+    process.env.NOCOWBOY_AUTH_CONTENT = "{}"
     expect((await send()).status).toBe(401)
   })
 
   test("rejects non-edit placeholder targets", async () => {
-    process.env.KILO_AUTH_CONTENT = "{}"
+    process.env.NOCOWBOY_AUTH_CONTENT = "{}"
     expect((await send({ ...edit, model: "mistralai/codestral-2508" })).status).toBe(400)
   })
 
@@ -141,7 +141,7 @@ describe.skip("HttpApi NoCowboy next edit", () => {
   })
 
   test("preserves direct Inception BYOK edits", async () => {
-    process.env.KILO_AUTH_CONTENT = "{}"
+    process.env.NOCOWBOY_AUTH_CONTENT = "{}"
     process.env.INCEPTION_API_KEY = "inception-token"
     const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
     const mock = stub(async (input, init) => {

@@ -32,7 +32,7 @@ const it = testEffect(Layer.mergeAll(NodeServices.layer, Project.defaultLayer, S
 function request(path: string, directory: string, init: RequestInit = {}) {
   return Effect.promise(() => {
     const headers = new Headers(init.headers)
-    headers.set("x-kilo-directory", directory)
+    headers.set("x-nocowboy-directory", directory)
     return Promise.resolve(Server.Default().app.request(path, { ...init, headers }))
   })
 }
@@ -368,7 +368,7 @@ describe("workspace HttpApi", () => {
           headers: {
             "accept-encoding": "br",
             "content-type": "application/json",
-            "x-kilo-workspace": "internal",
+            "x-nocowboy-workspace": "internal",
           },
           body: JSON.stringify({ $schema: "https://opencode.ai/config.json" }),
         })
@@ -390,8 +390,8 @@ describe("workspace HttpApi", () => {
             body: JSON.stringify({ $schema: "https://opencode.ai/config.json" }),
           },
         ])
-        expect(forwarded[0]?.headers).not.toHaveProperty("x-kilo-directory")
-        expect(forwarded[0]?.headers).not.toHaveProperty("x-kilo-workspace")
+        expect(forwarded[0]?.headers).not.toHaveProperty("x-nocowboy-directory")
+        expect(forwarded[0]?.headers).not.toHaveProperty("x-nocowboy-workspace")
       } finally {
         void remote.stop(true)
         yield* request(WorkspacePaths.remove.replace(":id", workspace.id), dir, { method: "DELETE" })

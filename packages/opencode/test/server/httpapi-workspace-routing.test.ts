@@ -259,8 +259,8 @@ describe("HttpApi workspace routing middleware", () => {
       const response = yield* HttpClientRequest.patch(`/probe?workspace=${workspace.id}&keep=yes`).pipe(
         HttpClientRequest.setHeaders({
           "content-type": "application/json",
-          "x-kilo-directory": "/secret/path",
-          "x-kilo-workspace": "internal",
+          "x-nocowboy-directory": "/secret/path",
+          "x-nocowboy-workspace": "internal",
         }),
         HttpClient.execute,
       )

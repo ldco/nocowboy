@@ -57,7 +57,7 @@ describe("experimental.session.list", () => {
           fn: async (ctx) => ({
             app: Server.Default().app,
             project: await Server.Default().app.request("/project/current", {
-              headers: { "x-kilo-directory": first.path },
+              headers: { "x-nocowboy-directory": first.path },
             }),
             session: await create("root-session", ctx),
           }),
@@ -74,7 +74,7 @@ describe("experimental.session.list", () => {
         const response = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true`,
           {
-            headers: { "x-kilo-directory": first.path },
+            headers: { "x-nocowboy-directory": first.path },
           },
         )
 
@@ -118,7 +118,7 @@ describe("experimental.session.list", () => {
           fn: async (ctx) => ({
             app: Server.Default().app,
             project: await Server.Default().app.request("/project/current", {
-              headers: { "x-kilo-directory": first.path },
+              headers: { "x-nocowboy-directory": first.path },
             }),
             session: await create("root-session", ctx),
           }),
@@ -137,7 +137,7 @@ describe("experimental.session.list", () => {
         const response = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true&directory=${encodeURIComponent(first.path)}`,
           {
-            headers: { "x-kilo-directory": first.path },
+            headers: { "x-nocowboy-directory": first.path },
           },
         )
 
@@ -177,7 +177,7 @@ describe("experimental.session.list", () => {
           fn: async (ctx) => ({
             app: Server.Default().app,
             project: await Server.Default().app.request("/project/current", {
-              headers: { "x-kilo-directory": first.path },
+              headers: { "x-nocowboy-directory": first.path },
             }),
             session: await create("root-session", ctx),
           }),
@@ -189,7 +189,7 @@ describe("experimental.session.list", () => {
         const response = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true&current=true&directory=${encodeURIComponent(cwd)}`,
           {
-            headers: { "x-kilo-directory": first.path },
+            headers: { "x-nocowboy-directory": first.path },
           },
         )
 
@@ -227,7 +227,7 @@ describe("experimental.session.list", () => {
           fn: async (ctx) => ({
             app: Server.Default().app,
             project: await Server.Default().app.request("/project/current", {
-              headers: { "x-kilo-directory": first.path },
+              headers: { "x-nocowboy-directory": first.path },
             }),
             session: await create("root-session", ctx),
           }),
@@ -238,13 +238,13 @@ describe("experimental.session.list", () => {
         const all = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true&directory=${encodeURIComponent(first.path)}`,
           {
-            headers: { "x-kilo-directory": first.path },
+            headers: { "x-nocowboy-directory": first.path },
           },
         )
         const current = await app.request(
           `/experimental/session?projectID=${encodeURIComponent(project.id)}&roots=true&worktrees=true&current=true&directory=${encodeURIComponent(first.path)}`,
           {
-            headers: { "x-kilo-directory": first.path },
+            headers: { "x-nocowboy-directory": first.path },
           },
         )
 
