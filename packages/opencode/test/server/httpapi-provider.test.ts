@@ -279,7 +279,7 @@ describe("provider HttpApi", () => {
     Effect.gen(function* () {
       const instance = yield* TestInstance
       yield* writeProviderAuthPlugin(instance.directory)
-      const headers = { "x-kilo-directory": instance.directory, "content-type": "application/json" }
+      const headers = { "x-nocowboy-directory": instance.directory, "content-type": "application/json" }
       const server = app()
 
       const api = yield* requestAuthorize({
@@ -320,7 +320,7 @@ describe("provider HttpApi", () => {
         providerID: "test-oauth-validation",
         method: 0,
         inputs: { token: "nope" },
-        headers: { "x-kilo-directory": instance.directory, "content-type": "application/json" },
+        headers: { "x-nocowboy-directory": instance.directory, "content-type": "application/json" },
       })
 
       expect(response.status).toBe(400)
@@ -341,7 +341,7 @@ describe("provider HttpApi", () => {
         app: app(),
         providerID,
         method: 0,
-        headers: { "x-kilo-directory": instance.directory, "content-type": "application/json" },
+        headers: { "x-nocowboy-directory": instance.directory, "content-type": "application/json" },
       })
 
       expect(response.status).toBe(400)
@@ -360,12 +360,12 @@ describe("provider HttpApi", () => {
       const instance = yield* TestInstance
       yield* writeFunctionOptionsPlugin(instance.directory)
       yield* setEnvScoped(
-        "KILO_AUTH_CONTENT",
+        "NOCOWBOY_AUTH_CONTENT",
         JSON.stringify({
           google: { type: "oauth", refresh: "dummy", access: "dummy", expires: 9999999999999 },
         }),
       )
-      const headers = { "x-kilo-directory": instance.directory }
+      const headers = { "x-nocowboy-directory": instance.directory }
       const providerResponse = yield* Effect.promise(() => Promise.resolve(app().request("/provider", { headers })))
       const configResponse = yield* Effect.promise(() =>
         Promise.resolve(app().request("/config/providers", { headers })),
@@ -390,7 +390,7 @@ describe("provider HttpApi", () => {
       const instance = yield* TestInstance
       yield* writeProviderModelsMutationPlugin(instance.directory)
 
-      const headers = { "x-kilo-directory": instance.directory }
+      const headers = { "x-nocowboy-directory": instance.directory }
       const providerResponse = yield* Effect.promise(() => Promise.resolve(app().request("/provider", { headers })))
       const configResponse = yield* Effect.promise(() =>
         Promise.resolve(app().request("/config/providers", { headers })),
