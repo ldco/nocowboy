@@ -48,74 +48,22 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
-  // nocowboy_change start — reactive per-provider balance
+  // nocowboy_change start — total spend from session data
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   })
 
-  const currentProvider = createMemo(() => {
-    const cur = local.model.current()
-    return cur?.providerID ?? null
-  })
-
-  type BalanceFetcher = (key: string) => Promise<number>
-
-  const BALANCE_APIS: Record<string, BalanceFetcher> = {
-    deepseek: async (key) => {
-      try {
-        const res = await fetch("https://api.deepseek.com/user/balance", {
-          headers: { Authorization: `Bearer ${key}` },
-        })
-        if (!res.ok) return 0
-        const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
-        const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
-        return usd ? parseFloat(usd.total_balance) : 0
-      } catch {
-        return 0
-      }
-    },
-    openai: async (key) => {
-      try {
-        const res = await fetch("https://api.openai.com/v1/dashboard/billing/credit_grants", {
-          headers: { Authorization: `Bearer ${key}` },
-        })
-        if (!res.ok) return 0
-        const data = await res.json() as { total_available?: number }
-        return data.total_available ?? 0
-      } catch {
-        return 0
-      }
-    },
-  }
-
-  const providerBalance = createMemo<{ key: string; fetcher: BalanceFetcher } | null>(() => {
-    const pid = currentProvider()
-    if (!pid) return null
-    const fetcher = BALANCE_APIS[pid]
-    if (!fetcher) return null
-    for (const p of sync.data.provider as Provider[]) {
-      if (p.id === pid && p.key) return { key: p.key, fetcher }
-    }
-    return null
-  })
-
-  const [balanceData] = createResource(
-    () => {
-      const info = providerBalance()
-      if (!info) return null
-      return { key: info.key, fetcher: info.fetcher, version: messages().length }
-    },
-    (input) => input.fetcher(input.key),
+  const totalSpent = createMemo(() =>
+    (sync.data.session as Session[]).reduce((sum: number, s: Session) => sum + (s.cost ?? 0), 0),
   )
-
-  const balance = createMemo(() => balanceData() ?? 0)
   const balanceFg = createMemo(() => {
-    const b = balance()
+    const b = totalSpent()
     if (b > 10) return theme.success
     if (b >= 3) return theme.warning
     return theme.error
   })
+  // nocowboy_change end
   // nocowboy_change end
 
   const usage = createMemo(() => {
@@ -179,7 +127,7 @@ export function SubagentFooter() {
               )}
             </Show>
             <text fg={balanceFg()} wrapMode="none">
-              {money.format(balance())}
+              {money.format(totalSpent())}
             </text>
           </box>
           <box flexDirection="row" gap={2}>
