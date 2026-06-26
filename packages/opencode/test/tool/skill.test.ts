@@ -54,11 +54,11 @@ Use this skill.
           )
           yield* Effect.promise(() => Bun.write(path.join(skill, "scripts", "demo.txt"), "demo"))
 
-          const home = process.env.KILO_TEST_HOME
-          process.env.KILO_TEST_HOME = dir
+          const home = process.env.NOCOWBOY_TEST_HOME
+          process.env.NOCOWBOY_TEST_HOME = dir
           yield* Effect.addFinalizer(() =>
             Effect.sync(() => {
-              process.env.KILO_TEST_HOME = home
+              process.env.NOCOWBOY_TEST_HOME = home
             }),
           )
 
@@ -101,11 +101,11 @@ Use this skill.
     provideTmpdirInstance(
       (dir) =>
         Effect.gen(function* () {
-          const home = process.env.KILO_TEST_HOME
-          process.env.KILO_TEST_HOME = dir
+          const home = process.env.NOCOWBOY_TEST_HOME
+          process.env.NOCOWBOY_TEST_HOME = dir
           yield* Effect.addFinalizer(() =>
             Effect.sync(() => {
-              process.env.KILO_TEST_HOME = home
+              process.env.NOCOWBOY_TEST_HOME = home
             }),
           )
 
@@ -127,7 +127,7 @@ Use this skill.
 
           expect(result.metadata.dir).toBe("builtin")
           expect(result.output).toContain("Finding a named command")
-          expect(result.output).toContain("~/.config/kilo/")
+          expect(result.output).toContain("~/.config/nocowboy/")
           expect(result.output).toContain("~/.kilocode/")
           expect(result.output).toContain("**/command/")
           expect(result.output).toContain("explicit search")
