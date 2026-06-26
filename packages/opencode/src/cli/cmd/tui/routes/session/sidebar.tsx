@@ -96,11 +96,16 @@ function SettingsTab() {
   const sdk = useSDK()
   const project = useProject()
 
-  const lspDisabled = () => !sync.data.config?.lsp
+  const lspState = () => {
+    const v = sync.data.config?.lsp
+    if (v === true) return "enabled"
+    if (v === false) return "disabled"
+    return "absent"
+  }
 
   const toggleLsp = async () => {
     const dir = project.instance.directory() ?? ""
-    if (lspDisabled()) {
+    if (lspState() !== "enabled") {
       await sdk.client.config.update({ directory: dir, config: { lsp: true } as any })
     } else {
       await sdk.client.config.update({ directory: dir, config: { lsp: false } as any })
@@ -128,8 +133,8 @@ function SettingsTab() {
       </text>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
-          {lspDisabled() ? "Disabled — click to enable" : "Enabled — click to disable"}
+        <text fg={lspState() === "absent" ? theme.warning : theme.textMuted} onMouseDown={() => toggleLsp()}>
+          {lspState() === "enabled" ? "Enabled — click to disable" : lspState() === "disabled" ? "Disabled — click to enable" : "Not configured — click to enable"}
         </text>
       </box>
       <box paddingTop={1}>
