@@ -63,9 +63,17 @@ export function DialogModel(props: { providerID?: string }) {
     setPreview(next)
   })
 
+  const costLabel = (model: Model) => {
+    if (!model.cost) return
+    const minCost = Math.min(model.cost.input, model.cost.output)
+    if (minCost <= 0) return "Free"
+    return `$${minCost < 0.01 ? minCost.toFixed(4) : minCost.toFixed(2)}/M`
+  }
+
   const footer = (providerID: string, model: Model) => {
     if (providerID === "nocowboy" && FreeModelDisclosure.collectsData(model)) return FreeModelDisclosure.label
-    if (model.cost?.input === 0 && providerID === "opencode") return "Free"
+    const label = costLabel(model)
+    if (label) return label
     return undefined
   }
   // nocowboy_change end
