@@ -2071,7 +2071,7 @@ function InlineTool(props: {
   })
 
   const fg = createMemo(() => {
-    if (permission()) return theme.warning
+    if (permission()) return theme.primary
     if (hover() && props.onClick) return theme.text
     if (props.complete) return theme.textMuted
     return theme.text
