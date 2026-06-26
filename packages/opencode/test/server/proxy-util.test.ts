@@ -75,8 +75,8 @@ describe("ProxyUtil", () => {
         },
       })
       const result = ProxyUtil.headers(req)
-      expect(result.get("x-kilo-directory")).toBeNull()
-      expect(result.get("x-kilo-workspace")).toBeNull()
+      expect(result.get("x-nocowboy-directory")).toBeNull()
+      expect(result.get("x-nocowboy-workspace")).toBeNull()
       expect(result.get("accept-encoding")).toBeNull()
       expect(result.get("x-custom")).toBe("keep")
     })

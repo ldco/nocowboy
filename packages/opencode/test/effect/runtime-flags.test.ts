@@ -22,7 +22,7 @@ describe("RuntimeFlags", () => {
       const flags = yield* readFlags.pipe(
         Effect.provide(
           fromConfig({
-            KILO_PURE: "true",
+            NOCOWBOY_PURE: "true",
             KILO_DISABLE_DEFAULT_PLUGINS: "true",
             KILO_DISABLE_CHANNEL_DB: "true",
             KILO_AUTO_SHARE: "true",
@@ -303,7 +303,7 @@ describe("RuntimeFlags", () => {
         Effect.provide(
           ConfigProvider.layer(
             ConfigProvider.fromUnknown({
-              KILO_PURE: "true",
+            NOCOWBOY_PURE: "true",
               KILO_DISABLE_DEFAULT_PLUGINS: "true",
               KILO_DISABLE_EXTERNAL_SKILLS: "true",
               KILO_DISABLE_LSP_DOWNLOAD: "true",

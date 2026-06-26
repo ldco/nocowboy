@@ -277,8 +277,8 @@ describe("HttpApi workspace routing middleware", () => {
       expect(forwarded?.method).toBe("PATCH")
       expect(forwarded?.headers["content-type"]).toBe("application/json")
       expect(forwarded?.headers["x-target-auth"]).toBe("secret")
-      expect(forwarded?.headers["x-kilo-directory"]).toBeUndefined()
-      expect(forwarded?.headers["x-kilo-workspace"]).toBeUndefined()
+      expect(forwarded?.headers["x-nocowboy-directory"]).toBeUndefined()
+      expect(forwarded?.headers["x-nocowboy-workspace"]).toBeUndefined()
     }),
   )
 

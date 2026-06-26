@@ -134,8 +134,8 @@ describe("HttpApi workspace proxy", () => {
       const httpClient = yield* HttpClient.HttpClient
       yield* HttpApiProxy.http(httpClient, `${url}/test`, { "x-injected": "extra" }, request)
 
-      expect(forwarded["x-kilo-directory"]).toBeUndefined()
-      expect(forwarded["x-kilo-workspace"]).toBeUndefined()
+      expect(forwarded["x-nocowboy-directory"]).toBeUndefined()
+      expect(forwarded["x-nocowboy-workspace"]).toBeUndefined()
       expect(forwarded["x-custom"]).toBe("preserved")
       expect(forwarded["x-injected"]).toBe("extra")
     }),
