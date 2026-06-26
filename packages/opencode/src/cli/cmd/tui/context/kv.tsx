@@ -2,7 +2,6 @@ import { Global } from "@opencode-ai/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { Flock } from "@opencode-ai/core/util/flock"
 import { rename, rm } from "fs/promises"
-import { existsSync, mkdirSync, readFileSync } from "fs"
 import { createSignal, type Setter } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
 import { createSimpleContext } from "./helper"
@@ -29,18 +28,17 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
         })
     }
 
-    // Read synchronously so the provider is ready before the first render pass.
-    // The @opentui/solid renderer is synchronous (SSR-like); async init never
-    // completes before the render, causing a permanently empty TUI.
-    try {
-      const dir = path.dirname(filePath)
-      if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-      const data = readFileSync(filePath, "utf-8")
-      setStore(JSON.parse(data))
-    } catch {
-      // First launch or corrupt file — start with empty store.
-    }
-    setReady(true)
+    // Read under the same lock used for writes because kv.json is shared across processes.
+    Flock.withLock(lock, () => Filesystem.readJson<Record<string, any>>(filePath))
+      .then((x) => {
+        setStore(x)
+      })
+      .catch((error) => {
+        console.error("Failed to read KV state", { filePath, error })
+      })
+      .finally(() => {
+        setReady(true)
+      })
 
     const result = {
       get ready() {
