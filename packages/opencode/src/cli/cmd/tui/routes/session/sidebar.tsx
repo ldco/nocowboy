@@ -141,18 +141,20 @@ function SettingsTab() {
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
         <text
           fg={(() => {
-            const v = sync.data.config?.indexing?.enabled
-            if (v === true) return theme.success
-            if (v === false) return theme.textMuted
-            return theme.warning
+            const s = sync.data.indexing?.state as string
+            if (!s) return theme.warning
+            if (s === "Error") return theme.error
+            if (s === "Complete") return theme.success
+            return theme.textMuted
           })()}
           onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}
         >
           {(() => {
-            const v = sync.data.config?.indexing?.enabled
-            if (v === true) return "Enabled — click to configure"
-            if (v === false) return "Disabled — click to configure"
-            return "Not configured — click to configure"
+            const s = sync.data.indexing?.state as string
+            if (!s) return "Not configured — click to configure"
+            if (s === "Error") return "Error — click to configure"
+            if (s === "Complete") return "Ready — click to configure"
+            return `${s} — click to configure`
           })()}
         </text>
       </box>
