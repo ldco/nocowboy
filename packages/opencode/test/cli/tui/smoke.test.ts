@@ -78,9 +78,18 @@ test("TUI starts, migrates database, and renders content", async () => {
   expect(combined).toContain("Database migration complete")
 
   // 2. No fatal errors
-  expect(stderr).not.toContain("TuiConfig context must be used")
-  expect(stderr).not.toContain("Keymap not found")
-  expect(stderr).not.toContain("require is not defined")
+  const errorIndicators = [
+    "TuiConfig context must be used",
+    "Keymap not found",
+    "require is not defined",
+    "appears to be invalid",
+    "may have expired",
+    "invalid API key",
+    "API key.*invalid",
+  ]
+  for (const pattern of errorIndicators) {
+    expect(stderr).not.toMatch(new RegExp(pattern, "i"))
+  }
 
   // 3. TUI must produce rendered output with color codes
   //    [38;2;R;G;Bm = "set foreground to RGB color"
