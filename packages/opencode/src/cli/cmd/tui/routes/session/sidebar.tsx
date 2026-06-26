@@ -99,9 +99,12 @@ function SettingsTab() {
   const lspEnabled = () => sync.data.config?.lsp === true
 
   const toggleLsp = async () => {
+    console.error("LSP toggle: clicked")
     const dir = project.instance.directory() ?? ""
+    console.error("LSP toggle: dir=", dir, "enabled=", lspEnabled())
     try {
       await sdk.client.config.update({ directory: dir, config: { lsp: !lspEnabled() } as any })
+      console.error("LSP toggle: success")
     } catch (err) {
       console.error("LSP toggle failed", err)
     }
@@ -128,8 +131,7 @@ function SettingsTab() {
       </text>
       <box paddingTop={1} flexDirection="row">
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={theme.textMuted}> {lspEnabled() ? "Enabled" : "Disabled"}</text>
-        <text fg={theme.accent} onMouseDown={() => toggleLsp()}> — click to {lspEnabled() ? "disable" : "enable"}</text>
+        <text fg={lspEnabled() ? theme.success : theme.accent} onMouseUp={() => toggleLsp()}> {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}</text>
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
