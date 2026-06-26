@@ -48,33 +48,57 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
-  // nocowboy_change start — DeepSeek balance from API
+  // nocowboy_change start — reactive per-provider balance
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   })
 
-  const deepseekKey = createMemo(() => {
+  const currentProvider = createMemo(() => {
+    const cur = local.model.current()
+    return cur?.providerID ?? null
+  })
+
+  type BalanceFetcher = (key: string) => Promise<number>
+
+  const BALANCE_APIS: Record<string, BalanceFetcher> = {
+    deepseek: async (key) => {
+      try {
+        const res = await fetch("https://api.deepseek.com/user/balance", {
+          headers: { Authorization: `Bearer ${key}` },
+        })
+        const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
+        const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
+        return usd ? parseFloat(usd.total_balance) : 0
+      } catch {
+        return 0
+      }
+    },
+    openai: async (key) => {
+      try {
+        const res = await fetch("https://api.openai.com/v1/dashboard/billing/credit_grants", {
+          headers: { Authorization: `Bearer ${key}` },
+        })
+        const data = await res.json() as { total_available?: number }
+        return data.total_available ?? 0
+      } catch {
+        return 0
+      }
+    },
+  }
+
+  const providerBalance = createMemo<{ key: string; fetcher: BalanceFetcher } | null>(() => {
+    const pid = currentProvider()
+    if (!pid) return null
+    const fetcher = BALANCE_APIS[pid]
+    if (!fetcher) return null
     for (const p of sync.data.provider as Provider[]) {
-      if (p.id === "deepseek") return p.key ?? null
+      if (p.id === pid && p.key) return { key: p.key, fetcher }
     }
     return null
   })
 
-  const fetchDeepSeekBalance = async (key: string): Promise<number> => {
-    try {
-      const res = await fetch("https://api.deepseek.com/user/balance", {
-        headers: { Authorization: `Bearer ${key}` },
-      })
-      const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
-      const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
-      return usd ? parseFloat(usd.total_balance) : 0
-    } catch {
-      return 0
-    }
-  }
-
-  const [balanceData] = createResource(deepseekKey, fetchDeepSeekBalance)
+  const [balanceData] = createResource(providerBalance, (info) => info.fetcher(info.key))
 
   const balance = createMemo(() => balanceData() ?? 0)
   const balanceFg = createMemo(() => {
