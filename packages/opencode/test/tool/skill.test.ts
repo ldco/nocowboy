@@ -128,7 +128,7 @@ Use this skill.
           expect(result.metadata.dir).toBe("builtin")
           expect(result.output).toContain("Finding a named command")
           expect(result.output).toContain("~/.config/nocowboy/")
-          expect(result.output).toContain("~/.kilocode/")
+          expect(result.output).toContain("~/.nocowboy/")
           expect(result.output).toContain("**/command/")
           expect(result.output).toContain("explicit search")
         }),
