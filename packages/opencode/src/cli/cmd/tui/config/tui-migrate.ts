@@ -146,14 +146,21 @@ async function backupAndStripLegacy(file: string, source: string) {
 }
 
 async function opencodeFiles(input: { directories: string[]; cwd: string }) {
-  // nocowboy_change start: use kilo directory everywhere
+  // nocowboy_change start: support nocowboy + kilo + opencode config files
   const project = Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG
     ? []
-    : await Filesystem.findUp(["nocowboy.json", "nocowboy.jsonc"], input.cwd, undefined, { rootFirst: true })
-  const files = [...project, ...ConfigPaths.fileInDirectory(Global.Path.config, "nocowboy")]
+    : await Filesystem.findUp(["nocowboy.json", "nocowboy.jsonc", "kilo.json", "kilo.jsonc", "opencode.json", "opencode.jsonc"], input.cwd, undefined, { rootFirst: true })
+  const files = [
+    ...project,
+    ...ConfigPaths.fileInDirectory(Global.Path.config, "nocowboy"),
+    ...ConfigPaths.fileInDirectory(Global.Path.config, "kilo"),
+    ...ConfigPaths.fileInDirectory(Global.Path.config, "opencode"),
+  ]
   // nocowboy_change end
   for (const dir of unique(input.directories)) {
     files.push(...ConfigPaths.fileInDirectory(dir, "nocowboy"))
+    files.push(...ConfigPaths.fileInDirectory(dir, "kilo"))
+    files.push(...ConfigPaths.fileInDirectory(dir, "opencode"))
   }
   if (Flag.NOCOWBOY_CONFIG) files.push(Flag.NOCOWBOY_CONFIG)
 

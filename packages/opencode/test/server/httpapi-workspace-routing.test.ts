@@ -490,7 +490,7 @@ describe("HttpApi workspace routing middleware", () => {
       // directory hints before using the process cwd.
       const queryResponse = yield* HttpClient.get(`/probe?directory=${encodeURIComponent(queryDir)}`)
       const headerResponse = yield* HttpClientRequest.get("/probe").pipe(
-        HttpClientRequest.setHeader("x-kilo-directory", headerDir),
+        HttpClientRequest.setHeader("x-nocowboy-directory", headerDir),
         HttpClient.execute,
       )
 

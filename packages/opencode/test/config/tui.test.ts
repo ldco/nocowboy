@@ -22,7 +22,7 @@ const globalConfigFiles = ["kilo.json", "kilo.jsonc", "tui.json", "tui.jsonc"].m
 const cleanState = Effect.gen(function* () {
   const fs = yield* AppFileSystem.Service
   delete process.env.KILO_CONFIG
-  delete process.env.KILO_TUI_CONFIG
+  delete process.env.NOCOWBOY_TUI_CONFIG
   yield* Effect.forEach(globalConfigFiles, (file) => fs.remove(file, { force: true }).pipe(Effect.ignore), {
     discard: true,
   })
@@ -412,7 +412,7 @@ it.instance("top-level keys in tui.json take precedence over nested tui key", ()
   ),
 )
 
-it.instance("project config takes precedence over KILO_TUI_CONFIG (matches KILO_CONFIG)", () =>
+it.instance("project config takes precedence over NOCOWBOY_TUI_CONFIG (matches KILO_CONFIG)", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -422,7 +422,7 @@ it.instance("project config takes precedence over KILO_TUI_CONFIG (matches KILO_
       yield* fs.writeJson(custom, { theme: "custom", diff_style: "stacked" })
 
       yield* withEnv(
-        "KILO_TUI_CONFIG",
+        "NOCOWBOY_TUI_CONFIG",
         custom,
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)
@@ -633,7 +633,7 @@ it.instance("keeps explicit configured keybind input undo on Windows", () =>
   ),
 )
 
-it.instance("KILO_TUI_CONFIG provides settings when no project config exists", () =>
+it.instance("NOCOWBOY_TUI_CONFIG provides settings when no project config exists", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
@@ -642,7 +642,7 @@ it.instance("KILO_TUI_CONFIG provides settings when no project config exists", (
       yield* fs.writeJson(custom, { theme: "from-env", diff_style: "stacked" })
 
       yield* withEnv(
-        "KILO_TUI_CONFIG",
+        "NOCOWBOY_TUI_CONFIG",
         custom,
         Effect.gen(function* () {
           const config = yield* getTuiConfig(test.directory)
@@ -718,13 +718,13 @@ it.instance("applies file substitutions when first identical token is in a comme
   ),
 )
 
-it.instance("loads .kilo/tui.json", () =>
+it.instance("loads .opencode/tui.json", () =>
   withCleanState(
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
       const test = yield* TestInstance
       yield* fs.writeWithDirs(
-        path.join(test.directory, ".kilo", "tui.json"),
+        path.join(test.directory, ".opencode", "tui.json"),
         JSON.stringify({ diff_style: "stacked" }, null, 2),
       )
 
