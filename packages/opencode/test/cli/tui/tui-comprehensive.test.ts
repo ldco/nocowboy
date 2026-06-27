@@ -104,7 +104,7 @@ test("B3. LSP sidebar plugin exists and shows status", async () => {
 test("B4. Settings tab has LSP toggle with keyboard handler", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("useKeyboard")
-  expect(f).toContain("onMouseDown={(e: unknown) => { (e as any)?.preventDefault?.(); toggleLsp() }}")
+  expect(f).toContain("box paddingTop={1} onMouseDown={() => toggleLsp()}")
   expect(f).toContain("lspEnabled")
 })
 
