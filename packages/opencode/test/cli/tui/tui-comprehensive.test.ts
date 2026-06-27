@@ -5,15 +5,31 @@
  * Part B: Source code structure tests (verify files, imports, functions exist)
  */
 import { afterAll, expect, test } from "bun:test"
+import { existsSync } from "node:fs"
+import { resolve } from "node:path"
 
 const STARTUP_WAIT = 6000
 const OVERALL_TIMEOUT = 20_000
-const SRC = import.meta.dirname + "/../../../src/cli/cmd/tui"
+
+// Resolve the project root by walking up from this test file until we find package.json
+function findProjectRoot(startDir: string): string {
+  let dir = startDir
+  while (dir !== "/") {
+    if (existsSync(resolve(dir, "package.json"))) return dir
+    dir = resolve(dir, "..")
+  }
+  throw new Error("Cannot find project root")
+}
+const PROJECT_ROOT = findProjectRoot(import.meta.dirname)
+const SRC = resolve(PROJECT_ROOT, "src/cli/cmd/tui")
+const TUI_ROOT = SRC
+const SRC_ROOT = resolve(PROJECT_ROOT, "src")
+const CWD_CONFIG = resolve(PROJECT_ROOT, ".opencode/opencode.jsonc")
 
 function spawnTui(): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ stdout: string; stderr: string }> } {
   const proc = Bun.spawn({
     cmd: ["bun", "run", "--conditions=browser", "src/index.ts"],
-    cwd: import.meta.dirname + "/../../..",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, NOCOWBOY_DB: ":memory:", FORCE_COLOR: "0" },
     stdout: "pipe",
     stderr: "pipe",
@@ -65,41 +81,42 @@ test("A4. No debug console.error left in startup output", async () => {
 // PART B — Source code structure tests (compile-time verification)
 // ============================================================
 
+const readFile = (p: string) => Bun.file(p).text()
+
 test("B1. Theme nocowboy.json has correct colors (yellow warning, not 'darkOrange')", async () => {
-  const t = JSON.parse(await Bun.file(SRC + "/context/theme/nocowboy.json").text())
+  const t = JSON.parse(await readFile(resolve(TUI_ROOT, "context/theme/nocowboy.json")))
   expect(t.defs.darkYellow).toBe("#ffff00")
   expect(t.defs.darkOrange).toBeUndefined()
   expect(t.theme.warning).toEqual({ dark: "darkYellow", light: "lightYellow" })
 })
 
-test("B2. Sidebar context plugin has Spent/Balance display", async () => {
-  const f = await Bun.file(SRC + "/feature-plugins/sidebar/context.tsx").text()
+test("B2. Sidebar context plugin has Balance display + fetchDeepSeekBalance", async () => {
+  const f = await readFile(resolve(TUI_ROOT, "feature-plugins/sidebar/context.tsx"))
   expect(f).toContain("Balance")
-  expect(f).toContain("money")
   expect(f).toContain("fetchDeepSeekBalance")
 })
 
 test("B3. LSP sidebar plugin exists and shows status", async () => {
-  const f = await Bun.file(SRC + "/feature-plugins/sidebar/lsp.tsx").text()
+  const f = await readFile(resolve(TUI_ROOT, "feature-plugins/sidebar/lsp.tsx"))
   expect(f).toContain("LSP")
   expect(f).toContain("disabled")
 })
 
-test("B4. Settings tab has LSP toggle with Ctrl+L keyboard handler", async () => {
-  const f = await Bun.file(SRC + "/routes/session/sidebar.tsx").text()
+test("B4. Settings tab has LSP toggle with keyboard handler", async () => {
+  const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("useKeyboard")
   expect(f).toContain("toggleLsp")
   expect(f).toContain("lspEnabled")
 })
 
 test("B5. Model dialog has cost label function", async () => {
-  const f = await Bun.file(SRC + "/component/dialog-model.tsx").text()
+  const f = await readFile(resolve(TUI_ROOT, "component/dialog-model.tsx"))
   expect(f).toContain("costLabel")
   expect(f).toContain("/M")
 })
 
 test("B6. Theme mappings use semantic names (warning, error, success)", async () => {
-  const t = JSON.parse(await Bun.file(SRC + "/context/theme/nocowboy.json").text())
+  const t = JSON.parse(await readFile(resolve(TUI_ROOT, "context/theme/nocowboy.json")))
   expect(t.theme.warning).toBeDefined()
   expect(t.theme.error).toBeDefined()
   expect(t.theme.success).toBeDefined()
@@ -108,10 +125,7 @@ test("B6. Theme mappings use semantic names (warning, error, success)", async ()
 })
 
 test("B7. LSP text is wrapped in box paddingTop=1 (required for click events)", async () => {
-  const f = await Bun.file(SRC + "/routes/session/sidebar.tsx").text()
-  // The LSP section must wrap its text elements in a <box paddingTop={1}>
-  // to match the original structure where clicks work.
-  // Find the LSP section: between LSP label and Code Indexing label
+  const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   const lspIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>")
   const ciIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>")
   expect(lspIdx).toBeGreaterThan(-1)
@@ -122,43 +136,30 @@ test("B7. LSP text is wrapped in box paddingTop=1 (required for click events)", 
 })
 
 test("B8. Sidebar indexing info tab has NO clickable elements (info only)", async () => {
-  const f = await Bun.file(import.meta.dirname + "/../../../src/nocowboy/plugins/sidebar-indexing.tsx").text()
-  // The sidebar indexing plugin should NOT have onMouseUp/onMouseDown handlers
-  // in the info tab. It should show status, not be interactive.
+  const f = await readFile(resolve(SRC_ROOT, "nocowboy/plugins/sidebar-indexing.tsx"))
   expect(f).not.toContain("onMouseUp={() => refresh()}")
   expect(f).not.toContain("onMouseDown")
   expect(f).not.toContain("click to retry")
 })
 
-test("B9. Settings tab has onMouseDown for LSP and Indexing links", async () => {
-  const f = await Bun.file(SRC + "/routes/session/sidebar.tsx").text()
-  // LSP toggle must have onMouseDown
+test("B9. Settings tab has onMouseDown for LSP and Indexing, plus keyboard shortcuts", async () => {
+  const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("onMouseDown={() => toggleLsp()}")
-  // Indexing link must have onMouseDown
   expect(f).toContain("onMouseDown={() => dialog.replace(() => <DialogIndexing")
-  // Keyboard shortcuts must exist
   expect(f).toContain("useKeyboard")
   expect(f).toContain("KeyL")
   expect(f).toContain("KeyI")
 })
 
 test("B10. Theme warning color stays yellow #ffff00, not changed to brand", async () => {
-  const t = JSON.parse(await Bun.file(SRC + "/context/theme/nocowboy.json").text())
-  // warning must stay yellow, not brand orange
+  const t = JSON.parse(await readFile(resolve(TUI_ROOT, "context/theme/nocowboy.json")))
   expect(t.defs.darkYellow).toBe("#ffff00")
-  // brand color darkPrimary must stay orange
   expect(t.theme.primary).toBeDefined()
-  expect(t.theme.primary.dark).toBe("darkPrimary")  // #ff6800
+  expect(t.theme.primary.dark).toBe("darkPrimary")
 })
 
-test("B11. Project config file exists at CWD relative path (.opencode/opencode.jsonc)", async () => {
-  // The app runs from packages/opencode/ — config must be at packages/opencode/.opencode/opencode.jsonc
-  const cwdConfig = import.meta.dirname + "/../../../.opencode/opencode.jsonc"
-  const exists = await Bun.file(cwdConfig).exists()
-  expect(exists).toBe(true)
-  if (exists) {
-    const text = await Bun.file(cwdConfig).text()
-    // Strip comments for basic JSON validation
-    expect(text).toContain("lsp")
-  }
+test("B11. Project config file exists at CWD-relative path", async () => {
+  expect(existsSync(CWD_CONFIG)).toBe(true)
+  const text = await readFile(CWD_CONFIG)
+  expect(text).toContain("lsp")
 })
