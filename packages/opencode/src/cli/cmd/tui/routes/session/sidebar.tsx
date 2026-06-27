@@ -140,7 +140,9 @@ function SettingsTab() {
       </text>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}> Toggle LSP</text>
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+          Toggle LSP
+        </text>
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>

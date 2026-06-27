@@ -32,7 +32,14 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   const local = useLocal()
   const msg = createMemo(() => props.api.state.session.messages(props.session_id))
 
+  const currentProvider = createMemo(() => {
+    const cur = local.model.current()
+    return cur?.providerID ?? null
+  })
+
   const providerKey = createMemo<string | null>(() => {
+    const pid = currentProvider()
+    if (pid !== "deepseek") return null
     for (const p of sync.data.provider as Provider[]) {
       if (p.id === "deepseek") return p.key ?? null
     }
@@ -71,10 +78,12 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
 
   return (
     <box>
-      <text fg={theme().text}>
-        <b>Balance</b>
-      </text>
-      <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+      <Show when={providerKey()}>
+        <text fg={theme().text}>
+          <b>Balance (DeepSeek)</b>
+        </text>
+        <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+      </Show>
       <text fg={theme().text}>
         <b>Context</b>
       </text>
