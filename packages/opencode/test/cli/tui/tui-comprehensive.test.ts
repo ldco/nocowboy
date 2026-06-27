@@ -24,7 +24,6 @@ const PROJECT_ROOT = findProjectRoot(import.meta.dirname)
 const SRC = resolve(PROJECT_ROOT, "src/cli/cmd/tui")
 const TUI_ROOT = SRC
 const SRC_ROOT = resolve(PROJECT_ROOT, "src")
-const CWD_CONFIG = resolve(PROJECT_ROOT, ".opencode/nocowboy.jsonc")
 
 function spawnTui(): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ stdout: string; stderr: string }> } {
   const proc = Bun.spawn({
@@ -105,7 +104,7 @@ test("B3. LSP sidebar plugin exists and shows status", async () => {
 test("B4. Settings tab has LSP toggle with keyboard handler", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("useKeyboard")
-  expect(f).toContain("toggleLsp")
+  expect(f).toContain("onMouseDown={(e: unknown) => { (e as any)?.preventDefault?.(); toggleLsp() }}")
   expect(f).toContain("lspEnabled")
 })
 
@@ -144,7 +143,7 @@ test("B8. Sidebar indexing info tab has NO clickable elements (info only)", asyn
 
 test("B9. Settings tab has onMouseDown for LSP and Indexing, plus keyboard shortcuts", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
-  expect(f).toContain("onMouseDown={() => toggleLsp()}")
+  expect(f).toContain("onMouseDown={(e")
   expect(f).toContain("onMouseDown={() => dialog.replace(() => <DialogIndexing")
   expect(f).toContain("useKeyboard")
   expect(f).toContain("KeyL")
@@ -158,8 +157,8 @@ test("B10. Theme warning color stays yellow #ffff00, not changed to brand", asyn
   expect(t.theme.primary.dark).toBe("darkPrimary")
 })
 
-test("B11. Project config file exists at CWD-relative path", async () => {
-  expect(existsSync(CWD_CONFIG)).toBe(true)
-  const text = await readFile(CWD_CONFIG)
+test("B11. Config file exists at PROJECT_ROOT/nocowboy.jsonc", async () => {
+  expect(existsSync(resolve(PROJECT_ROOT, "nocowboy.jsonc"))).toBe(true)
+  const text = await readFile(resolve(PROJECT_ROOT, "nocowboy.jsonc"))
   expect(text).toContain("lsp")
 })
