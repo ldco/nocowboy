@@ -35,8 +35,8 @@ const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void }) {
   const { theme } = useTheme()
   const tabs: { key: SidebarTab; label: string }[] = [
-    { key: "history", label: "History" },
     { key: "info", label: "Info" },
+    { key: "history", label: "History" },
     { key: "settings", label: "Settings" },
   ]
   return (
@@ -106,17 +106,55 @@ function SettingsTab() {
     }
   })
 
-  const lspEnabled = () => sync.data.config?.lsp === true
+  const lspEnabled = () => !!sync.data.config?.lsp
+  const [lspError, setLspError] = createSignal(false)
+
+  const lspStatusColor = () => {
+    if (lspError()) return theme.error
+    if (lspEnabled()) return theme.success
+    return theme.warning
+  }
 
   const toggleLsp = async () => {
-    console.error("TOGGLE_LSP_CLICKED")
+    setLspError(false)
     const dir = project.instance.directory() ?? ""
+    const next = !lspEnabled()
     try {
-      await sdk.client.config.update({ directory: dir, config: { lsp: !lspEnabled() } as any })
-      console.error("TOGGLE_LSP_OK")
-    } catch (err) {
-      console.error("TOGGLE_LSP_FAIL", err)
+      await sdk.client.config.update({
+        directory: dir,
+        config: { lsp: next },
+      })
+      const updated = await sdk.client.config.get()
+      if (updated.data) {
+        sync.set("config", updated.data as any)
+      }
+    } catch {
+      setLspError(true)
     }
+  }
+
+  const indexingStatus = createMemo(() => {
+    const s = sync.data.indexing as any
+    if (!s) return { state: "Unknown" as const, message: "" }
+    return { state: s.state as string, message: s.message as string }
+  })
+
+  const indexingColor = () => {
+    const state = indexingStatus().state
+    if (state === "Complete" || state === "Idle") return theme.success
+    if (state === "Error") return theme.error
+    if (state === "In Progress") return theme.warning
+    return theme.textMuted
+  }
+
+  const indexingText = () => {
+    const { state, message } = indexingStatus()
+    const enabled = sync.data.config.indexing?.enabled === true
+    if (!enabled) return "Disabled"
+    if (state === "Complete") return "Enabled"
+    if (state === "Error") return message || "Error"
+    if (state === "In Progress") return "Indexing..."
+    return message || "Enabled"
   }
 
   const connected = createMemo(() => {
@@ -138,16 +176,22 @@ function SettingsTab() {
       <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
         + Connect a provider
       </text>
-      <box paddingTop={1} flexDirection="row" onMouseDown={() => toggleLsp()}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={theme.textMuted}>
-          {lspEnabled() ? "Enabled" : "Disabled"} — click to toggle
+      <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
+        <text fg={indexingColor()}>
+          {indexingText()}
+        </text>
+        <text fg={theme.textMuted} onMouseDown={() => { console.error("INDEXING_CLICK"); dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />) }}>
+          Open indexing configuration →
         </text>
       </box>
       <box paddingTop={1}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
-        <text fg={theme.textMuted} onMouseDown={() => { console.error("INDEXING_CLICK"); dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />) }}>
-          Open indexing configuration →
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
+        <text fg={lspStatusColor()}>
+          {lspError() ? "Error" : lspEnabled() ? "Enabled" : "Disabled"}
+        </text>
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+          {lspEnabled() ? "Click to disable" : "Click to enable"}
         </text>
       </box>
     </box>
@@ -170,7 +214,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return project.workspace.get(workspaceID)
   }
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
-  const [tab, setTab] = createSignal<SidebarTab>("history")
+  const [tab, setTab] = createSignal<SidebarTab>("info")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
   const [navigating, setNavigating] = createSignal(false) // nocowboy_change - context-aware return
 
@@ -221,7 +265,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     }
   } // nocowboy_change end
 
-  const tabKeys = ["history", "info", "settings"] as const
+  const tabKeys = ["info", "history", "settings"] as const
 
   useBindings(() => ({
     enabled: true,

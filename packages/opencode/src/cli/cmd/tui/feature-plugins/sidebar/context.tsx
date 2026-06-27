@@ -12,30 +12,88 @@ const money = new Intl.NumberFormat("en-US", {
   currency: "USD",
 })
 
-async function fetchDeepSeekBalance(key: string): Promise<number> {
+function providerBalanceURL(baseURL: unknown, defaultHost: string, defaultPath: string): string {
+  if (typeof baseURL === "string" && baseURL.trim().length > 0) {
+    const base = baseURL.replace(/\/+$/, "")
+    return `${base}${defaultPath}`
+  }
+  return `${defaultHost}${defaultPath}`
+}
+
+import { appendFileSync } from "node:fs"
+const BLOG = "/tmp/nocowboy-balance.log"
+
+async function fetchDeepSeekBalance(key: string, baseURL?: unknown): Promise<number> {
   try {
-    const res = await fetch("https://api.deepseek.com/user/balance", {
+    const url = providerBalanceURL(baseURL, "https://api.deepseek.com", "/user/balance")
+    const res = await fetch(url, {
       headers: { Authorization: `Bearer ${key}` },
-    })
-    if (!res.ok) return 0
-    const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
+      tls: { rejectUnauthorized: false },
+    } as any)
+    if (!res.ok) { appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK status=${res.status}\n`); return 0 }
+    const raw = await res.text()
+    appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK raw=${raw.substring(0, 500)}\n`)
+    const data = JSON.parse(raw) as { balance_infos?: Array<{ currency: string; total_balance: string }> }
     const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
     return usd ? parseFloat(usd.total_balance) : 0
-  } catch {
+  } catch (e: any) {
+    appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK err=${e?.message}\n`)
     return 0
   }
 }
 
-async function fetchKimiBalance(key: string): Promise<number> {
+async function fetchKimiBalance(key: string, baseURL?: unknown): Promise<number> {
   try {
-    const res = await fetch("https://api.moonshot.cn/v1/users/me/balance", {
+    const url = providerBalanceURL(baseURL, "https://api.moonshot.ai", "/v1/users/me/balance")
+    const res = await fetch(url, {
       headers: { Authorization: `Bearer ${key}` },
-    })
-    if (!res.ok) return 0
-    const data = await res.json() as { data?: { balance?: number; total_balance?: number } }
-    return data.data?.total_balance ?? data.data?.balance ?? 0
-  } catch {
+      tls: { rejectUnauthorized: false },
+    } as any)
+    if (!res.ok) { appendFileSync(BLOG, `${new Date().toISOString()} KIMI status=${res.status}\n`); return 0 }
+    const raw = await res.text()
+    appendFileSync(BLOG, `${new Date().toISOString()} KIMI raw=${raw.substring(0, 500)}\n`)
+    const data = JSON.parse(raw) as { data?: { available_balance?: number } }
+    return data.data?.available_balance ?? 0
+  } catch (e: any) {
+    appendFileSync(BLOG, `${new Date().toISOString()} KIMI err=${e?.message}\n`)
     return 0
+  }
+}
+
+function parseBalanceResponse(data: Record<string, unknown>): number {
+  // unused — kept for DeepSeek compatibility
+  return 0
+}
+
+function isBalanceProvider(pid: string): boolean {
+  return pid === "deepseek" || pid === "kimi" || pid === "moonshotai" || pid === "moonshotai-cn"
+}
+
+function isKimiModelID(mid: string): boolean {
+  const lower = mid.toLowerCase()
+  return lower.includes("kimi") || lower.includes("moonshot") || lower.includes("k2p")
+}
+
+function findProviderByKind(providers: Provider[], kind: "deepseek" | "kimi"): { id: string; key: string; name: string; baseURL?: unknown } | null {
+  for (const p of providers) {
+    if (!p.key) continue
+    const lower = (p.id + p.name).toLowerCase()
+    if (kind === "deepseek" && lower.includes("deepseek")) {
+      return { id: p.id, key: p.key, name: p.name, baseURL: p.options?.baseURL }
+    }
+    if (kind === "kimi" && (lower.includes("kimi") || lower.includes("moonshot"))) {
+      return { id: p.id, key: p.key, name: p.name, baseURL: p.options?.baseURL }
+    }
+  }
+  return null
+}
+
+function balanceLabels(): Record<string, string> {
+  return {
+    deepseek: "DeepSeek",
+    kimi: "Kimi",
+    moonshotai: "Moonshot AI",
+    "moonshotai-cn": "Moonshot AI",
   }
 }
 
@@ -45,31 +103,46 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   const local = useLocal()
   const msg = createMemo(() => props.api.state.session.messages(props.session_id))
 
-  const currentProvider = createMemo(() => {
+  const providerInfo = createMemo(() => {
     const cur = local.model.current()
-    return cur?.providerID ?? null
-  })
+    if (!cur) return null
+    const pid = cur.providerID
+    const mid = cur.modelID
 
-  const providerKey = createMemo<string | null>(() => {
-    const pid = currentProvider()
-    if (pid !== "deepseek" && pid !== "kimi") return null
-    for (const p of sync.data.provider as Provider[]) {
-      if (p.id === pid) return p.key ?? null
+    // Direct match: current provider IS a known balance provider
+    if (isBalanceProvider(pid)) {
+      for (const p of sync.data.provider as Provider[]) {
+        if (p.id === pid && p.key) {
+          return { id: p.id, key: p.key, name: p.name, baseURL: p.options?.baseURL ?? p.options?.baseUrl }
+        }
+      }
     }
+
+    // Model-based match: model name contains kimi/moonshot → find the actual provider
+    if (isKimiModelID(mid)) {
+      const found = findProviderByKind(sync.data.provider as Provider[], "kimi")
+      if (found) return found
+    }
+
+    // Model-based match: model name contains deepseek → find the actual provider
+    if (mid.toLowerCase().includes("deepseek")) {
+      const found = findProviderByKind(sync.data.provider as Provider[], "deepseek")
+      if (found) return found
+    }
+
     return null
   })
 
   const [balance] = createResource(
     () => {
-      const key = providerKey()
-      if (!key) return null
-      const pid = currentProvider()
-      return { key, version: msg().length, provider: pid }
+      const info = providerInfo()
+      if (!info) return null
+      appendFileSync(BLOG, `${new Date().toISOString()} PROVIDER matched=${info.id} name=${info.name} baseURL=${info.baseURL ?? "none"}\n`)
+      return { key: info.key, version: msg().length, info }
     },
     (input) => {
-      if (input.provider === "deepseek") return fetchDeepSeekBalance(input.key)
-      if (input.provider === "kimi") return fetchKimiBalance(input.key)
-      return 0
+      if (input.info.id === "deepseek") return fetchDeepSeekBalance(input.key, input.info.baseURL)
+      return fetchKimiBalance(input.key, input.info.baseURL)
     },
   )
 
@@ -94,11 +167,18 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     return theme().error
   })
 
+  const balanceLabel = createMemo(() => {
+    const info = providerInfo()
+    if (!info) return "Balance"
+    const labels = balanceLabels()
+    return `Balance (${labels[info.id] ?? info.name})`
+  })
+
   return (
     <box>
-      <Show when={providerKey()}>
+      <Show when={providerInfo()}>
         <text fg={theme().text}>
-          <b>Balance (DeepSeek)</b>
+          <b>{balanceLabel()}</b>
         </text>
         <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
       </Show>

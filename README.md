@@ -96,7 +96,7 @@ bun test test/nocowboy/  # Run tests (150+ pass)
 
 Build release:
 ```bash
-NOCOWBOY_VERSION=0.6.1 NOCOWBOY_RELEASE=true bun run script/build.ts
+NOCOWBOY_VERSION=0.7.0 NOCOWBOY_RELEASE=true bun run script/build.ts
 ```
 
 ---

@@ -1,6 +1,42 @@
 # NoCowboy — Roadmap
 
-**v0.6.1** | 2026-06-25 | Single source of truth + P0 + P1 + P1.6
+**v0.7.0** | 2026-06-27 | LSP toggle fix + Balance checking + Settings/Info UI polish
+
+---
+
+## ✅ DONE — v0.7.0
+
+### LSP Toggle Fix
+| Issue | Root cause | Fix |
+|---|---|---|
+| Toggle didn't work | `lspEnabled()` checked `=== true` only | Changed to `!!sync.data.config?.lsp` (truthy) |
+| Click ignored | `onMouseDown` on `<box>` not handled by OpenTUI | Moved to `<text>` matching all working patterns |
+| Config wrote to wrong file | Ancestor `.opencode/opencode.jsonc` took priority over local `nocowboy.jsonc` | Swapped order in `projectConfigUpdateTarget`: local root files first |
+| TUI didn't refresh after write | `sync.data.config` never updated after `config.update` | Added `config.get()` + `sync.set()` post-update |
+
+### Balance Checking
+| Provider | Endpoint | Response field |
+|---|---|---|
+| Kimi/Moonshot AI | `GET api.moonshot.ai/v1/users/me/balance` | `data.available_balance` |
+| DeepSeek | `GET api.deepseek.com/user/balance` | `balance_infos[USD].total_balance` |
+
+- Auto-detection by `providerID` + model ID fallback (handles gateway-routed models)
+- TLS self-signed certs bypassed for both endpoints
+- Provider `baseURL` option used when configured
+- Dynamic balance labels per provider
+
+### Settings Tab UI
+| Element | Before | After |
+|---|---|---|
+| LSP | Plain text "LSP: Enabled — click to toggle" | Bold label + colored status (green/yellow/red) + separate clickable line |
+| Code Indexing | Just "Open indexing configuration →" | Bold label + colored live status + configuration link |
+| Tab order | History → Info → Settings | **Info → History → Settings** |
+| Section order | LSP above Code Indexing | **Code Indexing above LSP** (matches Info tab) |
+
+### Info Tab
+| Element | Before | After |
+|---|---|---|
+| LSP bullet | No bullet when all disabled | Colored • matching Code Indexing (green/red/muted) |
 
 ---
 
@@ -171,7 +207,7 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 
 | Package | Status |
 |---|---|
-| `nocowboy-linux-x64@0.6.1` | ✅ Published |
+| `nocowboy-linux-x64@0.7.0` | ❌ Pending build |
 | `nocowboy` meta-package | ❌ |
 | `@nocowboy/mcp-*` (6 servers) | ❌ |
 | `@nocowboy/mcp-puppetmaster` | ❌ needs `dist/` built |

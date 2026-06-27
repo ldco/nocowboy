@@ -73,7 +73,10 @@ export namespace KilocodeConfig {
     const roots = yield* input.fs
       .up({ targets: [...ALL_CONFIG_FILES], start: input.directory, stop: input.worktree })
       .pipe(Effect.orDie)
-    const files = [...dirs.flatMap((dir) => ALL_CONFIG_FILES.map((file) => path.join(dir, file))), ...roots]
+    // Prefer project-root config files (nocowboy.jsonc etc.) over ancestor config-dir
+    // files (.nocowboy/nocowboy.jsonc etc.).  Otherwise a parent .opencode/opencode.jsonc
+    // wins and local config keys (like lsp) can never be toggled from the TUI.
+    const files = [...roots, ...dirs.flatMap((dir) => ALL_CONFIG_FILES.map((file) => path.join(dir, file)))]
     return files.find((file) => existsSync(file)) ?? path.join(input.directory, ".nocowboy", "nocowboy.jsonc")
   })
 

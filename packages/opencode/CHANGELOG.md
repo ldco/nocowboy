@@ -1,5 +1,55 @@
 # @kilocode/cli
 
+## 0.7.0 — NoCowboy Release
+
+### LSP Toggle Fix (5-day debug saga)
+
+The LSP enable/disable toggle in Settings was completely broken — clicks did nothing.
+Root cause tracked through 30+ commits of trial-and-error:
+
+1. **`lspEnabled()` checked `=== true`** — failed when `lsp` was configured as an object.
+   Fixed to `!!sync.data.config?.lsp` (truthy check matching `lsp.ts:155`).
+
+2. **`onMouseDown` on `<box>` ignored by OpenTUI** — all working clickable items use
+   `<text onMouseDown>`. Moved handler from `<box>` to `<text>`.
+
+3. **`config.update` wrote to wrong file** — `projectConfigUpdateTarget` checked
+   ancestor `.opencode/opencode.jsonc` BEFORE local `nocowboy.jsonc`. The parent
+   file already had `lsp: false`, so the write did nothing. Swapped order: local
+   root files now take priority. Fix in `src/nocowboy/config/config.ts:76`.
+
+4. **TUI config refresh** — after `config.update` writes to disk, the TUI's in-memory
+   `sync.data.config` was never refreshed. Added `config.get()` + `sync.set()`
+   to force reload after each toggle.
+
+### Balance Checking
+
+- **Kimi/Moonshot AI balance** — added `fetchKimiBalance()` calling
+  `GET https://api.moonshot.ai/v1/users/me/balance` with Bearer token.
+  Response format: `data.available_balance`. Provider auto-detection matches
+  by `providerID` AND by model ID containing "kimi" or "moonshot".
+- **DeepSeek balance** — fixed TLS certificate verification error by adding
+  `tls: { rejectUnauthorized: false }` to both balance fetches.
+- Balance URL derives from provider's `options.baseURL` when configured.
+- Balance label shows correct provider name ("DeepSeek", "Kimi", "Moonshot AI").
+
+### Settings Tab UI
+
+- **LSP**: Restored original layout — bold "LSP" label, colored status line
+  (green=Enabled, yellow=Disabled, red=Error), clickable toggle line below.
+- **Code Indexing**: Added colored status (green=Enabled/Complete, red=Error,
+  yellow=In Progress, muted text=Disabled) with live `sync.data.indexing` state.
+- Order flipped: Code Indexing first, LSP second (matches Info tab).
+
+### Info Tab LSP
+
+- Added colored bullet (•) for LSP status — green when enabled, muted when
+  disabled, red when server errors — matching Code Indexing pattern.
+
+### Tab Reorder
+
+- Info tab now first (was History), History second. Matches Info as default view.
+
 ## 7.3.46
 
 ### Patch Changes

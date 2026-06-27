@@ -1,6 +1,6 @@
 {
   "name": "@nocowboy/mcp-contract-guard",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "private": false,
   "publishConfig": { "access": "public" },
   "type": "module",
