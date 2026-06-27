@@ -138,10 +138,10 @@ function SettingsTab() {
       <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogProvider />)}>
         + Connect a provider
       </text>
-      <box paddingTop={1}>
+      <box paddingTop={1} flexDirection="row" onMouseDown={() => toggleLsp()}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
-          Toggle LSP
+        <text fg={theme.textMuted}>
+          {lspEnabled() ? "Enabled" : "Disabled"} — click to toggle
         </text>
       </box>
       <box paddingTop={1}>
