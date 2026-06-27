@@ -26,6 +26,19 @@ async function fetchDeepSeekBalance(key: string): Promise<number> {
   }
 }
 
+async function fetchKimiBalance(key: string): Promise<number> {
+  try {
+    const res = await fetch("https://api.moonshot.cn/v1/users/me/balance", {
+      headers: { Authorization: `Bearer ${key}` },
+    })
+    if (!res.ok) return 0
+    const data = await res.json() as { data?: { balance?: number; total_balance?: number } }
+    return data.data?.total_balance ?? data.data?.balance ?? 0
+  } catch {
+    return 0
+  }
+}
+
 function View(props: { api: TuiPluginApi; session_id: string }) {
   const theme = () => props.api.theme.current
   const sync = useSync()
@@ -39,9 +52,9 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
 
   const providerKey = createMemo<string | null>(() => {
     const pid = currentProvider()
-    if (pid !== "deepseek") return null
+    if (pid !== "deepseek" && pid !== "kimi") return null
     for (const p of sync.data.provider as Provider[]) {
-      if (p.id === "deepseek") return p.key ?? null
+      if (p.id === pid) return p.key ?? null
     }
     return null
   })
@@ -50,9 +63,14 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     () => {
       const key = providerKey()
       if (!key) return null
-      return { key, version: msg().length }
+      const pid = currentProvider()
+      return { key, version: msg().length, provider: pid }
     },
-    (input) => fetchDeepSeekBalance(input.key),
+    (input) => {
+      if (input.provider === "deepseek") return fetchDeepSeekBalance(input.key)
+      if (input.provider === "kimi") return fetchKimiBalance(input.key)
+      return 0
+    },
   )
 
   const state = createMemo(() => {
