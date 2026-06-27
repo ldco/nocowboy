@@ -1,6 +1,6 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "lsp": true,
+  "lsp": false,
   "indexing": {
     "enabled": true,
     "provider": "voyage"

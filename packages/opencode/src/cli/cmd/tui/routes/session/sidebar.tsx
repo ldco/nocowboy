@@ -138,7 +138,7 @@ function SettingsTab() {
       </text>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
-        <text fg={lspEnabled() ? theme.success : theme.accent} onMouseDown={() => toggleLsp()}> {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}</text>
+        <text fg={lspEnabled() ? theme.success : theme.accent} onMouseDown={(e: unknown) => { (e as any)?.preventDefault?.(); toggleLsp() }}> {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}</text>
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
