@@ -150,3 +150,15 @@ test("B10. Theme warning color stays yellow #ffff00, not changed to brand", asyn
   expect(t.theme.primary).toBeDefined()
   expect(t.theme.primary.dark).toBe("darkPrimary")  // #ff6800
 })
+
+test("B11. Project config file exists at CWD relative path (.opencode/opencode.jsonc)", async () => {
+  // The app runs from packages/opencode/ — config must be at packages/opencode/.opencode/opencode.jsonc
+  const cwdConfig = import.meta.dirname + "/../../../.opencode/opencode.jsonc"
+  const exists = await Bun.file(cwdConfig).exists()
+  expect(exists).toBe(true)
+  if (exists) {
+    const text = await Bun.file(cwdConfig).text()
+    // Strip comments for basic JSON validation
+    expect(text).toContain("lsp")
+  }
+})
