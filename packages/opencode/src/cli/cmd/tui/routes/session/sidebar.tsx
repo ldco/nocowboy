@@ -109,11 +109,13 @@ function SettingsTab() {
   const lspEnabled = () => sync.data.config?.lsp === true
 
   const toggleLsp = async () => {
+    console.error("TOGGLE_LSP_CLICKED")
     const dir = project.instance.directory() ?? ""
     try {
       await sdk.client.config.update({ directory: dir, config: { lsp: !lspEnabled() } as any })
+      console.error("TOGGLE_LSP_OK")
     } catch (err) {
-      console.error("LSP toggle failed", err)
+      console.error("TOGGLE_LSP_FAIL", err)
     }
   }
 
