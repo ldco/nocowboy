@@ -146,7 +146,7 @@ function SettingsTab() {
       </box>
       <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
-        <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
+        <text fg={theme.textMuted} onMouseDown={() => { console.error("INDEXING_CLICK"); dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />) }}>
           Open indexing configuration →
         </text>
       </box>
