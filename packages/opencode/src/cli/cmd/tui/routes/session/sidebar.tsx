@@ -137,6 +137,12 @@ function SettingsTab() {
         + Connect a provider
       </text>
       <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+          {lspEnabled() ? "Enabled — click to disable" : "Disabled — click to enable"}
+        </text>
+      </box>
+      <box paddingTop={1}>
         <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
         <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />)}>
           Open indexing configuration →
@@ -332,17 +338,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* Settings Tab — API key management */}
       <Show when={tab() === "settings"}>
-        <box paddingBottom={1} onMouseDown={() => {
-          const lspEnabled = sync.data.config?.lsp === true
-          sdk.client.config.update({
-            directory: project.instance.directory() ?? "",
-            config: { lsp: !lspEnabled } as any,
-          })
-        }}>
-          <text fg={sync.data.config?.lsp === true ? theme.success : theme.accent}>
-            LSP: {sync.data.config?.lsp === true ? "Enabled — click to disable" : "Disabled — click to enable"}
-          </text>
-        </box>
         <scrollbox flexGrow={1} scrollAcceleration={scrollAcceleration()}>
           <SettingsTab />
         </scrollbox>
