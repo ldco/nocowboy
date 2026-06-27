@@ -24,7 +24,7 @@ const PROJECT_ROOT = findProjectRoot(import.meta.dirname)
 const SRC = resolve(PROJECT_ROOT, "src/cli/cmd/tui")
 const TUI_ROOT = SRC
 const SRC_ROOT = resolve(PROJECT_ROOT, "src")
-const CWD_CONFIG = resolve(PROJECT_ROOT, ".opencode/opencode.jsonc")
+const CWD_CONFIG = resolve(PROJECT_ROOT, ".opencode/nocowboy.jsonc")
 
 function spawnTui(): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ stdout: string; stderr: string }> } {
   const proc = Bun.spawn({
