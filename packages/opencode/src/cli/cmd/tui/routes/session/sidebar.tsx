@@ -186,12 +186,14 @@ function SettingsTab() {
           Open indexing configuration →
         </text>
       </box>
-      <box paddingTop={1} flexDirection="row" onMouseDown={() => toggleLsp()}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP </text>
+      <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
         <text fg={lspStatusColor()}>
           {lspError() ? "Error" : lspEnabled() ? "Enabled" : "Disabled"}
         </text>
-        <text fg={theme.textMuted}> — click to toggle</text>
+        <text fg={theme.textMuted} onMouseDown={() => { console.error("TOGGLE_LSP_CLICKED"); toggleLsp() }}>
+          {lspEnabled() ? "Click to disable" : "Click to enable"}
+        </text>
       </box>
 
       {/* MCP Servers section */}
