@@ -1,17 +1,25 @@
 # NoCowboy Documentation
 
 ## Start here
-- **[ROADMAP.md](../ROADMAP.md)** — single source of truth. DONE / NOT DONE / NEXT.
+- **[ROADMAP.md](ROADMAP.md)** — single source of truth. DONE / NOT DONE / NEXT.
+
+## Development
+- [dogfooding-workflow.md](dogfooding-workflow.md) — rebuild, install, dev mode
 
 ## Guides
 - [publish.md](guides/publish.md) — npm publishing
 - [tausik-js-port.md](guides/tausik-js-port.md) — NUTAUSIK JS port status
 - [nutausik-analysis.md](guides/nutausik-analysis.md) — NUTAUSIK strategy (hybrid architecture)
 - [feature-overlap-decisions.md](guides/feature-overlap-decisions.md) — what goes where
+- [performance-optimization.md](guides/performance-optimization.md)
+
+## Plans
+- [P1 memory system](plans/p1-memory-system.md)
+- [P2 MCP management](plans/p2-mcp-management.md)
 
 ## Reference
 - [competitive-analysis.md](reference/competitive-analysis.md) — 30+ TUIs compared
-- [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep reference manual
+- [fork-playbook.md](reference/kilocode-fork-playbook.md) — deep reference manual (upstream)
 - [turso-database-adoption.md](reference/turso-database-adoption.md) — ADR: Turso plan
 - [glossary.md](reference/glossary.md)
 - [design-layout.md](reference/design-layout.md)
