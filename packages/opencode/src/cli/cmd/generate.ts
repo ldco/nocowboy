@@ -41,7 +41,7 @@ export const GenerateCommand = {
       .replaceAll("OpenCode", "NoCowboy")
       .replaceAll("opencode.local", "nocowboy.local")
       .replaceAll("opencode serve", "nocowboy serve")
-      .replaceAll("https://opencode.ai/", "https://kilo.ai/")
+      .replaceAll("https://nocowboy.dev/", "https://nocowboy.dev/")
     // nocowboy_change end
 
     // Format through prettier so output is byte-identical to committed file

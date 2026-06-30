@@ -359,7 +359,8 @@ export const GithubInstallCommand = effectCmd({
 
           async function getInstallation() {
             // nocowboy_change start - updated to new endpoint
-            return await fetch(`https://api.kilo.ai/api/integrations/github/check-installation?owner=${app.owner}`)
+            // nocowboy_change - TODO: replace with own service, was: https://api.nocowboy.dev/api/integrations/github/check-installation
+            return await fetch(``)
               .then((res) => res.json())
               .then((data) => data.installation)
             // nocowboy_change end
@@ -489,7 +490,7 @@ export const GithubRunCommand = effectCmd({
           ? (payload as IssueCommentEvent | IssuesEvent).issue.number
           : (payload as PullRequestEvent | PullRequestReviewCommentEvent).pull_request.number
       const runUrl = `/${owner}/${repo}/actions/runs/${runId}`
-      const shareBaseUrl = isMock ? "https://dev.kilo.ai" : "https://kilo.ai"
+      const shareBaseUrl = "" // nocowboy_change - TODO: replace with own service, was: isMock ? "https://dev.nocowboy.dev" : "https://nocowboy.dev"
 
       let appToken: string
       let octoRest: Octokit
@@ -750,7 +751,7 @@ export const GithubRunCommand = effectCmd({
 
       function normalizeOidcBaseUrl(): string {
         const value = process.env["OIDC_BASE_URL"]
-        if (!value) return "https://api.kilo.ai"
+        if (!value) return "" // nocowboy_change - TODO: replace with own service, was: "https://api.nocowboy.dev"
         return value.replace(/\/+$/, "")
       }
 
@@ -1413,7 +1414,7 @@ export const GithubRunCommand = effectCmd({
       function footer(opts?: { image?: boolean }) {
         // nocowboy_change start - simplified footer with text branding (no image backend yet)
         const share = shareId ? `[nocowboy session](${shareBaseUrl}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
-        return `\n\n---\n*Powered by [Kilo](https://kilo.ai)*&nbsp;&nbsp;|&nbsp;&nbsp;${share}[github run](${runUrl})`
+        return `\n\n---\n*Powered by [NoCowboy](https://nocowboy.dev)*&nbsp;&nbsp;|&nbsp;&nbsp;${share}[github run](${runUrl})` // nocowboy_change - TODO: replace with own service
         // nocowboy_change end
       }
 

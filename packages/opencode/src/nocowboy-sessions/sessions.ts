@@ -174,7 +174,7 @@ export namespace Sessions {
       const valid = await authValid(token)
       if (!valid) return undefined
 
-      const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
+      const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "" // nocowboy_change - TODO: replace with own service, was: "" /* nocowboy_change - TODO: own ingestion service */
       const baseHeaders: Record<string, string> = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -398,7 +398,8 @@ export namespace Sessions {
       }
       if (valid === undefined) throw new Error("Unable to enable remote: failed to verify NoCowboy credentials.")
 
-      const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
+      // nocowboy_change - TODO: replace with own service, was: const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "" /* nocowboy_change - TODO: own ingestion service */)
+      const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "")
         .replace(/^https:\/\//, "wss://")
         .replace(/^http:\/\//, "ws://")
 
@@ -601,7 +602,7 @@ export namespace Sessions {
       throw new Error(`Unable to share session ${sessionId}: server did not return a public id`)
     }
 
-    const url = `https://app.kilo.ai/s/${result.public_id}`
+    const url = `` // nocowboy_change - TODO: replace with own service, was: `https://nocowboy.dev/s/${result.public_id}`
 
     await save(sessionId, {
       ...current,

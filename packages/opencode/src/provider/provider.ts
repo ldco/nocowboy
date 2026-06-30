@@ -439,9 +439,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
-            "X-Title": "Kilo Code", // nocowboy_change
-            "X-Source": "nocowboy", // nocowboy_change
+            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "X-Source": "nocowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -450,8 +450,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
-            "X-Title": "Kilo Code", // nocowboy_change
+            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -460,9 +460,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
-            "X-Title": "Kilo Code", // nocowboy_change
-            "X-BILLING-INVOKE-ORIGIN": "KiloCode", // nocowboy_change
+            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "X-BILLING-INVOKE-ORIGIN": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -471,8 +471,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://kilo.ai/", // nocowboy_change
-            "x-title": "Kilo Code", // nocowboy_change
+            "http-referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "x-title": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -575,8 +575,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
-            "X-Title": "Kilo Code", // nocowboy_change
+            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -852,7 +852,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "X-Cerebras-3rd-Party-Integration": "Kilo Code", // nocowboy_change
+            "X-Cerebras-3rd-Party-Integration": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),
@@ -861,8 +861,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://kilo.ai/", // nocowboy_change
-            "X-Title": "Kilo Code", // nocowboy_change
+            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
+            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
           },
         },
       }),

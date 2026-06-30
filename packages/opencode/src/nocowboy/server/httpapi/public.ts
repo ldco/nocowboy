@@ -125,7 +125,7 @@ function rebrand(value: unknown): void {
       .replaceAll("OpenCode", "NoCowboy")
       .replaceAll("opencode.local", "kilo.local")
       .replaceAll("opencode serve", "kilo serve")
-      .replaceAll("https://opencode.ai/", "https://kilo.ai/")
+      .replaceAll("https://nocowboy.dev/", "https://nocowboy.dev/")
   }
 }
 

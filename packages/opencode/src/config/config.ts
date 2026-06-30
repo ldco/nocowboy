@@ -163,7 +163,7 @@ export const Info = Schema.Struct({
     description: "Server configuration for the kilo serve command", // nocowboy_change
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommand.Info)).annotate({
-    description: "Command configuration, see https://kilo.ai/docs/customize/workflows", // nocowboy_change
+    description: "Command configuration, see https://nocowboy.dev/docs/customize/workflows", // nocowboy_change - TODO: replace with own service
   }),
   skills: Schema.optional(ConfigSkills.Info).annotate({ description: "Additional skill folder paths" }),
   reference: Schema.optional(ConfigReference.Info).annotate({
@@ -198,9 +198,10 @@ export const Info = Schema.Struct({
     description: "When set, ONLY these providers will be enabled. All other providers will be ignored",
   }),
   // nocowboy_change start
+  // nocowboy_change - TODO: replace with own service
   // NOTE: Any new nocowboy_change key added to Config.Info must also be mirrored in
   // apps/web/src/app/config.json/extras.ts in the cloud repo, otherwise
-  // $schema: https://app.kilo.ai/config.json will not recognize it.
+  // $schema: https://nocowboy.dev/config.json will not recognize it.
   remote_control: Schema.optional(Schema.Boolean).annotate({
     description: "Enable remote control of sessions via NoCowboy Cloud. Equivalent to running /remote on startup.",
   }),
@@ -289,7 +290,7 @@ export const Info = Schema.Struct({
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
     // nocowboy_change start
-  ).annotate({ description: "Agent configuration, see https://kilo.ai/docs/customize/custom-subagents" }), // nocowboy_change
+  ).annotate({ description: "Agent configuration, see https://nocowboy.dev/docs/customize/custom-subagents" }), // nocowboy_change - TODO: replace with own service
   provider: Schema.optional(Schema.Record(Schema.String, Schema.NullOr(ConfigProvider.Info))).annotate({
     // nocowboy_change end
     description: "Custom provider configurations and model overrides",
@@ -521,8 +522,8 @@ export const layer = Layer.effect(
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
       if (!data.$schema) {
         // nocowboy_change start
-        data.$schema = "https://app.kilo.ai/config.json"
-        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://app.kilo.ai/config.json",')
+        data.$schema = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
+        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://nocowboy.dev/config.json",') // nocowboy_change - TODO: replace with own service
         // nocowboy_change end
         yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
       }
@@ -550,7 +551,7 @@ export const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://app.kilo.ai/config.json" }, null, 2))
+            .writeWithDirs(file, JSON.stringify({ $schema: "https://nocowboy.dev/config.json" }, null, 2)) // nocowboy_change - TODO: replace with own service
             .pipe(Effect.catch(() => Effect.void))
         }
       }
@@ -569,7 +570,7 @@ export const layer = Layer.effect(
             .then(async (mod) => {
               const { provider, model, ...rest } = mod.default
               if (provider && model) result.model = `${provider}/${model}`
-              result["$schema"] = "https://app.kilo.ai/config.json" // nocowboy_change
+              result["$schema"] = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
               result = mergeConfig(result, rest)
               await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
               await fsNode.unlink(legacy)
@@ -733,7 +734,7 @@ export const layer = Layer.effect(
                   })) as Record<string, unknown>)
                 : {}
               const remoteConfig = mergeConfig(wellknown.config ?? {}, fetchedConfig as Info)
-              if (!remoteConfig.$schema) remoteConfig.$schema = "https://app.kilo.ai/config.json"
+              if (!remoteConfig.$schema) remoteConfig.$schema = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
               const next = yield* loadConfig(JSON.stringify(remoteConfig), {
                 dir: path.dirname(source),
                 source,

@@ -69,7 +69,7 @@ Markdown files in `.nocowboy/workflows/` or `.nocowboy/workflows/` (project-leve
 
 ## Agent Manager Setup And Run Scripts
 
-For the full product guidance, use the canonical [Agent Manager reference](https://kilo.ai/docs/automate/agent-manager) and [Agent Manager Workflows guide](https://kilo.ai/docs/automate/agent-manager-workflows). Prefer these links instead of guessing documentation paths.
+For the full product guidance, use the canonical [Agent Manager reference](https://nocowboy.dev/docs/automate/agent-manager) and [Agent Manager Workflows guide](https://nocowboy.dev/docs/automate/agent-manager-workflows). Prefer these links instead of guessing documentation paths. // nocowboy_change - TODO: replace with own service
 
 Agent Manager setup/run scripts are project files in the main repository's `.nocowboy/` directory. They are not `nocowboy.json` settings and should not be configured inside generated `.nocowboy/worktrees/<name>/` checkouts.
 
@@ -223,7 +223,7 @@ For example, this configuration will hide all models from the built-in Kilo Gate
 
 ```jsonc
 {
-  "$schema": "https://app.kilo.ai/config.json",
+  "$schema": "https://nocowboy.dev/config.json", // nocowboy_change - TODO: replace with own service
   "disabled_providers": ["kilo", "openai"],
 }
 ```

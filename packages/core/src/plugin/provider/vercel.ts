@@ -8,8 +8,8 @@ export const VercelPlugin = PluginV2.define({
     return {
       "provider.update": Effect.fn(function* (evt) {
         if (evt.provider.id !== ProviderV2.ID.make("vercel")) return
-        evt.provider.options.headers["http-referer"] = "https://kilo.ai/" // kilocode_change
-        evt.provider.options.headers["x-title"] = "Kilo Code" // kilocode_change
+        evt.provider.options.headers["http-referer"] = "https://nocowboy.dev/" // kilocode_change // nocowboy_change - TODO: replace with own service
+        evt.provider.options.headers["x-title"] = "NoCowboy" // kilocode_change // nocowboy_change - TODO: replace with own service
       }),
       "aisdk.sdk": Effect.fn(function* (evt) {
         if (evt.package !== "@ai-sdk/vercel") return

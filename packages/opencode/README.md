@@ -1,4 +1,4 @@
-# Kilo Code CLI
+# NoCowboy CLI
 
 The AI coding agent built for the terminal. Generate code from natural language, automate tasks, and run terminal commands -- powered by 500+ AI models.
 

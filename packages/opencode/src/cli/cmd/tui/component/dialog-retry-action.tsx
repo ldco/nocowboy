@@ -7,7 +7,8 @@ import { Link } from "@tui/ui/link"
 import { BgPulse } from "./bg-pulse"
 import { useBindings } from "../keymap"
 
-const KILO_PRICING_URL = "https://kilo.ai/pricing" // nocowboy_change
+// nocowboy_change - TODO: replace with own service
+const KILO_PRICING_URL = ""
 const PAD_X = 3
 const PAD_TOP_OUTER = 1
 const FOREGROUND_ALPHA = 186

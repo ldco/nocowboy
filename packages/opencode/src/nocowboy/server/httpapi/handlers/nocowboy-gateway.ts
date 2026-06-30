@@ -30,9 +30,10 @@ export const nocowboyGatewayHandlers = HttpApiBuilder.group(NoCowboyGatewayApi, 
       if (Object.keys(auth).length === 0) {
         return yield* new HttpApiError.BadRequest({})
       }
+      // nocowboy_change - TODO: replace with own service, was: .fetch?.("https://api.nocowboy.dev/edit/completions", {
       const response = yield* Effect.promise<Response>(() =>
         (globalThis as any)
-          .fetch?.("https://api.kilo.ai/edit/completions", {
+          .fetch?.("", {
             method: "POST",
             headers: { "content-type": "application/json" },
           })

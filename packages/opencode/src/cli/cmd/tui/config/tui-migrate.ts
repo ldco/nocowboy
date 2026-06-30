@@ -12,7 +12,7 @@ import * as ConfigPaths from "@/config/paths"
 
 const log = Log.create({ service: "tui.migrate" })
 
-const TUI_SCHEMA_URL = "https://app.kilo.ai/tui.json" // nocowboy_change
+const TUI_SCHEMA_URL = "https://nocowboy.dev/tui.json" // nocowboy_change - TODO: replace with own service
 
 const decodeTheme = Schema.decodeUnknownOption(Schema.String)
 const decodeRecord = Schema.decodeUnknownOption(Schema.Record(Schema.String, Schema.Unknown))

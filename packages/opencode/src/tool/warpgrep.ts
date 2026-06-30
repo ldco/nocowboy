@@ -10,7 +10,8 @@ import DESCRIPTION from "./warpgrep.txt"
 // FREE_PERIOD_TODO: Remove KILO_WARPGREP_PROXY_URL constant and the proxy
 // fallback below. After the free period ends, require MORPH_API_KEY and
 // return an error when it is missing.
-const KILO_WARPGREP_PROXY_URL = "https://api.kilo.ai/api/gateway"
+// nocowboy_change - TODO: replace with own service, was: const KILO_WARPGREP_PROXY_URL = "https://api.nocowboy.dev/api/gateway"
+const KILO_WARPGREP_PROXY_URL = ""
 
 const Parameters = Schema.Struct({
   query: Schema.String.annotate({

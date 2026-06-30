@@ -9,9 +9,9 @@ export const LLMGatewayPlugin = PluginV2.define({
       "provider.update": Effect.fn(function* (evt) {
         if (evt.provider.id !== ProviderV2.ID.make("llmgateway")) return
         if (evt.provider.enabled === false) return
-        evt.provider.options.headers["HTTP-Referer"] = "https://kilo.ai/" // kilocode_change
-        evt.provider.options.headers["X-Title"] = "Kilo Code" // kilocode_change
-        evt.provider.options.headers["X-Source"] = "nocowboy" // kilocode_change
+        evt.provider.options.headers["HTTP-Referer"] = "https://nocowboy.dev/" // kilocode_change // nocowboy_change - TODO: replace with own service
+        evt.provider.options.headers["X-Title"] = "NoCowboy" // kilocode_change // nocowboy_change - TODO: replace with own service
+        evt.provider.options.headers["X-Source"] = "nocowboy" // kilocode_change // nocowboy_change - TODO: replace with own service
       }),
     }
   }),
