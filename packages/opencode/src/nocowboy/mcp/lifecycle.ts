@@ -3,7 +3,22 @@ import * as path from "node:path"
 import * as fsp from "node:fs/promises"
 import * as fs from "node:fs"
 import { spawn } from "node:child_process"
+import { fileURLToPath } from "node:url"
 import { Launcher } from "./launcher"
+
+const LIFECYCLE_DIR = path.dirname(fileURLToPath(import.meta.url))
+
+async function findProxyPath(): Promise<string> {
+  const candidates = [
+    path.join(LIFECYCLE_DIR, "proxy-standalone.mjs"),
+    path.join(path.dirname(process.execPath), "proxy-standalone.mjs"),
+    path.join(os.homedir(), ".nocowboy", "proxy-standalone.mjs"),
+  ]
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c
+  }
+  throw new Error("Cannot find proxy-standalone.mjs")
+}
 
 const MCP_DIR = path.join(os.homedir(), ".nocowboy", "mcp")
 
@@ -59,10 +74,8 @@ export namespace McpLifecycle {
     const logFd = fs.openSync(logPath, "a")
     const cmd = command
 
-    const selfBin = process.argv[0] ?? process.execPath
-    const selfArgs = ["mcp", "_proxy", "--port", String(port), "--", cmd]
-
-    const child = spawn(selfBin, selfArgs, {
+    const proxyPath = await findProxyPath()
+    const child = spawn("node", [proxyPath, String(port), cmd], {
       stdio: ["ignore", logFd, logFd],
       detached: true,
     })

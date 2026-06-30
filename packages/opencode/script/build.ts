@@ -340,6 +340,10 @@ for (const item of targets) {
   })
 
   await fs.promises.copyFile(snapshot.path, path.resolve(dir, `dist/${name}/bin/models-snapshot.json`)) // nocowboy_change
+  await fs.promises.copyFile(
+    path.resolve(dir, "src/nocowboy/mcp/proxy-standalone.mjs"),
+    path.resolve(dir, `dist/${name}/bin/proxy-standalone.mjs`),
+  )
   await copyTreeSitterWasms(path.resolve(dir, `dist/${name}/bin`)) // nocowboy_change
   if (consoleDist) await copyWebConsole(consoleDist, path.resolve(dir, `dist/${name}/bin`)) // nocowboy_change
 
