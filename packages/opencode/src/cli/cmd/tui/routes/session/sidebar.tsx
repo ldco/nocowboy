@@ -96,6 +96,7 @@ function SettingsTab() {
   const dialog = useDialog()
   const sdk = useSDK()
   const project = useProject()
+  const [mcpMsg, setMcpMsg] = createSignal("")
 
   useKeyboard((event: { ctrl: boolean; code?: string }) => {
     if (event.ctrl && event.code === "KeyL") {
@@ -192,6 +193,94 @@ function SettingsTab() {
         </text>
         <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
           {lspEnabled() ? "Click to disable" : "Click to enable"}
+        </text>
+      </box>
+
+      {/* MCP Servers section */}
+      <box paddingTop={1} flexDirection="column" gap={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>MCP Servers</text>
+        <Show when={mcpMsg()}>
+          <text fg={theme.warning}>{mcpMsg()}</text>
+        </Show>
+        <For each={Object.entries(sync.data.config?.mcp ?? {})}>
+          {([name, server]: [string, any]) => {
+            const status = () => (sync.data.mcp as any)?.[name]
+            const st = () => status()?.status ?? ""
+            const vendor = () => server?.vendor ?? "community"
+            const enabled = () => server?.enabled !== false
+            const isNocowboy = () => vendor() === "nocowboy"
+            const color = () => {
+              if (!enabled()) return theme.textMuted
+              if (st() === "connected") return theme.success
+              if (st() === "failed" || st() === "needs_client_registration") return theme.error
+              if (st() === "needs_auth") return theme.warning
+              return theme.textMuted
+            }
+            const icon = () => {
+              if (!enabled()) return "○"
+              if (st() === "connected") return "✓"
+              if (st() === "failed") return "✗"
+              if (st() === "needs_auth") return "⚠"
+              return "○"
+            }
+            const err = () => status()?.error ? ` ${status()!.error}` : ""
+
+            const toggle = async () => {
+              setMcpMsg("")
+              const dir = project.instance.directory() ?? ""
+              const next = !enabled()
+              try {
+                const current = sync.data.config as any
+                const updatedMcp = { ...(current.mcp ?? {}) }
+                updatedMcp[name] = { ...(updatedMcp[name] ?? {}), enabled: next }
+                await sdk.client.config.update({
+                  directory: dir,
+                  config: { mcp: updatedMcp },
+                })
+                const updated = await sdk.client.config.get()
+                if (updated.data) sync.set("config", updated.data as any)
+              } catch (e: any) {
+                setMcpMsg(e?.message ?? "Toggle failed")
+              }
+            }
+
+            const remove = async () => {
+              setMcpMsg("")
+              const dir = project.instance.directory() ?? ""
+              try {
+                const current = sync.data.config as any
+                const updatedMcp = { ...(current.mcp ?? {}) }
+                delete updatedMcp[name]
+                await sdk.client.config.update({
+                  directory: dir,
+                  config: { mcp: updatedMcp },
+                })
+                const updated = await sdk.client.config.get()
+                if (updated.data) sync.set("config", updated.data as any)
+              } catch (e: any) {
+                setMcpMsg(e?.message ?? "Remove failed")
+              }
+            }
+
+            const toggleMcp = (e: any) => { e?.preventDefault?.(); toggle() }
+
+            return (
+              <text wrapMode="none" onMouseDown={toggleMcp}>
+                <span style={{ fg: color() }}>{icon()}</span>{" "}
+                {name}{" "}
+                <span style={{ fg: isNocowboy() ? brand : theme.textMuted }}>{isNocowboy() ? "nc" : "com"}</span>
+                <Show when={err()}>
+                  {" "}<span style={{ fg: theme.error }}>{err()}</span>
+                </Show>
+              </text>
+            )
+          }}
+        </For>
+        <Show when={Object.keys(sync.data.config?.mcp ?? {}).length === 0}>
+          <text fg={theme.textMuted} wrapMode="word">No MCP servers configured. Run nocowboy init or add manually.</text>
+        </Show>
+        <text fg={theme.textMuted} onMouseDown={() => setMcpMsg("Use: nocowboy mcp add")}>
+          + Add MCP Server
         </text>
       </box>
     </box>

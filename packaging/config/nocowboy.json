@@ -3,62 +3,74 @@
   "mcp": {
     "plugin-registry": {
       "type": "remote",
-      "url": "http://127.0.0.1:9214/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9200/mcp",
       "enabled": true
     },
     "context7": {
       "type": "remote",
-      "url": "http://127.0.0.1:9200/mcp",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9201/mcp",
       "enabled": true
     },
     "sqlite": {
       "type": "remote",
-      "url": "http://127.0.0.1:9201/mcp",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9202/mcp",
       "enabled": true
     },
     "puppeteer": {
       "type": "remote",
-      "url": "http://127.0.0.1:9202/mcp",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9203/mcp",
       "enabled": true
     },
     "tausik": {
       "type": "remote",
+      "vendor": "community",
       "url": "http://127.0.0.1:9204/mcp",
       "enabled": true
     },
     "git": {
       "type": "remote",
+      "vendor": "community",
       "url": "http://127.0.0.1:9205/mcp",
       "enabled": true
     },
     "puppetmaster": {
       "type": "remote",
-      "url": "http://127.0.0.1:9203/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9206/mcp",
       "enabled": true
     },
     "ralph": {
       "type": "remote",
-      "url": "http://127.0.0.1:9210/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9207/mcp",
       "enabled": true
     },
     "constitution": {
       "type": "remote",
-      "url": "http://127.0.0.1:9216/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9208/mcp",
       "enabled": true
     },
     "ncp-validator": {
       "type": "remote",
-      "url": "http://127.0.0.1:9217/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9209/mcp",
       "enabled": true
     },
     "contract-guard": {
       "type": "remote",
-      "url": "http://127.0.0.1:9218/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9210/mcp",
       "enabled": true
     },
     "score-engine": {
       "type": "remote",
-      "url": "http://127.0.0.1:9219/mcp",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9211/mcp",
       "enabled": true
     }
   },

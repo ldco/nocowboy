@@ -3,11 +3,23 @@ import { zod } from "@opencode-ai/core/effect-zod" // nocowboy_change
 import { PositiveInt } from "@opencode-ai/core/schema"
 import { withStatics } from "@opencode-ai/core/schema" // nocowboy_change
 
+// nocowboy_change start
+export const VENDOR = {
+  NOCOWBOY: "nocowboy" as const,
+  COMMUNITY: "community" as const,
+} as const
+// nocowboy_change end
+
+const VENDOR_LITERALS = ["nocowboy", "community"] as const
+
 const LocalCanonical = Schema.Struct({
   // nocowboy_change
   type: Schema.Literal("local").annotate({ description: "Type of MCP server connection" }),
   command: Schema.mutable(Schema.Array(Schema.String)).annotate({
     description: "Command and arguments to run the MCP server",
+  }),
+  vendor: Schema.optional(Schema.Literals(VENDOR_LITERALS)).annotate({
+    description: 'Origin of the MCP server: "nocowboy" (first-party) or "community" (third-party)',
   }),
   environment: Schema.optional(Schema.Record(Schema.String, Schema.String)).annotate({
     description: "Environment variables to set when running the MCP server",
@@ -26,6 +38,7 @@ const LocalCanonical = Schema.Struct({
 const LocalInput = Schema.Struct({
   type: Schema.Literal("local"),
   command: Schema.mutable(Schema.Array(Schema.String)),
+  vendor: Schema.optional(Schema.Literals(VENDOR_LITERALS)),
   environment: Schema.optional(Schema.Record(Schema.String, Schema.String)),
   env: Schema.optional(Schema.Record(Schema.String, Schema.String)),
   enabled: Schema.optional(Schema.Boolean),
@@ -38,6 +51,7 @@ const normalizeLocal = (input: Schema.Schema.Type<typeof LocalInput>): Schema.Sc
     type: input.type,
     command: input.command,
     ...(env === undefined ? {} : { environment: env }),
+    ...("vendor" in input ? { vendor: input.vendor } : {}),
     ...("enabled" in input ? { enabled: input.enabled } : {}),
     ...("timeout" in input ? { timeout: input.timeout } : {}),
   }
@@ -71,6 +85,9 @@ export type OAuth = Schema.Schema.Type<typeof OAuth>
 export const Remote = Schema.Struct({
   type: Schema.Literal("remote").annotate({ description: "Type of MCP server connection" }),
   url: Schema.String.annotate({ description: "URL of the remote MCP server" }),
+  vendor: Schema.optional(Schema.Literals(VENDOR_LITERALS)).annotate({
+    description: 'Origin of the MCP server: "nocowboy" (first-party) or "community" (third-party)',
+  }),
   enabled: Schema.optional(Schema.Boolean).annotate({
     description: "Enable or disable the MCP server on startup",
   }),

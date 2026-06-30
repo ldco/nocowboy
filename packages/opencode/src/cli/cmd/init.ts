@@ -3,6 +3,9 @@ import * as prompts from "@clack/prompts"
 import * as fs from "node:fs"
 import * as path from "node:path"
 import * as os from "node:os"
+import { ConfigMCP } from "@/config/mcp"
+import { McpLifecycle } from "@/nocowboy/mcp/lifecycle"
+import { Launcher } from "@/nocowboy/mcp/launcher"
 
 // nocowboy_change — first-run global setup wizard
 const configDir = path.join(os.homedir(), ".config", "nocowboy")
@@ -55,6 +58,32 @@ export const InitCommand = cmd({
       initialValue: true,
     })
 
+    // Default MCP servers (first-party + third-party)
+    const mcpServers: Record<string, Record<string, unknown>> = {}
+
+    if (startMcp) {
+      const N = ConfigMCP.VENDOR.NOCOWBOY
+      const C = ConfigMCP.VENDOR.COMMUNITY
+
+      const defaultNames = [
+        "plugin-registry", "context7", "sqlite", "puppeteer",
+        "tausik", "git", "puppetmaster", "ralph",
+        "constitution", "ncp-validator", "contract-guard", "score-engine",
+      ]
+
+      const defaultVendors: Record<string, string> = {
+        "plugin-registry": N, "context7": C, "sqlite": C, "puppeteer": C,
+        "tausik": C, "git": C, "puppetmaster": N, "ralph": N,
+        "constitution": N, "ncp-validator": N, "contract-guard": N, "score-engine": N,
+      }
+
+      for (let i = 0; i < defaultNames.length; i++) {
+        const name = defaultNames[i]
+        const port = 9200 + i
+        mcpServers[name] = { type: "remote", vendor: defaultVendors[name], url: `http://127.0.0.1:${port}/mcp`, enabled: true }
+      }
+    }
+
     // Write global config
     const config: Record<string, unknown> = {
       lsp: true,
@@ -70,7 +99,7 @@ export const InitCommand = cmd({
         bash: { "^(sudo\\s+)?rm\\s+-rf\\s+/": "ask", "^git\\s+push\\s+.*(--force|-f)": "ask", "*": "allow" },
         edit: "allow", mcp: "allow", skill: "allow",
       },
-      mcp: {},
+      mcp: mcpServers,
     }
     if (provider !== "none") config["provider"] = { [provider]: { enabled: true } }
 
@@ -80,7 +109,33 @@ export const InitCommand = cmd({
     prompts.log.success(`Configuration → ${configPath}`)
 
     if (startMcp) {
-      prompts.log.info("Run: nocowboy mcp start")
+      prompts.log.info("Starting MCP servers...")
+      const names = Object.keys(mcpServers)
+      let started = 0
+      for (let i = 0; i < names.length; i++) {
+        const name = names[i]
+        const cmd = await Launcher.command(name).catch(() => null)
+        if (!cmd) {
+          prompts.log.warn(`  ${name} — no launch command, install via:  npm install -g @nocowboy/mcp-${name}`)
+          continue
+        }
+        const port = 9200 + i
+        try {
+          const r = await McpLifecycle.startOne(name, cmd, port)
+          if (r.running) {
+            prompts.log.info(`  ✓ ${name} — ${r.url}`)
+            started++
+          } else {
+            prompts.log.warn(`  ○ ${name} — failed to start`)
+          }
+        } catch {
+          prompts.log.warn(`  × ${name} — error starting`)
+        }
+      }
+      if (started > 0) {
+        const totalMcpMsg = started === names.length ? `All MCP servers started` : `${started}/${names.length} MCP servers started`
+        prompts.log.success(totalMcpMsg)
+      }
     }
 
     prompts.outro("Ready. Run `nocowboy` to start coding.")

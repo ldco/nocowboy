@@ -40,6 +40,24 @@
 
 ---
 
+## 🔥 ACTIVE — P2-A1 MCP Server Management & Dogfooding Blocker
+
+**Plan:** `docs/plans/p2-mcp-management.md` | **Status:** 🚧 Planning complete, implementation starting
+
+| Phase | Task | Status |
+|---|---|---|
+| 1 | Add vendor field to MCP config schema | ⬜ `config/mcp.ts` |
+| 2 | Fix nocowboy init — populate 12 default servers | ⬜ `cli/cmd/init.ts` |
+| 3 | Settings tab MCP server list with live status | ⬜ `sidebar.tsx` + new `mcp-settings.tsx` |
+| 4 | Full MCP management dialog (enable/disable, add, remove, logs, filter by vendor) | ⬜ new `dialog-mcp.tsx` |
+| 5 | Auto-start MCP servers on first TUI launch | ⬜ `runtime.boot.ts` + `lifecycle.ts` |
+
+**Root cause:** `nocowboy init` creates `mcp: {}` empty. Packaging template with 12 servers never applied. No UI to manage MCPs. Blocks dogfooding — developers need MCP servers to work on NoCowboy inside NoCowboy.
+
+**Taxonomy:** 7 first-party (`vendor: "nocowboy"`) + 5 third-party (`vendor: "community"`)
+
+---
+
 ## 🔥 ACTIVE — P1.6 Test Harness & Root Cause Debug
 
 | Step | Task | Status |
