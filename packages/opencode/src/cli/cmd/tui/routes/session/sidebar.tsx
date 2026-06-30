@@ -151,10 +151,10 @@ function SettingsTab() {
   const indexingText = () => {
     const { state, message } = indexingStatus()
     const enabled = sync.data.config.indexing?.enabled === true
-    if (!enabled) return "Disabled"
     if (state === "Complete") return "Enabled"
     if (state === "Error") return message || "Error"
     if (state === "In Progress") return "Indexing..."
+    if (!enabled) return "Disabled"
     return message || "Enabled"
   }
 
