@@ -191,7 +191,7 @@ function SettingsTab() {
         <text fg={lspStatusColor()}>
           {lspError() ? "Error" : lspEnabled() ? "Enabled" : "Disabled"}
         </text>
-        <text fg={theme.textMuted} onMouseDown={() => { console.error("TOGGLE_LSP_CLICKED"); toggleLsp() }}>
+        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
           {lspEnabled() ? "Click to disable" : "Click to enable"}
         </text>
       </box>
