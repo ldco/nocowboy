@@ -116,22 +116,16 @@ function SettingsTab() {
     return theme.warning
   }
 
-  const toggleLsp = async () => {
+  const toggleLsp = () => {
     setLspError(false)
     const dir = project.instance.directory() ?? ""
     const next = !lspEnabled()
-    try {
-      await sdk.client.config.update({
-        directory: dir,
-        config: { lsp: next },
-      })
-      const updated = await sdk.client.config.get()
-      if (updated.data) {
-        sync.set("config", updated.data as any)
-      }
-    } catch {
-      setLspError(true)
-    }
+    const updated = { ...(sync.data.config as any ?? {}), lsp: next }
+    sync.set("config", updated)
+    sdk.client.config.update({
+      directory: dir,
+      config: { lsp: next },
+    }).catch(() => setLspError(true))
   }
 
   const indexingStatus = createMemo(() => {
@@ -191,7 +185,7 @@ function SettingsTab() {
         <text fg={lspStatusColor()}>
           {lspError() ? "Error" : lspEnabled() ? "Enabled" : "Disabled"}
         </text>
-        <text fg={theme.textMuted} onMouseDown={() => toggleLsp()}>
+        <text fg={theme.textMuted} onMouseDown={() => { toggleLsp() }}>
           {lspEnabled() ? "Click to disable" : "Click to enable"}
         </text>
       </box>
