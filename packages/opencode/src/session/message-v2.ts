@@ -23,7 +23,7 @@ import type { Provider } from "@/provider/provider"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { SessionNetwork } from "./network" // nocowboy_change
 import { CodexAuthExpiredError } from "@/nocowboy/provider/codex-refresh" // nocowboy_change
-import { KiloSessionMessageOrder } from "@/nocowboy/session/message-order" // nocowboy_change
+import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order" // nocowboy_change
 import { Effect, Schema, Types } from "effect"
 import { NonNegativeInt } from "@opencode-ai/core/schema"
 import * as EffectLogger from "@opencode-ai/core/effect/logger"
@@ -1142,7 +1142,7 @@ export function filterCompacted(msgs: Iterable<WithParts>) {
       completed.add(msg.info.parentID)
   }
   result.reverse()
-  KiloSessionMessageOrder.annotate(result) // nocowboy_change - preserve chronology before retained-tail projection
+  NoCowboySessionMessageOrder.annotate(result) // nocowboy_change - preserve chronology before retained-tail projection
   const compactionIndex = result.findLastIndex(
     (msg) =>
       msg.info.role === "user" &&

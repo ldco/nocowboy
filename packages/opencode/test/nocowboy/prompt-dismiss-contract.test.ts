@@ -34,15 +34,15 @@ describe("prompt.ts Kilo-specific invariants", () => {
     const content = fs.readFileSync(PROMPT_FILE, "utf-8")
     // dismissAll for both suggestions and questions must precede the enqueue so
     // an in-flight handle.process blocked on a pending tool prompt can return.
-    // Critically, the block must NOT call state.cancel or KiloSessionPromptQueue.reserve —
+    // Critically, the block must NOT call state.cancel or NoCowboySessionPromptQueue.reserve —
     // either of those would abort the running streamText mid-tokens, which was
     // the #9332 regression. Order: dismissAll(Suggestion), question.dismissAll, enqueue.
     const block = content.match(
-      /Suggestion\.dismissAll[\s\S]*?question\.dismissAll[\s\S]*?KiloSessionPromptQueue\.enqueue/,
+      /Suggestion\.dismissAll[\s\S]*?question\.dismissAll[\s\S]*?NoCowboySessionPromptQueue\.enqueue/,
     )
     expect(block).not.toBeNull()
     expect(content).not.toMatch(/state\.cancel\(input\.sessionID\)/)
-    expect(content).not.toMatch(/KiloSessionPromptQueue\.reserve/)
+    expect(content).not.toMatch(/NoCowboySessionPromptQueue\.reserve/)
   })
 
   test("runLoop breaks out between LLM steps when a newer prompt was enqueued", () => {
@@ -50,6 +50,6 @@ describe("prompt.ts Kilo-specific invariants", () => {
     // hasFollowup has to be checked inside runLoop so the current handle.process
     // finishes naturally (tokens + inline tool calls) and the next LLM step is
     // skipped when a follow-up is already queued.
-    expect(content).toContain("KiloSessionPromptQueue.hasFollowup(sessionID)")
+    expect(content).toContain("NoCowboySessionPromptQueue.hasFollowup(sessionID)")
   })
 })

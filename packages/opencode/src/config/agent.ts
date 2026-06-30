@@ -15,7 +15,7 @@ import { ConfigVariable } from "./variable" // nocowboy_change
 // nocowboy_change start
 import { Bus } from "@/bus"
 import { NamedError } from "@opencode-ai/core/util/error"
-import { KilocodeConfig } from "@/nocowboy/config/config"
+import { NoCowboyConfig } from "@/nocowboy/config/config"
 import type { Warning } from "./config"
 // nocowboy_change end
 
@@ -187,7 +187,7 @@ export async function load(dir: string, warnings?: Warning[]) {
       result[config.name] = ConfigParse.schema(Info, config, item) as Info
     } catch (err) {
       if (ConfigError.InvalidError.isInstance(err)) {
-        await KilocodeConfig.handleInvalid("agent", item, err.data.issues ?? [], err, warnings)
+        await NoCowboyConfig.handleInvalid("agent", item, err.data.issues ?? [], err, warnings)
         continue
       }
       throw err
@@ -242,7 +242,7 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
       }
     } catch (err) {
       if (ConfigError.InvalidError.isInstance(err)) {
-        await KilocodeConfig.handleInvalid("agent", item, err.data.issues ?? [], err, warnings)
+        await NoCowboyConfig.handleInvalid("agent", item, err.data.issues ?? [], err, warnings)
         continue
       }
       throw err

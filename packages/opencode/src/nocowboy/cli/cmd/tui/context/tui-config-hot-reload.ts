@@ -2,7 +2,7 @@
  * Hot-reload wiring for the reactive TUI config store.
  *
  * On a `global.config.updated` event we refetch the effective TUI config from the server
- * (`sdk.tui.config.get`) and reconcile it into the store via `KiloTuiConfig.useSet`. The
+ * (`sdk.tui.config.get`) and reconcile it into the store via `NoCowboyTuiConfig.useSet`. The
  * keymap and theme consumers read the store reactively, so new values take effect on the
  * next keypress / render.
  *
@@ -12,14 +12,14 @@ import { onCleanup, onMount } from "solid-js"
 import type { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { useSDK } from "@/cli/cmd/tui/context/sdk"
 import { useEvent } from "@/cli/cmd/tui/context/event"
-import { KiloTuiConfig } from "./tui-config"
+import { NoCowboyTuiConfig } from "./tui-config"
 
 /**
  * Subscribe to config-updated events and refetch the effective TUI config. Must be called
  * inside the App body (below SDKProvider and the TuiConfig provider).
  */
 export function useTuiConfigHotReload() {
-  const set = KiloTuiConfig.useSet()
+  const set = NoCowboyTuiConfig.useSet()
   const sdk = useSDK()
   const event = useEvent()
 

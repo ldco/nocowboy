@@ -14,7 +14,7 @@ import { ConfigMarkdown } from "../../../src/config/markdown"
 import { ConfigParse } from "../../../src/config/parse"
 import { Env } from "../../../src/env"
 import { KiloIndexing } from "../../../src/nocowboy/indexing"
-import { KilocodeConfig } from "../../../src/nocowboy/config/config"
+import { NoCowboyConfig } from "../../../src/nocowboy/config/config"
 import { provideTestInstance } from "../../fixture/fixture"
 import { Filesystem } from "../../../src/util/filesystem"
 import { disposeAllInstances, tmpdir } from "../../fixture/fixture"
@@ -216,7 +216,7 @@ describe("kilocode indexing config", () => {
 
   test("accepts delete sentinels for indexing model overrides", () => {
     const patch = decode({ indexing: { model: null, dimension: null } })
-    const merged = KilocodeConfig.mergeConfig(
+    const merged = NoCowboyConfig.mergeConfig(
       {
         indexing: {
           provider: "openai",
@@ -296,7 +296,7 @@ describe("subagent variant overrides", () => {
         "anthropic/claude-sonnet-4-6": null,
       },
     })
-    const merged = KilocodeConfig.mergeConfig(
+    const merged = NoCowboyConfig.mergeConfig(
       {
         subagent_variant_overrides: {
           "anthropic/claude-sonnet-4-6": "high",
@@ -312,7 +312,7 @@ describe("subagent variant overrides", () => {
 
   test("accepts a delete sentinel for the complete override map", () => {
     const patch = decode({ subagent_variant_overrides: null })
-    const merged = KilocodeConfig.mergeConfig(
+    const merged = NoCowboyConfig.mergeConfig(
       {
         subagent_variant_overrides: {
           "anthropic/claude-sonnet-4-6": "high",
@@ -329,7 +329,7 @@ describe("subagent variant overrides", () => {
 describe("agent config", () => {
   test("accepts delete sentinels for agent model and variant overrides", () => {
     const patch = decode({ agent: { explore: { model: null, variant: null } } })
-    const merged = KilocodeConfig.mergeConfig(
+    const merged = NoCowboyConfig.mergeConfig(
       {
         agent: {
           explore: {
@@ -348,7 +348,7 @@ describe("agent config", () => {
 
   test("removes an agent variant override without removing its model", () => {
     const patch = decode({ agent: { explore: { variant: null } } })
-    const merged = KilocodeConfig.mergeConfig(
+    const merged = NoCowboyConfig.mergeConfig(
       {
         agent: {
           explore: {
@@ -424,7 +424,7 @@ describe("bash permission migration", () => {
       await disposeAllInstances()
 
       try {
-        await KilocodeConfig.migrateBashPermission()
+        await NoCowboyConfig.migrateBashPermission()
 
         const file = path.join(tmp.path, "nocowboy.jsonc")
         const text = await Filesystem.readText(file)
@@ -456,7 +456,7 @@ describe("bash permission migration", () => {
       await disposeAllInstances()
 
       try {
-        await KilocodeConfig.migrateBashPermission()
+        await NoCowboyConfig.migrateBashPermission()
 
         const file = path.join(tmp.path, "nocowboy.json")
         const text = await Filesystem.readText(file)
@@ -493,7 +493,7 @@ describe("bash permission migration", () => {
     await disposeAllInstances()
 
     try {
-      await KilocodeConfig.migrateBashPermission()
+      await NoCowboyConfig.migrateBashPermission()
 
       const file = path.join(tmp.path, "nocowboy.jsonc")
       const text = await Filesystem.readText(file)

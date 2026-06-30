@@ -15,7 +15,7 @@ import { MessageID, PartID } from "../../src/session/schema"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { Provider } from "../../src/provider/provider"
 import { TaskTool, type TaskPromptOps } from "../../src/tool/task"
-import { KiloSessionPrompt } from "../../src/nocowboy/session/prompt"
+import { NoCowboySessionPrompt } from "../../src/nocowboy/session/prompt"
 import { Truncate } from "../../src/tool/truncate"
 import { ToolRegistry } from "../../src/tool/registry"
 import { disposeAllInstances, provideTmpdirInstance } from "../fixture/fixture"
@@ -214,7 +214,7 @@ describe("Kilo task nesting", () => {
   )
 
   test("preserves inherited restrictions while refreshing prompt tool toggles", () => {
-    const permission = KiloSessionPrompt.mergeToolPermissions({
+    const permission = NoCowboySessionPrompt.mergeToolPermissions({
       existing: [
         { permission: "bash", pattern: "*", action: "deny" },
         { permission: "edit", pattern: "*", action: "deny" },

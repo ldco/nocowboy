@@ -4,7 +4,7 @@ import { SyncEvent } from "@/sync"
 import { Effect, Layer, Scope, Context } from "effect"
 import { Config } from "@/config/config"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { KiloSession } from "@/nocowboy/session" // nocowboy_change
+import { NoCowboySession } from "@/nocowboy/session" // nocowboy_change
 
 export interface Interface {
   readonly create: (input?: Session.CreateInput) => Effect.Effect<Session.Info>
@@ -26,13 +26,13 @@ export const layer = Layer.effect(
     const share = Effect.fn("SessionShare.share")(function* (sessionID: SessionID) {
       const conf = yield* cfg.get()
       if (conf.share === "disabled") throw new Error("Sharing is disabled in configuration")
-      const result = yield* KiloSession.shareSession(sessionID) // nocowboy_change - use Kilo public share URLs
+      const result = yield* NoCowboySession.shareSession(sessionID) // nocowboy_change - use Kilo public share URLs
       yield* sync.run(Session.Event.Updated, { sessionID, info: { share: { url: result.url } } })
       return result
     })
 
     const unshare = Effect.fn("SessionShare.unshare")(function* (sessionID: SessionID) {
-      yield* KiloSession.unshareSession(sessionID) // nocowboy_change - use Kilo public share URLs
+      yield* NoCowboySession.unshareSession(sessionID) // nocowboy_change - use Kilo public share URLs
       yield* sync.run(Session.Event.Updated, { sessionID, info: { share: { url: null } } })
     })
 

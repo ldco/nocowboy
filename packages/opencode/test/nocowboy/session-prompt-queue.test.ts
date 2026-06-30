@@ -5,7 +5,7 @@ import { Bus } from "../../src/bus"
 import { AppRuntime } from "../../src/effect/app-runtime"
 import { InstanceRef } from "../../src/effect/instance-ref"
 import { KiloSessionCompaction } from "@/nocowboy/session/compaction"
-import { KiloSessionPromptQueue } from "@/nocowboy/session/prompt-queue"
+import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { Suggestion } from "../../src/nocowboy/suggestion"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { InstanceStore } from "../../src/project/instance-store"
@@ -158,10 +158,10 @@ describe("session prompt queue", () => {
     ]
 
     const ids = await Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         two,
-        Effect.sync(() => KiloSessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
+        Effect.sync(() => NoCowboySessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
         Effect.succeed([]),
       ),
     )
@@ -194,10 +194,10 @@ describe("session prompt queue", () => {
     ]
 
     const ids = await Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         m3,
-        Effect.sync(() => KiloSessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
+        Effect.sync(() => NoCowboySessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
         Effect.succeed([]),
       ),
     )
@@ -225,10 +225,10 @@ describe("session prompt queue", () => {
     ]
 
     const ids = await Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         m2,
-        Effect.sync(() => KiloSessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
+        Effect.sync(() => NoCowboySessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)),
         Effect.succeed([]),
       ),
     )
@@ -253,12 +253,12 @@ describe("session prompt queue", () => {
     ]
 
     const ids = await Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         base,
         Effect.sync(() => {
-          KiloSessionPromptQueue.retarget(sessionID, injected)
-          return KiloSessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)
+          NoCowboySessionPromptQueue.retarget(sessionID, injected)
+          return NoCowboySessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id)
         }),
         Effect.succeed([]),
       ),
@@ -288,7 +288,7 @@ describe("session prompt queue", () => {
         await sessions.updateMessage(user(session.id, queued).info)
 
         const result = await Effect.runPromise(
-          KiloSessionPromptQueue.enqueue(
+          NoCowboySessionPromptQueue.enqueue(
             session.id,
             queued,
             Effect.promise(async () => {
@@ -304,7 +304,7 @@ describe("session prompt queue", () => {
               )
               const messages = await sessions.messages({ sessionID: session.id })
               const compact = messages.find((msg) => msg.parts.some((part) => part.type === "compaction"))?.info.id
-              return { compact, ids: KiloSessionPromptQueue.scope(session.id, messages).map((item) => item.info.id) }
+              return { compact, ids: NoCowboySessionPromptQueue.scope(session.id, messages).map((item) => item.info.id) }
             }),
             Effect.succeed({ compact: undefined, ids: [] }),
           ),
@@ -326,14 +326,14 @@ describe("session prompt queue", () => {
     const secondReleased = Promise.withResolvers<void>()
 
     const first = Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         MessageID.make("msg_followup_1"),
         Effect.gen(function* () {
-          observed.push({ where: "first:start", value: KiloSessionPromptQueue.hasFollowup(sessionID) })
+          observed.push({ where: "first:start", value: NoCowboySessionPromptQueue.hasFollowup(sessionID) })
           firstStarted.resolve()
           yield* Effect.promise(() => firstReleased.promise)
-          observed.push({ where: "first:end", value: KiloSessionPromptQueue.hasFollowup(sessionID) })
+          observed.push({ where: "first:end", value: NoCowboySessionPromptQueue.hasFollowup(sessionID) })
           return "first"
         }),
         Effect.succeed("first-cancelled"),
@@ -345,11 +345,11 @@ describe("session prompt queue", () => {
     expect(observed[0]?.value).toBe(false)
 
     const second = Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         MessageID.make("msg_followup_2"),
         Effect.gen(function* () {
-          observed.push({ where: "second:start", value: KiloSessionPromptQueue.hasFollowup(sessionID) })
+          observed.push({ where: "second:start", value: NoCowboySessionPromptQueue.hasFollowup(sessionID) })
           secondStarted.resolve()
           yield* Effect.promise(() => secondReleased.promise)
           return "second"
@@ -361,14 +361,14 @@ describe("session prompt queue", () => {
     // Enqueueing msg2 while msg1 is still running must flip hasFollowup to true
     // for msg1's running slot.
     await new Promise((resolve) => setTimeout(resolve, 10))
-    expect(KiloSessionPromptQueue.hasFollowup(sessionID)).toBe(true)
+    expect(NoCowboySessionPromptQueue.hasFollowup(sessionID)).toBe(true)
 
     const third = Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         MessageID.make("msg_followup_3"),
         Effect.sync(() => {
-          observed.push({ where: "third:start", value: KiloSessionPromptQueue.hasFollowup(sessionID) })
+          observed.push({ where: "third:start", value: NoCowboySessionPromptQueue.hasFollowup(sessionID) })
           return "third"
         }),
         Effect.succeed("third-cancelled"),
@@ -382,7 +382,7 @@ describe("session prompt queue", () => {
 
     // msg2 started after msg3 was enqueued, so hasFollowup should be false for
     // msg2 — everything waiting is older than msg2's activeSince snapshot.
-    expect(KiloSessionPromptQueue.hasFollowup(sessionID)).toBe(false)
+    expect(NoCowboySessionPromptQueue.hasFollowup(sessionID)).toBe(false)
     secondReleased.resolve()
 
     expect(await second).toBe("second")
@@ -602,12 +602,12 @@ describe("session prompt queue", () => {
   test("cancel on a session with no active tail is a no-op and does not leak state", async () => {
     const sessionID = SessionID.make("session_cancel_noop")
 
-    await Effect.runPromise(KiloSessionPromptQueue.cancel(sessionID))
+    await Effect.runPromise(NoCowboySessionPromptQueue.cancel(sessionID))
 
-    expect(KiloSessionPromptQueue._hasInternalState(sessionID)).toBe(false)
+    expect(NoCowboySessionPromptQueue._hasInternalState(sessionID)).toBe(false)
 
     const result = await Effect.runPromise(
-      KiloSessionPromptQueue.enqueue(
+      NoCowboySessionPromptQueue.enqueue(
         sessionID,
         MessageID.make("msg_probe"),
         Effect.succeed("work executed"),
@@ -701,15 +701,15 @@ describe("session prompt queue", () => {
 
             // Internal state should have no lingering tail/version/target entries after the last release.
             const ids = await Effect.runPromise(
-              KiloSessionPromptQueue.enqueue(
+              NoCowboySessionPromptQueue.enqueue(
                 session.id,
                 MessageID.make("msg_probe"),
-                Effect.succeed(KiloSessionPromptQueue.scope(session.id, []).map((item) => item.info.id)),
+                Effect.succeed(NoCowboySessionPromptQueue.scope(session.id, []).map((item) => item.info.id)),
                 Effect.succeed([]),
               ),
             )
             expect(ids).toEqual([])
-            expect(KiloSessionPromptQueue.hasFollowup(session.id)).toBe(false)
+            expect(NoCowboySessionPromptQueue.hasFollowup(session.id)).toBe(false)
           }),
       })
     } finally {
@@ -780,7 +780,7 @@ describe("session prompt queue", () => {
 
         // Slot 1: active, activeSince snapshots latest=1.
         const first = Effect.runPromise(
-          KiloSessionPromptQueue.enqueue(
+          NoCowboySessionPromptQueue.enqueue(
             sessionID,
             MessageID.make("msg_auto_sug_1"),
             Effect.gen(function* () {
@@ -795,7 +795,7 @@ describe("session prompt queue", () => {
 
         // Slot 2: enqueued while slot 1 is active → latest=2 > activeSince=1.
         const second = Effect.runPromise(
-          KiloSessionPromptQueue.enqueue(
+          NoCowboySessionPromptQueue.enqueue(
             sessionID,
             MessageID.make("msg_auto_sug_2"),
             Effect.succeed("second" as const),
@@ -803,7 +803,7 @@ describe("session prompt queue", () => {
           ),
         )
         await Bun.sleep(10)
-        expect(KiloSessionPromptQueue.hasFollowup(sessionID)).toBe(true)
+        expect(NoCowboySessionPromptQueue.hasFollowup(sessionID)).toBe(true)
 
         let shown = 0
         const offShown = Bus.subscribe(Suggestion.Event.Shown, (event) => {

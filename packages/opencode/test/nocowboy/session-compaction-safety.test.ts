@@ -1,10 +1,10 @@
-// Unit tests for KiloSessionPrompt history-trim / media-strip helpers.
+// Unit tests for NoCowboySessionPrompt history-trim / media-strip helpers.
 // Covers the post-filterCompacted safety pass that unblocks sessions stuck
 // re-shipping multi-MB base-64 images after a successful summary.
 
 import { describe, expect, test } from "bun:test"
-import { KiloSessionPrompt } from "../../src/nocowboy/session/prompt"
-import { KiloSessionMessageOrder } from "../../src/nocowboy/session/message-order"
+import { NoCowboySessionPrompt } from "../../src/nocowboy/session/prompt"
+import { NoCowboySessionMessageOrder } from "../../src/nocowboy/session/message-order"
 import { MessageV2 } from "../../src/session/message-v2"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { MessageID, PartID, SessionID } from "../../src/session/schema"
@@ -183,9 +183,9 @@ const apiError = new MessageV2.APIError({
   isRetryable: true,
 }).toObject() as MessageV2.Assistant["error"]
 
-describe("KiloSessionPrompt.hasCompletedSummary", () => {
+describe("NoCowboySessionPrompt.hasCompletedSummary", () => {
   test("returns false for empty array", () => {
-    expect(KiloSessionPrompt.hasCompletedSummary([])).toBe(false)
+    expect(NoCowboySessionPrompt.hasCompletedSummary([])).toBe(false)
   })
 
   test("returns false when only summary has an error", () => {
@@ -193,17 +193,17 @@ describe("KiloSessionPrompt.hasCompletedSummary", () => {
       user("msg_u1"),
       assistant("msg_a1", "msg_u1", [], { summary: true, finish: "end_turn", error: apiError }),
     ]
-    expect(KiloSessionPrompt.hasCompletedSummary(msgs)).toBe(false)
+    expect(NoCowboySessionPrompt.hasCompletedSummary(msgs)).toBe(false)
   })
 
   test("returns false when summary lacks finish", () => {
     const msgs = [user("msg_u1"), assistant("msg_a1", "msg_u1", [], { summary: true })]
-    expect(KiloSessionPrompt.hasCompletedSummary(msgs)).toBe(false)
+    expect(NoCowboySessionPrompt.hasCompletedSummary(msgs)).toBe(false)
   })
 
   test("returns true when summary has finish and no error", () => {
     const msgs = [user("msg_u1"), assistant("msg_a1", "msg_u1", [], { summary: true, finish: "end_turn" })]
-    expect(KiloSessionPrompt.hasCompletedSummary(msgs)).toBe(true)
+    expect(NoCowboySessionPrompt.hasCompletedSummary(msgs)).toBe(true)
   })
 })
 
@@ -223,7 +223,7 @@ describe("MessageV2.latest", () => {
       MessageID.make("msg_tail_reply"),
     ])
 
-    const state = KiloSessionMessageOrder.latest(msgs)
+    const state = NoCowboySessionMessageOrder.latest(msgs)
     expect(state.user?.id).toBe(MessageID.make("msg_compact"))
     expect(state.assistant?.id).toBe(MessageID.make("msg_summary"))
     expect(state.finished?.id).toBe(MessageID.make("msg_summary"))
@@ -235,9 +235,9 @@ describe("MessageV2.latest", () => {
     const active = created(user("msg_active"), 1)
     const queued = created(user("msg_queued", [part]), 2)
     const done = created(assistant("msg_done", "msg_active", [], { finish: "end_turn" }), 3)
-    KiloSessionMessageOrder.annotate([active, queued, done])
+    NoCowboySessionMessageOrder.annotate([active, queued, done])
 
-    const state = KiloSessionMessageOrder.latest([active, done, queued])
+    const state = NoCowboySessionMessageOrder.latest([active, done, queued])
     expect(state.user?.id).toBe(MessageID.make("msg_queued"))
     expect(state.finished?.id).toBe(MessageID.make("msg_done"))
     expect(state.tasks).toEqual([part])
@@ -248,17 +248,17 @@ describe("MessageV2.latest", () => {
     const second = subtaskPart("msg_second")
     const msgs = [created(user("msg_first", [first]), 1), created(user("msg_second", [second]), 2)]
 
-    const state = KiloSessionMessageOrder.latest(msgs)
+    const state = NoCowboySessionMessageOrder.latest(msgs)
     expect(state.user?.id).toBe(MessageID.make("msg_second"))
     expect(state.tasks).toEqual([second, first])
     expect(state.tasks.pop()).toBe(first)
   })
 })
 
-describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
+describe("NoCowboySessionPrompt.trimBeforeLastSummary", () => {
   test("returns input unchanged when no summary present", () => {
     const msgs = [user("msg_u1"), assistant("msg_a1", "msg_u1", [], { finish: "end_turn" })]
-    const result = KiloSessionPrompt.trimBeforeLastSummary(msgs)
+    const result = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
     expect(result).toBe(msgs)
   })
 
@@ -279,7 +279,7 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
     const filtered = MessageV2.filterCompacted([...msgs].reverse())
     expect(filtered.map((m) => m.info.id)).toEqual(msgs.map((m) => m.info.id))
 
-    const result = KiloSessionPrompt.trimBeforeLastSummary(filtered)
+    const result = NoCowboySessionPrompt.trimBeforeLastSummary(filtered)
     expect(result.map((m) => m.info.id)).toEqual([
       MessageID.make("msg_status"),
       MessageID.make("msg_summary"),
@@ -297,7 +297,7 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
       assistant("msg_s3", "msg_u3", [], { summary: true, finish: "end_turn" }),
       user("msg_u4"),
     ]
-    const result = KiloSessionPrompt.trimBeforeLastSummary(msgs)
+    const result = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
     expect(result.map((m) => m.info.id)).toEqual([
       MessageID.make("msg_u3"),
       MessageID.make("msg_s3"),
@@ -327,7 +327,7 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
       MessageID.make("msg_u5"),
       MessageID.make("msg_a6"),
     ])
-    expect(KiloSessionPrompt.trimBeforeLastSummary(filtered)).toBe(filtered)
+    expect(NoCowboySessionPrompt.trimBeforeLastSummary(filtered)).toBe(filtered)
   })
 
   test("ignores errored and unfinished summaries when choosing boundary", () => {
@@ -342,7 +342,7 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
       assistant("msg_s3", "msg_u3", [], { summary: true }),
       user("msg_u4"),
     ]
-    const result = KiloSessionPrompt.trimBeforeLastSummary(msgs)
+    const result = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
     // newest valid summary is msg_s1 with parent msg_u1 (index 0) → no slicing
     expect(result).toBe(msgs)
   })
@@ -355,8 +355,8 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
       assistant("msg_summary", "msg_status", [], { summary: true, finish: "end_turn" }),
       user("msg_next"),
     ]
-    const first = KiloSessionPrompt.trimBeforeLastSummary(msgs)
-    const second = KiloSessionPrompt.trimBeforeLastSummary(first)
+    const first = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
+    const second = NoCowboySessionPrompt.trimBeforeLastSummary(first)
     expect(second.map((m) => m.info.id)).toEqual(first.map((m) => m.info.id))
   })
 
@@ -366,18 +366,18 @@ describe("KiloSessionPrompt.trimBeforeLastSummary", () => {
       assistant("msg_summary", "msg_missing", [], { summary: true, finish: "end_turn" }),
       user("msg_next"),
     ]
-    const result = KiloSessionPrompt.trimBeforeLastSummary(msgs)
+    const result = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
     expect(result).toBe(msgs)
   })
 })
 
-describe("KiloSessionPrompt.stripHistoricalMedia", () => {
+describe("NoCowboySessionPrompt.stripHistoricalMedia", () => {
   test("replaces image file part in historical user message with placeholder text", () => {
     const msgs = [
       user("msg_hist", [textPart("msg_hist", "here is a screenshot"), filePart("msg_hist", "image/png", "screen.png")]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     const histParts = result[0].parts
     expect(histParts).toHaveLength(2)
     expect(histParts[1].type).toBe("text")
@@ -389,7 +389,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
       user("msg_hist", [filePart("msg_hist", "image/png", undefined)]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect((result[0].parts[0] as MessageV2.TextPart).text).toBe("[Attached image/png: file]")
   })
 
@@ -398,7 +398,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
       user("msg_hist", [filePart("msg_hist", "application/pdf", "brief.pdf")]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result[0].parts[0].type).toBe("text")
     expect((result[0].parts[0] as MessageV2.TextPart).text).toBe("[Attached application/pdf: brief.pdf]")
   })
@@ -406,7 +406,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
   test("does NOT touch media in the last user message", () => {
     const lastImage = filePart("msg_last", "image/png", "last.png")
     const msgs = [user("msg_hist", [textPart("msg_hist", "older")]), user("msg_last", [lastImage])]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result[1].parts[0]).toBe(lastImage)
   })
 
@@ -414,7 +414,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
     const textFile = filePart("msg_hist", "text/plain", "notes.txt", "prt_txt")
     const dirFile = filePart("msg_hist", "application/x-directory", "src/", "prt_dir")
     const msgs = [user("msg_hist", [textFile, dirFile]), user("msg_last", [textPart("msg_last", "follow-up")])]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result[0].parts[0]).toBe(textFile)
     expect(result[0].parts[1]).toBe(dirFile)
   })
@@ -429,7 +429,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
       assistant("msg_tool", "msg_u1", [tool], { finish: "end_turn" }),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     const resultTool = result[1].parts[0] as MessageV2.ToolPart
     if (resultTool.state.status !== "completed") throw new Error("expected completed tool state")
     expect(resultTool.state.attachments).toHaveLength(1)
@@ -450,7 +450,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
       assistant("msg_running", "msg_u1", [running], { finish: "end_turn" }),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result[1].parts[0]).toBe(err)
     expect(result[2].parts[0]).toBe(pending)
     expect(result[3].parts[0]).toBe(running)
@@ -458,14 +458,14 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
 
   test("no-op when there are no user messages", () => {
     const msgs = [assistant("msg_a1", "msg_ghost", [], { finish: "end_turn" })]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result).toBe(msgs)
   })
 
   test("no-op when there is only one user message", () => {
     const lastImage = filePart("msg_only", "image/png", "only.png")
     const msgs = [user("msg_only", [lastImage])]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result).toBe(msgs)
     expect(result[0].parts[0]).toBe(lastImage)
   })
@@ -481,7 +481,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
     const firstMsgSnapshot = input[0]
     const firstPartsSnapshot = input[0].parts
 
-    const result = KiloSessionPrompt.stripHistoricalMedia(input)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(input)
 
     // result is a new array, original unchanged
     expect(result).not.toBe(input)
@@ -508,7 +508,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
         syntheticTextPart("msg_syn", "Summarize the task tool output above and continue with your task."),
       ]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     // real current-turn user's image preserved
     expect(result[2].parts[1]).toBe(currentImage)
     // older user's image stripped
@@ -529,7 +529,7 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
         syntheticTextPart("msg_syn", "<environment_details>\nCurrent time: now\n</environment_details>", "prt_env"),
       ]),
     ]
-    const result = KiloSessionPrompt.stripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.stripHistoricalMedia(msgs)
     expect(result[1].parts[1]).toBe(currentImage)
     const hist = result[0].parts[1]
     expect(hist.type).toBe("text")
@@ -537,13 +537,13 @@ describe("KiloSessionPrompt.stripHistoricalMedia", () => {
   })
 })
 
-describe("KiloSessionPrompt.maybeStripHistoricalMedia", () => {
+describe("NoCowboySessionPrompt.maybeStripHistoricalMedia", () => {
   test("returns input unchanged when no completed summary exists", () => {
     const msgs = [
       user("msg_hist", [filePart("msg_hist", "image/png", "hist.png")]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.maybeStripHistoricalMedia(msgs)
     expect(result).toBe(msgs)
   })
 
@@ -557,7 +557,7 @@ describe("KiloSessionPrompt.maybeStripHistoricalMedia", () => {
       user("msg_hist", [image]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.maybeStripHistoricalMedia(msgs)
     expect(result).toBe(msgs)
     expect(result[4].parts[0]).toBe(image)
   })
@@ -572,7 +572,7 @@ describe("KiloSessionPrompt.maybeStripHistoricalMedia", () => {
       user("msg_hist", [filePart("msg_hist", "image/png", "hist.png")]),
       user("msg_last", [textPart("msg_last", "follow-up")]),
     ]
-    const result = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+    const result = NoCowboySessionPrompt.maybeStripHistoricalMedia(msgs)
     // historical image replaced
     const histPart = result[2].parts[0]
     expect(histPart.type).toBe("text")

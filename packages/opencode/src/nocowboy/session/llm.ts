@@ -3,7 +3,7 @@ import { Effect } from "effect"
 import * as Stream from "effect/Stream"
 import type { Provider } from "@/provider/provider"
 import type { Event } from "@/session/llm"
-import { KiloSessionOverflow } from "./overflow"
+import { NoCowboySessionOverflow } from "./overflow"
 
 const SAFETY = 2048
 const MIN_OUTPUT = 1024
@@ -47,7 +47,7 @@ export namespace KiloLLM {
     const { context } = input.model.limit
     if (!context) return input.configured
 
-    const tokens = input.tokens ?? KiloSessionOverflow.measure({ messages: input.messages, tools: input.tools }).raw
+    const tokens = input.tokens ?? NoCowboySessionOverflow.measure({ messages: input.messages, tools: input.tools }).raw
     const available = context - tokens - SAFETY
     // If available is ≤0 the input alone exceeds context — return the original
     // value so the provider returns a natural overflow error which triggers

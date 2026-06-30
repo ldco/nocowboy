@@ -2,7 +2,7 @@ import { NamedError } from "@opencode-ai/core/util/error"
 import matter from "gray-matter"
 import { Schema } from "effect"
 import { Filesystem } from "@/util/filesystem"
-import { KilocodeMarkdown } from "../nocowboy/config/markdown" // nocowboy_change
+import { NoCowboyMarkdown } from "../nocowboy/config/markdown" // nocowboy_change
 
 export const FILE_REGEX = /(?<![\w`])@(\.?[^\s`,.]*(?:\.[^\s`,.]+)*)/g
 export const SHELL_REGEX = /!`([^`]+)`/g
@@ -74,12 +74,12 @@ export async function parse(filePath: string) {
   // nocowboy_change start - substitute content and retry invalid frontmatter with permissive sanitization
   try {
     const md = matter(template)
-    md.content = await KilocodeMarkdown.substitute(md.content, filePath) // nocowboy_change
+    md.content = await NoCowboyMarkdown.substitute(md.content, filePath) // nocowboy_change
     return md
   } catch {
     try {
       const md = matter(fallbackSanitization(template))
-      md.content = await KilocodeMarkdown.substitute(md.content, filePath) // nocowboy_change
+      md.content = await NoCowboyMarkdown.substitute(md.content, filePath) // nocowboy_change
       return md
     } catch (err) {
       throw new FrontmatterError(

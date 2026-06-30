@@ -19,7 +19,7 @@ import { ENV_FEATURE } from "@nocowboy/gateway"
 import { fn } from "@/nocowboy/fn"
 import path from "path"
 
-export namespace KiloSession {
+export namespace NoCowboySession {
   const log = Log.create({ service: "session.nocowboy" })
 
   // ---------------------------------------------------------------------------

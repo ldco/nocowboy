@@ -163,7 +163,7 @@ Actual description here.`
 
   describe("convertToCommand", () => {
     test("converts workflow to command format", () => {
-      const workflow: WorkflowsMigrator.KilocodeWorkflow = {
+      const workflow: WorkflowsMigrator.NoCowboyWorkflow = {
         name: "code-review",
         path: "/path/to/code-review.md",
         content: "# Code Review\n\nReview the code changes.\n\n## Steps\n\n1. Check",
@@ -177,7 +177,7 @@ Actual description here.`
     })
 
     test("uses fallback description when none found", () => {
-      const workflow: WorkflowsMigrator.KilocodeWorkflow = {
+      const workflow: WorkflowsMigrator.NoCowboyWorkflow = {
         name: "simple",
         path: "/path/to/simple.md",
         content: "# Simple",

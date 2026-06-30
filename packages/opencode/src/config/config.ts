@@ -47,12 +47,12 @@ import { Npm } from "@opencode-ai/core/npm"
 import z from "zod" // nocowboy_change - Kilo config compatibility schemas
 // nocowboy_change start
 import { ZodOverride } from "@opencode-ai/core/effect-zod"
-import { KilocodeConfig } from "../nocowboy/config/config"
-import { KilocodeDefaultPlugins } from "@/nocowboy/config/default-plugins"
-import { KilocodeGlobalConfigStamp } from "@/nocowboy/config/global-stamp"
+import { NoCowboyConfig } from "../nocowboy/config/config"
+import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins"
+import { NoCowboyGlobalConfigStamp } from "@/nocowboy/config/global-stamp"
 import {
-  IndexingConfig as KiloIndexingConfig,
-  IndexingSchema as KiloIndexingSchema,
+  IndexingConfig as NoCowboyIndexingConfig,
+  IndexingSchema as NoCowboyIndexingSchema,
 } from "@nocowboy/indexing/config"
 import { unique } from "remeda"
 // nocowboy_change end
@@ -75,7 +75,7 @@ function mergeConfigConcatArrays(target: Info, source: Info): Info {
 
 function normalizeLoadedConfig(data: unknown, source: string) {
   if (!isRecord(data)) return data
-  const copy = KilocodeConfig.retireIndexingFlag({ ...data }, source) // nocowboy_change
+  const copy = NoCowboyConfig.retireIndexingFlag({ ...data }, source) // nocowboy_change
   const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
   if (!hadLegacy) return copy
   delete copy.theme
@@ -93,7 +93,7 @@ export const Warning = z.object({
 })
 export type Warning = z.infer<typeof Warning>
 
-const { caught: caughtWarning } = KilocodeConfig
+const { caught: caughtWarning } = NoCowboyConfig
 // nocowboy_change end
 
 async function substituteWellKnownRemoteConfig(input: { value: unknown; dir: string; source: string }) {
@@ -139,7 +139,7 @@ async function resolveLoadedPlugins<T extends { plugin?: ConfigPlugin.Spec[] }>(
 export type Layout = ConfigLayout.Layout
 
 // nocowboy_change start - indexing configuration
-export const Indexing = KiloIndexingConfig
+export const Indexing = NoCowboyIndexingConfig
 export type Indexing = z.infer<typeof Indexing>
 // nocowboy_change end
 
@@ -149,7 +149,7 @@ const LogLevelRef = Schema.Literals(["DEBUG", "INFO", "WARN", "ERROR"]).annotate
 })
 const Percent = Schema.Number.check(Schema.isGreaterThan(0), Schema.isLessThanOrEqualTo(100)) // nocowboy_change
 
-const IndexingRef = KiloIndexingSchema.annotate({ [ZodOverride]: KiloIndexingConfig }) // nocowboy_change
+const IndexingRef = NoCowboyIndexingSchema.annotate({ [ZodOverride]: NoCowboyIndexingConfig }) // nocowboy_change
 
 export const Info = Schema.Struct({
   $schema: Schema.optional(Schema.String).annotate({
@@ -326,7 +326,7 @@ export const Info = Schema.Struct({
       url: Schema.optional(Schema.String).annotate({ description: "Enterprise URL" }),
     }),
   ),
-  commit_message: KilocodeConfig.CommitMessageSchema, // nocowboy_change
+  commit_message: NoCowboyConfig.CommitMessageSchema, // nocowboy_change
   tool_output: Schema.optional(
     Schema.Struct({
       max_lines: Schema.optional(PositiveInt).annotate({
@@ -540,8 +540,8 @@ export const layer = Layer.effect(
 
     const loadGlobal = Effect.fnUntraced(function* () {
       // nocowboy_change start
-      yield* Effect.promise(() => KilocodeConfig.migrateBashPermission())
-      globalStamp = yield* KilocodeGlobalConfigStamp.read(fs, Global.Path.config)
+      yield* Effect.promise(() => NoCowboyConfig.migrateBashPermission())
+      globalStamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config)
       // nocowboy_change end
       let result: Info = {}
       // Seed the default global config with the schema for editor completion, but avoid writing when the user
@@ -578,7 +578,7 @@ export const layer = Layer.effect(
         )
       }
 
-      globalStamp = yield* KilocodeGlobalConfigStamp.read(fs, Global.Path.config) // nocowboy_change
+      globalStamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config) // nocowboy_change
       return result
     })
 
@@ -594,7 +594,7 @@ export const layer = Layer.effect(
 
     // nocowboy_change start - detect global config edits made by other Kilo processes
     const refreshGlobal = Effect.fnUntraced(function* () {
-      const stamp = yield* KilocodeGlobalConfigStamp.read(fs, Global.Path.config)
+      const stamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config)
       if (!globalStamp || stamp === globalStamp) return false
       globalStamp = stamp
       yield* invalidateGlobal
@@ -644,7 +644,7 @@ export const layer = Layer.effect(
 
         let result: Info = {}
         const legacy = yield* Effect.promise(() =>
-          KilocodeConfig.loadLegacyConfigs({
+          NoCowboyConfig.loadLegacyConfigs({
             projectDir: ctx.directory,
             merge: mergeConfigConcatArrays,
           }),
@@ -652,7 +652,7 @@ export const layer = Layer.effect(
         result = mergeConfigConcatArrays(result, legacy.config)
         warnings.push(...legacy.warnings)
 
-        const orgModes = yield* Effect.promise(() => KilocodeConfig.loadOrganizationModes(auth))
+        const orgModes = yield* Effect.promise(() => NoCowboyConfig.loadOrganizationModes(auth))
         if (Object.keys(orgModes.agents).length > 0) {
           result = mergeConfigConcatArrays(result, { agent: orgModes.agents })
         }
@@ -693,7 +693,7 @@ export const layer = Layer.effect(
         // nocowboy_change start
         const merge = Effect.fnUntraced(function* (source: string, next: Info, kind?: ConfigPlugin.Scope) {
           const scope = kind ?? (yield* pluginScopeForSource(source))
-          const scoped = KilocodeConfig.scopeIndexing(next, scope)
+          const scoped = NoCowboyConfig.scopeIndexing(next, scope)
           result = mergeConfigConcatArrays(result, scoped)
           return yield* mergePluginOrigins(source, scoped.plugin, scope)
         })
@@ -815,8 +815,8 @@ export const layer = Layer.effect(
 
         // nocowboy_change start
         for (const dir of unique(directories)) {
-          if (KilocodeConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR)) {
-            for (const file of KilocodeConfig.ALL_CONFIG_FILES) {
+          if (NoCowboyConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR)) {
+            for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
               const source = path.join(dir, file)
               log.debug(`loading config from ${source}`)
               yield* merge(
@@ -936,7 +936,7 @@ export const layer = Layer.effect(
         const managedDir = ConfigManaged.managedConfigDir()
         // nocowboy_change start - include kilo.json/kilo.jsonc in managed dir loading
         if (existsSync(managedDir)) {
-          for (const file of KilocodeConfig.ALL_CONFIG_FILES) {
+          for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
             const source = path.join(managedDir, file)
             yield* merge(source, yield* loadFile(source), "global")
           }
@@ -997,7 +997,7 @@ export const layer = Layer.effect(
           result.compaction = { ...result.compaction, prune: false }
         }
         // nocowboy_change start — inject Kilo default plugins into both plugin list and origins
-        KilocodeDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
+        NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
         // nocowboy_change end
 
         return {
@@ -1047,7 +1047,7 @@ export const layer = Layer.effect(
     const update = Effect.fn("Config.update")(function* (config: Info) {
       // nocowboy_change start - delegate Kilo project config update behavior.
       const ctx = yield* InstanceState.context
-      yield* KilocodeConfig.updateProjectConfig({
+      yield* NoCowboyConfig.updateProjectConfig({
         fs,
         directory: ctx.directory,
         worktree: ctx.worktree,
@@ -1090,7 +1090,7 @@ export const layer = Layer.effect(
       let changed: boolean
       if (!file.endsWith(".jsonc")) {
         const existing = ConfigParse.schema(Info, ConfigParse.jsonc(before, file), file)
-        const merged = KilocodeConfig.mergeConfig(writable(existing), patch) // nocowboy_change
+        const merged = NoCowboyConfig.mergeConfig(writable(existing), patch) // nocowboy_change
         const serialized = JSON.stringify(merged, null, 2)
         changed = serialized !== before
         if (changed) yield* fs.writeFileString(file, serialized).pipe(Effect.orDie)

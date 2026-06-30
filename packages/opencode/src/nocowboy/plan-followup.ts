@@ -19,7 +19,7 @@ import { Todo } from "@/session/todo"
 import { makeRuntime } from "@/effect/run-service"
 import { Effect, Schema } from "effect"
 import * as Log from "@opencode-ai/core/util/log"
-import { KiloSessionPromptQueue } from "@/nocowboy/session/prompt-queue"
+import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { lazy } from "@/util/lazy"
 import path from "path"
 import z from "zod"
@@ -536,7 +536,7 @@ export namespace PlanFollowup {
         model: code.model,
         text: "Implement the plan above.",
       })
-      KiloSessionPromptQueue.retarget(input.sessionID, msg.id)
+      NoCowboySessionPromptQueue.retarget(input.sessionID, msg.id)
       return "continue"
     }
 
@@ -547,7 +547,7 @@ export namespace PlanFollowup {
       model: user.model,
       text: answer,
     })
-    KiloSessionPromptQueue.retarget(input.sessionID, msg.id)
+    NoCowboySessionPromptQueue.retarget(input.sessionID, msg.id)
     return "continue"
   }
 }

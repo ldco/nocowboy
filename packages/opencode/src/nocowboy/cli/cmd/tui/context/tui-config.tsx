@@ -18,7 +18,7 @@ export type SetTuiConfig = (next: TuiConfig.Info) => void
 const ConfigContext = createContext<TuiConfig.Resolved>()
 const SetContext = createContext<SetTuiConfig>()
 
-export namespace KiloTuiConfig {
+export namespace NoCowboyTuiConfig {
   // Pure factory so reactive behavior is unit-testable without JSX or contexts.
   export function makeStore(initial: TuiConfig.Resolved) {
     const [store, setStore] = createStore<TuiConfig.Resolved>(initial)

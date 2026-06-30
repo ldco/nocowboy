@@ -2,7 +2,7 @@ import * as path from "node:path"
 import * as os from "node:os"
 import * as fs from "node:fs/promises"
 
-const DATA_DIR = path.join(os.homedir(), ".local/share/kilo/storage")
+const DATA_DIR = path.join(os.homedir(), ".local/share/nocowboy/storage")
 
 export function metaDir(sessionID: string): string {
   return path.join(DATA_DIR, "memory", "sessions", sessionID)

@@ -1,12 +1,12 @@
 import path from "path"
 import os from "os"
 import fs from "fs/promises"
-import { KiloSessionPrompt } from "@/nocowboy/session/prompt" // nocowboy_change
-import { KiloSessionMessageOrder } from "@/nocowboy/session/message-order" // nocowboy_change
-import { KiloSessionPromptQueue } from "@/nocowboy/session/prompt-queue" // nocowboy_change
-import { KiloSession } from "@/nocowboy/session" // nocowboy_change
+import { NoCowboySessionPrompt } from "@/nocowboy/session/prompt" // nocowboy_change
+import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order" // nocowboy_change
+import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue" // nocowboy_change
+import { NoCowboySession } from "@/nocowboy/session" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation" // nocowboy_change
-import { KiloSessionProcessor } from "@/nocowboy/session/processor" // nocowboy_change
+import { NoCowboySessionProcessor } from "@/nocowboy/session/processor" // nocowboy_change
 import { CommandTimeout } from "@/nocowboy/command-timeout" // nocowboy_change
 import { Suggestion } from "@/nocowboy/suggestion" // nocowboy_change
 import { Question } from "@/question" // nocowboy_change
@@ -92,7 +92,7 @@ IMPORTANT:
 const STRUCTURED_OUTPUT_SYSTEM_PROMPT = `IMPORTANT: The user has requested structured output. You MUST use the StructuredOutput tool to provide your final response. Do NOT respond with plain text - you MUST call the StructuredOutput tool with your answer formatted according to the schema.`
 
 // nocowboy_change
-export const shouldAskPlanFollowup = KiloSessionPrompt.shouldAskPlanFollowup
+export const shouldAskPlanFollowup = NoCowboySessionPrompt.shouldAskPlanFollowup
 
 // nocowboy_change start - persistent tool-output pruning when payload is already large
 const REQUEST_PRUNE_BYTES = 1_250_000
@@ -240,8 +240,8 @@ export const layer = Layer.effect(
 
     const cancel = Effect.fn("SessionPrompt.cancel")(function* (sessionID: SessionID) {
       yield* elog.info("cancel", { sessionID })
-      yield* KiloSessionPromptQueue.cancel(sessionID) // nocowboy_change - drop queued follow-up loops on abort
-      KiloSessionPrompt.abortPlanFollowup(sessionID) // nocowboy_change - abort pending plan-followup handover work
+      yield* NoCowboySessionPromptQueue.cancel(sessionID) // nocowboy_change - drop queued follow-up loops on abort
+      NoCowboySessionPrompt.abortPlanFollowup(sessionID) // nocowboy_change - abort pending plan-followup handover work
       yield* state.cancel(sessionID)
     })
 
@@ -381,7 +381,7 @@ export const layer = Layer.effect(
           small: true,
           tools: {},
           model: mdl,
-          sessionID: KiloSessionPrompt.titleID(input.session.id), // nocowboy_change - isolate title requests from the agent task
+          sessionID: NoCowboySessionPrompt.titleID(input.session.id), // nocowboy_change - isolate title requests from the agent task
           retries: 2,
           messages: [{ role: "user", content: "Generate a title for this conversation:\n" }, ...msgs],
         })
@@ -414,7 +414,7 @@ export const layer = Layer.effect(
       // nocowboy_change start - shared planning reminder path
       // No-op unless the active agent is plan-like.
       yield* Effect.promise(() =>
-        KiloSessionPrompt.insertPlanReminders({
+        NoCowboySessionPrompt.insertPlanReminders({
           agent: input.agent,
           session: input.session,
           userMessage,
@@ -499,7 +499,7 @@ export const layer = Layer.effect(
           }),
         // nocowboy_change start - resolve permissions at ask time so active tools see config edits
         ask: (req) =>
-          KiloSessionPrompt.askPermission({
+          NoCowboySessionPrompt.askPermission({
             permission,
             agents,
             sessions,
@@ -741,7 +741,7 @@ export const layer = Layer.effect(
             }),
           // nocowboy_change start - resolve permissions at ask time so active tools see config edits
           ask: (req: any) =>
-            KiloSessionPrompt.askPermission({
+            NoCowboySessionPrompt.askPermission({
               permission,
               agents,
               sessions,
@@ -1625,8 +1625,8 @@ export const layer = Layer.effect(
         const session = yield* sessions.get(input.sessionID).pipe(Effect.orDie)
         yield* revert.cleanup(session)
         // nocowboy_change start - recover interrupted Kilo turns before accepting a follow-up
-        yield* KiloSessionPrompt.recoverDanglingAssistant({ sessionID: input.sessionID, status, sessions })
-        yield* KiloSessionPrompt.recoverProviderFinishError({ sessionID: input.sessionID, status, sessions })
+        yield* NoCowboySessionPrompt.recoverDanglingAssistant({ sessionID: input.sessionID, status, sessions })
+        yield* NoCowboySessionPrompt.recoverProviderFinishError({ sessionID: input.sessionID, status, sessions })
         // nocowboy_change end
         const message = yield* createUserMessage(input)
         yield* sessions.touch(input.sessionID)
@@ -1637,7 +1637,7 @@ export const layer = Layer.effect(
         }
         if (permissions.length > 0) {
           // nocowboy_change start - preserve inherited task restrictions while refreshing prompt tool toggles
-          const merged = KiloSessionPrompt.mergeToolPermissions({
+          const merged = NoCowboySessionPrompt.mergeToolPermissions({
             existing: session.permission ?? [],
             toggles: permissions,
           })
@@ -1660,7 +1660,7 @@ export const layer = Layer.effect(
         // Queue tails and runner fibers can resume outside the HTTP request's
         // ambient instance context; bridge both Effect refs and legacy ALS.
         const bridge = yield* runner()
-        return yield* KiloSessionPromptQueue.enqueue(
+        return yield* NoCowboySessionPromptQueue.enqueue(
           input.sessionID,
           message.info.id,
           bridge.run(
@@ -1689,7 +1689,7 @@ export const layer = Layer.effect(
     })
 
     // nocowboy_change — mutable close-reason per session, set by runLoop and read by loop
-    const closeReasons = new Map<string, KiloSession.CloseReason>()
+    const closeReasons = new Map<string, NoCowboySession.CloseReason>()
 
     // nocowboy_change start - retain request-scoped snapshot initialization policy
     const runLoop: (input: LoopInput) => Effect.Effect<MessageV2.WithParts, NotFoundError> = Effect.fn(
@@ -1698,7 +1698,7 @@ export const layer = Layer.effect(
       const sessionID = input.sessionID
       // nocowboy_change end
       // nocowboy_change — cache environment details per turn (prompt caching)
-      const envCache: KiloSessionPrompt.EnvCache = {}
+      const envCache: NoCowboySessionPrompt.EnvCache = {}
       closeReasons.delete(sessionID) // nocowboy_change
       let compactionAttempts = 0 // nocowboy_change - cap compaction attempts per turn to avoid infinite loops
       const ctx = yield* InstanceState.context
@@ -1712,11 +1712,11 @@ export const layer = Layer.effect(
         yield* slog.info("loop", { step })
 
         let msgs = yield* MessageV2.filterCompactedEffect(sessionID)
-        msgs = KiloSessionPromptQueue.scope(sessionID, msgs) // nocowboy_change - hide later queued prompts
-        msgs = KiloSessionPrompt.trimBeforeLastSummary(msgs) // nocowboy_change - trim on any completed summary (e.g. manual /compact against a text user)
+        msgs = NoCowboySessionPromptQueue.scope(sessionID, msgs) // nocowboy_change - hide later queued prompts
+        msgs = NoCowboySessionPrompt.trimBeforeLastSummary(msgs) // nocowboy_change - trim on any completed summary (e.g. manual /compact against a text user)
 
         // nocowboy_change start - select loop state by chronology after retained-tail projection
-        const latest = KiloSessionMessageOrder.latest(msgs)
+        const latest = NoCowboySessionMessageOrder.latest(msgs)
         const { user: lastUser, assistant: lastAssistant, finished: lastFinished, tasks } = latest
         // nocowboy_change end
 
@@ -1729,13 +1729,13 @@ export const layer = Layer.effect(
         const userBeforeAssistant =
           latest.userMessage &&
           latest.assistantMessage &&
-          KiloSessionMessageOrder.compare(latest.userMessage, latest.assistantMessage) < 0
+          NoCowboySessionMessageOrder.compare(latest.userMessage, latest.assistantMessage) < 0
         // nocowboy_change end
         // nocowboy_change start - carry local review command marker into LLM telemetry
         const telemetry =
-          KiloSessionProcessor.extractReviewTelemetry(
+          NoCowboySessionProcessor.extractReviewTelemetry(
             msgs.findLast((m) => m.info.role === "user" && m.info.id === lastUser.id)?.parts ?? [],
-          ) ?? KiloSessionProcessor.extractSuggestionReviewTelemetry(lastAssistantMsg?.parts ?? [])
+          ) ?? NoCowboySessionProcessor.extractSuggestionReviewTelemetry(lastAssistantMsg?.parts ?? [])
         // nocowboy_change end
 
         // nocowboy_change start - keep provider-executed tools from forcing a re-loop
@@ -1753,10 +1753,10 @@ export const layer = Layer.effect(
           hasToolCalls &&
           lastAssistant.parentID === lastUser.id &&
           userBeforeAssistant &&
-          KiloSessionPrompt.shouldAskPlanFollowup({ messages: msgs, abort: AbortSignal.any([]) })
+          NoCowboySessionPrompt.shouldAskPlanFollowup({ messages: msgs, abort: AbortSignal.any([]) })
         ) {
           const action = yield* Effect.promise((signal) =>
-            KiloSessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal, question }),
+            NoCowboySessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal, question }),
           )
           if (action === "continue") continue
           yield* slog.info("exiting loop")
@@ -1773,7 +1773,7 @@ export const layer = Layer.effect(
         ) {
           // nocowboy_change start - ask follow-up when plan_exit tool was called
           const action = yield* Effect.promise((signal) =>
-            KiloSessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal, question }),
+            NoCowboySessionPrompt.askPlanFollowup({ sessionID, messages: msgs, abort: signal, question }),
           )
           if (action === "continue") continue
           // nocowboy_change end
@@ -1831,7 +1831,7 @@ export const layer = Layer.effect(
             (yield* compaction.isOverflow({ tokens: lastFinished.tokens, model }))
           ) {
             // nocowboy_change start
-            const guard = KiloSessionPrompt.guardCompactionAttempt({
+            const guard = NoCowboySessionPrompt.guardCompactionAttempt({
               sessionID,
               attempts: compactionAttempts,
               closeReasons,
@@ -1934,7 +1934,7 @@ export const layer = Layer.effect(
             for (const m of msgs) {
               // nocowboy_change start - compare chronology, not generated IDs
               const finishedBeforeMessage =
-                latest.finishedMessage && KiloSessionMessageOrder.compare(latest.finishedMessage, m) < 0
+                latest.finishedMessage && NoCowboySessionMessageOrder.compare(latest.finishedMessage, m) < 0
               if (m.info.role !== "user" || !finishedBeforeMessage) continue
               // nocowboy_change end
               for (const p of m.parts) {
@@ -1957,8 +1957,8 @@ export const layer = Layer.effect(
           // nocowboy_change start — ephemeral context injection + post-summary
           // media strip (keeps outgoing body under the gateway body-size limit
           // even when filterCompacted couldn't trim the pre-summary history).
-          KiloSessionPrompt.injectEditorContext({ msgs, lastUser, sessionID, cache: envCache })
-          msgs = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+          NoCowboySessionPrompt.injectEditorContext({ msgs, lastUser, sessionID, cache: envCache })
+          msgs = NoCowboySessionPrompt.maybeStripHistoricalMedia(msgs)
           // nocowboy_change end
 
           // nocowboy_change start - persistently prune stale tool outputs when payload is already large
@@ -1972,11 +1972,11 @@ export const layer = Layer.effect(
           if (size > REQUEST_PRUNE_BYTES) {
             yield* compaction.prune({ sessionID, reason: "payload-limit" })
             msgs = yield* MessageV2.filterCompactedEffect(sessionID)
-            msgs = KiloSessionPromptQueue.scope(sessionID, msgs)
-            msgs = KiloSessionPrompt.trimBeforeLastSummary(msgs)
+            msgs = NoCowboySessionPromptQueue.scope(sessionID, msgs)
+            msgs = NoCowboySessionPrompt.trimBeforeLastSummary(msgs)
             yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
-            KiloSessionPrompt.injectEditorContext({ msgs, lastUser, sessionID, cache: envCache })
-            msgs = KiloSessionPrompt.maybeStripHistoricalMedia(msgs)
+            NoCowboySessionPrompt.injectEditorContext({ msgs, lastUser, sessionID, cache: envCache })
+            msgs = NoCowboySessionPrompt.maybeStripHistoricalMedia(msgs)
             modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
             const nextSize = Buffer.byteLength(JSON.stringify(modelMsgs))
             if (nextSize > REQUEST_PRUNE_BYTES) log.warn("payload still large after pruning", { size: nextSize })
@@ -1990,7 +1990,7 @@ export const layer = Layer.effect(
             // nocowboy_change start - keep Ask/Plan tool filtering hardened against session allows
             user: lastUser,
             agent,
-            permission: KiloSessionPrompt.guardPermissions({ agent, session }),
+            permission: NoCowboySessionPrompt.guardPermissions({ agent, session }),
             // nocowboy_change end
             sessionID,
             parentSessionID: session.parentID,
@@ -2020,7 +2020,7 @@ export const layer = Layer.effect(
             }
             // nocowboy_change start
             if (handle.message.finish === "error") {
-              KiloSessionProcessor.providerFinishError(handle.message)
+              NoCowboySessionProcessor.providerFinishError(handle.message)
               yield* sessions.updateMessage(handle.message)
               closeReasons.set(sessionID, "error")
               return "break" as const
@@ -2036,7 +2036,7 @@ export const layer = Layer.effect(
           // nocowboy_change end
           if (result === "compact") {
             // nocowboy_change start
-            const guard = KiloSessionPrompt.guardCompactionAttempt({
+            const guard = NoCowboySessionPrompt.guardCompactionAttempt({
               sessionID,
               attempts: compactionAttempts,
               closeReasons,
@@ -2062,7 +2062,7 @@ export const layer = Layer.effect(
           // instead of starting another LLM step for the now-superseded turn. The
           // current handle.process has fully drained (tokens + inline tool calls) by
           // the time we get here, so nothing is cut off.
-          if (KiloSessionPromptQueue.hasFollowup(sessionID)) {
+          if (NoCowboySessionPromptQueue.hasFollowup(sessionID)) {
             closeReasons.set(sessionID, "interrupted")
             return "break" as const
           }
@@ -2099,9 +2099,9 @@ export const layer = Layer.effect(
       "SessionPrompt.loop",
     )(function* (input: LoopInput) {
       // nocowboy_change start
-      yield* KiloSessionPrompt.recoverDanglingAssistant({ sessionID: input.sessionID, status, sessions })
-      yield* KiloSessionPrompt.recoverProviderFinishError({ sessionID: input.sessionID, status, sessions })
-      yield* bus.publish(KiloSession.Event.TurnOpen, { sessionID: input.sessionID })
+      yield* NoCowboySessionPrompt.recoverDanglingAssistant({ sessionID: input.sessionID, status, sessions })
+      yield* NoCowboySessionPrompt.recoverProviderFinishError({ sessionID: input.sessionID, status, sessions })
+      yield* bus.publish(NoCowboySession.Event.TurnOpen, { sessionID: input.sessionID })
       return yield* Effect.onExit(
         state.ensureRunning(
           input.sessionID,
@@ -2109,9 +2109,9 @@ export const layer = Layer.effect(
           runLoop(input).pipe(Effect.orDie),
         ), // nocowboy_change
         Effect.fnUntraced(function* (exit) {
-          yield* bus.publish(KiloSession.Event.TurnClose, {
+          yield* bus.publish(NoCowboySession.Event.TurnClose, {
             sessionID: input.sessionID,
-            reason: KiloSessionPrompt.resolveCloseReason({
+            reason: NoCowboySessionPrompt.resolveCloseReason({
               sessionID: input.sessionID,
               closeReasons,
               exit,
@@ -2208,7 +2208,7 @@ export const layer = Layer.effect(
       }
 
       const templateParts = yield* resolvePromptParts(template)
-      KiloSessionProcessor.markReviewTelemetry(templateParts, input.command) // nocowboy_change - mark review commands for completion telemetry
+      NoCowboySessionProcessor.markReviewTelemetry(templateParts, input.command) // nocowboy_change - mark review commands for completion telemetry
       const isSubtask = (agent.mode === "subagent" && cmd.subtask !== false) || cmd.subtask === true
       const parts = isSubtask
         ? [

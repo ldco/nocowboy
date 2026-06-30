@@ -13,11 +13,11 @@ import { DialogModel } from "./dialog-model"
 import * as Clipboard from "@tui/util/clipboard"
 import { useToast } from "../ui/toast"
 import { isConsoleManagedProvider } from "@tui/util/provider-origin"
-import * as KiloProvider from "@/nocowboy/cli/cmd/tui/component/dialog-provider" // nocowboy_change
+import * as NocowboyProvider from "@/nocowboy/cli/cmd/tui/component/dialog-provider" // nocowboy_change
 import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
 
-const PROVIDER_PRIORITY: Record<string, number> = KiloProvider.PROVIDER_PRIORITY // nocowboy_change
+const PROVIDER_PRIORITY: Record<string, number> = NocowboyProvider.PROVIDER_PRIORITY // nocowboy_change
 
 const CUSTOM_PROVIDER_OPTION_VALUE = "__opencode_custom_provider__"
 const CUSTOM_PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
@@ -48,7 +48,7 @@ export function providerOptions(list: { id: string; name: string }[]): ProviderO
         title: provider.name,
         value: provider.id,
         providerID: provider.id,
-        description: KiloProvider.PROVIDER_DESCRIPTIONS[provider.id], // nocowboy_change
+        description: NocowboyProvider.PROVIDER_DESCRIPTIONS[provider.id], // nocowboy_change
         category: provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
       })),
     ),
@@ -121,13 +121,13 @@ export function createDialogProviderOptions() {
         const connected = sync.data.provider_next.connected.includes(providerID)
         // nocowboy_change start
         const failed = sync.data.provider_next.failed ?? []
-        const failedGutter = KiloProvider.renderGutter(providerID, failed, theme)
-        const failedDesc = KiloProvider.failedDescription(providerID, failed)
-        const baseDesc = KiloProvider.PROVIDER_DESCRIPTIONS[providerID]
+        const failedGutter = NocowboyProvider.renderGutter(providerID, failed, theme)
+        const failedDesc = NocowboyProvider.failedDescription(providerID, failed)
+        const baseDesc = NocowboyProvider.PROVIDER_DESCRIPTIONS[providerID]
         // nocowboy_change end
 
         return {
-          title: KiloProvider.PROVIDER_TITLES[providerID] ?? provider.title, // nocowboy_change
+          title: NocowboyProvider.PROVIDER_TITLES[providerID] ?? provider.title, // nocowboy_change
           value: provider.value,
           description: failedDesc ?? baseDesc ?? provider.description, // nocowboy_change
           footer: consoleManaged ? sync.data.console_state.activeOrgName : undefined,
@@ -193,7 +193,7 @@ export function createDialogProviderOptions() {
               }
               if (result.data?.method === "auto") {
                 // nocowboy_change start
-                const ncProvider = KiloProvider.renderAutoMethod()
+                const ncProvider = NocowboyProvider.renderAutoMethod()
                 if (ncProvider) {
                   dialog.replace(ncProvider)
                 } else {
@@ -356,15 +356,15 @@ function ApiMethod(props: ApiMethodProps) {
   const toast = useToast()
   const { theme } = useTheme()
 
-  const optionalApiKey = KiloProvider.isLocalOptionalApiKey(props.providerID) // nocowboy_change
+  const optionalApiKey = NocowboyProvider.isLocalOptionalApiKey(props.providerID) // nocowboy_change
 
   return (
     <DialogPrompt
       title={props.title}
-      placeholder={KiloProvider.apiKeyPlaceholder(props.providerID)} // nocowboy_change
-      description={KiloProvider.renderApiDescription(props.providerID, theme)} // nocowboy_change
+      placeholder={NocowboyProvider.apiKeyPlaceholder(props.providerID)} // nocowboy_change
+      description={NocowboyProvider.renderApiDescription(props.providerID, theme)} // nocowboy_change
       onConfirm={async (value) => {
-        const key = value.trim() || (optionalApiKey ? KiloProvider.LOCAL_API_KEY_PLACEHOLDER : "") // nocowboy_change
+        const key = value.trim() || (optionalApiKey ? NocowboyProvider.LOCAL_API_KEY_PLACEHOLDER : "") // nocowboy_change
         if (!key) return // nocowboy_change
         await sdk.client.auth.set({
           providerID: props.providerID,

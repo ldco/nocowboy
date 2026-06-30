@@ -13,7 +13,7 @@ import { SessionRunState } from "@/session/run-state"
 import { SessionStatus } from "@/session/status"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { Provider } from "../../src/provider/provider" // kilocode_change
-import { KiloSession } from "../../src/nocowboy/session" // kilocode_change
+import { NoCowboySession } from "../../src/nocowboy/session" // kilocode_change
 import { TaskTool, type TaskPromptOps } from "../../src/tool/task"
 import { Truncate } from "@/tool/truncate"
 import { ToolRegistry } from "@/tool/registry"
@@ -261,9 +261,9 @@ describe("tool.task", () => {
     Effect.gen(function* () {
       const sessions = yield* Session.Service
       const { chat, assistant } = yield* seed()
-      KiloSession.setPlatformOverride(chat.id, "agent-manager")
+      NoCowboySession.setPlatformOverride(chat.id, "agent-manager")
       const child = yield* sessions.create({ parentID: chat.id, title: "Existing child" })
-      KiloSession.clearPlatformOverride(child.id)
+      NoCowboySession.clearPlatformOverride(child.id)
       const tool = yield* TaskTool
       const def = yield* tool.init()
 
@@ -286,8 +286,8 @@ describe("tool.task", () => {
         },
       )
 
-      expect(KiloSession.resolvePlatform(child.id)).toBe("agent-manager")
-      expect(KiloSession.resolveRoot(child.id)).toBe(chat.id)
+      expect(NoCowboySession.resolvePlatform(child.id)).toBe("agent-manager")
+      expect(NoCowboySession.resolveRoot(child.id)).toBe(chat.id)
     }),
   )
   // kilocode_change end

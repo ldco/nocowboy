@@ -8,13 +8,13 @@ import { ConfigParse } from "@/config/parse"
 import { CurrentWorkingDirectory } from "@/cli/cmd/tui/config/cwd"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { TuiInfo } from "@/cli/cmd/tui/config/tui-schema"
-import { KilocodeKeybinds } from "./keybinds"
+import { NoCowboyKeybinds } from "./keybinds"
 import { Filesystem } from "@/util/filesystem"
 import { isRecord } from "@/util/record"
 import { GlobalBus } from "@/bus/global"
 import { Event } from "@/server/event"
 
-export namespace KilocodeTuiConfig {
+export namespace NoCowboyTuiConfig {
   export const Scope = z.enum(["project", "global"])
   export type Scope = z.infer<typeof Scope>
 
@@ -116,7 +116,7 @@ export namespace KilocodeTuiConfig {
     const result = { ...config } as Record<string, unknown>
     delete result.plugin_origins
     const keybinds: Record<string, string> = defaults
-      ? Object.fromEntries(KilocodeKeybinds.list().map((item) => [item.id, item.default]))
+      ? Object.fromEntries(NoCowboyKeybinds.list().map((item) => [item.id, item.default]))
       : {}
     for (const [key, value] of Object.entries(config.keybinds ?? {})) {
       if (typeof value === "string") keybinds[key] = value

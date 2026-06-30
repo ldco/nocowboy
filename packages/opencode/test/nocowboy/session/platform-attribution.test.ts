@@ -4,7 +4,7 @@ import * as Log from "@opencode-ai/core/util/log"
 import { Session as SessionNs } from "@/session/session"
 import { AppRuntime } from "../../../src/effect/app-runtime"
 import { Bus } from "../../../src/bus"
-import { KiloSession } from "../../../src/nocowboy/session"
+import { NoCowboySession } from "../../../src/nocowboy/session"
 import { provideTestInstance } from "../../fixture/fixture"
 import { MessageV2 } from "../../../src/session/message-v2"
 import { MessageID, PartID, type SessionID } from "../../../src/session/schema"
@@ -35,11 +35,11 @@ describe("session platform attribution", () => {
       fn: async () => {
         const root = await create({ platform: "agent-manager" })
         const child = await create({ parentID: root.id, title: "child" })
-        const attr = KiloSession.attribution(child.id)
+        const attr = NoCowboySession.attribution(child.id)
 
-        expect(KiloSession.getPlatformOverride(root.id)).toBe("agent-manager")
-        expect(KiloSession.getPlatformOverride(child.id)).toBe("agent-manager")
-        expect(KiloSession.resolvePlatform(child.id)).toBe("agent-manager")
+        expect(NoCowboySession.getPlatformOverride(root.id)).toBe("agent-manager")
+        expect(NoCowboySession.getPlatformOverride(child.id)).toBe("agent-manager")
+        expect(NoCowboySession.resolvePlatform(child.id)).toBe("agent-manager")
         expect(attr.rootID).toBe(root.id)
         expect(attr.feature).toBe("agent-manager")
 
@@ -56,10 +56,10 @@ describe("session platform attribution", () => {
         const child = await create({ parentID: root.id, title: "child" })
         const leaf = await create({ parentID: child.id, title: "leaf" })
 
-        expect(KiloSession.resolveParent(root.id)).toBeUndefined()
-        expect(KiloSession.resolveParent(child.id)).toBe(root.id)
-        expect(KiloSession.resolveParent(leaf.id)).toBe(child.id)
-        expect(KiloSession.resolveRoot(leaf.id)).toBe(root.id)
+        expect(NoCowboySession.resolveParent(root.id)).toBeUndefined()
+        expect(NoCowboySession.resolveParent(child.id)).toBe(root.id)
+        expect(NoCowboySession.resolveParent(leaf.id)).toBe(child.id)
+        expect(NoCowboySession.resolveRoot(leaf.id)).toBe(root.id)
 
         await remove(root.id)
       },

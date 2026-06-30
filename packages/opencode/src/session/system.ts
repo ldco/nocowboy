@@ -21,7 +21,7 @@ import { Skill } from "@/skill"
 // nocowboy_change start
 import SOUL from "../nocowboy/soul.txt"
 import type { EditorContext } from "../nocowboy/editor-context"
-import { KilocodeSystemPrompt } from "../nocowboy/system-prompt"
+import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
 // nocowboy_change end
 
@@ -98,7 +98,7 @@ export const layer = Layer.effect(
         editorContext?: EditorContext,
       ) {
         const ctx = yield* InstanceState.context
-        return KilocodeSystemPrompt.environment({ ctx, model, editor: editorContext })
+        return NoCowboySystemPrompt.environment({ ctx, model, editor: editorContext })
       }),
       // nocowboy_change end
 

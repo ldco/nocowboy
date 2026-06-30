@@ -1,6 +1,6 @@
 // nocowboy_change - new file
 /**
- * Kilo-specific overrides for the provider dialog.
+ * NoCowboy-specific overrides for the provider dialog.
  *
  * Exports constants and renderers consumed by the shared upstream
  * `dialog-provider.tsx` so the upstream diff stays minimal.
@@ -9,7 +9,7 @@
 import type { JSX } from "solid-js"
 import type { RGBA } from "@opentui/core"
 import type { ProviderAuthAuthorization } from "@nocowboy/sdk/v2"
-// KiloAutoMethod removed — Kilo Gateway no longer supported
+// NoCowboyAutoMethod removed — NoCowboy Gateway no longer supported
 
 // ---------------------------------------------------------------------------
 // Failed-state gutter/description helpers

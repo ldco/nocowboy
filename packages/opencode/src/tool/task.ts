@@ -14,8 +14,8 @@ import { Config } from "@/config/config"
 import { Provider } from "@/provider/provider" // nocowboy_change
 import { KiloTask } from "../nocowboy/tool/task" // nocowboy_change
 import { KiloCostPropagation } from "../nocowboy/session/cost-propagation" // nocowboy_change
-import { KiloSessionProcessor } from "../nocowboy/session/processor" // nocowboy_change
-import { KiloSession } from "../nocowboy/session" // nocowboy_change
+import { NoCowboySessionProcessor } from "../nocowboy/session/processor" // nocowboy_change
+import { NoCowboySession } from "../nocowboy/session" // nocowboy_change
 import { errorMessage } from "@/util/error" // nocowboy_change
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Cause, Effect, Exit, Option, Schema, Scope } from "effect"
@@ -181,7 +181,7 @@ export const TaskTool = Tool.define(
         yield* sessions.setPermission({ sessionID: session.id, permission: session.permission })
       }
       // nocowboy_change end
-      const platform = KiloSession.resolvePlatform(ctx.sessionID) // nocowboy_change - preserve parent attribution across task creation/resume
+      const platform = NoCowboySession.resolvePlatform(ctx.sessionID) // nocowboy_change - preserve parent attribution across task creation/resume
       const nextSession =
         session ??
         (yield* sessions.create({
@@ -205,7 +205,7 @@ export const TaskTool = Tool.define(
           // nocowboy_change end
         }))
       // nocowboy_change start - rebuild in-memory ancestry and attribution after process restart
-      KiloSession.register({ id: nextSession.id, parentID: ctx.sessionID, platform })
+      NoCowboySession.register({ id: nextSession.id, parentID: ctx.sessionID, platform })
       // nocowboy_change end
 
       const msg = yield* MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID }).pipe(Effect.orDie)
@@ -245,7 +245,7 @@ export const TaskTool = Tool.define(
 
       const runTask = Effect.fn("TaskTool.runTask")(function* () {
         const parts = yield* ops.resolvePromptParts(params.prompt)
-        KiloSessionProcessor.markReviewTelemetry(parts, params.command) // nocowboy_change - carry review command into child session telemetry
+        NoCowboySessionProcessor.markReviewTelemetry(parts, params.command) // nocowboy_change - carry review command into child session telemetry
         const result = yield* ops.prompt({
           messageID: MessageID.ascending(),
           sessionID: nextSession.id,

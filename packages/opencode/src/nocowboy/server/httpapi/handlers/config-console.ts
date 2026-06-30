@@ -2,12 +2,12 @@ import { Account } from "@/account/account"
 import { Auth } from "@/auth"
 import { Config } from "@/config/config"
 import * as InstanceState from "@/effect/instance-state"
-import { KilocodeConfigOverlay } from "@/nocowboy/config/overlay"
-import { KilocodeConfigSources } from "@/nocowboy/config/sources"
+import { NoCowboyConfigOverlay } from "@/nocowboy/config/overlay"
+import { NoCowboyConfigSources } from "@/nocowboy/config/sources"
 import { KilocodeModelState } from "@/nocowboy/config/model-state"
 import { ConfigRules } from "@/nocowboy/server/routes/config-rules"
-import { KilocodeKeybinds } from "@/nocowboy/tui/keybinds"
-import { KilocodeTuiConfig } from "@/nocowboy/tui/config"
+import { NoCowboyKeybinds } from "@/nocowboy/tui/keybinds"
+import { NoCowboyTuiConfig } from "@/nocowboy/tui/config"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
 import { InstanceHttpApi } from "@/server/routes/instance/httpapi/api"
 import { markInstanceForDisposal } from "@/server/routes/instance/httpapi/lifecycle"
@@ -42,7 +42,7 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
           config.get(),
           config.getGlobal(),
           Effect.promise(() =>
-            KilocodeConfigSources.list({
+            NoCowboyConfigSources.list({
               directory: instance.directory,
               worktree: instance.worktree,
               auth: all,
@@ -53,7 +53,7 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
         { concurrency: 3 },
       )
       return yield* Effect.promise(() =>
-        KilocodeConfigOverlay.resolve({
+        NoCowboyConfigOverlay.resolve({
           directory: instance.directory,
           worktree: instance.worktree,
           scope: ctx.query.scope ?? "project",
@@ -73,7 +73,7 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
         set: ctx.payload.set ? { ...ctx.payload.set } : undefined,
         unset: ctx.payload.unset?.map((item) => [...item]),
       }
-      const patch = KilocodeConfigOverlay.patch(body)
+      const patch = NoCowboyConfigOverlay.patch(body)
       if (Object.keys(patch).length === 0) {
         if (body.scope === "global") return yield* config.getGlobal()
         return yield* config.get()
@@ -101,7 +101,7 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
         Effect.orElseSucceed(() => undefined),
       )
       return yield* Effect.promise(() =>
-        KilocodeConfigSources.list({
+        NoCowboyConfigSources.list({
           directory: instance.directory,
           worktree: instance.worktree,
           auth: all,
@@ -148,11 +148,11 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
 
     const tuiConfigGet = Effect.fn("ConfigConsoleHttpApi.tuiConfigGet")(function* () {
       const instance = yield* InstanceState.context
-      return yield* Effect.promise(() => KilocodeTuiConfig.get({ directory: instance.directory }))
+      return yield* Effect.promise(() => NoCowboyTuiConfig.get({ directory: instance.directory }))
     })
 
     const tuiKeybindList = Effect.fn("ConfigConsoleHttpApi.tuiKeybindList")(function* () {
-      return { keybinds: KilocodeKeybinds.list() }
+      return { keybinds: NoCowboyKeybinds.list() }
     })
 
     const tuiConfigUpdate = Effect.fn("ConfigConsoleHttpApi.tuiConfigUpdate")(function* (ctx: {
@@ -170,7 +170,7 @@ export const configConsoleHandlers = HttpApiBuilder.group(InstanceHttpApi, "conf
         plugin_enabled: ctx.payload.plugin_enabled ? { ...ctx.payload.plugin_enabled } : undefined,
       }
       return yield* Effect.promise(() =>
-        KilocodeTuiConfig.update({
+        NoCowboyTuiConfig.update({
           directory: instance.directory,
           worktree: instance.worktree,
           scope: ctx.query.scope ?? "project",

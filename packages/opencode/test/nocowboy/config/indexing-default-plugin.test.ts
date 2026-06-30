@@ -8,7 +8,7 @@ import { Account } from "../../../src/account/account"
 import { Auth } from "../../../src/auth"
 import { Config } from "../../../src/config/config"
 import type { ConfigPlugin } from "../../../src/config/plugin"
-import { KilocodeDefaultPlugins } from "../../../src/nocowboy/config/default-plugins"
+import { NoCowboyDefaultPlugins } from "../../../src/nocowboy/config/default-plugins"
 import { INDEXING_PLUGIN } from "../../../src/nocowboy/indexing-feature"
 import * as CrossSpawnSpawner from "@opencode-ai/core/cross-spawn-spawner"
 import { Env } from "../../../src/env"
@@ -53,7 +53,7 @@ describe("kilocode default indexing plugin", () => {
   test("does not inject indexing as a plugin", () => {
     const config: { plugin?: ConfigPlugin.Spec[]; plugin_origins?: ConfigPlugin.Origin[] } = {}
 
-    KilocodeDefaultPlugins.apply(config, { disabled: false })
+    NoCowboyDefaultPlugins.apply(config, { disabled: false })
 
     expect(hasIndexingPlugin(config.plugin ?? [])).toBe(false)
     expect(config.plugin_origins).toBeUndefined()
@@ -67,7 +67,7 @@ describe("kilocode default indexing plugin", () => {
       plugin_origins: [indexing, external],
     }
 
-    KilocodeDefaultPlugins.apply(config, { disabled: true })
+    NoCowboyDefaultPlugins.apply(config, { disabled: true })
 
     expect(config.plugin).toEqual([INDEXING_PLUGIN, external.spec])
     expect(config.plugin_origins).toEqual([indexing, external])

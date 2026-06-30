@@ -4,7 +4,7 @@ import type { ModelMessage } from "ai"
 import { Config } from "@/config/config"
 import type { Provider } from "@/provider/provider"
 import { KiloLLM } from "@/nocowboy/session/llm"
-import { KiloSessionOverflow } from "@/nocowboy/session/overflow"
+import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import type { MessageV2 } from "@/session/message-v2"
 import { isOverflow, usable } from "@/session/overflow"
 
@@ -143,7 +143,7 @@ describe("Kilo preflight compaction", () => {
     const messages = [{ role: "user" as const, content: "x".repeat(600_000) }]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -158,7 +158,7 @@ describe("Kilo preflight compaction", () => {
     const mdl = model({ context: 10_000, output: 1_000 })
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -178,7 +178,7 @@ describe("Kilo preflight compaction", () => {
     const mdl = model({ context: 400_000, input: 200_000, output: 32_000 })
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -211,7 +211,7 @@ describe("Kilo preflight compaction", () => {
     ] satisfies ModelMessage[]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -227,7 +227,7 @@ describe("Kilo preflight compaction", () => {
     const messages = [{ role: "user" as const, content: "x".repeat(600_000) }]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -243,7 +243,7 @@ describe("Kilo preflight compaction", () => {
     const messages = [{ role: "user" as const, content: "x".repeat(600_000) }]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -267,7 +267,7 @@ describe("Kilo preflight compaction", () => {
     ] satisfies ModelMessage[]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),
@@ -285,7 +285,7 @@ describe("Kilo preflight compaction", () => {
       },
     ] satisfies ModelMessage[]
 
-    const usage = KiloSessionOverflow.measure({ messages, tools: {} })
+    const usage = NoCowboySessionOverflow.measure({ messages, tools: {} })
     expect(usage.normalized).toBeLessThan(100)
     expect(usage.raw).toBeGreaterThan(100_000)
   })
@@ -298,7 +298,7 @@ describe("Kilo preflight compaction", () => {
       },
     ] satisfies ModelMessage[]
 
-    const usage = KiloSessionOverflow.measure({ messages, tools: {} })
+    const usage = NoCowboySessionOverflow.measure({ messages, tools: {} })
     expect(usage.normalized).toBeLessThan(100)
     expect(usage.raw).toBeGreaterThan(100_000)
   })
@@ -317,7 +317,7 @@ describe("Kilo preflight compaction", () => {
     ] satisfies ModelMessage[]
 
     expect(
-      KiloSessionOverflow.shouldCompact({
+      NoCowboySessionOverflow.shouldCompact({
         cfg: conf,
         model: mdl,
         usable: usable({ cfg: conf, model: mdl }),

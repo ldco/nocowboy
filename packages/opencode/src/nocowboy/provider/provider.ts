@@ -1,19 +1,19 @@
 // nocowboy_change - new file
 //
-// Kilo-specific provider logic extracted from packages/opencode/src/provider/provider.ts
+// NoCowboy-specific provider logic extracted from packages/opencode/src/provider/provider.ts
 // to minimize merge conflicts with upstream opencode.
 //
 // This module exports patch functions and data that the upstream provider.ts
 // calls at well-defined injection points (each marked with nocowboy_change).
 
-import { createNoCowboy, type NoCowboyProvider as KiloProvider, AI_SDK_PROVIDERS, PROMPTS } from "@nocowboy/gateway"
+import { createNoCowboy, type NoCowboyProvider, AI_SDK_PROVIDERS, PROMPTS } from "@nocowboy/gateway"
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
 import { ProviderID, ModelID } from "@/provider/schema"
 import { optionalOmitUndefined } from "@opencode-ai/core/schema"
 import { Effect, Schema } from "effect"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 
-type KiloSDK = {
+type NoCowboySDK = {
   languageModel(modelId: string): LanguageModelV3
   alibaba(modelId: string): LanguageModelV3
   anthropic(modelId: string): LanguageModelV3
@@ -167,7 +167,7 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
       return {
         autoload: Object.keys(inp.models).length > 0,
         options,
-        async getModel(sdk: KiloSDK, modelID: string) {
+        async getModel(sdk: NoCowboySDK, modelID: string) {
           const p = inp.models[modelID]?.ai_sdk_provider
           if (p === "alibaba") return sdk.alibaba(modelID)
           if (p === "anthropic") return sdk.anthropic(modelID)

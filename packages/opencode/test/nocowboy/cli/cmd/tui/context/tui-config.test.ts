@@ -8,7 +8,7 @@ import { createEffect, createRoot } from "solid-js"
 import { createBindingLookup } from "@opentui/keymap/extras"
 import { TuiKeybind } from "@/cli/cmd/tui/config/keybind"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
-import { KiloTuiConfig } from "@/nocowboy/cli/cmd/tui/context/tui-config"
+import { NoCowboyTuiConfig } from "@/nocowboy/cli/cmd/tui/context/tui-config"
 import { TerminalTitle as KiloTerminalTitle } from "@/nocowboy/cli/cmd/tui/terminal-title"
 
 function cfg(input: Partial<TuiConfig.Info>): TuiConfig.Info {
@@ -36,9 +36,9 @@ function resolve(input: TuiConfig.Info): TuiConfig.Resolved {
   }
 }
 
-describe("KiloTuiConfig.makeStore", () => {
+describe("NoCowboyTuiConfig.makeStore", () => {
   test("reactive reads update when set() reconciles a new config", () => {
-    const store = KiloTuiConfig.makeStore(resolve(cfg({ keybinds: { app_exit: "ctrl+c" }, theme: "kilo" })))
+    const store = NoCowboyTuiConfig.makeStore(resolve(cfg({ keybinds: { app_exit: "ctrl+c" }, theme: "kilo" })))
 
     const exits: Array<string | undefined> = []
     const themes: Array<string | undefined> = []
@@ -81,7 +81,7 @@ describe("KiloTuiConfig.makeStore", () => {
   })
 
   test("set() restores the default title icon when the setting is removed", () => {
-    const store = KiloTuiConfig.makeStore(resolve(cfg({ title_icon: "unicode" })))
+    const store = NoCowboyTuiConfig.makeStore(resolve(cfg({ title_icon: "unicode" })))
 
     store.set(cfg({}))
 
@@ -89,7 +89,7 @@ describe("KiloTuiConfig.makeStore", () => {
   })
 
   test("set() does not re-notify a tracked read when its value is unchanged", () => {
-    const store = KiloTuiConfig.makeStore(resolve(cfg({ keybinds: { app_exit: "ctrl+c" }, theme: "kilo" })))
+    const store = NoCowboyTuiConfig.makeStore(resolve(cfg({ keybinds: { app_exit: "ctrl+c" }, theme: "kilo" })))
 
     const exits: Array<string | undefined> = []
     let dispose!: () => void

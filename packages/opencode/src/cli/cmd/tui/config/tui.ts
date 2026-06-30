@@ -21,7 +21,7 @@ import { Filesystem } from "@/util/filesystem"
 import * as Log from "@opencode-ai/core/util/log"
 import { ConfigVariable } from "@/config/variable"
 import { Npm } from "@opencode-ai/core/npm"
-import { KilocodeDefaultPlugins } from "@/nocowboy/config/default-plugins" // nocowboy_change
+import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins" // nocowboy_change
 import type { DeepMutable } from "@opencode-ai/core/schema"
 import type { TuiAttentionSoundName } from "@nocowboy/plugin/tui"
 import { FormatError, FormatUnknownError } from "@/cli/error"
@@ -265,7 +265,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   }
 
   // nocowboy_change start - inject Kilo default plugins to keep TUI aligned with server config
-  KilocodeDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
+  NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
   info.plugin = result.plugin
   // nocowboy_change end
 

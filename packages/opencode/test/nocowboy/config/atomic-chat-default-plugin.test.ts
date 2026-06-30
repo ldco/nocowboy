@@ -2,7 +2,7 @@ import { describe, expect, spyOn, test } from "bun:test"
 import { Npm } from "@opencode-ai/core/npm"
 import type { ConfigPlugin } from "@/config/plugin"
 import { hasAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature"
-import { KilocodeDefaultPlugins } from "@/nocowboy/config/default-plugins"
+import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins"
 import { PluginLoader } from "@/plugin/loader"
 
 const atomic = "@nocowboy/plugin-atomic-chat"
@@ -12,7 +12,7 @@ describe("kilocode default atomic chat plugin", () => {
     const external: ConfigPlugin.Origin = { spec: "global-plugin", source: "global", scope: "global" }
     const cfg = { plugin: [external.spec], plugin_origins: [external] }
 
-    KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
 
     expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
     expect(cfg.plugin).toEqual([external.spec])
@@ -21,7 +21,7 @@ describe("kilocode default atomic chat plugin", () => {
 
   test("does not add atomic chat plugin when default plugins are disabled", () => {
     const cfg = { plugin: ["global-plugin-1"] }
-    KilocodeDefaultPlugins.apply(cfg, { disabled: true })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: true })
     expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
     expect(cfg.plugin).toEqual(["global-plugin-1"])
   })
@@ -34,7 +34,7 @@ describe("kilocode default atomic chat plugin", () => {
       plugin_origins: [marker, external],
     }
 
-    KilocodeDefaultPlugins.apply(cfg, { disabled: true })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: true })
 
     expect(cfg.plugin).toEqual([atomic, external.spec])
     expect(cfg.plugin_origins).toEqual([marker, external])
@@ -42,7 +42,7 @@ describe("kilocode default atomic chat plugin", () => {
 
   test("does not recognize an existing atomic chat spec as bundled", () => {
     const cfg = { plugin: [atomic] }
-    KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
     expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
     expect(cfg.plugin).toEqual([atomic])
   })
@@ -55,7 +55,7 @@ describe("kilocode default atomic chat plugin", () => {
       plugin_origins: [origin],
     }
 
-    KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
 
     expect(cfg.plugin).toEqual([spec])
     expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
@@ -75,7 +75,7 @@ describe("kilocode default atomic chat plugin", () => {
         plugin_origins: [origin],
       }
 
-      KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+      NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
 
       expect(cfg.plugin).toEqual([spec])
       expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)
@@ -88,7 +88,7 @@ describe("kilocode default atomic chat plugin", () => {
     const origin: ConfigPlugin.Origin = { spec, source: "global", scope: "global" }
     const cfg = { plugin: [spec], plugin_origins: [origin] }
 
-    KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
 
     expect(cfg.plugin).toEqual([spec])
     expect(cfg.plugin_origins).toEqual([origin])
@@ -99,7 +99,7 @@ describe("kilocode default atomic chat plugin", () => {
     const origin: ConfigPlugin.Origin = { spec, source: "project", scope: "local" }
     const cfg = { plugin: [spec], plugin_origins: [origin] }
 
-    KilocodeDefaultPlugins.apply(cfg, { disabled: false })
+    NoCowboyDefaultPlugins.apply(cfg, { disabled: false })
 
     expect(cfg.plugin).toEqual([spec])
     expect(hasAtomicChatPlugin(cfg.plugin)).toBe(false)

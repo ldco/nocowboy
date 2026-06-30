@@ -2,7 +2,7 @@ import { Deferred, Effect } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import * as Log from "@opencode-ai/core/util/log"
 import { SessionID } from "@/session/schema"
-import { KiloSessionPromptQueue } from "@/nocowboy/session/prompt-queue"
+import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 
 /**
  * Kilo-specific helpers for the shared `@/question` module.
@@ -55,7 +55,7 @@ export namespace KiloQuestion {
    */
   export const guardFollowup = <E>(sessionID: SessionID, makeError: () => E) =>
     Effect.gen(function* () {
-      if (!KiloSessionPromptQueue.hasFollowup(sessionID)) return
+      if (!NoCowboySessionPromptQueue.hasFollowup(sessionID)) return
       log.info("auto-dismissed — followup queued", { sessionID })
       return yield* Effect.fail(makeError())
     })

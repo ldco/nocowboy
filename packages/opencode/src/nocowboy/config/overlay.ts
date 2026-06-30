@@ -9,10 +9,10 @@ import { ConfigParse } from "@/config/parse"
 import { ConfigVariable } from "@/config/variable"
 import { Filesystem } from "@/util/filesystem"
 import { isRecord } from "@/util/record"
-import { KilocodeConfig } from "./config"
-import { KilocodeConfigSources } from "./sources"
+import { NoCowboyConfig } from "./config"
+import { NoCowboyConfigSources } from "./sources"
 
-export namespace KilocodeConfigOverlay {
+export namespace NoCowboyConfigOverlay {
   export const Scope = z.enum(["global", "project"])
   export type Scope = z.infer<typeof Scope>
 
@@ -50,7 +50,7 @@ export namespace KilocodeConfigOverlay {
     effective: z.custom<Config.Info>(Schema.is(Config.Info)),
     global: z.custom<Config.Info>(Schema.is(Config.Info)),
     project: z.custom<Config.Info>(Schema.is(Config.Info)),
-    sources: z.array(KilocodeConfigSources.Source),
+    sources: z.array(NoCowboyConfigSources.Source),
     targets: z.object({
       global: z.string().optional(),
       project: z.string().optional(),
@@ -67,7 +67,7 @@ export namespace KilocodeConfigOverlay {
     scope: Scope
     effective: Config.Info
     global: Config.Info
-    sources: KilocodeConfigSources.Source[]
+    sources: NoCowboyConfigSources.Source[]
   }
 
   const files = ["nocowboy.jsonc", "nocowboy.json", "opencode.jsonc", "opencode.json"] as const
@@ -120,7 +120,7 @@ export namespace KilocodeConfigOverlay {
   export async function project(input: { directory: string; worktree?: string }): Promise<Config.Info> {
     const found = await projectFiles(input)
     const configs = await Promise.all(found.map(load))
-    return configs.reduce((result, cfg) => KilocodeConfig.mergeConfig(result, cfg), {} as Config.Info)
+    return configs.reduce((result, cfg) => NoCowboyConfig.mergeConfig(result, cfg), {} as Config.Info)
   }
 
   export async function projectTarget(input: { directory: string; worktree?: string }) {
@@ -196,7 +196,7 @@ export namespace KilocodeConfigOverlay {
     if (!existsSync(dir)) return withAgents(input, rest)
     const agent = await ConfigAgent.load(dir)
     const mode = await ConfigAgent.loadMode(dir)
-    const next = KilocodeConfig.mergeConfig(KilocodeConfig.mergeConfig(input, { agent }), { agent: mode })
+    const next = NoCowboyConfig.mergeConfig(NoCowboyConfig.mergeConfig(input, { agent }), { agent: mode })
     return withAgents(next, rest)
   }
 

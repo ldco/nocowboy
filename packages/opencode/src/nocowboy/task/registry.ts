@@ -7,7 +7,7 @@ function db() {
   const { Database } = require("bun:sqlite") as typeof import("bun:sqlite")
   const { homedir } = require("os") as typeof import("os")
   const { join } = require("path") as typeof import("path")
-  const dbPath = join(homedir(), ".local/share/kilo/storage/nocowboy.db")
+  const dbPath = join(homedir(), ".local/share/nocowboy/storage/nocowboy.db")
   const database = new Database(dbPath)
   database.exec("PRAGMA journal_mode=WAL")
   database.exec(TASK_TABLE_CREATE)

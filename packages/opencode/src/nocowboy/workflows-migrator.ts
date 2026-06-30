@@ -4,7 +4,7 @@ import os from "os"
 import type { Config } from "../config/config"
 import type { ConfigCommand } from "../config/command"
 import { Filesystem } from "../util/filesystem"
-import { KilocodeMarkdown } from "./config/markdown"
+import { NoCowboyMarkdown } from "./config/markdown"
 import { NocowboyPaths } from "./paths"
 
 export namespace WorkflowsMigrator {
@@ -14,7 +14,7 @@ export namespace WorkflowsMigrator {
   const KILO_WORKFLOWS_DIRS = [".nocowboy/workflows"]
   const globalWorkflowsDirs = () => [path.join(home(), ".nocowboy", "workflows")]
 
-  export interface KilocodeWorkflow {
+  export interface NoCowboyWorkflow {
     name: string
     path: string
     content: string
@@ -52,12 +52,12 @@ export namespace WorkflowsMigrator {
     return undefined
   }
 
-  async function loadWorkflowsFromDir(dir: string, source: "global" | "project"): Promise<KilocodeWorkflow[]> {
+  async function loadWorkflowsFromDir(dir: string, source: "global" | "project"): Promise<NoCowboyWorkflow[]> {
     if (!(await Filesystem.isDir(dir))) return []
     const files = await findWorkflowFiles(dir)
-    const workflows: KilocodeWorkflow[] = []
+    const workflows: NoCowboyWorkflow[] = []
     for (const file of files) {
-      const content = await KilocodeMarkdown.substitute(await fs.readFile(file, "utf-8"), file)
+      const content = await NoCowboyMarkdown.substitute(await fs.readFile(file, "utf-8"), file)
       workflows.push({
         name: extractNameFromFilename(file),
         path: file,
@@ -68,8 +68,8 @@ export namespace WorkflowsMigrator {
     return workflows
   }
 
-  export async function discoverWorkflows(projectDir: string, skipGlobalPaths?: boolean): Promise<KilocodeWorkflow[]> {
-    const workflows: KilocodeWorkflow[] = []
+  export async function discoverWorkflows(projectDir: string, skipGlobalPaths?: boolean): Promise<NoCowboyWorkflow[]> {
+    const workflows: NoCowboyWorkflow[] = []
 
     if (!skipGlobalPaths) {
       // 1. VSCode extension global storage (primary location for global workflows)
@@ -90,7 +90,7 @@ export namespace WorkflowsMigrator {
     return workflows
   }
 
-  export function convertToCommand(workflow: KilocodeWorkflow): ConfigCommand.Info {
+  export function convertToCommand(workflow: NoCowboyWorkflow): ConfigCommand.Info {
     return {
       template: workflow.content,
       description: extractDescription(workflow.content) ?? `Workflow: ${workflow.name}`,
@@ -108,7 +108,7 @@ export namespace WorkflowsMigrator {
     const workflows = await discoverWorkflows(options.projectDir, options.skipGlobalPaths)
 
     // Deduplicate by name (project takes precedence over global)
-    const workflowsByName = new Map<string, KilocodeWorkflow>()
+    const workflowsByName = new Map<string, NoCowboyWorkflow>()
 
     // Add global first
     for (const workflow of workflows.filter((w) => w.source === "global")) {

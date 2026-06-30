@@ -9,7 +9,7 @@ import { InstallationVersion } from "@opencode-ai/core/installation/version"
 
 import { Database } from "@/storage/db"
 import { NotFoundError } from "@/storage/storage"
-// nocowboy_change - drop unused inArray/lt (listGlobal delegated to KiloSession)
+// nocowboy_change - drop unused inArray/lt (listGlobal delegated to NoCowboySession)
 import { eq, and, gte, isNull, desc, like, or } from "drizzle-orm"
 import { SyncEvent } from "../sync"
 import { PartTable, SessionTable } from "./session.sql"
@@ -31,7 +31,7 @@ import { Permission } from "@/permission"
 import { Global } from "@opencode-ai/core/global"
 // nocowboy_change start - Kilo session behavior extensions
 import { BackgroundProcess } from "@/nocowboy/background-process"
-import { KiloSession, nocowboySessionFork } from "@/nocowboy/session"
+import { NoCowboySession, nocowboySessionFork } from "@/nocowboy/session"
 import { SessionExport } from "@/nocowboy/session-export"
 import { baseKey, cumulativeSessionDiff } from "@/nocowboy/session-portability/cumulative-diff" // nocowboy_change
 // nocowboy_change end
@@ -367,8 +367,8 @@ export const Event = {
     }),
   ),
   // nocowboy_change start
-  TurnOpen: KiloSession.Event.TurnOpen,
-  TurnClose: KiloSession.Event.TurnClose,
+  TurnOpen: NoCowboySession.Event.TurnOpen,
+  TurnClose: NoCowboySession.Event.TurnClose,
   // nocowboy_change end
 }
 
@@ -430,7 +430,7 @@ export const getUsage = (input: {
   }
 
   // nocowboy_change start - Use provider-reported cost when available for OpenRouter/Kilo
-  const reported = KiloSession.providerCost({
+  const reported = NoCowboySession.providerCost({
     metadata: input.metadata,
     usage: input.usage,
     provider: input.provider,
@@ -576,7 +576,7 @@ export const layer: Layer.Layer<
       log.info("created", result)
 
       // nocowboy_change start - register attribution before session.created subscribers run
-      KiloSession.register({ id: result.id, parentID: result.parentID, platform: input.platform })
+      NoCowboySession.register({ id: result.id, parentID: result.parentID, platform: input.platform })
       // nocowboy_change end
 
       yield* sync.run(Event.Created, { sessionID: result.id, info: result })
@@ -639,8 +639,8 @@ export const layer: Layer.Layer<
         }
 
         // nocowboy_change start
-        yield* Effect.promise(() => KiloSession.removeSession(sessionID)).pipe(Effect.ignore)
-        KiloSession.clearPlatformOverride(sessionID)
+        yield* Effect.promise(() => NoCowboySession.removeSession(sessionID)).pipe(Effect.ignore)
+        NoCowboySession.clearPlatformOverride(sessionID)
         if (hasInstance) {
           yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID)).pipe(Effect.ignore)
           void Promise.all([import("@/effect/app-runtime"), import("./run-state")]).then(([app, run]) =>
@@ -661,7 +661,7 @@ export const layer: Layer.Layer<
     const updateMessage = <T extends MessageV2.Info>(msg: T): Effect.Effect<T> =>
       Effect.gen(function* () {
         // nocowboy_change start - ignore FK errors when session was deleted while processor was still running
-        yield* KiloSession.runSyncSafe(sync.run(MessageV2.Event.Updated, { sessionID: msg.sessionID, info: msg }), {
+        yield* NoCowboySession.runSyncSafe(sync.run(MessageV2.Event.Updated, { sessionID: msg.sessionID, info: msg }), {
           type: "message update",
           id: msg.id,
           sessionID: msg.sessionID,
@@ -673,7 +673,7 @@ export const layer: Layer.Layer<
     const updatePart = <T extends MessageV2.Part>(part: T): Effect.Effect<T> =>
       Effect.gen(function* () {
         // nocowboy_change start - ignore FK errors when session was deleted while processor was still running
-        yield* KiloSession.runSyncSafe(
+        yield* NoCowboySession.runSyncSafe(
           sync.run(MessageV2.Event.PartUpdated, {
             sessionID: part.sessionID,
             part: structuredClone(part),
@@ -745,7 +745,7 @@ export const layer: Layer.Layer<
       })
       const msgs = yield* messages({ sessionID: input.sessionID })
       const idMap = new Map<string, MessageID>()
-      const writer = KiloSession.writer(session.id, sync) // nocowboy_change - commit copied transcript in one transaction
+      const writer = NoCowboySession.writer(session.id, sync) // nocowboy_change - commit copied transcript in one transaction
 
       for (const msg of msgs) {
         if (input.messageID && msg.info.id >= input.messageID) break
@@ -967,13 +967,13 @@ function* listByProject(
     experimentalWorkspaces: boolean
   },
 ) {
-  // nocowboy_change start - KiloSession.filters keeps sessions visible across project_id changes
+  // nocowboy_change start - NoCowboySession.filters keeps sessions visible across project_id changes
   // (see PR #8875). That directory-anchored filter conflicts with upstream's path-prefix filter,
   // so bypass it when input.path is provided and fall back to the plain project_id base.
   const conditions =
     input.path !== undefined
       ? [eq(SessionTable.project_id, input.projectID)]
-      : KiloSession.filters({ projectID: input.projectID, directory: input.directory })
+      : NoCowboySession.filters({ projectID: input.projectID, directory: input.directory })
   // nocowboy_change end
 
   if (input.workspaceID) {
@@ -990,7 +990,7 @@ function* listByProject(
       )
     }
   } else if (input.scope !== "project" && !input.experimentalWorkspaces) {
-    // nocowboy_change start - directory filtering handled by KiloSession.filters above
+    // nocowboy_change start - directory filtering handled by NoCowboySession.filters above
     // if (input.directory) {
     //   conditions.push(eq(SessionTable.directory, input.directory))
     // }
@@ -1022,7 +1022,7 @@ function* listByProject(
   }
 }
 
-// nocowboy_change start - delegate to KiloSession.listGlobal (adds projectID worktree family + directories[])
+// nocowboy_change start - delegate to NoCowboySession.listGlobal (adds projectID worktree family + directories[])
 export function* listGlobal(input?: {
   projectID?: string
   directory?: string
@@ -1035,7 +1035,7 @@ export function* listGlobal(input?: {
   limit?: number
   archived?: boolean
 }) {
-  yield* KiloSession.listGlobal<GlobalInfo>({ ...input, fromRow })
+  yield* NoCowboySession.listGlobal<GlobalInfo>({ ...input, fromRow })
 }
 // nocowboy_change end
 

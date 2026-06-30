@@ -1,12 +1,12 @@
 import { Show, type JSX } from "solid-js"
 import { isNocowboyError } from "@/nocowboy/errors"
 
-interface KiloErrorBlockProps {
+interface NoCowboyErrorBlockProps {
   error: unknown
   fallback?: JSX.Element
 }
 
-export function ErrorBlock(props: KiloErrorBlockProps) {
+export function ErrorBlock(props: NoCowboyErrorBlockProps) {
   return (
     <Show when={isNocowboyError(props.error)} fallback={props.fallback}>
       <box border title=" Error" paddingX={1} paddingY={1}>

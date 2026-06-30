@@ -3,7 +3,7 @@ import { BusEvent } from "@/bus/bus-event"
 import { Provider } from "@/provider/provider"
 import { Session } from "@/session/session"
 import { SessionSummary } from "@/session/summary"
-import { KiloSession } from "@/nocowboy/session"
+import { NoCowboySession } from "@/nocowboy/session"
 import { SessionID } from "@/session/schema"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { MessageV2 } from "@/session/message-v2"
@@ -792,7 +792,7 @@ export namespace Sessions {
   }
 
   async function meta(sessionId?: string) {
-    const override = sessionId ? KiloSession.resolvePlatform(sessionId) : undefined
+    const override = sessionId ? NoCowboySession.resolvePlatform(sessionId) : undefined
     const platform = override || process.env["NOCOWBOY_PLATFORM"] || "cli"
     const orgId = await getOrgId()
     const gitBranch = await branch().catch(() => undefined)

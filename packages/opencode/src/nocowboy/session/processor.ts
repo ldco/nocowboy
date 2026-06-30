@@ -18,7 +18,7 @@ export type ReviewTelemetry = {
   tool?: "suggest"
 }
 
-export namespace KiloSessionProcessor {
+export namespace NoCowboySessionProcessor {
   const log = Log.create({ service: "session.processor.kilo" })
   export const OUTPUT_LENGTH_WARNING = "The model hit its output limit, so this response may be incomplete."
   export const REASONING_LENGTH_WARNING =

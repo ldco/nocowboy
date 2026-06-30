@@ -4,7 +4,7 @@ import type { Database as BunDatabase } from "bun:sqlite"
 import * as path from "node:path"
 import * as os from "node:os"
 
-const MEMORY_ROOT = path.join(os.homedir(), ".local/share/kilo/storage/memory")
+const MEMORY_ROOT = path.join(os.homedir(), ".local/share/nocowboy/storage/memory")
 
 export interface MemorySearchResult {
   path: string

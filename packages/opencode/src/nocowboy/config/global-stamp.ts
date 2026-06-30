@@ -2,7 +2,7 @@ import path from "path"
 import type { AppFileSystem } from "@opencode-ai/core/filesystem"
 import { Effect } from "effect"
 
-export namespace KilocodeGlobalConfigStamp {
+export namespace NoCowboyGlobalConfigStamp {
   const files = ["config.json", "nocowboy.json", "nocowboy.jsonc", "opencode.json", "opencode.jsonc", "config"]
 
   export const read = Effect.fnUntraced(function* (

@@ -29,7 +29,7 @@ import { SessionID } from "@/session/schema"
 import { Auth } from "@/auth"
 // nocowboy_change start
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
-import { getKiloProjectId } from "@/nocowboy/project-id"
+import { getNoCowboyProjectId } from "@/nocowboy/project-id"
 // nocowboy_change - gateway removed
 const HEADER_FEATURE = "x-nocowboy-feature"
 const HEADER_PARENT_TASKID = "x-nocowboy-parent-taskid"
@@ -37,9 +37,9 @@ const HEADER_PROJECTID = "x-nocowboy-projectid"
 const HEADER_MACHINEID = "x-nocowboy-machineid"
 const HEADER_TASKID = "x-nocowboy-taskid"
 import { Identity } from "@nocowboy/telemetry"
-import { KiloSession } from "@/nocowboy/session"
+import { NoCowboySession } from "@/nocowboy/session"
 import { KiloLLM } from "@/nocowboy/session/llm"
-import { KiloSessionOverflow } from "@/nocowboy/session/overflow"
+import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { SessionExport } from "@/nocowboy/session-export"
 import { getActiveOrg } from "@/nocowboy/session-export/eligibility"
 // nocowboy_change end
@@ -124,7 +124,7 @@ const live: Layer.Layer<
         { concurrency: "unbounded" },
       )
       // nocowboy_change start - attribute Kilo gateway usage to the root product session
-      const attr = KiloSession.attribution(input.sessionID)
+      const attr = NoCowboySession.attribution(input.sessionID)
       // nocowboy_change end
 
       // TODO: move this to a proper hook
@@ -237,7 +237,7 @@ const live: Layer.Layer<
       // nocowboy_change start - resolve project ID and machine ID for kilo provider
       const isNc = input.model.api.npm === "@nocowboy/gateway"
       const ncProjectId = yield* isNc
-        ? Effect.promise(() => getKiloProjectId().catch(() => undefined))
+        ? Effect.promise(() => getNoCowboyProjectId().catch(() => undefined))
         : Effect.succeed(undefined)
       const machineId = yield* isNc
         ? Effect.promise(() => Identity.getMachineId().catch(() => undefined))
@@ -278,10 +278,10 @@ const live: Layer.Layer<
               ...messages,
             ]
           : messages
-      const preflight = input.preflight === true && KiloSessionOverflow.enabled({ cfg, model: input.model })
+      const preflight = input.preflight === true && NoCowboySessionOverflow.enabled({ cfg, model: input.model })
       const cap = KiloLLM.needsEstimate({ model: input.model, configured: params.maxOutputTokens })
       const usage =
-        cap || preflight ? KiloSessionOverflow.measure({ messages: estimated, tools: sortedTools }) : undefined
+        cap || preflight ? NoCowboySessionOverflow.measure({ messages: estimated, tools: sortedTools }) : undefined
       params.maxOutputTokens = KiloLLM.capOutputTokens({
         model: input.model,
         messages: estimated,
@@ -292,7 +292,7 @@ const live: Layer.Layer<
       if (
         preflight &&
         usage &&
-        KiloSessionOverflow.shouldCompact({
+        NoCowboySessionOverflow.shouldCompact({
           cfg,
           model: input.model,
           usable: usable({ cfg, model: input.model, outputTokenMax: flags.outputTokenMax }), // nocowboy_change
@@ -300,7 +300,7 @@ const live: Layer.Layer<
           continuation: usage.continuation,
         })
       ) {
-        return yield* Effect.fail(new KiloSessionOverflow.PreflightError())
+        return yield* Effect.fail(new NoCowboySessionOverflow.PreflightError())
       }
       // nocowboy_change end
 
@@ -415,8 +415,8 @@ const live: Layer.Layer<
         ? Effect.promise(() => getActiveOrg())
         : Effect.succeed({ type: "unknown" as const })
       const started = Date.now()
-      const parent = input.parentSessionID ?? KiloSession.resolveParent(input.sessionID)
-      const found = KiloSession.resolveRoot(input.sessionID)
+      const parent = input.parentSessionID ?? NoCowboySession.resolveParent(input.sessionID)
+      const found = NoCowboySession.resolveRoot(input.sessionID)
       const root = parent ? (found === input.sessionID ? parent : found) : input.sessionID
       const exportable =
         isNc && input.model.isFree === true && org.type === "personal" && input.agent.name !== "title"

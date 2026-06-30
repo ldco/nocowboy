@@ -2,7 +2,7 @@ import { Effect } from "effect"
 import type { ModelID, ProviderID } from "@/provider/schema"
 import type { MessageV2 } from "@/session/message-v2"
 import { MessageID, PartID, type SessionID } from "@/session/schema"
-import { KiloSessionPromptQueue } from "./prompt-queue"
+import { NoCowboySessionPromptQueue } from "./prompt-queue"
 
 export namespace KiloSessionCompaction {
   type Store = {
@@ -35,7 +35,7 @@ export namespace KiloSessionCompaction {
         auto: input.auto,
         overflow: input.overflow,
       })
-      KiloSessionPromptQueue.retarget(input.sessionID, msg.id)
+      NoCowboySessionPromptQueue.retarget(input.sessionID, msg.id)
       return msg
     })
   }

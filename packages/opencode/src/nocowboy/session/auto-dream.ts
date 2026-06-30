@@ -34,7 +34,7 @@ function shouldAutoRun(input: {
     const { Database } = require("bun:sqlite")
     const { homedir } = require("os")
     const { join } = require("path")
-    const dbPath = join(homedir(), ".local/share/kilo/storage/nocowboy.db")
+    const dbPath = join(homedir(), ".local/share/nocowboy/storage/nocowboy.db")
     const db = new Database(dbPath)
 
     try {

@@ -4,7 +4,7 @@ import * as Log from "@opencode-ai/core/util/log"
 import { Global } from "@opencode-ai/core/global"
 import { Server } from "../../../src/server/server"
 import { Config } from "../../../src/config/config"
-import { KilocodeConfigOverlay } from "../../../src/nocowboy/config/overlay"
+import { NoCowboyConfigOverlay } from "../../../src/nocowboy/config/overlay"
 import { Permission } from "../../../src/permission"
 import { PtyPaths } from "../../../src/server/routes/instance/httpapi/groups/pty"
 import { resetDatabase } from "../../fixture/db"
@@ -77,7 +77,7 @@ async function setGlobal(dir: string, value: Config.Info) {
 
 describe("config overlay routes", () => {
   test("ignores unsafe patch paths", () => {
-    const patched = KilocodeConfigOverlay.patch({
+    const patched = NoCowboyConfigOverlay.patch({
       scope: "project",
       unset: [
         ["__proto__", "polluted"],
@@ -168,7 +168,7 @@ describe("config overlay routes", () => {
     }
     await config(project.path, local)
 
-    const body = await KilocodeConfigOverlay.resolve({
+    const body = await NoCowboyConfigOverlay.resolve({
       directory: project.path,
       scope: "global",
       effective: local,

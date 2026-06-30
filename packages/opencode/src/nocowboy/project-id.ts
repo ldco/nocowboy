@@ -94,18 +94,18 @@ async function resolveProjectId(): Promise<string | undefined> {
   return getProjectIdFromGit(dir)
 }
 
-export namespace KiloProjectID {
+export namespace NoCowboyProjectID {
   export interface Interface {
     readonly get: () => Effect.Effect<string | undefined>
   }
 
-  export class Service extends Context.Service<Service, Interface>()("@nocowboy/KiloProjectID") {}
+  export class Service extends Context.Service<Service, Interface>()("@nocowboy/NoCowboyProjectID") {}
 
   export const layer = Layer.effect(
     Service,
     Effect.gen(function* () {
       const state = yield* InstanceState.make(
-        Effect.fn("KiloProjectID.state")(function* () {
+        Effect.fn("NoCowboyProjectID.state")(function* () {
           return { id: yield* Effect.promise(() => resolveProjectId()) }
         }),
       )
@@ -118,12 +118,12 @@ export namespace KiloProjectID {
   export const defaultLayer = layer
 }
 
-const { runPromise } = makeRuntime(KiloProjectID.Service, KiloProjectID.defaultLayer)
+const { runPromise } = makeRuntime(NoCowboyProjectID.Service, NoCowboyProjectID.defaultLayer)
 
 /**
  * Get the project ID for the current Instance context (cached per-project)
  * @returns Normalized project ID or undefined
  */
-export async function getKiloProjectId(): Promise<string | undefined> {
+export async function getNoCowboyProjectId(): Promise<string | undefined> {
   return runPromise((svc) => svc.get())
 }

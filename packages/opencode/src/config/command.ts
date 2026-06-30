@@ -9,7 +9,7 @@ import { ConfigModelID } from "./model-id"
 // nocowboy_change start
 import { Bus } from "@/bus"
 import { NamedError } from "@opencode-ai/core/util/error"
-import { KilocodeConfig } from "@/nocowboy/config/config"
+import { NoCowboyConfig } from "@/nocowboy/config/config"
 import type { Warning } from "./config"
 // nocowboy_change end
 
@@ -93,7 +93,7 @@ export async function load(dir: string, warnings?: Warning[]) {
         }))
       : [{ message: String(error), path: [] }]
     const cause = error instanceof Error ? error : new Error(String(error))
-    await KilocodeConfig.handleInvalid("command", item, issues, cause, warnings)
+    await NoCowboyConfig.handleInvalid("command", item, issues, cause, warnings)
     // nocowboy_change end
   }
   return result

@@ -1,6 +1,6 @@
 import { Config } from "@/config/config"
 import { ConfigPlugin } from "@/config/plugin"
-import { KilocodeKeybinds } from "@/nocowboy/tui/keybinds"
+import { NoCowboyKeybinds } from "@/nocowboy/tui/keybinds"
 import { TitleIcon } from "@/nocowboy/cli/cmd/tui/title-icon"
 import { Authorization } from "@/server/routes/instance/httpapi/middleware/authorization"
 import { InstanceContextMiddleware } from "@/server/routes/instance/httpapi/middleware/instance-context"
@@ -125,7 +125,7 @@ const TuiConfigShape = {
 }
 export const TuiConfigResponse = Schema.Struct(TuiConfigShape).annotate({ identifier: "TuiConfigGetResponse" })
 export const TuiConfigPatch = Schema.Struct(TuiConfigShape)
-export const TuiKeybindListResponse = Schema.Struct({ keybinds: Schema.Array(KilocodeKeybinds.Info) }).annotate({
+export const TuiKeybindListResponse = Schema.Struct({ keybinds: Schema.Array(NoCowboyKeybinds.Info) }).annotate({
   identifier: "TuiKeybindListResponse",
 })
 

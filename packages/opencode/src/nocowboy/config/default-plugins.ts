@@ -8,7 +8,7 @@ type Log = {
 
 const req = createRequire(import.meta.url)
 
-export namespace KilocodeDefaultPlugins {
+export namespace NoCowboyDefaultPlugins {
   export function apply<T extends { plugin?: ConfigPlugin.Spec[]; plugin_origins?: ConfigPlugin.Origin[] }>(
     cfg: T,
     opts: { disabled: boolean; log?: Log },

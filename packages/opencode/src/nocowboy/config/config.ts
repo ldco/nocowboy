@@ -20,7 +20,7 @@ import { WorkflowsMigrator } from "../workflows-migrator"
 import { McpMigrator } from "../mcp-migrator"
 import { IgnoreMigrator } from "../ignore-migrator"
 
-export namespace KilocodeConfig {
+export namespace NoCowboyConfig {
   const log = Log.create({ service: "nocowboy.config" })
 
   // ── Config schema extensions ─────────────────────────────────────────

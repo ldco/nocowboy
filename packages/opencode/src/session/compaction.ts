@@ -18,11 +18,11 @@ import { InstanceState } from "@/effect/instance-state"
 import { isOverflow as overflow, usable } from "./overflow"
 import { serviceUse } from "@/effect/service-use"
 // nocowboy_change start
-import { KiloSessionPromptQueue } from "@/nocowboy/session/prompt-queue"
+import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { KiloCompactionPayloadRecovery } from "@/nocowboy/session/compaction-payload-recovery"
 import { KiloCompactionChunks } from "@/nocowboy/session/compaction-chunks"
 import { SessionExport } from "@/nocowboy/session-export"
-import { KiloSession } from "@/nocowboy/session"
+import { NoCowboySession } from "@/nocowboy/session"
 // nocowboy_change end
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
@@ -556,7 +556,7 @@ export const layer = Layer.effect(
             tools: original.tools,
             system: original.system,
           })
-          KiloSessionPromptQueue.retarget(input.sessionID, replayMsg.id) // nocowboy_change - expose replay to scope()
+          NoCowboySessionPromptQueue.retarget(input.sessionID, replayMsg.id) // nocowboy_change - expose replay to scope()
           for (const part of replay.parts) {
             if (part.type === "compaction") continue
             // nocowboy_change start - preserve media for preflight replay but strip it after provider overflow
@@ -604,7 +604,7 @@ export const layer = Layer.effect(
               agent: userMessage.agent,
               model: userMessage.model,
             })
-            KiloSessionPromptQueue.retarget(input.sessionID, continueMsg.id) // nocowboy_change - expose auto-continue to scope()
+            NoCowboySessionPromptQueue.retarget(input.sessionID, continueMsg.id) // nocowboy_change - expose auto-continue to scope()
             const text =
               (input.overflow
                 ? "The previous request exceeded the provider's size limit due to large media attachments. The conversation was compacted and media files were removed from context. If the user was asking about attached images or files, explain that the attachments were too large to process and suggest they try again with smaller or fewer files.\n\n"
@@ -650,8 +650,8 @@ export const layer = Layer.effect(
           })
         }
         // nocowboy_change start - export self-contained compaction capture
-        const parent = KiloSession.resolveParent(input.sessionID)
-        const found = KiloSession.resolveRoot(input.sessionID)
+        const parent = NoCowboySession.resolveParent(input.sessionID)
+        const found = NoCowboySession.resolveRoot(input.sessionID)
         const root = parent ? (found === input.sessionID ? parent : found) : input.sessionID
         const workspace = yield* InstanceState.context
         SessionExport.compaction({
@@ -710,7 +710,7 @@ export const layer = Layer.effect(
         overflow: input.overflow,
       })
       // nocowboy_change start - keep auto-compaction markers visible during queued turns
-      KiloSessionPromptQueue.retarget(input.sessionID, msg.id)
+      NoCowboySessionPromptQueue.retarget(input.sessionID, msg.id)
       // nocowboy_change end
       if (flags.experimentalEventSystem) {
         yield* events.publish(SessionEvent.Compaction.Started, {

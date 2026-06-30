@@ -10,7 +10,7 @@ import type { OrganizationMode } from "@nocowboy/gateway"
 
 export namespace ModesMigrator {
   // Kilocode mode structure
-  export interface KilocodeMode {
+  export interface NoCowboyMode {
     slug: string
     name: string
     roleDefinition: string
@@ -21,8 +21,8 @@ export namespace ModesMigrator {
     source?: "global" | "project" | "organization"
   }
 
-  export interface KilocodeModesFile {
-    customModes: KilocodeMode[]
+  export interface NoCowboyModesFile {
+    customModes: NoCowboyMode[]
   }
 
   // Default modes to skip - these have native Opencode equivalents
@@ -44,7 +44,7 @@ export namespace ModesMigrator {
     return DEFAULT_MODE_SLUGS.has(slug)
   }
 
-  export function convertPermissions(groups: KilocodeMode["groups"]): ConfigPermission.Info {
+  export function convertPermissions(groups: NoCowboyMode["groups"]): ConfigPermission.Info {
     const permission: ConfigPermission.Info = {}
     const allowedPermissions = new Set<string>()
 
@@ -80,7 +80,7 @@ export namespace ModesMigrator {
     return permission
   }
 
-  export function convertMode(mode: KilocodeMode): ConfigAgent.Info {
+  export function convertMode(mode: NoCowboyMode): ConfigAgent.Info {
     const prompt = [mode.roleDefinition, mode.customInstructions].filter(Boolean).join("\n\n")
 
     return {
@@ -135,12 +135,12 @@ export namespace ModesMigrator {
     return result
   }
 
-  export async function readModesFile(filepath: string): Promise<KilocodeMode[]> {
+  export async function readModesFile(filepath: string): Promise<NoCowboyMode[]> {
     try {
       const content = await fs.readFile(filepath, "utf-8")
       // Wrap YAML content in frontmatter delimiters so gray-matter can parse it
       const wrapped = `---\n${content}\n---`
-      const parsed = matter(wrapped).data as KilocodeModesFile
+      const parsed = matter(wrapped).data as NoCowboyModesFile
       return parsed?.customModes ?? []
     } catch (err: unknown) {
       if ((err as { code?: string }).code === "ENOENT") return []
@@ -165,7 +165,7 @@ export namespace ModesMigrator {
     }
 
     // Collect modes from all sources
-    const allModes: KilocodeMode[] = []
+    const allModes: NoCowboyMode[] = []
 
     if (!options.skipGlobalPaths) {
       // 1. VSCode extension global storage (primary location for global modes)
@@ -194,7 +194,7 @@ export namespace ModesMigrator {
     allModes.push(...(await readModesFile(projectModesPath)))
 
     // Deduplicate by slug (later entries win)
-    const modesBySlug = new Map<string, KilocodeMode>()
+    const modesBySlug = new Map<string, NoCowboyMode>()
     for (const mode of allModes) {
       modesBySlug.set(mode.slug, mode)
     }

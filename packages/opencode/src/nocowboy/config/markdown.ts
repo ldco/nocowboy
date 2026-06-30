@@ -2,7 +2,7 @@ import os from "os"
 import path from "path"
 import { Filesystem } from "@/util/filesystem"
 
-export namespace KilocodeMarkdown {
+export namespace NoCowboyMarkdown {
   function ref(token: string) {
     const file = token.replace(/^\{file:/, "").replace(/\}$/, "")
     if (file.startsWith("~/")) return path.join(os.homedir(), file.slice(2))

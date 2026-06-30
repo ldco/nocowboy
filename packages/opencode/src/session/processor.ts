@@ -19,8 +19,8 @@ import { SessionSummary } from "./summary"
 import type { Provider } from "@/provider/provider"
 import { Question } from "@/question"
 // nocowboy_change start
-import { KiloSessionProcessor, type ReviewTelemetry } from "@/nocowboy/session/processor"
-import { KiloSessionOverflow } from "@/nocowboy/session/overflow"
+import { NoCowboySessionProcessor, type ReviewTelemetry } from "@/nocowboy/session/processor"
+import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { Suggestion } from "@/nocowboy/suggestion"
 // nocowboy_change end
 import { errorMessage } from "@/util/error"
@@ -231,7 +231,7 @@ export const layer = Layer.effect(
         })
         // nocowboy_change start - accepted suggest review actions tag following LLM completion telemetry
         if (match.part.tool === "suggest") {
-          ctx.telemetry = KiloSessionProcessor.suggestionReviewTelemetry(output.metadata) ?? ctx.telemetry
+          ctx.telemetry = NoCowboySessionProcessor.suggestionReviewTelemetry(output.metadata) ?? ctx.telemetry
         }
         // nocowboy_change end
         yield* settleToolCall(toolCallID)
@@ -598,7 +598,7 @@ export const layer = Layer.effect(
             // nocowboy_change start - guard against finish-step without start-step:
             // ctx.stepStart is 0 until `start-step` fires, which would feed a
             // huge bogus `elapsed` into telemetry. Fall back to now().
-            KiloSessionProcessor.trackStep({
+            NoCowboySessionProcessor.trackStep({
               sessionID: ctx.sessionID,
               model: ctx.model,
               tokens: usage.tokens,
@@ -637,7 +637,7 @@ export const layer = Layer.effect(
               cost: usage.cost,
             })
             // nocowboy_change start - surface output limit stops, with a stronger message for reasoning-only stops
-            const warn = KiloSessionProcessor.lengthWarning({ msg: ctx.assistantMessage, step: ctx.step })
+            const warn = NoCowboySessionProcessor.lengthWarning({ msg: ctx.assistantMessage, step: ctx.step })
             if (warn) {
               yield* session.updatePart({
                 id: PartID.ascending(),
@@ -648,7 +648,7 @@ export const layer = Layer.effect(
                 ignored: true,
               })
             }
-            const providerError = KiloSessionProcessor.providerFinishError(ctx.assistantMessage)
+            const providerError = NoCowboySessionProcessor.providerFinishError(ctx.assistantMessage)
             if (providerError) {
               yield* bus.publish(Session.Event.Error, {
                 sessionID: ctx.assistantMessage.sessionID,
@@ -833,7 +833,7 @@ export const layer = Layer.effect(
           })
         }
         ctx.toolcalls = {}
-        KiloSessionProcessor.guardEmptyToolCalls(ctx.assistantMessage, MessageV2.parts(ctx.assistantMessage.id)) // nocowboy_change
+        NoCowboySessionProcessor.guardEmptyToolCalls(ctx.assistantMessage, MessageV2.parts(ctx.assistantMessage.id)) // nocowboy_change
         ctx.assistantMessage.time.completed = Date.now()
         // nocowboy_change start - reconcile cost with any subagent propagation written during tool calls (#6321)
         yield* reconcile()
@@ -843,7 +843,7 @@ export const layer = Layer.effect(
 
       const halt = Effect.fn("SessionProcessor.halt")(function* (e: unknown) {
         // nocowboy_change start - internal preflight signal, not a provider error
-        if (e instanceof KiloSessionOverflow.PreflightError) {
+        if (e instanceof NoCowboySessionOverflow.PreflightError) {
           ctx.needsCompaction = true
           return
         }
@@ -927,7 +927,7 @@ export const layer = Layer.effect(
                 provider: input.model.providerID,
                 parse,
                 // nocowboy_change start
-                ...KiloSessionProcessor.retryOpts({ sessionID: ctx.sessionID, abort: ac.signal, set: status.set }),
+                ...NoCowboySessionProcessor.retryOpts({ sessionID: ctx.sessionID, abort: ac.signal, set: status.set }),
                 // nocowboy_change end
                 set: (info) => {
                   // TODO(v2): Temporary dual-write while migrating session messages to v2 events.

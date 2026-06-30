@@ -12,8 +12,8 @@ import type { SessionStatus } from "@/session/status"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { PlanFollowup } from "@/nocowboy/plan-followup"
 import { PlanFile } from "@/nocowboy/plan-file"
-import { KiloSession } from "@/nocowboy/session"
-import { KiloSessionMessageOrder } from "@/nocowboy/session/message-order"
+import { NoCowboySession } from "@/nocowboy/session"
+import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order"
 import { Permission } from "@/permission"
 import { Question } from "@/question"
 import { environmentDetails, type EditorContext } from "@/nocowboy/editor-context"
@@ -23,7 +23,7 @@ import { InstanceState } from "@/effect/instance-state"
 import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
 
-export namespace KiloSessionPrompt {
+export namespace NoCowboySessionPrompt {
   const modes = ["ask", "plan", "architect"]
 
   export function titleID(sessionID: SessionID) {
@@ -90,7 +90,7 @@ export namespace KiloSessionPrompt {
     return PlanFollowup.abort(sessionID)
   }
 
-  export const recoverDanglingAssistant = Effect.fn("KiloSessionPrompt.recoverDanglingAssistant")(function* (input: {
+  export const recoverDanglingAssistant = Effect.fn("NoCowboySessionPrompt.recoverDanglingAssistant")(function* (input: {
     sessionID: SessionID
     status: Pick<SessionStatus.Interface, "get">
     sessions: Pick<Session.Interface, "messages" | "removeMessage">
@@ -110,7 +110,7 @@ export namespace KiloSessionPrompt {
     yield* input.sessions.removeMessage({ sessionID: input.sessionID, messageID: tail.info.id })
   })
 
-  export const recoverProviderFinishError = Effect.fn("KiloSessionPrompt.recoverProviderFinishError")(
+  export const recoverProviderFinishError = Effect.fn("NoCowboySessionPrompt.recoverProviderFinishError")(
     function* (input: {
       sessionID: SessionID
       status: Pick<SessionStatus.Interface, "get">
@@ -156,7 +156,7 @@ export namespace KiloSessionPrompt {
     return [...input.existing.filter((rule) => !names.has(rule.permission)), ...input.toggles]
   }
 
-  export const askPermission = Effect.fn("KiloSessionPrompt.askPermission")(function* (input: {
+  export const askPermission = Effect.fn("NoCowboySessionPrompt.askPermission")(function* (input: {
     permission: Pick<Permission.Interface, "ask">
     agents: Pick<Agent.Interface, "get">
     sessions: Pick<Session.Interface, "get">
@@ -317,9 +317,9 @@ export namespace KiloSessionPrompt {
    */
   export function resolveCloseReason(input: {
     sessionID: string
-    closeReasons: Map<string, KiloSession.CloseReason>
+    closeReasons: Map<string, NoCowboySession.CloseReason>
     exit: Exit.Exit<any, any>
-  }): KiloSession.CloseReason {
+  }): NoCowboySession.CloseReason {
     const explicit = input.closeReasons.get(input.sessionID)
     input.closeReasons.delete(input.sessionID)
     if (explicit) return explicit
@@ -346,7 +346,7 @@ export namespace KiloSessionPrompt {
   export function guardCompactionAttempt(input: {
     sessionID: string
     attempts: number
-    closeReasons: Map<string, KiloSession.CloseReason>
+    closeReasons: Map<string, NoCowboySession.CloseReason>
     message?: MessageV2.Assistant
   }) {
     if (input.attempts < MAX_COMPACTION_ATTEMPTS) return { exhausted: false as const }
@@ -389,7 +389,7 @@ export namespace KiloSessionPrompt {
     const summary = msgs.reduce<{ msg: MessageV2.WithParts; index: number } | undefined>((latest, msg, index) => {
       const info = msg.info
       if (info.role !== "assistant" || info.summary !== true || !info.finish || info.error) return latest
-      if (!latest || KiloSessionMessageOrder.compare(msg, latest.msg, index, latest.index) > 0) return { msg, index }
+      if (!latest || NoCowboySessionMessageOrder.compare(msg, latest.msg, index, latest.index) > 0) return { msg, index }
       return latest
     }, undefined)
     if (!summary) return msgs

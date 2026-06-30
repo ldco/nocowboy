@@ -1,7 +1,7 @@
 import type { TuiPluginApi } from "@nocowboy/plugin/tui"
 import { createMemo, For, type Accessor } from "solid-js"
 import { DEFAULT_THEMES, useTheme } from "@tui/context/theme"
-import { KILO_TIPS } from "@/nocowboy/cli/cmd/tui/feature-plugins/home/tips" // nocowboy_change
+import { NOCOWBOY_TIPS } from "@/nocowboy/cli/cmd/tui/feature-plugins/home/tips" // nocowboy_change
 import { useCommandShortcut } from "../../keymap"
 
 const themeCount = Object.keys(DEFAULT_THEMES).length
@@ -135,7 +135,7 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
   }
   const tip = createMemo(() => {
     if (props.connected === false) return NO_MODELS_TIP
-    const tips = KILO_TIPS.flatMap((item) => { // nocowboy_change
+    const tips = NOCOWBOY_TIPS.flatMap((item) => { // nocowboy_change
       const value = typeof item === "string" ? item : item(shortcuts)
       return value ? [value] : []
     })

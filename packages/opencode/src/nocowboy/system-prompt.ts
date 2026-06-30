@@ -7,7 +7,7 @@ import type { InstanceContext } from "@/project/instance-context"
 import { RepoMap } from "@/nocowboy/repomap"
 import { reconcile } from "@/nocowboy/memory/reconcile"
 
-export namespace KilocodeSystemPrompt {
+export namespace NoCowboySystemPrompt {
   export function environment(input: { ctx: InstanceContext; model: Provider.Model; editor?: EditorContext }) {
     const lines = [
       [

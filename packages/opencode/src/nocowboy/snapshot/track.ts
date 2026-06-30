@@ -31,7 +31,7 @@
 //     continued snapshot successfully produces a hash.
 //   - We do NOT call `Config.update()` when the user picks "Disable" because
 //     that finalizer runs `Instance.dispose()` and tears down the live turn.
-//     Instead we write the file directly via `KilocodeConfig.updateProjectConfig`
+//     Instead we write the file directly via `NoCowboyConfig.updateProjectConfig`
 //     without touching the active Config service.
 //   - If the user picks "Continue", the fiber keeps running; we just `join` it
 //     and return its value. Any error during the in-flight snapshot is logged
@@ -47,7 +47,7 @@ import { Question } from "@/question"
 import type { MessageID, PartID, SessionID } from "@/session/schema"
 import { PartID as PartIDSchema } from "@/session/schema"
 import type { MessageV2 } from "@/session/message-v2"
-import { KilocodeConfig } from "@/nocowboy/config/config"
+import { NoCowboyConfig } from "@/nocowboy/config/config"
 import { ConfigParse } from "@/config/parse"
 import * as Log from "@opencode-ai/core/util/log"
 import { iife } from "@/util/iife"
@@ -553,7 +553,7 @@ export namespace SnapshotTrack {
       const patch: Config.Info = { snapshot: false }
       await fsRt.runPromise((fs) =>
         Effect.gen(function* () {
-          yield* KilocodeConfig.updateProjectConfig({
+          yield* NoCowboyConfig.updateProjectConfig({
             fs,
             directory: directory.directory,
             worktree: directory.worktree,

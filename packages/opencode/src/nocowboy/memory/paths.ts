@@ -20,7 +20,7 @@ export interface MemoryLocator {
   key: string
 }
 
-const MEMORY_ROOT = path.join(os.homedir(), ".local/share/kilo/storage/memory")
+const MEMORY_ROOT = path.join(os.homedir(), ".local/share/nocowboy/storage/memory")
 
 const TYPE_PATTERNS: Array<{ match: RegExp; type: MemoryType }> = [
   { match: /^memory$/i, type: "memory" },

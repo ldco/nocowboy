@@ -55,7 +55,7 @@ function press(shortcut: string, text: string) {
   return `Press ${shortcutText(shortcut)} ${text}`
 }
 
-export const KILO_TIPS: Tip[] = [
+export const NOCOWBOY_TIPS: Tip[] = [
   "Type {highlight}@{/highlight} followed by a filename to fuzzy search and attach files",
   "Start a message with {highlight}!{/highlight} to run shell commands directly (e.g., {highlight}!ls -la{/highlight})",
   (shortcuts) => press(shortcuts.agentCycle(), "to cycle between Build and Plan agents"),
@@ -105,7 +105,7 @@ export const KILO_TIPS: Tip[] = [
     return `Use ${items.map(shortcutText).join(" / ")} to move between parent and child sessions`
   },
   "Create {highlight}kilo.json{/highlight} for server settings and {highlight}tui.json{/highlight} for TUI settings",
-  "Place TUI settings in {highlight}~/.config/kilo/tui.json{/highlight} for global config",
+  "Place TUI settings in {highlight}~/.config/nocowboy/tui.json{/highlight} for global config",
   "Add {highlight}$schema{/highlight} to your config for autocomplete in your editor",
   "Configure {highlight}model{/highlight} in config to set your default model",
   "Override any keybind in {highlight}tui.json{/highlight} via the {highlight}keybinds{/highlight} section",
@@ -127,18 +127,18 @@ export const KILO_TIPS: Tip[] = [
   "Tool definitions can invoke scripts written in Python, Go, etc",
   "Add {highlight}.ts{/highlight} files to {highlight}.nocowboy/plugins/{/highlight} for event hooks",
   "Use plugins to send OS notifications when sessions complete",
-  "Create a plugin to prevent Kilo from reading sensitive files",
+  "Create a plugin to prevent NoCowboy from reading sensitive files",
   "Use {highlight}nocowboy run{/highlight} for non-interactive scripting",
-  "Use {highlight}kilo --continue{/highlight} to resume the last session",
+  "Use {highlight}nocowboy --continue{/highlight} to resume the last session",
   "Use {highlight}nocowboy run -f file.ts{/highlight} to attach files via CLI",
   "Use {highlight}--format json{/highlight} for machine-readable output in scripts",
-  "Run {highlight}kilo serve{/highlight} for headless API access to Kilo",
+  "Run {highlight}nocowboy serve{/highlight} for headless API access to NoCowboy",
   "Use {highlight}nocowboy run --attach{/highlight} to connect to a running server",
-  "Run {highlight}kilo upgrade{/highlight} to update to the latest version",
-  "Run {highlight}kilo auth list{/highlight} to see all configured providers",
-  "Run {highlight}kilo agent create{/highlight} for guided agent creation",
-  "Run {highlight}kilo github install{/highlight} to set up the GitHub workflow",
-  "Comment {highlight}/kilo fix this{/highlight} on issues to auto-create PRs",
+  "Run {highlight}nocowboy upgrade{/highlight} to update to the latest version",
+  "Run {highlight}nocowboy auth list{/highlight} to see all configured providers",
+  "Run {highlight}nocowboy agent create{/highlight} for guided agent creation",
+  "Run {highlight}nocowboy github install{/highlight} to set up the GitHub workflow",
+  "Comment {highlight}/nocowboy fix this{/highlight} on issues to auto-create PRs",
   'Use {highlight}"theme": "system"{/highlight} to match your terminal\'s colors',
   "Create JSON theme files in {highlight}.nocowboy/themes/{/highlight} directory",
   "Themes support dark/light variants for both modes",
@@ -156,7 +156,7 @@ export const KILO_TIPS: Tip[] = [
   "Run {highlight}/unshare{/highlight} to remove a session from public access",
   "Permission {highlight}doom_loop{/highlight} prevents infinite tool call loops",
   "Permission {highlight}external_directory{/highlight} protects files outside project",
-  "Run {highlight}kilo debug config{/highlight} to troubleshoot configuration",
+  "Run {highlight}nocowboy debug config{/highlight} to troubleshoot configuration",
   "Use {highlight}--print-logs{/highlight} flag to see detailed logs in stderr",
   (shortcuts) => `Use ${commandText("/timeline", shortcuts.sessionTimeline())} to jump to specific messages`,
   (shortcuts) => press(shortcuts.messagesToggleConceal(), "to toggle code block visibility in messages"),
@@ -167,7 +167,7 @@ export const KILO_TIPS: Tip[] = [
       ? `Toggle username display in chat via the command palette (${shortcutText(shortcuts.commandList())})`
       : "Toggle username display in chat via the command palette",
   "Run {highlight}docker run -it --rm ghcr.io/kilo-org/kilocode{/highlight} for containerized use",
-  "Use {highlight}/connect{/highlight} with Kilo Gateway for curated, tested models",
+  "Use {highlight}/connect{/highlight} with NoCowboy Gateway for curated, tested models",
   "Commit your project's {highlight}AGENTS.md{/highlight} file to Git for team sharing",
   "Use {highlight}/review{/highlight} to review uncommitted changes, branches, or PRs",
   (shortcuts) => `Use ${commandText("/help", shortcuts.helpShow())} to show the help dialog`,

@@ -52,7 +52,7 @@ const kilo = { id: "kilo" } as Provider.Info
 // Calculated cost for the `model()` + `baseUsage` pair: 1M input * $3 + 100k output * $15 = 3 + 1.5
 const fallback = 3 + 1.5
 
-describe("KiloSession.providerCost — Anthropic Messages / OpenAI Responses", () => {
+describe("NoCowboySession.providerCost — Anthropic Messages / OpenAI Responses", () => {
   test("uses usage.raw.cost_details.upstream_inference_cost for Anthropic Messages via OpenRouter", () => {
     const result = SessionNs.getUsage({
       model: model(),
@@ -122,7 +122,7 @@ describe("KiloSession.providerCost — Anthropic Messages / OpenAI Responses", (
   })
 })
 
-describe("KiloSession.providerCost — Vercel AI Gateway", () => {
+describe("NoCowboySession.providerCost — Vercel AI Gateway", () => {
   test("uses metadata.gateway.marketCost", () => {
     const result = SessionNs.getUsage({
       model: model(),
@@ -157,7 +157,7 @@ describe("KiloSession.providerCost — Vercel AI Gateway", () => {
   })
 })
 
-describe("KiloSession.providerCost — fallback", () => {
+describe("NoCowboySession.providerCost — fallback", () => {
   test("falls back to calculated cost when no provider cost is reported", () => {
     const result = SessionNs.getUsage({
       model: model(),
