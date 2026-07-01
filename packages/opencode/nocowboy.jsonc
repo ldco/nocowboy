@@ -30,7 +30,7 @@
       "vendor": "community",
       "enabled": true
     },
-    "tausik": {
+    "nutausik": {
       "type": "remote",
       "url": "http://127.0.0.1:9204/mcp",
       "vendor": "nocowboy",

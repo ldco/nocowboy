@@ -25,7 +25,7 @@
       "url": "http://127.0.0.1:9203/mcp",
       "enabled": true
     },
-    "tausik": {
+    "nutausik": {
       "type": "remote",
       "vendor": "nocowboy",
       "url": "http://127.0.0.1:9204/mcp",

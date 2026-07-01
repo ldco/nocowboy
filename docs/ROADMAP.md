@@ -229,4 +229,4 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 | `nocowboy` meta-package | ❌ |
 | `@nocowboy/mcp-*` (6 servers) | ❌ |
 | `@nocowboy/mcp-puppetmaster` | ❌ needs `dist/` built |
-| `@nocowboy/mcp-tausik` (NUTAUSIK) | ❌ 62 TS files ready, needs publish |
+| `@nocowboy/mcp-nutausik` (NUTAUSIK) | ❌ 62 TS files ready, needs publish |

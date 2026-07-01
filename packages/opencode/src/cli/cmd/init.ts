@@ -67,14 +67,14 @@ export const InitCommand = cmd({
 
       const defaultNames = [
         "plugin-registry", "context7", "sqlite", "puppeteer",
-        "tausik", "git", "puppetmaster", "ralph",
+        "nutausik", "git", "puppetmaster", "ralph",
         "constitution", "ncp-validator", "contract-guard", "score-engine",
         "hooks",
       ]
 
       const defaultVendors: Record<string, string> = {
         "plugin-registry": N, "context7": C, "sqlite": C, "puppeteer": C,
-        "tausik": N, "git": C, "puppetmaster": N, "ralph": N,
+        "nutausik": N, "git": C, "puppetmaster": N, "ralph": N,
         "constitution": N, "ncp-validator": N, "contract-guard": N, "score-engine": N,
         "hooks": N,
       }
