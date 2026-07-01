@@ -27,7 +27,7 @@
     },
     "tausik": {
       "type": "remote",
-      "vendor": "community",
+      "vendor": "nocowboy",
       "url": "http://127.0.0.1:9204/mcp",
       "enabled": true
     },

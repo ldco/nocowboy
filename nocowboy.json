@@ -21,7 +21,7 @@
     "context7":        { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9201/mcp", "enabled": true },
     "sqlite":          { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9202/mcp", "enabled": true },
     "puppeteer":       { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9203/mcp", "enabled": true },
-    "tausik":          { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9204/mcp", "enabled": true },
+    "tausik":          { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9204/mcp", "enabled": true },
     "git":             { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9205/mcp", "enabled": true },
     "puppetmaster":    { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9206/mcp", "enabled": true },
     "ralph":           { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9207/mcp", "enabled": true },

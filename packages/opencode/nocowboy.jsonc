@@ -33,7 +33,7 @@
     "tausik": {
       "type": "remote",
       "url": "http://127.0.0.1:9204/mcp",
-      "vendor": "community",
+      "vendor": "nocowboy",
       "enabled": true
     },
     "git": {
