@@ -1,4 +1,5 @@
 {
+  "lsp": true,
   "settings": {
     "theme": "nocowboy-dark",
     "shortcutPreset": "default",

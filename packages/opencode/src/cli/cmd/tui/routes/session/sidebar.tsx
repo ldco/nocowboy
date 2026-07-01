@@ -4,6 +4,7 @@ import { useRoute } from "@tui/context/route"
 import { useSDK } from "@tui/context/sdk"
 import { useDialog } from "@tui/ui/dialog"
 import { DialogPrompt } from "@tui/ui/dialog-prompt"
+import { DialogMcp } from "../../component/dialog-mcp"
 import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
@@ -273,7 +274,7 @@ function SettingsTab() {
         <Show when={Object.keys(sync.data.config?.mcp ?? {}).length === 0}>
           <text fg={theme.textMuted} wrapMode="word">No MCP servers configured. Run nocowboy init or add manually.</text>
         </Show>
-        <text fg={theme.textMuted} onMouseDown={() => setMcpMsg("Use: nocowboy mcp add")}>
+        <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogMcp />)}>
           + Add MCP Server
         </text>
       </box>
