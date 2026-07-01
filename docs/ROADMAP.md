@@ -1,5 +1,7 @@
 # NoCowboy — Roadmap
 
+**v0.7.3** | 2026-07-02 | 🐕 DOGFOODING RELEASE — first release fit for dogfooding
+
 **v0.7.0** | 2026-06-27 | LSP toggle fix + Balance checking + Settings/Info UI polish
 
 ---
@@ -40,21 +42,19 @@
 
 ---
 
-## 🔥 ACTIVE — P2-A1 MCP Server Management & Dogfooding Blocker
+## ✅ DONE — P2-A1 MCP Server Management & Dogfooding Blocker
 
-**Plan:** `docs/plans/p2-mcp-management.md` | **Status:** 🚧 Planning complete, implementation starting
+**Plan:** `docs/plans/p2-mcp-management.md` | **Status:** ✅ Dogfooding release v0.7.3
 
 | Phase | Task | Status |
 |---|---|---|
-| 1 | Add vendor field to MCP config schema | ⬜ `config/mcp.ts` |
-| 2 | Fix nocowboy init — populate 12 default servers | ⬜ `cli/cmd/init.ts` |
-| 3 | Settings tab MCP server list with live status | ⬜ `sidebar.tsx` + new `mcp-settings.tsx` |
-| 4 | Full MCP management dialog (enable/disable, add, remove, logs, filter by vendor) | ⬜ new `dialog-mcp.tsx` |
-| 5 | Auto-start MCP servers on first TUI launch | ⬜ `runtime.boot.ts` + `lifecycle.ts` |
+| 1 | Add vendor field to MCP config schema | ✅ `config/mcp.ts` |
+| 2 | Fix nocowboy init — populate default servers | ✅ `cli/cmd/init.ts` |
+| 3 | Settings tab MCP server list with live status | ✅ `sidebar.tsx` |
+| 4 | Full MCP management dialog (enable/disable, add, remove, logs, filter) | ✅ `dialog-mcp.tsx` wired |
+| 5 | Auto-start MCP servers on first TUI launch | ✅ lifecycle fixed with standalone proxy |
 
-**Root cause:** `nocowboy init` creates `mcp: {}` empty. Packaging template with 12 servers never applied. No UI to manage MCPs. Blocks dogfooding — developers need MCP servers to work on NoCowboy inside NoCowboy.
-
-**Taxonomy:** 8 first-party (`vendor: "nocowboy"`) + 5 community (`vendor: "community"`)
+**Taxonomy:** 8 first-party (`vendor: "nocowboy"`) + 4 community (`vendor: "community"`)
 
 ---
 
