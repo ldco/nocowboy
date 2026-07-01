@@ -58,6 +58,20 @@
 
 ---
 
+## ✅ DONE — P2-C1 Agent Audit
+
+**Plan:** `docs/plans/p2-c1-agent-audit.md` | **Status:** ✅ DONE — v0.7.3 dogfooding
+
+| Action | Result |
+|---|---|
+| Rename config `plan` → `researcher` (avoid name collision with built-in plan safety mode) | ✅ `packaging/config/agent/researcher.md` created |
+| Remove config `explore` (merged into built-in explore subagent) | ✅ `packaging/config/agent/explore.md` deleted |
+| Remove deprecated `orchestrator` agent | ✅ `nocowboy/agent/index.ts` orchestrator block deleted |
+| Delete Kilo org artifacts (triage, duplicate-pr) | ✅ `.opencode/agent/triage.md` + `duplicate-pr.md` deleted |
+| ROADMAP updated | ✅ |
+
+---
+
 ## 🔥 ACTIVE — P1.6 Test Harness & Root Cause Debug
 
 | Step | Task | Status |
@@ -181,7 +195,6 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 
 | # | Feature | Effort | What |
 |---|---|---|---|
-| P2-C1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
 | P2-C2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
 | P2-C3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
 | P2-C4 | **Revise MCP server framework** — review all 8 first-party + 4 community MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |

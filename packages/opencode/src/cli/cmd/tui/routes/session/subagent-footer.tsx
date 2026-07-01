@@ -75,6 +75,8 @@ export function SubagentFooter() {
     }
   }
 
+  const { theme } = useTheme()
+
   const [balanceData] = createResource(
     () => {
       const key = deepseekKey()
@@ -110,8 +112,6 @@ export function SubagentFooter() {
       context: pct ? `${Locale.number(tokens)} (${pct})` : Locale.number(tokens),
     }
   })
-
-  const { theme } = useTheme()
   const command = useCommandPalette()
   const parentShortcut = useCommandShortcut("session.parent")
   const previousShortcut = useCommandShortcut("session.child.previous")

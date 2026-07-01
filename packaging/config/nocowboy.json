@@ -198,26 +198,9 @@
         "todowrite": "allow"
       }
     },
-    "explore": {
+    "researcher": {
       "mode": "primary",
-      "description": "Fast read-only agent for codebase exploration.",
-      "path": "/home/ldco/.config/nocowboy/agent/explore.md",
-      "permission": {
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "semantic_search": "allow",
-        "bash": "allow",
-        "write": "deny",
-        "edit": "deny",
-        "mcp": "allow",
-        "recall": "allow"
-      }
-    },
-    "plan": {
-      "mode": "primary",
-      "description": "Planning research agent — gather context, analyze dependencies, propose implementation plans.",
-      "path": "/home/ldco/.config/nocowboy/agent/plan.md",
+      "description": "Implementation research agent — gather context, analyze dependencies, propose implementation plans.",
       "permission": {
         "read": "allow",
         "glob": "allow",

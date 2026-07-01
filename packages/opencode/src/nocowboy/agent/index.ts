@@ -10,7 +10,7 @@ import path from "path"
 import { Global } from "@opencode-ai/core/global"
 
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
-import PROMPT_ORCHESTRATOR from "../../agent/prompt/orchestrator.txt"
+// nocowboy_change - PROMPT_ORCHESTRATOR import removed (orchestrator agent deleted)
 import PROMPT_ASK from "../../agent/prompt/ask.txt"
 import PROMPT_EXPLORE from "../../agent/prompt/explore.txt"
 
@@ -420,43 +420,7 @@ export function patchAgents(
     native: true,
   }
 
-  // Add orchestrator agent
-  agents.orchestrator = {
-    name: "orchestrator",
-    description: "Coordinate complex tasks by delegating to specialized agents in parallel.",
-    prompt: PROMPT_ORCHESTRATOR,
-    options: {},
-    permission: Permission.merge(
-      defaults,
-      Permission.fromConfig({
-        "*": "deny",
-        read: "allow",
-        grep: "allow",
-        glob: "allow",
-        list: "allow",
-        question: "allow",
-        skill: "allow",
-        suggest: "allow", // nocowboy_change
-        task: "allow",
-        todoread: "allow",
-        todowrite: "allow",
-        webfetch: "allow",
-        websearch: "allow",
-        codebase_search: "allow",
-        external_directory: {
-          [Truncate.GLOB]: "allow",
-        },
-      }),
-      user,
-      // Enforce bash deny after user so user config cannot re-enable shell
-      Permission.fromConfig({
-        bash: "deny",
-      }),
-    ),
-    mode: "primary",
-    native: true,
-    deprecated: true,
-  }
+  // nocowboy_change - orchestrator agent removed (deprecated, P2-C1)
 
   // Add ask agent
   agents.ask = {
