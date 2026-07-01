@@ -225,7 +225,7 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 
 | Package | Status |
 |---|---|
-| `nocowboy-linux-x64@0.7.0` | ❌ Pending build |
+| `nocowboy-linux-x64@0.7.3` | ✅ Built — dogfooding release |
 | `nocowboy` meta-package | ❌ |
 | `@nocowboy/mcp-*` (6 servers) | ❌ |
 | `@nocowboy/mcp-puppetmaster` | ❌ needs `dist/` built |

@@ -136,6 +136,10 @@ packages/
 
 ## Project status
 
+**v0.7.3 🐕 DOGFOODING RELEASE** — 2026-07-02
+
+First release fit for dogfooding — using NoCowboy to develop NoCowboy. All MCP management, lifecycle, and infrastructure blockers resolved.
+
 NoCowboy is a functional fork of Kilo Code / OpenCode. All Kilo backend services (api.kilo.ai, ingest.kilosessions.ai, GitHub integration) have been stripped out — NoCowboy runs entirely locally with no external dependencies. Own backend services will be built in future phases.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for detailed status.
