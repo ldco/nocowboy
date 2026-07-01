@@ -72,6 +72,12 @@
       "vendor": "nocowboy",
       "url": "http://127.0.0.1:9211/mcp",
       "enabled": true
+    },
+    "hooks": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9212/mcp",
+      "enabled": true
     }
   },
   "lsp": true,

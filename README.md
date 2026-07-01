@@ -90,9 +90,9 @@ Agent commands (in TUI): `/plan`, `/act`, `/goal`, `/verify`, `/commit`, `/memor
 
 ### MCP Servers
 
-7 first-party (`vendor: nocowboy`) + 4 community (`vendor: community`):
+8 first-party (`vendor: nocowboy`) + 4 community (`vendor: community`):
 - constitution, contract-guard, ncp-validator, score-engine
-- ralph, plugin-registry, puppetmaster
+- ralph, plugin-registry, puppetmaster, hooks
 - context7, sqlite, puppeteer, git
 
 ---
@@ -121,7 +121,7 @@ See [docs/dogfooding-workflow.md](docs/dogfooding-workflow.md) for rebuild + ins
 
 ```
 packaging/
-├── mcp-servers/      # 7 first-party MCP server implementations
+├── mcp-servers/      # 8 first-party MCP server implementations
 └── config/           # Default nocowboy.json + agents + instructions + skills
 
 packages/

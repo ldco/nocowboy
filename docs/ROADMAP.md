@@ -54,7 +54,7 @@
 
 **Root cause:** `nocowboy init` creates `mcp: {}` empty. Packaging template with 12 servers never applied. No UI to manage MCPs. Blocks dogfooding — developers need MCP servers to work on NoCowboy inside NoCowboy.
 
-**Taxonomy:** 7 first-party (`vendor: "nocowboy"`) + 5 third-party (`vendor: "community"`)
+**Taxonomy:** 8 first-party (`vendor: "nocowboy"`) + 5 community (`vendor: "community"`)
 
 ---
 
@@ -184,7 +184,7 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 | P2-C1 | **Analyze & optimize 6 agents** — merge, remove, enhance, rewrite as needed | High | Inherited from Kilo/OpenCode. May have redundancies or missing capabilities. |
 | P2-C2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
 | P2-C3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
-| P2-C4 | **Revise MCP server framework** — review all 7 first-party + 4 third-party MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
+| P2-C4 | **Revise MCP server framework** — review all 8 first-party + 4 community MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
 
 ### P3 — Ecosystem, Lawer & Reach
 

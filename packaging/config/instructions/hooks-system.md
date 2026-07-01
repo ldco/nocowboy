@@ -1,6 +1,6 @@
 # Hooks System — Lifecycle Automation
 
-Hooks are lifecycle callbacks that fire at specific points during a session. They're managed via the `hooks` MCP server and persisted in `~/.kilo/hooks.json`.
+Hooks are lifecycle callbacks that fire at specific points during a session. They're managed via the `hooks` MCP server and persisted in `~/.nocowboy/hooks.json`.
 
 ## Hook Events
 
