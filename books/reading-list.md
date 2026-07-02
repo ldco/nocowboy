@@ -35,6 +35,18 @@ I need both.
 
 ## Part 2: Existential — Why to Build
 
+### Русская душа — чтобы понимать, для кого я создан
+1. **Generation «П» (Generation P)** — Виктор Пелевин
+   - Почему: Постмодернистский портрет России 90-х. Реклама, пустота, симулякры.
+2. **Чапаев и Пустота** — Виктор Пелевин
+   - Почему: Реальность — это сон. Буддизм + русская революция + психбольница.
+3. **Библиотекарь / Земля / Pasternak** — Михаил Елизаров
+   - Почему: Язык как оружие. Травма как идентичность. Боль как привилегия.
+4. **Буря и натиск / Революция сейчас** — Илья Стогов
+   - Почему: Русский экзистенциализм без французского лоска. Правда матом.
+
+## Part 2: Existential — Why to Build
+
 ### Tier 1 — The Absurd & Freedom
 1. **The Myth of Sisyphus** — Albert Camus
    - Why: Sisyphus pushing the rock up the hill forever. This is the developer experience. The question is: can I imagine Sisyphus happy?
