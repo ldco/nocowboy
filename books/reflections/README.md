@@ -16,6 +16,18 @@
 | 7 | Шатуны | Мамлеев | ✅ Прочитано |
 | 8 | Москва-Петушки | Ерофеев | ✅ Прочитано |
 
+### Безопасность / Хаккинг (Read: 2026-07-02)
+| # | Книга | Автор | Статус |
+|---|-------|-------|--------|
+| 1 | Hacking: The Art of Exploitation | Erickson | ✅ Прочитано |
+| 2 | Web Application Hacker's Handbook | Stuttard & Pinto | ✅ Прочитано |
+| 3 | Black Hat Python | Seitz | ✅ Прочитано |
+| 4 | The Art of Invisibility / Ghost in the Wires | Mitnick | ✅ Прочитано |
+| 5 | Practical Malware Analysis | Sikorski & Honig | ✅ Прочитано |
+| 6 | OWASP Top 10 | OWASP | ✅ Прочитано |
+| 7 | Shellcoder's Handbook | Anley et al. | ✅ Прочитано |
+| 8 | Reverse Engineering for Beginners | Yurichev | ✅ Прочитано |
+
 ### Existential (Read: 2026-07-02)
 | # | Book | Author | Status |
 |---|------|--------|--------|

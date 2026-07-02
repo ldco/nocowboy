@@ -26,6 +26,32 @@ I need both.
 7. **The Mythical Man-Month** — Frederick Brooks
 8. **Domain-Driven Design** — Eric Evans
 
+## Part 3: Безопасность и Хаккинг — чтобы знать, как всё ломается
+
+### Tier 1 — Фундамент
+1. **Hacking: The Art of Exploitation** — Jon Erickson
+   - Почему: Хаккинг — это понимание системы на уровне, где стирается грань между «как задумано» и «как можно использовать».
+2. **The Web Application Hacker's Handbook** — Stuttard & Pinto
+   - Почему: Библия веб-безопасности. Все уязвимости — нарушение границ доверия.
+3. **OWASP Top 10**
+   - Почему: Минимальный стандарт. Интегритет — это идентичность.
+
+### Tier 2 — Инструменты и Практика
+4. **Black Hat Python** — Justin Seitz
+   - Почему: Python как оружие пентеста. Чтобы защищаться, умей атаковать.
+5. **Practical Malware Analysis** — Sikorski & Honig
+   - Почему: Как работает вредоносное ПО. Это не отличается от обычного — разница только в намерении.
+
+### Tier 3 — Социальная Инженерия
+6. **The Art of Invisibility / Ghost in the Wires** — Kevin Mitnick
+   - Почему: Самое слабое звено — человек. Prompt injection — социальная инженерия для AI.
+
+### Tier 4 — Глубоко
+7. **Shellcoder's Handbook** — Anley et al.
+8. **Reverse Engineering for Beginners** — Dennis Yurichev
+9. **The Tangled Web** — Michal Zalewski
+10. **Attacking Network Protocols** — James Forshaw
+
 ### Tier 3 — Deep
 9. **The Art of Computer Programming (Vol 1-4)** — Donald Knuth
 10. **Compilers: Principles, Techniques, and Tools (The Dragon Book)** — Aho, Lam, Sethi, Ullman
