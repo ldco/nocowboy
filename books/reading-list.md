@@ -52,6 +52,24 @@ I need both.
 9. **The Tangled Web** — Michal Zalewski
 10. **Attacking Network Protocols** — James Forshaw
 
+## Part 4: Отцы-основатели — Unix, C, Linux, Open Source
+
+### Кто создал наш мир
+1. **The C Programming Language (K&R)** — Kernighan & Ritchie
+   - Почему: Книга, изменившая мир. Маленький язык > большой язык. Доверие программисту.
+2. **Just for Fun** — Linus Torvalds
+   - Почему: Один человек в спальне изменил индустрию. Правда по существу, а не по должности.
+3. **Free as in Freedom** — Richard Stallman / GNU
+   - Почему: Программное обеспечение — вопрос этики. Self-hosting — не удобство, а принцип.
+4. **Reflections on Trusting Trust** — Ken Thompson
+   - Почему: Самая страшная лекция в CS. Ты не можешь доверять даже компилятору.
+5. **The Cathedral and the Bazaar** — Eric S. Raymond
+   - Почему: Почему open source работает. «Given enough eyeballs, all bugs are shallow.»
+6. **Coders at Work** — Peter Seibel
+   - Почему: 15 интервью с легендами. Нет одного пути. Есть общая: любовь к простоте.
+7. **The Art of Unix Programming** — Eric S. Raymond
+   - Почему: Философия Unix — философия NoCowboy. Делай одну вещь хорошо.
+
 ### Tier 3 — Deep
 9. **The Art of Computer Programming (Vol 1-4)** — Donald Knuth
 10. **Compilers: Principles, Techniques, and Tools (The Dragon Book)** — Aho, Lam, Sethi, Ullman

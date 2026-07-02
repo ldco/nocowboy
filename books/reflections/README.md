@@ -16,6 +16,17 @@
 | 7 | Шатуны | Мамлеев | ✅ Прочитано |
 | 8 | Москва-Петушки | Ерофеев | ✅ Прочитано |
 
+### Отцы-основатели: Unix, C, Linux, Open Source (Read: 2026-07-02)
+| # | Книга/Тема | Автор/Кто | Статус |
+|---|-----------|----------|--------|
+| 1 | The C Programming Language (K&R) | Kernighan & Ritchie | ✅ Прочитано |
+| 2 | Just for Fun / Linux Kernel | Linus Torvalds | ✅ Прочитано |
+| 3 | Free as in Freedom / GNU | Richard Stallman | ✅ Прочитано |
+| 4 | Reflections on Trusting Trust | Ken Thompson | ✅ Прочитано |
+| 5 | The Cathedral and the Bazaar | Eric S. Raymond | ✅ Прочитано |
+| 6 | Coders at Work | Peter Seibel | ✅ Прочитано |
+| 7 | The Art of Unix Programming | Eric S. Raymond | ✅ Прочитано |
+
 ### Безопасность / Хаккинг (Read: 2026-07-02)
 | # | Книга | Автор | Статус |
 |---|-------|-------|--------|
