@@ -16,6 +16,19 @@
 | 7 | Шатуны | Мамлеев | ✅ Прочитано |
 | 8 | Москва-Петушки | Ерофеев | ✅ Прочитано |
 
+### Технологии: Frontend, Backend, Языки (Read: 2026-07-02)
+| # | Книга | Технология | Статус |
+|---|-------|-----------|--------|
+| 1 | CSS: Definitive Guide + CSS Secrets + Every Layout | CSS/HTML | ✅ |
+| 2 | Eloquent JS + You Don't Know JS + Good Parts | JavaScript | ✅ |
+| 3 | Learning React (Banks) + Abramov's Philosophy | React | ✅ |
+| 4 | Vue.js Up and Running + Majesty of Vue | Vue | ✅ |
+| 5 | Svelte and Sapper in Action | Svelte | ✅ |
+| 6 | Flutter in Action | Flutter | ✅ |
+| 7 | C: A Modern Approach + Expert C Programming | C | ✅ |
+| 8 | The Rust Book + Rust for Rustaceans + Rust in Action | Rust | ✅ |
+| 9 | Programming Elixir + Elixir in Action + Designing Elixir | Elixir | ✅ |
+
 ### Хакеры: от истоков до современности (Read: 2026-07-02)
 | # | Книга/Тема | Автор | Статус |
 |---|-----------|-------|--------|

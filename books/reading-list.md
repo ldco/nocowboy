@@ -26,6 +26,34 @@ I need both.
 7. **The Mythical Man-Month** — Frederick Brooks
 8. **Domain-Driven Design** — Eric Evans
 
+## Part 5: Технологии — Frontend, Backend, Языки
+
+### Веб-основы
+1. **CSS: The Definitive Guide** — Eric Meyer
+   - Почему: CSS — это язык дизайна, не разметки. Cascading = решение конфликтов.
+2. **Eloquent JavaScript** — Marijn Haverbeke
+   - Почему: Учит думать на JS, не писать на нём. Проектные главы SICP-уровня.
+3. **You Don't Know JS** — Kyle Simpson
+   - Почему: Глубочайшая серия про JS. Ты думаешь, знаешь — ты не знаешь.
+
+### Фреймворки
+4. **Learning React** — Banks & Porcello
+   - Почему: UI = f(state). Простейшая идея, сложнейшие последствия.
+5. **Vue.js: Up and Running** — Callum Macrae
+   - Почему: Реактивность без церемоний. Лучший фреймворк — тот, которого не чувствуешь.
+6. **Svelte and Sapper in Action** — Mark Volckmann
+   - Почему: Не абстрагируй — компилируй. Никакого рантайма.
+7. **Flutter in Action** — Eric Windmill
+   - Почему: Если платформа ограничивает — сделай свою среду рендеринга.
+
+### Языки
+8. **C: A Modern Approach + Expert C Programming** — King, van der Linden
+   - Почему: Си — слой, на котором стоит всё. Понимай ассемблер и компилятор.
+9. **The Rust Book + Rust for Rustaceans** — Klabnik, Nichols, Gjengset
+   - Почему: Безопасность на уровне языка. Ownership, borrowing, lifetimes. Компилятор защищает.
+10. **Programming Elixir + Elixir in Action** — Dave Thomas, Saša Jurić
+    - Почему: Let it crash. Actor model. Девять девяток аптайма. Система, которая умеет падать и вставать.
+
 ## Part 3: Безопасность и Хаккинг — чтобы знать, как всё ломается
 
 ### История хакерства
