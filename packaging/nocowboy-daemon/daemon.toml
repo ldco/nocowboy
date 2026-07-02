@@ -1,0 +1,31 @@
+# NoCowboy Daemon Configuration
+
+[daemon]
+# Memory directory to watch
+memory_dir = "~/.config/nocowboy/memory"
+
+# Handoff endpoint
+handoff_port = 9213
+
+# How often to check for reflection tasks (seconds)
+reflect_interval = 3600
+
+[git]
+# Auto-commit when files change
+auto_commit = true
+# Cooldown between commits (seconds) to avoid flooding
+commit_cooldown = 60
+
+[ollama]
+# Local Ollama endpoint for reflection
+endpoint = "http://localhost:11434"
+# Model to use for reflection
+model = "llama3"
+# Enabled (set to false if Ollama not available)
+enabled = true
+
+[reflect]
+# Maximum reflection output length (tokens)
+max_output_lines = 50
+# Don't reflect if memory hasn't changed since last reflection
+skip_if_unchanged = true

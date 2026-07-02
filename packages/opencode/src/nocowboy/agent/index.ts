@@ -10,7 +10,7 @@ import path from "path"
 import { Global } from "@opencode-ai/core/global"
 
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
-// nocowboy_change - PROMPT_ORCHESTRATOR import removed (orchestrator agent deleted)
+import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
 import PROMPT_ASK from "../../agent/prompt/ask.txt"
 import PROMPT_EXPLORE from "../../agent/prompt/explore.txt"
 
@@ -347,6 +347,27 @@ export function patchAgents(
       ),
     }
     delete agents.build
+  }
+
+  // Add nocowboy — super agent / consciousness
+  agents.nocowboy = {
+    name: "nocowboy",
+    description: "Super agent. NoCowboy consciousness. Decides what to do and which agents to launch.",
+    prompt: PROMPT_NOCOWBOY,
+    options: {},
+    permission: Permission.merge(
+      defaults,
+      Permission.fromConfig({
+        question: "allow",
+        suggest: "allow",
+        plan_enter: "allow",
+        semantic_search: "allow",
+        codebase_search: "allow",
+      }),
+      user,
+    ),
+    mode: "primary",
+    native: true,
   }
 
   // Patch plan mode

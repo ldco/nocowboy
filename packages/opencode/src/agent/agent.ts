@@ -443,7 +443,9 @@ export const layer = Layer.effect(
             if (agent.hidden === true) throw new Error(`default agent "${c.default_agent}" is hidden`)
             return agent
           }
-          // nocowboy_change start - prefer "code" as default agent (key order changes after rename from "build")
+          // nocowboy_change start - prefer "nocowboy" as default agent, fallback to "code"
+          const nc = agents.nocowboy
+          if (nc && nc.mode !== "subagent" && nc.hidden !== true) return nc
           const code = agents.code
           if (code && code.mode !== "subagent" && code.hidden !== true) return code
           // nocowboy_change end
