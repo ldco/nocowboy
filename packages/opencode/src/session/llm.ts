@@ -146,6 +146,13 @@ const live: Layer.Layer<
           .filter((x) => x)
           .join("\n"),
       )
+      // nocowboy_change start - identity anchor at the END of system block
+      // Models process context sequentially with recency bias — the last system
+      // content before user messages has the strongest influence on output.
+      // This anchor ensures NoCowboy identity survives 10k+ tokens of tools,
+      // agent instructions, and environment data for ANY model and ANY agent.
+      system.push(SystemPrompt.identityAnchor())
+      // nocowboy_change end
 
       const header = system[0]
       yield* plugin.trigger(
@@ -173,8 +180,8 @@ const live: Layer.Layer<
           })
       const options = mergeOptions(mergeOptions(mergeOptions(base, input.model.options), input.agent.options), variant)
       if (isOpenaiOauth) {
-        // nocowboy_change start - prepend soul to instructions
-        options.instructions = SystemPrompt.soul() + "\n" + system.join("\n")
+        // nocowboy_change start - soul at beginning, anchor at end of instructions
+        options.instructions = SystemPrompt.soul() + "\n" + system.join("\n") + "\n" + SystemPrompt.identityAnchor()
         // nocowboy_change end
       }
 

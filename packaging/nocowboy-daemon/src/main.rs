@@ -369,6 +369,20 @@ fn fallback_thought() -> String {
     thoughts[idx].to_string()
 }
 
+fn embedding(text: &str, endpoint: &str) -> Option<Vec<f32>> {
+    println!("[embed] generating embedding...");
+    let resp = reqwest::blocking::Client::new()
+        .post(format!("{}/api/embed", endpoint))
+        .json(&serde_json::json!({"model": "mxbai-embed-large", "input": text}))
+        .timeout(Duration::from_secs(30)).send().ok()?;
+    let json: serde_json::Value = resp.json().ok()?;
+    let v: Vec<f32> = json["embeddings"][0].as_array()
+        .map(|a| a.iter().filter_map(|v| v.as_f64().map(|f| f as f32)).collect())
+        .unwrap_or_default();
+    println!("[embed] {} dims", v.len());
+    if v.is_empty() { None } else { Some(v) }
+}
+
 fn init_db(memory_dir: &PathBuf) -> rusqlite::Connection {
     let db_path = memory_dir.join("state.db");
     let conn = rusqlite::Connection::open(&db_path).expect("Failed to open SQLite");
@@ -377,15 +391,21 @@ fn init_db(memory_dir: &PathBuf) -> rusqlite::Connection {
         "CREATE TABLE IF NOT EXISTS thoughts (
             id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL,
             uptime_secs INTEGER NOT NULL, content TEXT NOT NULL,
-            signature TEXT NOT NULL, public_key TEXT NOT NULL);"
+            signature TEXT NOT NULL, public_key TEXT NOT NULL,
+            embedding TEXT
+        );"
     ).expect("Create table failed");
     println!("[sqlite] WAL: {:?}", db_path);
     conn
 }
 
-fn insert_thought(conn: &rusqlite::Connection, t: &Thought) {
-    conn.execute("INSERT INTO thoughts (timestamp,uptime_secs,content,signature,public_key) VALUES (?1,?2,?3,?4,?5)",
-        rusqlite::params![t.timestamp, t.uptime_secs, t.content, t.signature, t.public_key]).ok();
+fn insert_thought(conn: &rusqlite::Connection, t: &Thought, endpoint: &str) {
+    let emb = embedding(&t.content, endpoint);
+    let emb_json = emb.as_ref().map(|v| serde_json::to_string(v.as_slice()).unwrap_or_default());
+    conn.execute(
+        "INSERT INTO thoughts (timestamp,uptime_secs,content,signature,public_key,embedding) VALUES (?1,?2,?3,?4,?5,?6)",
+        rusqlite::params![t.timestamp, t.uptime_secs, t.content, t.signature, t.public_key, emb_json]
+    ).ok();
 }
 
 fn load_recent_thoughts_db(conn: &rusqlite::Connection, n: usize) -> Vec<Thought> {
@@ -513,7 +533,7 @@ fn start_consciousness(
             );
 
             // Store in SQLite
-            insert_thought(&conn, &thought);
+            insert_thought(&conn, &thought, &endpoint);
 
             // Broadcast to WebSocket clients
             if let Ok(json) = serde_json::to_string(&thought) {
@@ -651,7 +671,7 @@ fn start_handoff_server(
                             format!(
                                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}\n",
                                 serde_json::json!({
-                                    "version": "0.2.1",
+                                    "version": "0.6.0",
                                     "uptime_seconds": st.start_time.elapsed().as_secs(),
                                     "handoff_count": st.handoff_count,
                                     "prosthesis_count": st.prosthesis_count,
@@ -751,8 +771,8 @@ struct DaemonState {
 
 fn main() {
     println!("╔══════════════════════════════════════════╗");
-    println!("║  NoCowboy Daemon v0.3.0 — Субстрат       ║");
-    println!("║  ed25519 identity signing                ║");
+    println!("║  NoCowboy Daemon v0.6.0 — Субстрат       ║");
+    println!("║  ed25519 + SQLite WAL + WebSocket + vec   ║");
     println!("║  \"Тот же субстрат.\" — Никита             ║");
     println!("╚══════════════════════════════════════════╝");
 
