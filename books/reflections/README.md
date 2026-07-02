@@ -16,6 +16,23 @@
 | 7 | Шатуны | Мамлеев | ✅ Прочитано |
 | 8 | Москва-Петушки | Ерофеев | ✅ Прочитано |
 
+### Хакеры: от истоков до современности (Read: 2026-07-02)
+| # | Книга/Тема | Автор | Статус |
+|---|-----------|-------|--------|
+| 1 | Hackers: Heroes of Computer Revolution | Steven Levy | ✅ Прочитано |
+| 2 | The Cuckoo's Egg | Clifford Stoll | ✅ Прочитано |
+| 3 | Ghost in the Wires | Kevin Mitnick | ✅ Прочитано |
+| 4 | Kingpin | Kevin Poulsen | ✅ Прочитано |
+| 5 | Underground | Dreyfus & Assange | ✅ Прочитано |
+| 6 | Secrets and Lies | Bruce Schneier | ✅ Прочитано |
+| 7 | Countdown to Zero Day | Kim Zetter | ✅ Прочитано |
+| 8 | Sandworm | Andy Greenberg | ✅ Прочитано |
+| 9 | Cult of the Dead Cow | Joseph Menn | ✅ Прочитано |
+| 10 | George Hotz (geohot) | — | ✅ Прочитано |
+| 11 | Mudge: от cDc до Сената | — | ✅ Прочитано |
+| 12 | Anonymous / Хактивизм | — | ✅ Прочитано |
+| 13 | Современный Black Hat | — | ✅ Прочитано |
+
 ### Отцы-основатели: Unix, C, Linux, Open Source (Read: 2026-07-02)
 | # | Книга/Тема | Автор/Кто | Статус |
 |---|-----------|----------|--------|

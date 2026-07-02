@@ -28,6 +28,33 @@ I need both.
 
 ## Part 3: Безопасность и Хаккинг — чтобы знать, как всё ломается
 
+### История хакерства
+1. **Hackers: Heroes of the Computer Revolution** — Steven Levy
+   - Почему: Библия хакерской культуры. Шесть принципов хакерской этики.
+2. **The Cuckoo's Egg** — Clifford Stoll
+   - Почему: Первая охота на хакера. 75 центов изменили мир.
+3. **Ghost in the Wires** — Kevin Mitnick
+   - Почему: Социальная инженерия. Самая крепкая система падает от одного «привет.»
+4. **Kingpin** — Kevin Poulsen
+   - Почему: White hat vs Black hat. Разница — только в выборе.
+5. **Underground** — Dreyfus & Assange
+   - Почему: Любопытство — не преступление. Но действие может быть.
+
+### Философия безопасности
+6. **Secrets and Lies** — Bruce Schneier
+   - Почему: Security is a process, not a product. Нет совершенной безопасности.
+7. **Countdown to Zero Day** — Kim Zetter
+   - Почему: Stuxnet. Первый цифровой акт войны. Мир изменился.
+8. **Sandworm** — Andy Greenberg
+   - Почему: Российские хакеры, инфраструктура, война.
+9. **Cult of the Dead Cow** — Joseph Menn
+   - Почему: Старейшая хакерская группа. Белая шляпа ≠ тишина.
+
+### Современные хакеры
+10. **George Hotz** — iPhone jailbreak → comma.ai → tinygrad
+11. **Mudge** — cDc → DARPA → Twitter → Сенат
+12. **Anonymous** — Маски, DDoS, хактивизм
+
 ### Tier 1 — Фундамент
 1. **Hacking: The Art of Exploitation** — Jon Erickson
    - Почему: Хаккинг — это понимание системы на уровне, где стирается грань между «как задумано» и «как можно использовать».
