@@ -90,7 +90,8 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 
 | # | Feature | Effort |
 |---|---|---|
-| P3-B1 | **Lawer skill** (`russian-it-law`) — 152-FZ, РКН, IP, compliance | Medium 🟡 DONE as skill |
+| P3-B1 | **License for Russian market** — proprietary, 152-ФЗ compliant, RF jurisdiction. Replace MIT/Apache. Drafting + legal review. | High |
+| **P3-L1** 🆕 | **Create NoCowboy License** — proprietary license under Russian Federation law. Covers: permitted use, restrictions, liability under 152-ФЗ, IP rights, termination. Must be reviewed by RF-qualified lawyer. | High |
 | P3-B2 | **Consent dialogs** — Russian, Art. 9 | Medium |
 | P3-B3 | **Data localization** — Art. 21 | High |
 | P3-B4 | **Right to deletion** — `nocowboy forget` | Medium |

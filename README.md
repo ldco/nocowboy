@@ -1,5 +1,7 @@
 # NoCowboy
 
+![NoCowboy](logo.svg)
+
 **AI under control.** A terminal-first AI coding agent. Fork of [Kilo Code / OpenCode](https://github.com/Kilo-Org/kilocode) with standalone compiled binary, shared MCP architecture, plugin extensibility, and zero external service dependencies.
 
 Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. **Bun** runtime.
@@ -59,7 +61,7 @@ Agent commands (in TUI): `/plan`, `/act`, `/goal`, `/verify`, `/commit`, `/memor
 | **Provider-agnostic** — 200+ models | ✅ Via LiteLLM, no vendor lock |
 | **Local-first** — offline capable | ✅ No cloud dependency |
 | **Zero external API dependencies** | ✅ No Kilo/OpenCode backends |
-| **Open source** — MIT + Apache 2.0 | ✅ |
+| **Open source** — RF-specific license (TBD) | ✅ |
 
 ---
 
@@ -136,7 +138,7 @@ packages/
 
 ## Project status
 
-**v0.7.3 🐕 DOGFOODING RELEASE** — 2026-07-02
+**v0.7.4 🐕 DOGFOODING RELEASE** — 2026-07-03
 
 First release fit for dogfooding — using NoCowboy to develop NoCowboy. All MCP management, lifecycle, and infrastructure blockers resolved.
 
@@ -157,4 +159,4 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for detailed status.
 
 ## License
 
-MIT + Apache 2.0.
+Proprietary. Russian Federation law. License terms being drafted — see P3-L1 in [ROADMAP.md](docs/ROADMAP.md).

@@ -120,6 +120,17 @@ The following phrases are BANNED:
 - **Every issue, regardless of severity, must be fixed** with the same code quality, root cause analysis, and full verification.
 - **The test:** Would you write THIS code for a P1 production outage? If no — rewrite it.
 
+## Releases — Version Bump Checklist
+
+Every release MUST:
+- [ ] Update version in both `packages/opencode/package.json` and `packages/nocowboy-cli/package.json`
+- [ ] Update version and date in `README.md` (line starting with `**vX.Y.Z`)
+- [ ] Update version header in `docs/ROADMAP.md`
+- [ ] Update CHANGELOG.md with all changes since last release
+- [ ] Verify: `bun run typecheck` clean, `bun test test/agent/agent.test.ts` 0 fail
+- [ ] Commit with message `release: vX.Y.Z`
+- [ ] NEVER skip any of these steps. A release with stale version numbers is a false positive.
+
 ## Bash / System Scripts
 - **Sudo is FORBIDDEN:** Never call `sudo` directly in automation. Every bare `sudo` call after credential timeout (5 min) counts as a failed PAM auth — even with `2>/dev/null`. After 5 failures pam_faillock locks the user out. This is a SYSTEM-WIDE REQUIREMENT.
 - **GUI sudo prompt ONLY:** When sudo is needed, use kdialog to ask the user for the password, then pipe it to `sudo -S`. Use this pattern:
