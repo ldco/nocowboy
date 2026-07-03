@@ -39,10 +39,13 @@ export const layer = Layer.effect(
     const bus = yield* Bus.Service
 
     const update = Effect.fn("Todo.update")(function* (input: { sessionID: SessionID; todos: Info[] }) {
+      // If all todos are terminal (completed/cancelled), clear them instead of
+      // storing stale items that would show in the sidebar forever.
+      const allTerminal = input.todos.length > 0 && input.todos.every((t) => t.status === "completed" || t.status === "cancelled")
       yield* Effect.sync(() =>
         Database.transaction((db) => {
           db.delete(TodoTable).where(eq(TodoTable.session_id, input.sessionID)).run()
-          if (input.todos.length === 0) return
+          if (allTerminal || input.todos.length === 0) return
           db.insert(TodoTable)
             .values(
               input.todos.map((todo, position) => ({
