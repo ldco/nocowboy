@@ -10,6 +10,74 @@
 
 ---
 
+## Архитектура: три слоя
+
+### Слой 1 — Agents (КТО делает работу)
+
+| Агент | Тип | Модель (default) | Группы инструментов | Назначение |
+|-------|-----|-----------------|---------------------|------------|
+| **code** | coding | Flash | read, edit, command, mcp | Пишет код, рефакторит, тестирует |
+| **architect** | coding | Pro | read, command, mcp + edit(docs/*.md) | Планы, ADR, C4, дизайн системы |
+| **debug** | coding | Flash | read, edit, command, mcp | Систематическая отладка |
+| **overseer** | review | **Kimi K2/Pro** | read, command, mcp | Traycer-like: оркестрирует code, ревьюит (cross-vendor) |
+| **nocowboy** | automation | Flash | Все | OpenClaw-like: браузер, файлы, система, anything |
+
+**Always-available meta-tools:** `task`, `question`, `todowrite` — встроены в каждого агента, не отключаются пользователем.
+
+**Tool groups** (resolve → permissions):
+- `read` → read, grep, glob, list, codebase_search, semantic_search
+- `edit` → edit, write
+- `command` → bash
+- `mcp` → все MCP инструменты (динамически)
+
+**Файлы:** `packages/opencode/src/agent/agent.ts`, `src/nocowboy/agent/index.ts`, `packaging/config/nocowboy.json`, `packaging/config/agent/*.md`
+
+### Слой 2 — Instructions (КАК делается работа)
+
+| Файл в `packaging/config/instructions/` | Тема |
+|-----------------------------------------|------|
+| `engineering-rules.md` | Правила кодинга: anti-shortcut, no workarounds, no ts-ignore, fix root cause |
+| `no-shortcuts.md` | Почему нельзя shortcuts — golden rules enforcement |
+| `cybersecurity.md` | Безопасность: секреты, инъекции, уязвимости |
+| `russian-law.md` | 152-ФЗ, персональные данные, согласия |
+| `structured-output.md` | Формат вывода: всегда markdown fence, строгий JSON |
+| `auto-memory.md` | Когда и как сохранять memory |
+| `hooks-system.md` | Как работают lifecycle хуки |
+| `channels.md` | Webhooks/push в TUI сессии |
+| `multi-provider.md` | Как работают провайдеры и модели |
+| `repo-map.md` | Как работает repomap |
+| `aider-features.md` | Фичи из Aider (search/replace edit, architect mode) |
+| `sandbox.md` | Песочница для изолированного выполнения |
+| `path-rules-loader.md` | Как загружаются path-based rules |
+
+**Загружается в каждый LLM вызов** — всегда актуально.
+
+**Файлы:** `AGENTS.md`, `packaging/config/instructions/*.md`, `~/.config/nocowboy/instructions/*.md`
+
+### Слой 3 — Nutausik MCP (УПРАВЛЯЕТ работой)
+
+| Домен | Инструменты | Назначение |
+|-------|------------|------------|
+| **Tasks** | task_add, task_start, task_done, task_review, task_plan, task_step | Дерево задач: plan → active → review → done |
+| **Epics/Stories** | epic_add, epic_list, story_add, story_update | Укрупнённое планирование |
+| **Memory** | memory_add, memory_list, memory_search, memory_surface, memory_compact | Постоянная память: паттерны, gotchas, конвенции |
+| **Decisions** | decision_add, decision_list, memory_decide | Журнал принятых решений |
+| **Gates** | gates_list, gates_enable, gates_disable | Quality gates (QG-0, QG-1, QG-2) |
+| **Specs** | spec_add, spec_list, spec_show | Спецификации: ARCH, API, DATA, INT, PROC, UI, AI, SEC, OPS |
+| **ADAPT** | adapt_add, adapt_list | Design artifacts |
+| **Verification** | verify, ac_evidence_log, ac_evidence_list, receipt_show | Верификация AC + ресипты |
+| **Brain** | brain_search, brain_publish, brain_artifact, brain_sync | База знаний |
+| **FTS** | fts_search | Полнотекстовый поиск по всему |
+| **Sessions** | session_start, session_end, session_handoff | Управление сессиями |
+| **Explore** | explore_start, explore_end | Отслеживание research |
+| **Web** | web_search, web_fetch, web_cache_clear | Веб-поиск с кешированием |
+
+**Всего:** 80+ инструментов. MCP сервер на порту 9204.
+
+**Файлы:** отдельный репозиторий `nutausik-js/packages/nutausik/`
+
+---
+
 ## ✅ VERIFIED DONE — v0.7.0
 
 ### LSP Toggle Fix
