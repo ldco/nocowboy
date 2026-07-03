@@ -94,7 +94,7 @@ bb52b944d fix: MCP Launcher fallback to config command for local servers
 | Per-system packaging removed | 24 files deleted |
 
 ### Configuration
-- 16 instructions ported + rebranded
+- 14 instructions (was 16): branding fixed, agent refs updated, no-shortcuts merged into eng-rules, cybersecurity → puppetmaster MCP
 - 5 agents refactored
 - 16 commands: `/repomap`, `/init`, `/verify`, `/goal` added
 - 8 skills ported + 4 Ralph-TUI skills

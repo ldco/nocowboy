@@ -22,7 +22,7 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 
 ### Слой 2 — Instructions (КАК делается работа)
 
-16 файлов в `packaging/config/instructions/`: engineering-rules, no-shortcuts, cybersecurity, russian-law, structured-output, auto-memory, hooks-system, channels, multi-provider, repo-map, aider-features, sandbox, path-rules-loader, rules/frontend, rules/api-patterns, rules/database.
+14 files in `packaging/config/instructions/` (was 16: no-shortcuts merged into eng-rules, cybersecurity → puppetmaster MCP)
 
 ### Слой 3 — Nutausik MCP (УПРАВЛЯЕТ работой)
 
@@ -67,7 +67,7 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 
 | # | Feature | Effort |
 |---|---|---|
-| P2-C2 | **Optimize instructions** — fix branding, merge overlaps, remove PM code | Medium ✅ Done — 16→14 files, all branding fixed |
+| P2-C2 | **Optimize instructions** — fix branding, merge overlaps, PM code moved to MCP | Medium ✅ Done — 16→13 files, cybersecurity.md → puppetmaster MCP pm_knowledge |
 | P2-C3 | **Optimize 16 commands** | Medium |
 | P2-C4 | **Revise MCP server framework** — merge into NUTAUSIK | High 📋 Analyzed (see docs/deferred/) |
 

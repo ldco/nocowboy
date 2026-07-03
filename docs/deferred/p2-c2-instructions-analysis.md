@@ -9,7 +9,7 @@
 |---|------|-------|----------------|-------------------|--------|--------|
 | 1 | engineering-rules.md | 64 | `kilo.json` (line 39) | `plan_exit` tool (keep) | 🟡 | Fix Kilo ref, merge no-shortcuts |
 | 2 | no-shortcuts.md | 169 | — | — | ✅ | MERGE into engineering-rules, delete |
-| 3 | cybersecurity.md | 291 | — | — | 🔴 PM Framework code | KEEP FOR PM, remove from NoCowboy |
+| 3 | cybersecurity.md | 291 | — | — | ✅ MOVED to puppetmaster MCP (pm_knowledge topic: security) |
 | 4 | russian-law.md | 412 | — | — | 🟡 PM templates | Prune PM sections, keep 152-ФЗ |
 | 5 | structured-output.md | 118 | — | — | ✅ | Keep |
 | 6 | auto-memory.md | 77 | `~/.kilo/memory/` x4 | `subagent_type: "general"` | 🔴 | Fix paths + agent ref |
