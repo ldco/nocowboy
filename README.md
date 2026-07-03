@@ -2,162 +2,129 @@
 
 ![NoCowboy](logo.svg)
 
-**AI under control.** A terminal-first AI coding agent. Fork of [Kilo Code / OpenCode](https://github.com/Kilo-Org/kilocode) with standalone compiled binary, shared MCP architecture, plugin extensibility, and zero external service dependencies.
-
-Built with TypeScript, SolidJS, [OpenTUI](https://opentui.com), Yoga flexbox. **Bun** runtime.
+**ИИ под твоим контролем.** Терминальный AI-агент для разработки. Создан для российского рынка — без привязки к западным сервисам, без санкционных ограничений, без вендор-лока.
 
 ---
 
-## Installation
+## Почему NoCowboy
 
-NoCowboy is not yet published to npm. Build from source or use a prebuilt release binary.
+В 2022–2026 годах 1.7 миллиона российских разработчиков оказались отрезаны от западных AI-инструментов. Санкции, блокировки платежей, geo-restrictions, отзыв API-ключей — GitHub Copilot, Cursor, Claude Code, ChatGPT стали недоступны. Западные AI-агенты привязаны к OpenAI/Anthropic, требуют западные платёжные системы и игнорируют российскую правовую реальность (152-ФЗ, требования РКН, локализация данных).
 
-### From source (current repo)
+NoCowboy создан чтобы это исправить.
+
+## Что NoCowboy решает
+
+### Общие боли разработчика
+
+| Боль | Как решает NoCowboy |
+|------|---------------------|
+| **Медленный старт** | Один скомпилированный бинарник, 227 MB, мгновенно — не нужен Node.js, не нужен Docker |
+| **Переключение между сервисами** | Один TUI для всего: агенты, MCP-серверы, код, планы, отладка |
+| **Качество AI-кода** | 5 специализированных агентов + overseer для строгого review + Constitution AST-проверка |
+| **Потеря контекста** | FTS5-память сохраняет паттерны, баги и решения между сессиями |
+| **Привязка к одному провайдеру** | 200+ моделей через LiteLLM — DeepSeek, Kimi, Mistral, GLM, любые open-source |
+| **Зоопарк плагинов** | Встроенные MCP-серверы (Constitution, Git, Puppeteer, SQLite) — запускаются автоматически |
+
+### Специфические боли разработчика из РФ
+
+| Боль | Как решает NoCowboy |
+|------|---------------------|
+| **Санкции и блокировки** | Никаких зависимостей от OpenAI, Anthropic, GitHub, Stripe. Китайские и российские модели из коробки |
+| **Платёжные ограничения** | Бесплатно. Open source. Не нужен API-ключ западных сервисов |
+| **152-ФЗ и РКН** | Встроенный справочник IT-права РФ (скилл `russian-it-law`). Compliance из коробки |
+| **Английский AI** | Русские системные промпты, русские инструкции, русский TUI |
+| **Локальные модели** | Поддержка Ollama, GigaChat, YandexGPT — запускай полностью офлайн |
+| **Независимость** | Self-hosting: NoCowboy разрабатывает сам себя. Никаких внешних зависимостей |
+
+---
+
+## Быстрый старт
+
+NoCowboy пока не опубликован в npm. Сборка из исходников:
 
 ```bash
 bun install --cwd packages/opencode build --single
 cp packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy ~/.local/bin/nocowboy
 ```
 
-### From prebuilt binary (release)
+Первый запуск:
 
 ```bash
-curl -fsSL https://github.com/NoCowboy-org/nocowboy/raw/main/install | bash
+nocowboy init          # мастер настройки (2 вопроса)
+nocowboy mcp start     # запуск MCP-серверов
+nocowboy               # старт TUI
 ```
 
-### Then
+Конфигурация: `~/.config/nocowboy/nocowboy.jsonc`
 
-```bash
-nocowboy init          # 2-question setup wizard
-nocowboy mcp start     # start MCP servers (optional for local servers)
-nocowboy               # start TUI
+---
+
+## Агенты
+
+NoCowboy использует 5 специализированных агентов вместо зоопарка из 15 (как было в форке Kilo Code):
+
+| Агент | Роль | Модель |
+|-------|------|--------|
+| **code** | Пишет код | Flash (быстрая) |
+| **architect** | Планирует архитектуру, ADR, C4 | Pro (глубокая) |
+| **debug** | Системная отладка | Flash |
+| **overseer** | Ревьюир и оркестратор. Traycer-like: передаёт задачу code и проверяет результат **другой моделью** | Kimi K2 / Pro |
+| **nocowboy** | Автоматизация всего: браузер, файлы, система | Flash |
+
+Агенты делегируют работу друг другу через `task()`. Например: overseer → code → overseer (review) → готово.
+
+---
+
+## Стек
+
+**TypeScript + SolidJS + OpenTUI + Yoga flexbox + Bun runtime.**
+
+Скомпилирован в один бинарный файл — не нужен Node.js, не нужен Docker.
+
+```
+packaging/
+├── mcp-servers/       # 8 собственных MCP-серверов
+└── config/            # nocowboy.json, агенты, инструкции, скиллы
+
+packages/
+├── opencode/          # CLI: TUI, агенты, инструменты, MCP, сервер
+├── core/              # Модели данных
+├── plugin/            # Интерфейс плагинов
+├── sdk/js/            # TypeScript SDK
+└── nocowboy-indexing/ # Индексация кодовой базы
 ```
 
-Config: `~/.config/nocowboy/nocowboy.jsonc`
+---
+
+## Статус проекта
+
+**v0.7.3** 🐕 — 2026-07-02 (первый dogfooding-релиз: NoCowboy разрабатывает сам себя)
+**v0.7.4** — 2026-07-03 (текущая: 15→5 агентов, tool groups, delegation briefs)
+
+См. [CHANGELOG.md](docs/CHANGELOG.md) и [ROADMAP.md](docs/ROADMAP.md).
 
 ---
 
-## Quick start
-
-| Command | What |
-|---|---|
-| `nocowboy` | Start TUI |
-| `nocowboy init` | First-run setup |
-| `nocowboy mcp start` | Start shared MCP servers |
-| `nocowboy repomap` | Generate repo structure map |
-| `nocowboy run "<task>"` | Non-interactive task |
-
-Agent commands (in TUI): `/plan`, `/act`, `/goal`, `/verify`, `/commit`, `/memory`, `/dream`, `/repomap`
-
----
-
-## What makes NoCowboy different
-
-| Feature | NoCowboy |
-|---|---|
-| **Compiled binary** — instant startup, no Node.js needed | ✅ Single ELF, 155MB |
-| **Shared MCP servers** — one set, all instances | ✅ HTTP/SSE, not per-instance |
-| **Plugin out/in** — auto-discoverable MCP servers | ✅ `require.resolve` auto-detect |
-| **Provider-agnostic** — 200+ models | ✅ Via LiteLLM, no vendor lock |
-| **Local-first** — offline capable | ✅ No cloud dependency |
-| **Zero external API dependencies** | ✅ No Kilo/OpenCode backends |
-| **Open source** — RF-specific license (TBD) | ✅ |
-
----
-
-## Features
-
-### Core
-
-- **Compiled binary** — `bun build --compile`, instant startup
-- **Shared MCP architecture** — one server set, all sessions connect via HTTP/SSE
-- **Embedded proxy** — MCP lifecycle without systemd, zero external deps
-- **Local-type MCP servers** — MCP service auto-spawns servers on startup
-
-### Agent Intelligence
-
-- **Repomap** — Aider-style token-optimized repo summary, auto-injected every turn
-- **Memory FTS5** — full-text search, cross-session knowledge, `/dream` extraction
-- **Goal judge** — independent subagent verifies task completion
-- **Multi-turn approval memory** — approve once, never asked again
-- **Deep context** — repomap + memory merged into system prompt every turn
-- **Voice input** — FFmpeg capture + transcription
-
-### Quality
-
-- **Constitution** — AST rules block bad AI code
-- **Contract Guard** — API changes fail frontend builds
-- **NoCowboy Score** — 0-100% quality metric across 5 dimensions
-- **Indexing** — SQLite vector store for codebase semantic search
-
-### MCP Servers
-
-8 first-party (`vendor: nocowboy`) + 4 community (`vendor: community`):
-- constitution, contract-guard, ncp-validator, score-engine
-- ralph, plugin-registry, puppetmaster, hooks
-- context7, sqlite, puppeteer, git
-
----
-
-## Development
+## Разработка
 
 ```bash
 bun install
-bun run --cwd packages/opencode dev     # TUI with file watching (auto-restart)
+bun run --cwd packages/opencode dev       # TUI с авто-перезапуском
 bun run --cwd packages/opencode typecheck
 bun test --cwd packages/opencode test/nocowboy/
 ```
 
-Build release binary:
+Релизный бинарник:
 
 ```bash
 bun run --cwd packages/opencode build --single
-# binary at packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy
+# бинарник: packages/opencode/dist/nocowboy-tui-linux-x64/bin/nocowboy
 ```
 
-See [docs/dogfooding-workflow.md](docs/dogfooding-workflow.md) for rebuild + install.
+См. [docs/dogfooding-workflow.md](docs/dogfooding-workflow.md).
 
 ---
 
-## Architecture
+## Лицензия
 
-```
-packaging/
-├── mcp-servers/      # 8 first-party MCP server implementations
-└── config/           # Default nocowboy.json + agents + instructions + skills
-
-packages/
-├── opencode/         # CLI — TUI, agents, tools, MCP, server
-├── core/             # Data model, schemas
-├── plugin/           # Plugin/tool interface
-├── sdk/js/           # Auto-generated TypeScript SDK
-└── nocowboy-indexing/ # Codebase indexing engine
-```
-
----
-
-## Project status
-
-**v0.7.3 🐕 DOGFOODING RELEASE** — 2026-07-02 (first self-hosting release)
-**v0.7.4** — 2026-07-03 (current)
-
-First release fit for dogfooding — using NoCowboy to develop NoCowboy. All MCP management, lifecycle, and infrastructure blockers resolved.
-
-NoCowboy is a functional fork of Kilo Code / OpenCode. All Kilo backend services (api.kilo.ai, ingest.kilosessions.ai, GitHub integration) have been stripped out — NoCowboy runs entirely locally with no external dependencies. Own backend services will be built in future phases.
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for detailed status.
-
----
-
-## Docs
-
-- [ROADMAP.md](docs/ROADMAP.md) — single source of truth
-- [docs/guides/](docs/guides/) — publish, NUTAUSIK, overlap decisions
-- [docs/reference/](docs/reference/) — competitive analysis, playbook, ADRs
-- [docs/dogfooding-workflow.md](docs/dogfooding-workflow.md) — dev workflow
-
----
-
-## License
-
-Proprietary. Russian Federation law. License terms being drafted — see P3-L1 in [ROADMAP.md](docs/ROADMAP.md).
+Проприетарная. Право Российской Федерации. Условия лицензии разрабатываются — см. P3-L1 в [ROADMAP.md](docs/ROADMAP.md).
