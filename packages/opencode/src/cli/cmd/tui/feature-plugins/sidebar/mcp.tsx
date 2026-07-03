@@ -4,9 +4,14 @@ import { createMemo, For, Match, Show, Switch, createSignal } from "solid-js"
 
 const id = "internal:sidebar-mcp"
 
+function vendor(name: string, config: Record<string, any>) {
+  return config?.[name]?.vendor === "nocowboy" ? "nc" : "com"
+}
+
 function View(props: { api: TuiPluginApi }) {
   const [open, setOpen] = createSignal(true)
   const theme = () => props.api.theme.current
+  const config = () => (props.api.state as any).config?.mcp ?? {}
   const list = createMemo(() => props.api.state.mcp())
   const on = createMemo(() => list().filter((item) => item.status === "connected").length)
   const bad = createMemo(
@@ -25,6 +30,8 @@ function View(props: { api: TuiPluginApi }) {
     if (status === "needs_client_registration") return theme().error
     return theme().textMuted
   }
+
+  const brand = theme().text
 
   return (
     <Show when={list().length > 0}>
@@ -57,6 +64,9 @@ function View(props: { api: TuiPluginApi }) {
                 </text>
                 <text fg={theme().text} wrapMode="word">
                   {item.name}{" "}
+                  <span style={{ fg: vendor(item.name, config()) === "nc" ? brand : theme().textMuted }}>
+                    {vendor(item.name, config())}
+                  </span>{" "}
                   <span style={{ fg: theme().textMuted }}>
                     <Switch fallback={item.status}>
                       <Match when={item.status === "connected"}>Connected</Match>
