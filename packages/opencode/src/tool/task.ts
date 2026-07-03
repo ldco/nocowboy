@@ -145,7 +145,7 @@ export const TaskTool = Tool.define(
       if (!next) {
         return yield* Effect.fail(new Error(`Unknown agent type: ${params.subagent_type} is not a valid agent type`))
       }
-      // nocowboy_change start — reject primary agents; only subagent/all modes allowed
+      // nocowboy_change start — validate subagent type (no-op after P3 removal of subagent-only restriction)
       KiloTask.validate(next, params.subagent_type)
       // nocowboy_change end
 

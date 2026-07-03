@@ -31,9 +31,14 @@ const ModelState = z
   .passthrough()
 
 export namespace KiloTask {
-  /** Reject primary agents used as subagents */
-  export function validate(info: Agent.Info, name: string) {
-    if (info.mode === "primary") throw new Error(`Agent "${name}" is a primary agent and cannot be used as a subagent`)
+  /**
+   * Allow all agents (primary, subagent, all) to be used as subagents.
+   * P3 refactor removed dedicated subagent types. Primary agents like code are
+   * the designated delegation targets for overseer/architect via the task tool.
+   * Nested subagent prevention is handled by nestedTask() returning false.
+   */
+  export function validate(_info: Agent.Info, _name: string) {
+    // No rejection — all agent modes can be subagents
   }
 
   /** Kilo keeps delegation one level deep to avoid recursive subagent chains. */
