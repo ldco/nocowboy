@@ -2,7 +2,7 @@
 
 ![NoCowboy](logo.svg)
 
-**AI-агент для российских разработчиков.** Форк трёх MIT-проектов — [Kilo Code](https://github.com/Kilo-Org/kilocode), Xiaomi MiMo, Kibertum TAUSIK — перестроенный под рынок РФ. Ни одной зависимости от западных сервисов.
+**AI-агент для российских разработчиков.** Форк [Kilo Code](https://github.com/Kilo-Org/kilocode). Проект-менеджмент через NUTAUSIK MCP-сервер (форк Kibertum TAUSIK). Память FTS5 — паттерн из Xiaomi MiMo. Ни одной зависимости от западных сервисов.
 
 ---
 
