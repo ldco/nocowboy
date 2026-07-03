@@ -55,7 +55,7 @@ it.instance("returns default native agents when no config", () =>
     expect(names).toContain("nocowboy")
     expect(names).toContain("debug")
     expect(names).toContain("overseer")
-    expect(names).toContain("jurist")
+    expect(names).not.toContain("jurist")
     expect(names).toContain("compaction")
     expect(names).toContain("title")
     expect(names).toContain("summary")
@@ -627,7 +627,7 @@ it.instance(
         debug: { disable: true },
         nocowboy: { disable: true },
         overseer: { disable: true },
-        jurist: { disable: true },
+        // jurist is not an agent — russian-it-law is a skill
       },
     },
   },

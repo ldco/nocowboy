@@ -21,7 +21,7 @@
 | **debug** | coding | Flash | read, edit, command, mcp | Систематическая отладка |
 | **overseer** | review | **Kimi K2/Pro** | read, command, mcp | Traycer-like: оркестрирует code, ревьюит (cross-vendor) |
 | **nocowboy** | automation | Flash | Все | OpenClaw-like: браузер, файлы, система, anything |
-| **jurist** 🆕 | legal | Pro | read | Russian IT law: 152-ФЗ, РКН, интеллектуальная собственность |
+| **jurist** ⛔ | удалён | — | — | Заменён на skill `russian-it-law` + инструкция `russian-law.md` |
 
 **Always-available meta-tools:** `task`, `question`, `todowrite` — встроены в каждого агента, не отключаются пользователем.
 

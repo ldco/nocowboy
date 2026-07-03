@@ -12,7 +12,7 @@ import { Global } from "@opencode-ai/core/global"
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
 import PROMPT_OVERSEER from "../../agent/prompt/overseer.txt"
-import PROMPT_JURIST from "../../agent/prompt/jurist.txt"
+// russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
   "*": "ask",
@@ -309,37 +309,6 @@ export function patchAgents(
         plan_exit: "allow",
         semantic_search: "allow",
         codebase_search: "allow",
-      }),
-      user,
-      META_TOOLS,
-    ),
-    mode: "primary",
-    native: true,
-  }
-
-  // Add jurist — Russian IT law specialist
-  agents.jurist = {
-    name: "jurist",
-    description: "Russian IT law specialist. 152-ФЗ, personal data, Roskomnadzor, intellectual property, IT regulation.",
-    prompt: PROMPT_JURIST,
-    options: {},
-    permission: Permission.merge(
-      defaults,
-      Permission.fromConfig({
-        read: "allow",
-        grep: "allow",
-        glob: "allow",
-        list: "allow",
-        webfetch: "allow",
-        websearch: "allow",
-        codebase_search: "allow",
-        semantic_search: "allow",
-        question: "allow",
-        external_directory: {
-          [Truncate.GLOB]: "allow",
-        },
-        edit: "deny",
-        write: "deny",
       }),
       user,
       META_TOOLS,
