@@ -104,7 +104,7 @@ export const NOCOWBOY_TIPS: Tip[] = [
     if (!items.length) return undefined
     return `Use ${items.map(shortcutText).join(" / ")} to move between parent and child sessions`
   },
-  "Create {highlight}kilo.json{/highlight} for server settings and {highlight}tui.json{/highlight} for TUI settings",
+  "Create {highlight}nocowboy.json{/highlight} for server settings and {highlight}tui.json{/highlight} for TUI settings",
   "Place TUI settings in {highlight}~/.config/nocowboy/tui.json{/highlight} for global config",
   "Add {highlight}$schema{/highlight} to your config for autocomplete in your editor",
   "Configure {highlight}model{/highlight} in config to set your default model",
@@ -166,7 +166,7 @@ export const NOCOWBOY_TIPS: Tip[] = [
     shortcuts.commandList()
       ? `Toggle username display in chat via the command palette (${shortcutText(shortcuts.commandList())})`
       : "Toggle username display in chat via the command palette",
-  "Run {highlight}docker run -it --rm ghcr.io/kilo-org/kilocode{/highlight} for containerized use",
+  "Run {highlight}npm install -g nocowboy{/highlight} for global installation",
   "Use {highlight}/connect{/highlight} with NoCowboy Gateway for curated, tested models",
   "Commit your project's {highlight}AGENTS.md{/highlight} file to Git for team sharing",
   "Use {highlight}/review{/highlight} to review uncommitted changes, branches, or PRs",

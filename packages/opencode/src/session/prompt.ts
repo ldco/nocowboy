@@ -421,10 +421,12 @@ export const layer = Layer.effect(
           messages: input.messages,
         }),
       )
-      // nocowboy_change end
-
+      // nocowboy_change: plan mode agent was removed (P3 refactor).
+      // These checks (lines 426-449) never match — "plan" agent no longer exists.
+      // Kept for reference; upstream plan mode feature is replaced by architect.
       if (!flags.experimentalPlanMode) {
-        const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
+        // wasPlan always false — no agent named "plan"
+        const wasPlan = false
         if (wasPlan && input.agent.name === "code") {
           // nocowboy_change - renamed from "build" to "code"
           userMessage.parts.push({
@@ -439,6 +441,9 @@ export const layer = Layer.effect(
         return input.messages
       }
 
+      // nocowboy_change: plan mode agent removed in P3 refactor.
+      // input.agent.name !== "plan" is always true, so this block is dead.
+      // Kept for reference — upstream feature replaced by architect agent.
       const assistantMessage = input.messages.findLast((msg) => msg.info.role === "assistant")
       if (input.agent.name !== "plan" && assistantMessage?.info.agent === "plan") {
         const ctx = yield* InstanceState.context

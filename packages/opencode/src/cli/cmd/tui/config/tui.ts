@@ -253,7 +253,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       notifications: acc.result.attention?.notifications ?? true,
       sound: acc.result.attention?.sound ?? true,
       volume: acc.result.attention?.volume ?? 0.4,
-      sound_pack: acc.result.attention?.sound_pack ?? "kilo.default", // nocowboy_change
+      sound_pack: acc.result.attention?.sound_pack ?? "nocowboy.default", // nocowboy_change
       sounds: acc.result.attention?.sounds ?? {},
     },
     keybinds: createBindingLookup(TuiKeybind.toBindingConfig(parsedKeybinds), {

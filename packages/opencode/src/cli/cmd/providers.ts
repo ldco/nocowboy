@@ -455,7 +455,7 @@ export const ProvidersLoginCommand = effectCmd({
       }
 
       yield* Prompt.log.warn(
-        `This only stores a credential for ${provider} - you will need configure it in kilo.json, check the docs for examples.`, // nocowboy_change
+        `This only stores a credential for ${provider} - you will need configure in nocowboy.json, check the docs for examples.`, // nocowboy_change
       )
     }
 
@@ -464,7 +464,7 @@ export const ProvidersLoginCommand = effectCmd({
         "Amazon Bedrock authentication priority:\n" +
           "  1. Bearer token (AWS_BEARER_TOKEN_BEDROCK or /connect)\n" +
           "  2. AWS credential chain (profile, access keys, IAM roles, EKS IRSA)\n\n" +
-          "Configure via kilo.json options (profile, region, endpoint) or\n" + // nocowboy_change
+          "Configure via nocowboy.json options (profile, region, endpoint) or\n" + // nocowboy_change
           "AWS environment variables (AWS_PROFILE, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_WEB_IDENTITY_TOKEN_FILE).",
       )
     }
