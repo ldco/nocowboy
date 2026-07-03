@@ -138,7 +138,8 @@ packages/
 
 ## Project status
 
-**v0.7.4 🐕 DOGFOODING RELEASE** — 2026-07-03
+**v0.7.3 🐕 DOGFOODING RELEASE** — 2026-07-02 (first self-hosting release)
+**v0.7.4** — 2026-07-03 (current)
 
 First release fit for dogfooding — using NoCowboy to develop NoCowboy. All MCP management, lifecycle, and infrastructure blockers resolved.
 
