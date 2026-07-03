@@ -162,6 +162,16 @@
         "external_directory": "allow",
         "question": "allow"
       }
+    },
+    "jurist": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-pro",
+      "description": "Russian IT law specialist. 152-ФЗ, personal data, Roskomnadzor, IP, IT regulation.",
+      "groups": ["read"],
+      "edit": "deny",
+      "webfetch": "allow",
+      "websearch": "allow",
+      "question": "allow"
     }
   }
 }

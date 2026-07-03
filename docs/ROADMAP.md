@@ -21,6 +21,7 @@
 | **debug** | coding | Flash | read, edit, command, mcp | Систематическая отладка |
 | **overseer** | review | **Kimi K2/Pro** | read, command, mcp | Traycer-like: оркестрирует code, ревьюит (cross-vendor) |
 | **nocowboy** | automation | Flash | Все | OpenClaw-like: браузер, файлы, система, anything |
+| **jurist** 🆕 | legal | Pro | read | Russian IT law: 152-ФЗ, РКН, интеллектуальная собственность |
 
 **Always-available meta-tools:** `task`, `question`, `todowrite` — встроены в каждого агента, не отключаются пользователем.
 
@@ -179,7 +180,7 @@
 | Layer | What | Lives in |
 |---|---|---|
 | **Agents** | WHO does work: prompts, permissions, tools, models | `agent.ts`, `nocowboy/agent/*`, `packaging/config/agent/` |
-| **Instructions** | HOW work is done: rules, conventions, security | `AGENTS.md`, `packaging/config/instructions/` (13 files) |
+| **Instructions** | HOW work is done: rules, conventions, security | `AGENTS.md`, `packaging/config/instructions/` (13 files + 3 rules/) |
 | **Nutausik MCP** | TRACKS work: tasks, memory, decisions, gates, specs | MCP server port 9204 (80+ tools) |
 
 ### Project Agent Cleanup
@@ -320,9 +321,9 @@
 | # | Feature | Effort | Status |
 |---|---|---|---|
 | P2-C1 | **Agent Audit** — rename `plan`→`researcher`, remove deprecated agents | Medium | ✅ P2-C1 + P3 refactor: 15→5 agents (code, architect, debug, overseer, nocowboy). Removed: general, explore, scout, plan, ask, prd, ralph, researcher, code-reviewer, orchestrator. |
-| P2-C2 | **Analyze & optimize 16 instructions** | Medium | ❌ No analysis performed |
-| P2-C3 | **Analyze & optimize 16 commands** | Medium | ❌ No analysis performed |
-| P2-C4 | **Revise MCP server framework** — merge overlapping ones into NUTAUSIK | High | ❌ No action taken |
+| P2-C2 | **Analyze & optimize 16 instructions** | Medium | 📋 DEFERRED — analyzed 2026-07-03, 5 files need branding fix, 2 reference removed agents, 2 overlap, 1 irrelevant (see docs/deferred/) |
+| P2-C3 | **Analyze & optimize 16 commands** | Medium | ❌ Not started |
+| P2-C4 | **Revise MCP server framework** — merge overlapping ones into NUTAUSIK | High | 📋 DEFERRED — see docs/deferred/ for full analysis |
 | P3-C1 | **Tool groups** — composable groups (read/edit/command/mcp) instead of per-tool permisisons | Medium | ✅ v0.7.4 — `groups` field in `ConfigAgent.Info`, resolves to baseline permissions. Always-available meta-tools (task, question, todowrite). |
 | P3-C2 | **Delegation Briefs** — structured handoff overseer→code | Medium | ✅ v0.7.4 — QUESTION/SCOPE/ALREADY_KNOWN/EFFORT/STOP_CONDITION/OUTPUT format in overseer prompt |
 | P3-C3 | **Output Contract** — structured sub-agent results | Medium | ✅ v0.7.4 — SUMMARY/CHANGES/EVIDENCE/RISKS/BLOCKERS format in overseer prompt |
