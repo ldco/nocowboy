@@ -204,7 +204,7 @@ export const layer = Layer.effect(
       // attach` to auto-connect from inside a nocowboy-spawned terminal can
       // pass `--password` explicitly or re-export the env themselves.
       delete env.NOCOWBOY_SERVER_PASSWORD
-      delete env.KILO_SERVER_USERNAME
+      delete env.NOCOWBOY_SERVER_USERNAME
       // nocowboy_change end
 
       if (process.platform === "win32") {

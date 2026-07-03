@@ -94,7 +94,7 @@ export const Deno: Info = {
 }
 
 // nocowboy_change start - tsgo native LSP or lightweight diagnostic client
-// When KILO_EXPERIMENTAL_LSP_TOOL is enabled, spawn tsgo --lsp --stdio as a
+// When NOCOWBOY_EXPERIMENTAL_LSP_TOOL is enabled, spawn tsgo --lsp --stdio as a
 // persistent LSP server (full diagnostics, hover, go-to-definition, etc.).
 // Otherwise spawn() returns undefined and getClients() in index.ts falls
 // through to the lightweight TsClient that shells out to tsgo --noEmit on demand.

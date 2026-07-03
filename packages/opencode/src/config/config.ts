@@ -657,7 +657,7 @@ export const layer = Layer.effect(
 
         const pluginScopeForSource = Effect.fnUntraced(function* (source: string) {
           if (source.startsWith("http://") || source.startsWith("https://")) return "global"
-          if (source === "KILO_CONFIG_CONTENT") return "local"
+          if (source === "NOCOWBOY_CONFIG_CONTENT") return "local"
           if (containsPath(source, ctx)) return "local"
           return "global"
         })
@@ -761,7 +761,7 @@ export const layer = Layer.effect(
         yield* merge(Global.Path.config, global, "global")
 
         if (Flag.NOCOWBOY_CONFIG) {
-          // nocowboy_change start - capture KILO_CONFIG failures as warnings
+          // nocowboy_change start - capture NOCOWBOY_CONFIG failures as warnings
           yield* merge(
             Flag.NOCOWBOY_CONFIG,
             yield* loadFile(Flag.NOCOWBOY_CONFIG).pipe(
@@ -801,7 +801,7 @@ export const layer = Layer.effect(
         const directories = yield* ConfigPaths.directories(ctx.directory, ctx.project.worktree) // nocowboy_change
 
         if (Flag.NOCOWBOY_CONFIG_DIR) {
-          log.debug("loading config from KILO_CONFIG_DIR", { path: Flag.NOCOWBOY_CONFIG_DIR })
+          log.debug("loading config from NOCOWBOY_CONFIG_DIR", { path: Flag.NOCOWBOY_CONFIG_DIR })
         }
 
         const deps: Fiber.Fiber<void, never>[] = []
@@ -868,15 +868,15 @@ export const layer = Layer.effect(
         }
 
         if (process.env.NOCOWBOY_CONFIG_CONTENT) {
-          // nocowboy_change start - capture KILO_CONFIG_CONTENT parse failures as warnings
-          const source = "KILO_CONFIG_CONTENT"
+          // nocowboy_change start - capture NOCOWBOY_CONFIG_CONTENT parse failures as warnings
+          const source = "NOCOWBOY_CONFIG_CONTENT"
           yield* merge(
             source,
             yield* loadConfig(process.env.NOCOWBOY_CONFIG_CONTENT, {
               dir: ctx.directory,
               source,
             }).pipe(
-              Effect.tap(() => Effect.sync(() => log.debug("loaded custom config from KILO_CONFIG_CONTENT"))),
+              Effect.tap(() => Effect.sync(() => log.debug("loaded custom config from NOCOWBOY_CONFIG_CONTENT"))),
               Effect.catchDefect((err: unknown) => {
                 caughtWarning(warnings, source, err)
                 return Effect.succeed({} as Info)

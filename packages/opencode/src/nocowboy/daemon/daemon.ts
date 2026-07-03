@@ -318,7 +318,7 @@ export namespace Daemon {
         env: {
           ...process.env,
           ...input.env,
-          KILO_SERVER_USERNAME: username,
+          NOCOWBOY_SERVER_USERNAME: username,
           NOCOWBOY_SERVER_PASSWORD: password,
           KILOCODE_FEATURE: "daemon",
         },

@@ -139,9 +139,9 @@ type IssueQueryResponse = {
   }
 }
 
-const AGENT_USERNAME = "kiloconnect[bot]" // nocowboy_change
+const AGENT_USERNAME = "nocowboy[bot]" // nocowboy_change
 const AGENT_REACTION = "eyes"
-const WORKFLOW_FILE = ".github/workflows/kilo.yml" // nocowboy_change
+const WORKFLOW_FILE = ".github/workflows/nocowboy.yml" // nocowboy_change
 
 // Event categories for routing
 // USER_EVENTS: triggered by user actions, have actor/issueId, support reactions/comments

@@ -48,7 +48,7 @@ export const AttachCommand = cmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to KILO_SERVER_USERNAME or 'kilo')", // nocowboy_change
+        describe: "basic auth username (defaults to NOCOWBOY_SERVER_USERNAME or 'opencode')", // nocowboy_change
       }),
   handler: async (args) => {
     const unguard = win32InstallCtrlCGuard()

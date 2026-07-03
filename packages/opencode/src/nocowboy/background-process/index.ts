@@ -365,8 +365,7 @@ export namespace BackgroundProcess {
       TERM: "dumb",
     }
     delete result.NOCOWBOY_SERVER_PASSWORD
-    delete result.KILO_SERVER_USERNAME
-    delete result.KILO_BACKGROUND_PROCESS_PORTS
+    delete result.NOCOWBOY_SERVER_USERNAME
     delete result.NOCOWBOY_BACKGROUND_PROCESS_PORTS
     return result
   }

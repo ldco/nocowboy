@@ -3,6 +3,9 @@ export const Npm = {
   path: "@nocowboy%2fcli",
 }
 
+// Brew/Scoop/Choco URLs reference Kilo-Org infrastructure.
+// These remains as references until NoCowboy publishes its own package manager formulas.
+// See Publish queue in ROADMAP.md.
 export const Brew = {
   name: "kilo",
   tap: "Kilo-Org/tap",
@@ -22,5 +25,5 @@ export const Scoop = {
 
 export const Release = {
   api: "https://api.github.com/repos/Kilo-Org/kilocode/releases/latest",
-  install: "https://nocowboy.dev/install", // nocowboy_change
+  install: "https://nocowboy.dev/install",
 }
