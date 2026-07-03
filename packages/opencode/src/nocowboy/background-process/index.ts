@@ -168,7 +168,8 @@ export namespace BackgroundProcess {
   }
 
   function infer() {
-    return Flag.NOCOWBOY_CLIENT === "cli" && process.env.NOCOWBOY_BACKGROUND_PROCESS_PORTS === "true"
+    const scan = process.env["NOCOWBOY_BACKGROUND_PROCESS_PORTS"]
+    return Flag.NOCOWBOY_CLIENT === "cli" && scan === "true"
   }
 
   function update(active: Active, ports?: number[]) {
@@ -366,6 +367,7 @@ export namespace BackgroundProcess {
     delete result.NOCOWBOY_SERVER_PASSWORD
     delete result.KILO_SERVER_USERNAME
     delete result.KILO_BACKGROUND_PROCESS_PORTS
+    delete result.NOCOWBOY_BACKGROUND_PROCESS_PORTS
     return result
   }
 

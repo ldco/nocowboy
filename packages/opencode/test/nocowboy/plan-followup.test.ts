@@ -24,7 +24,7 @@ import fs from "fs/promises"
 import { tmpdir } from "../fixture/fixture"
 
 Log.init({ print: false })
-process.env.KILO_CLIENT = "cli"
+process.env.NOCOWBOY_CLIENT = "cli"
 
 const runtime = makeRuntime(Question.Service, Question.defaultLayer)
 const question = {
@@ -309,6 +309,7 @@ describe("plan follow-up", () => {
       expect(q.options.map((item) => item.label)).toEqual([
         PlanFollowup.ANSWER_NEW_SESSION,
         PlanFollowup.ANSWER_CONTINUE,
+        PlanFollowup.ANSWER_REFINE,
       ])
 
       await question.reject(item.id)
@@ -346,9 +347,9 @@ describe("plan follow-up", () => {
 
   test("ask - hides custom answer row on VS Code where the main prompt input handles typed replies", () =>
     withInstance(async () => {
-      const prev = process.env.KILO_CLIENT
+      const prev = process.env.NOCOWBOY_CLIENT
       try {
-        process.env.KILO_CLIENT = "vscode"
+        process.env.NOCOWBOY_CLIENT = "vscode"
         const seeded = await seed({ text: "1. Build" })
         const pending = PlanFollowup.ask({
           question,
@@ -371,7 +372,7 @@ describe("plan follow-up", () => {
         await question.reject(item.id)
         await expect(pending).resolves.toBe("break")
       } finally {
-        process.env.KILO_CLIENT = prev
+        process.env.NOCOWBOY_CLIENT = prev
       }
     }))
 
@@ -396,19 +397,25 @@ describe("plan follow-up", () => {
       expect(q.questionKey).toBe("plan.followup.question")
       expect(q.headerKey).toBe("plan.followup.header")
 
-      // i18n keys for option labels — order matters: newSession is first, continue second.
+      // i18n keys for option labels — order matters: newSession first, continue second, refine third.
       expect(q.options.map((o) => o.labelKey)).toEqual([
         "plan.followup.answer.newSession",
         "plan.followup.answer.continue",
+        "plan.followup.answer.refine",
       ])
       expect(q.options.map((o) => o.descriptionKey)).toEqual([
         "plan.followup.answer.newSession.description",
         "plan.followup.answer.continue.description",
+        "plan.followup.answer.refine.description",
       ])
 
       // Canonical English labels stay on the wire — the server still matches on `label`,
       // so translating the UI must not change the reply format.
-      expect(q.options.map((o) => o.label)).toEqual([PlanFollowup.ANSWER_NEW_SESSION, PlanFollowup.ANSWER_CONTINUE])
+      expect(q.options.map((o) => o.label)).toEqual([
+        PlanFollowup.ANSWER_NEW_SESSION,
+        PlanFollowup.ANSWER_CONTINUE,
+        PlanFollowup.ANSWER_REFINE,
+      ])
 
       await question.reject(item.id)
       await expect(pending).resolves.toBe("break")

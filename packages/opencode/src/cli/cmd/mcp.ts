@@ -879,8 +879,11 @@ export const McpStartCommand = effectCmd({
         const match = servers.find(([n]) => n === name)
         if (!match) { prompts.log.warn(`Server "${name}" not found in config`); continue }
         const [, srv] = match
+        // Local servers: use command from config directly (primary source of truth)
         const isLocal = srv && typeof srv === "object" && "type" in srv && srv.type === "local"
-        const cmd = await Launcher.command(name, isLocal ? srv : null)
+        const cmd = isLocal && srv.command?.length
+          ? srv.command.map((s: string) => (/\s/.test(s) ? `"${s}"` : s)).join(" ")
+          : await Launcher.command(name)
         if (!cmd) { prompts.log.warn(`Skipping "${name}" — no launch command defined`); continue }
         const port = 9200 + results.length
         const r = await McpLifecycle.startOne(name, cmd, port)

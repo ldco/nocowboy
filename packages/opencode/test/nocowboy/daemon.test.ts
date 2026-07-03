@@ -5,28 +5,28 @@ import { DaemonClient } from "../../src/nocowboy/daemon/client"
 import { tmpdir } from "../fixture/fixture"
 
 const original = {
-  state: process.env.KILO_TEST_DAEMON_STATE_DIR,
-  log: process.env.KILO_TEST_DAEMON_LOG_DIR,
-  disabled: process.env.KILO_NO_DAEMON,
+  state: process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR,
+  log: process.env.NOCOWBOY_TEST_DAEMON_LOG_DIR,
+  disabled: process.env.NOCOWBOY_NO_DAEMON,
 }
 
 afterEach(async () => {
-  if (process.env.KILO_TEST_DAEMON_STATE_DIR !== original.state) await Daemon.stop().catch(() => undefined)
+  if (process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR !== original.state) await Daemon.stop().catch(() => undefined)
   restore()
 })
 
 function restore() {
-  if (original.state === undefined) delete process.env.KILO_TEST_DAEMON_STATE_DIR
-  else process.env.KILO_TEST_DAEMON_STATE_DIR = original.state
-  if (original.log === undefined) delete process.env.KILO_TEST_DAEMON_LOG_DIR
-  else process.env.KILO_TEST_DAEMON_LOG_DIR = original.log
-  if (original.disabled === undefined) delete process.env.KILO_NO_DAEMON
-  else process.env.KILO_NO_DAEMON = original.disabled
+  if (original.state === undefined) delete process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR
+  else process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR = original.state
+  if (original.log === undefined) delete process.env.NOCOWBOY_TEST_DAEMON_LOG_DIR
+  else process.env.NOCOWBOY_TEST_DAEMON_LOG_DIR = original.log
+  if (original.disabled === undefined) delete process.env.NOCOWBOY_NO_DAEMON
+  else process.env.NOCOWBOY_NO_DAEMON = original.disabled
 }
 
 function dirs(root: string) {
-  process.env.KILO_TEST_DAEMON_STATE_DIR = path.join(root, "state")
-  process.env.KILO_TEST_DAEMON_LOG_DIR = path.join(root, "log")
+  process.env.NOCOWBOY_TEST_DAEMON_STATE_DIR = path.join(root, "state")
+  process.env.NOCOWBOY_TEST_DAEMON_LOG_DIR = path.join(root, "log")
   return {
     XDG_DATA_HOME: path.join(root, "xdg-data"),
     XDG_CONFIG_HOME: path.join(root, "xdg-config"),
@@ -169,7 +169,7 @@ describe("daemon manager", () => {
   test("daemon client honors the escape hatch", async () => {
     await using tmp = await tmpdir()
     const started = await Daemon.start(opts(tmp.path))
-    process.env.KILO_NO_DAEMON = "1"
+    process.env.NOCOWBOY_NO_DAEMON = "1"
 
     const daemon = await DaemonClient.connect()
 

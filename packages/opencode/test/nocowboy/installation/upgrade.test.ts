@@ -214,7 +214,7 @@ describe("NoCowboy installation upgrade", () => {
   ).effect("uses the NoCowboy install script for curl upgrades", () =>
     Effect.gen(function* () {
       yield* Installation.Service.use((svc) => svc.upgrade("curl", "9.9.9"))
-      expect(curl).toContain("https://kilo.ai/install")
+      expect(curl).toContain("https://nocowboy.dev/install")
       expect(curl).toContain("bash")
     }),
   )

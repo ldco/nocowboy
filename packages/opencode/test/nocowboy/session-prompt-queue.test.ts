@@ -749,6 +749,7 @@ describe("session prompt queue", () => {
               prompt.prompt({
                 sessionID: session.id,
                 agent: "code",
+                model: { providerID: ProviderID.make("test"), modelID: ModelID.make("model") },
                 parts: [{ type: "text", text: "replacement prompt" }],
                 noReply: true,
               }),

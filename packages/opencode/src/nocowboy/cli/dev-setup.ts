@@ -312,6 +312,6 @@ export async function detectRepo(): Promise<string> {
   }
 
   throw new Error(
-    "cannot locate kilocode source checkout; set KILO_DEV_REPO=/path/to/kilocode or run ./bin/kilodev dev-setup from the repo",
+    "cannot locate nocowboy source checkout; set NOCOWBOY_DEV_REPO=/path/to/nocowboy or run ./bin/nocodev dev-setup from the repo",
   )
 }

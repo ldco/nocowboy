@@ -4,7 +4,7 @@ import { t } from '../i18n/index.js';
 import { extname, resolve, isAbsolute } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 function detectLanguage(ext) {
-    const map = { '.ts': 'typescript', '.tsx': 'typescript', '.mts': 'typescript', '.cts': 'typescript', '.js': 'typescript', '.jsx': 'typescript', '.py': 'python', '.rs': 'rust', '.go': 'go' };
+    const map = { '.ts': 'typescript', '.tsx': 'typescript', '.mts': 'typescript', '.cts': 'typescript', '.js': 'typescript', '.jsx': 'typescript', '.py': 'python', '.rs': 'rust', '.go': 'go', '.md': 'markdown', '.mdx': 'markdown' };
     return map[ext] || null;
 }
 export const checkFileTool = {

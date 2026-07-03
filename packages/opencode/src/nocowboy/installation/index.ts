@@ -22,5 +22,5 @@ export const Scoop = {
 
 export const Release = {
   api: "https://api.github.com/repos/Kilo-Org/kilocode/releases/latest",
-  install: "", // nocowboy_change - TODO: replace with own service, was: "https://nocowboy.dev/install"
+  install: "https://nocowboy.dev/install", // nocowboy_change
 }

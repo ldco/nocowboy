@@ -354,3 +354,111 @@ Analyzed 2026-06-24 from whale-site.pages.dev
 | MCP + Skills support | ✅ | — |
 
 **Key takeaway:** Whale proves DeepSeek can be 30x cheaper than Claude Code for coding tasks. We should adopt their prefix-cache optimization pattern.
+
+---
+
+## 2026-07-02 — Paul (Plan-Apply-Unify Loop) Analysis 🆕
+
+**Source:** https://github.com/ChristopherKahler/paul | 1.1k stars | MIT | v1.4
+
+Paul is a structured development framework for Claude Code: PLAN → APPLY → UNIFY. Not a standalone tool — it's a set of slash commands that enforce a disciplined development loop.
+
+### Paul's Core Loop
+
+```
+PLAN ──▶ APPLY ──▶ UNIFY (mandatory closure)
+Define    Execute   Reconcile & close
+work      tasks     (compares plan vs actual)
+```
+
+### Key Features We DON'T Have
+
+| # | Paul Feature | What It Does | Priority to Borrow |
+|---|---|---|---|
+| 1 | **UNIFY loop closure** | Mandatory reconciliation: plan vs actual, decisions logged, SUMMARY.md created. Prevents orphan plans. | 🔴 HIGH |
+| 2 | **Execute/Qualify loop** | After each task execution, independent verification against AC before moving on. Anti-rationalization enforcement. | 🔴 HIGH |
+| 3 | **Escalation statuses** | DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED — nuanced completion, not binary pass/fail | 🟡 MEDIUM |
+| 4 | **Diagnostic failure routing** | Classifies failures as intent/spec/code before fixing. Prevents patching code when plan is wrong. | 🟡 MEDIUM |
+| 5 | **Coherence check** | Plan validated against PROJECT.md, STATE.md, recent files, ROADMAP.md BEFORE approval. Clean plans pass silently. | 🟡 MEDIUM |
+| 6 | **Acceptance-Driven Development (A.D.D.)** | AC defined BEFORE tasks. Tasks reference AC-1, AC-2. BDD format: Given/When/Then. | 🔴 HIGH |
+| 7 | **In-session context philosophy** | Subagents reserved for discovery/research only. Implementation kept in-session. "Subagent quality is ~70%." | 🟡 MEDIUM |
+| 8 | **Session handoff commands** | `/paul:pause`, `/paul:resume`, `/paul:progress` — structured session continuity with HANDOFF-{date}.md | 🟡 MEDIUM |
+| 9 | **Single next action** | Suggests ONE best path based on state. No decision fatigue. | 🟢 LOW |
+| 10 | **Boundaries enforcement** | Explicit `## DO NOT CHANGE` in plans — violations require confirmation. | 🟢 LOW |
+| 11 | **Skill tracking** | SPECIAL-FLOWS.md declares required skills. UNIFY audits whether invoked. Prevents "forgot to lint." | 🟢 LOW |
+| 12 | **Decimal phases** | Urgent interruptions get 8.1, 8.2 — no roadmap renumbering. | 🟢 LOW |
+| 13 | **Cost ledger** | `.paul/ledger.toml` — timestamped entries for cost attribution per project/phase/plan. | 🟡 MEDIUM |
+| 14 | **Roadmap/milestone CLI** | `/paul:add-phase`, `/paul:remove-phase`, `/paul:milestone`, `/paul:complete-milestone` | 🟢 LOW |
+
+### Paul vs GSD (building on)
+
+| Aspect | GSD | Paul |
+|---|---|---|
+| Loop closure | Flexible | Mandatory |
+| Execution model | Parallel subagents | In-session context |
+| Subagent role | Execution (speed) | Discovery only |
+| Quality gates | Completion-based | Acceptance-based |
+| Decision flow | Multiple options | Single best path |
+| Scope control | Guidance | Enforcement |
+| Session handoff | Implicit | Explicit + dated |
+
+### What Paul GETS RIGHT
+
+- **Loop integrity**: "Never skip UNIFY. Every plan needs closure. This is what separates structured development from chaos."
+- **Token-to-value efficiency**: "AI is already the speed enhancement. Make every token count."
+- **Subagent discipline**: "Parallel execution subagents generate more output faster, but 'more garbage faster' isn't progress."
+
+### What to BORROW for NoCowboy
+
+1. **UNIFY phase** — Our PRDs have plans but no closure. Ralph-TUI executes stories but never reconciles plan vs actual. Add `/unify` command that creates SUMMARY.md + updates STATE.md.
+
+2. **E/Q loop** — Our `/verify` exists but isn't forced after every task. Make it part of the execution flow (not optional).
+
+3. **A.D.D. format** — Our PRDs have acceptanceCriteria but they're free-text. Standardize to Given/When/Then BDD format with task-to-AC linking.
+
+4. **Escalation statuses** — Replace binary pass/fail in task completion. Use DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED.
+
+5. **Coherence check** — Before executing a PRD, validate against MEMORY.md, ROADMAP.md, recent decisions. Catch conflicts early.
+
+### Paul competitor table entry
+
+| Paul | Our advantage | Their advantage |
+|---|---|---|
+| **Paul (Chris Kahler)** | Multi-provider, TUI-native, compiled binary, shared MCP | Loop discipline, E/Q quality gates, session handoff, coherence check, A.D.D. |
+
+---
+
+## 2026-07-02 — Full Competitor Re-review (Missing Features Audit)
+
+### Competitors NOT deeply analyzed before:
+
+| Competitor | Key Features Missed | Priority |
+|---|---|---|
+| **GSD (Get Shit Done)** | Specs-driven development, `.continue-here.md` session state, parallel subagent execution model | 🟡 |
+| **Codex CLI (OpenAI)** | Sandbox execution mode, approval memory (already borrowed), OpenAI-specific optimizations | 🟡 |
+| **Cline / Roo Code** | VS Code integration, large community, active development (100+ contributors), MCP marketplace built-in | 🟡 |
+| **Qodo CLI** | Incremental PR review (already borrowed), AI code review with line-by-line comments | 🟢 |
+| **Factory AI** | Enterprise SSO, audit logs, RBAC, on-premise deployment | 🟢 |
+| **Augment Code** | Enterprise codebase understanding, team collaboration features | 🟢 |
+| **Warp (terminal)** | Agent built INTO terminal (not separate TUI), native shell integration | n/a (different category) |
+
+### Cross-cutting feature gaps (ALL competitors compared):
+
+| # | Feature Gap | From | Our Status | Priority |
+|---|---|---|---|---|
+| 1 | **Structured execution loop** (PLAN→EXECUTE→CLOSE) | Paul, GSD, Plandex | ❌ We have Plan mode + PRD but no enforced loop closure | 🔴 P1 |
+| 2 | **Acceptance-Driven Development** (BDD AC, task-to-AC linking) | Paul | ❌ Our PRDs have AC but no BDD format, no task linking | 🔴 P1 |
+| 3 | **Execute/Qualify loop** (every task verified before next) | Paul | ⚠️ Partial — `/verify` exists but optional | 🔴 P1 |
+| 4 | **Session handoff/pause** (structured resume from cold) | Paul, GSD | ⚠️ Partial — session resume exists, no handoff | 🟡 P2 |
+| 5 | **Plan coherence validation** (auto-check vs project context) | Paul | ❌ No automated plan validation | 🟡 P2 |
+| 6 | **Cost tracking per task/project** | Paul (ledger), Whale | ⚠️ Partial — DeepSeek balance check, no per-task | 🟡 P2 |
+| 7 | **Diagnostic failure routing** (intent/spec/code classification) | Paul | ❌ No failure classification | 🟡 P2 |
+| 8 | **Escalation statuses** (DONE_WITH_CONCERNS, etc.) | Paul | ❌ Binary pass/fail only | 🟢 P3 |
+| 9 | **Branch-per-task isolation** | Plandex | ❌ Already in roadmap P2-A3 | 🟡 P2 |
+| 10 | **Tree-sitter repomap upgrade** | Plandex | ❌ Already in roadmap P3-A4 | 🟡 P2 |
+| 11 | **2M token context window** | Claude Code, Plandex | ❌ Already in roadmap P3-A3 | 🟡 P2 |
+| 12 | **Custom distributions** (preconfigured `nocowboy-ru`) | Goose | ❌ Already in analysis | 🟢 P3 |
+| 13 | **Prefix-cache optimization** | Whale | ✅ P0.1 DONE | — |
+| 14 | **Sandbox execution** | Codex CLI, OpenHands | ❌ Already in roadmap P3-A2 | 🟡 P3 |
+| 15 | **IDE integration** | Cline, Cursor, Copilot | ❌ Not planned — TUI-only strategy | n/a |
+

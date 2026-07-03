@@ -18,7 +18,7 @@ const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
 }
 
 export namespace Launcher {
-  export async function command(name: string, config?: { type?: string; command?: string[] } | null): Promise<string | null> {
+  export async function command(name: string): Promise<string | null> {
     // 1. User's launch.json takes priority
     try {
       const raw = await fsp.readFile(LAUNCH_FILE, "utf-8")
@@ -34,12 +34,7 @@ export namespace Launcher {
       return `node ${bin}`
     } catch {}
 
-    // 3. Fallback to config's local command field (type: "local" servers)
-    if (config?.type === "local" && config.command && config.command.length > 0) {
-      return config.command.map((s: string) => (/\s/.test(s) ? `"${s}"` : s)).join(" ")
-    }
-
-    // 4. Defaults (npx-based third-party servers)
+    // 3. Defaults (npx-based third-party servers)
     const entry = DEFAULT_LAUNCHES[name]
     return entry?.command ?? null
   }

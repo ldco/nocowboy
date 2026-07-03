@@ -35,7 +35,7 @@ describe("RuntimeFlags", () => {
             KILO_ENABLE_PARALLEL: "true",
             KILO_ENABLE_EXPERIMENTAL_MODELS: "true",
             KILO_ENABLE_QUESTION_TOOL: "true",
-            KILO_CLIENT: "desktop",
+            NOCOWBOY_CLIENT: "desktop",
           }),
         ),
       )
@@ -311,7 +311,7 @@ describe("RuntimeFlags", () => {
               KILO_EXPERIMENTAL: "true",
               KILO_ENABLE_EXA: "true",
               KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234",
-              KILO_CLIENT: "desktop",
+              NOCOWBOY_CLIENT: "desktop",
             }),
           ),
         ),

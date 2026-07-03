@@ -14,11 +14,11 @@ export function findConfig(): ConstitutionConfig {
       try {
         const raw = readFileSync(p, 'utf-8')
         const parsed = JSON.parse(raw)
-        return { modules: parsed?.constitution?.modules ?? parsed?.modules ?? ['typescript'] }
+        return { modules: parsed?.constitution?.modules ?? parsed?.modules ?? ['typescript', 'markdown'] }
       } catch { return { modules: ['typescript'] } }
     }
   }
-  return { modules: ['typescript'] }
+  return { modules: ['typescript', 'markdown'] }
 }
 
 export async function loadModules(config: ConstitutionConfig): Promise<Map<string, LanguageModule>> {

@@ -29,8 +29,10 @@ process.env["XDG_CACHE_HOME"] = path.join(dir, "cache")
 process.env["XDG_CONFIG_HOME"] = path.join(dir, "config")
 process.env["XDG_STATE_HOME"] = path.join(dir, "state")
 process.env["KILO_MODELS_PATH"] = path.join(import.meta.dir, "tool", "fixtures", "models-api.json")
+process.env["NOCOWBOY_MODELS_PATH"] = process.env["KILO_MODELS_PATH"]
 process.env["KILO_EXPERIMENTAL_EVENT_SYSTEM"] = "true"
 process.env["KILO_EXPERIMENTAL_WORKSPACES"] = "true"
+process.env["NOCOWBOY_EXPERIMENTAL_WORKSPACES"] = "true"
 
 // Set test home directory to isolate tests from user's actual home directory
 // This prevents tests from picking up real user configs/skills from ~/.claude/skills
@@ -82,6 +84,11 @@ process.env["KILO_API_KEY"] = process.env.NOCOWBOY_API_KEY ?? process.env.KILO_A
 process.env["KILO_SESSION_EXPORT_AUTH_TOKEN"] = process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN ?? process.env.KILO_SESSION_EXPORT_AUTH_TOKEN
 process.env["KILO_CLIENT"] = process.env.NOCOWBOY_CLIENT ?? process.env.KILO_CLIENT
 process.env["KILO_DISABLE_CODEBASE_INDEXING"] = process.env.NOCOWBOY_DISABLE_CODEBASE_INDEXING ?? process.env.KILO_DISABLE_CODEBASE_INDEXING
+
+// NOTE: Mirroring KILO_* → NOCOWBOY_* here is DANGEROUS — when a test later deletes
+// KILO_*, the NOCOWBOY_* mirror STAYS and confuses source code. Source code now reads
+// both names directly. Tests that set KILO_* should also set NOCOWBOY_*. Do NOT add
+// reverse mirrors here — fix the test instead.
 
 // Now safe to import from src/
 const { Log } = await import("@opencode-ai/core/util/log")

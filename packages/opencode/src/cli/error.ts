@@ -65,8 +65,8 @@ export function FormatError(input: unknown): string | undefined {
       `Model not found: ${stringField(providerModelNotFound, "providerID")}/${stringField(providerModelNotFound, "modelID")}`,
       ...(suggestions.length ? ["Did you mean: " + suggestions.join(", ")] : []),
       ...(providerModelNotFound.modelsEmpty === true ? ["No models are currently available."] : []), // nocowboy_change
-      `Try: \`kilo models\` to list available models`, // nocowboy_change
-      `Or check your kilo.json provider/model names`, // nocowboy_change
+      `Try: \`nocowboy models\` to list available models`, // nocowboy_change
+      `Or check your nocowboy.json provider/model names`, // nocowboy_change
     ].join("\n")
   }
 

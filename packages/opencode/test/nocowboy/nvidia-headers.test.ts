@@ -1,5 +1,4 @@
 import { expect } from "bun:test"
-import path from "path"
 import { Effect, Layer } from "effect"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { provideTmpdirInstance } from "../fixture/fixture"
@@ -7,10 +6,11 @@ import { testEffect } from "../lib/effect"
 import { Env } from "../../src/env"
 import { Provider } from "../../src/provider/provider"
 import { ProviderID } from "../../src/provider/schema"
+import path from "path"
 
 const it = testEffect(Layer.mergeAll(Provider.defaultLayer, Env.defaultLayer, CrossSpawnSpawner.defaultLayer))
 
-function withNvidiaKey<A, E, R>(self: Effect.Effect<A, E, R>) {
+function withNvidiaKey<E, R>(self: Effect.Effect<void, E, R>) {
   return Effect.gen(function* () {
     const env = yield* Env.Service
     yield* env.set("NVIDIA_API_KEY", "test-api-key")
@@ -19,7 +19,7 @@ function withNvidiaKey<A, E, R>(self: Effect.Effect<A, E, R>) {
   })
 }
 
-it.live("nvidia provider includes KiloCode billing origin header", () =>
+it.live("nvidia provider includes NoCowboy billing origin header", () =>
   provideTmpdirInstance(() =>
     withNvidiaKey(
       Provider.Service.use((provider) =>
@@ -27,9 +27,9 @@ it.live("nvidia provider includes KiloCode billing origin header", () =>
           const providers = yield* provider.list()
           const headers = providers[ProviderID.make("nvidia")].options.headers
 
-          expect(headers["HTTP-Referer"]).toBe("https://kilo.ai/")
-          expect(headers["X-Title"]).toBe("Kilo Code")
-          expect(headers["X-BILLING-INVOKE-ORIGIN"]).toBe("KiloCode")
+          expect(headers["HTTP-Referer"]).toBe("https://nocowboy.dev/")
+          expect(headers["X-Title"]).toBe("NoCowboy")
+          expect(headers["X-BILLING-INVOKE-ORIGIN"]).toBe("NoCowboy")
         }),
       ),
     ),
@@ -63,8 +63,8 @@ it.live("nvidia billing origin header can be overridden from config", () =>
             const providers = yield* provider.list()
             const headers = providers[ProviderID.make("nvidia")].options.headers
 
-            expect(headers["HTTP-Referer"]).toBe("https://kilo.ai/")
-            expect(headers["X-Title"]).toBe("Kilo Code")
+            expect(headers["HTTP-Referer"]).toBe("https://nocowboy.dev/")
+            expect(headers["X-Title"]).toBe("NoCowboy")
             expect(headers["X-BILLING-INVOKE-ORIGIN"]).toBe("CustomOrigin")
           }),
         ),

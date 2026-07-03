@@ -58,7 +58,7 @@ it.instance(
   () =>
     Effect.gen(function* () {
       const instance = yield* TestInstance
-      const dir = path.join(instance.directory, ".kilo", "skill", "kilo-config")
+      const dir = path.join(instance.directory, ".nocowboy", "skill", "kilo-config")
       yield* Effect.promise(() =>
         Bun.write(
           path.join(dir, "SKILL.md"),

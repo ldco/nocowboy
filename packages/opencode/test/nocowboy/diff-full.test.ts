@@ -160,7 +160,7 @@ describe("DiffFull.batch", () => {
         expect(result.get("f0000.txt")).toContain("-before")
         expect(result.get("f1199.txt")).toContain("+after")
       }),
-    30_000,
+    120_000,
   )
 })
 

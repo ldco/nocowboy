@@ -76,3 +76,10 @@ Uses the **Vercel AI SDK** as the abstraction layer. Providers are loaded from a
 ## Fork Isolation Rule
 
 `opencode/` is a fork of upstream opencode. When a change must touch a shared upstream file, extract the Kilo-specific logic into a mirror file under `src/kilocode/<same/path>.ts` (tests under `test/kilocode/<same/path>.test.ts`) and call into it from the upstream file behind a single `kilocode_change` marker. Example: a Kilo override for `src/cli/cmd/tui/component/dialog-provider.tsx` lives at `src/kilocode/cli/cmd/tui/component/dialog-provider.tsx`. Avoid inlining Kilo-specific logic directly into shared upstream files. Files and directories whose path contains `kilocode` never need `kilocode_change` markers.
+
+## Status Tracking Integrity
+
+- **No false positives.** ✅ or `completed` status requires evidence: commit SHA, test output, or verifiable diff.
+- A task is not done until its acceptance criteria are met and the result is independently verifiable.
+- If you marked something done but didn't verify — unmark it. Integrity over speed.
+- **Tests validate code, not the other way around.** When a test fails, first ask "is the CODE broken?" Fix the code. Change the test only when the assertion itself is stale. Making tests pass by matching broken code is cheating — a green suite against broken code is worse than a red one.

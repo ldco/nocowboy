@@ -8,9 +8,11 @@ export type IndexingScope = "global" | "project"
 const log = Log.create({ service: "indexing-model-catalog" })
 
 export async function loadNocowboyEmbeddingModels(onError?: (message: string) => void) {
-  const endpoint = new URL("embedding-models", resolveGatewayBaseUrl()).toString()
+  const baseUrl = resolveGatewayBaseUrl()
+  const endpoint = baseUrl ? new URL("embedding-models", baseUrl).toString() : "none"
   log.info("loading NoCowboy embedding model catalog", { endpoint })
   const catalog = await fetchEmbeddingModelCatalog({
+    baseURL: baseUrl,
     onError: (issue) => {
       log.warn("failed to load NoCowboy embedding model catalog", {
         code: issue.code,

@@ -42,7 +42,7 @@ function provider(id: string, models: Record<string, Provider.Model>): Provider.
 describe("prompt-training model filter", () => {
   test("hides only explicitly marked NoCowboy Gateway models", () => {
     const providers = {
-      kilo: provider("kilo", {
+      nocowboy: provider("nocowboy", {
         training: model("training", true),
         private: model("private", false),
         unknown: model("unknown"),
@@ -54,18 +54,18 @@ describe("prompt-training model filter", () => {
 
     const result = filterPromptTrainingModels(providers, true)
 
-    expect(Object.keys(result.kilo.models)).toEqual(["private", "unknown"])
+    expect(Object.keys(result.nocowboy.models)).toEqual(["private", "unknown"])
     expect(Object.keys(result.other.models)).toEqual(["training"])
-    expect(Object.keys(providers.kilo.models)).toEqual(["training", "private", "unknown"])
+    expect(Object.keys(providers.nocowboy.models)).toEqual(["training", "private", "unknown"])
   })
 
   test("preserves the catalog when disabled", () => {
-    const providers = { kilo: provider("kilo", { training: model("training", true) }) }
+    const providers = { nocowboy: provider("nocowboy", { training: model("training", true) }) }
     expect(filterPromptTrainingModels(providers, false)).toBe(providers)
   })
 
   test("excludes providers without visible models from default selection", () => {
-    const providers = { kilo: provider("kilo", { training: model("training", true) }) }
+    const providers = { nocowboy: provider("nocowboy", { training: model("training", true) }) }
     const visible = filterPromptTrainingModels(providers, true)
     expect(nonEmptyProviders(visible)).toEqual({})
   })

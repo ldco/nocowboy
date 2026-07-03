@@ -66,14 +66,14 @@ export namespace NocowboyCli {
 
   // Runs from the `finally` block on every exit path.
   export async function shutdown(): Promise<void> {
-    Telemetry.trackCliExit()
+    Telemetry.trackCliExit(process.exitCode != null ? Number(process.exitCode) : 0)
     try {
       await SessionExport.shutdown()
       // Bound telemetry shutdown so an unreachable endpoint (offline, firewall,
       // DNS adblock resolving the host to 0.0.0.0) cannot block process exit on
       // short-lived commands like `kilo --help` / `kilo --version` (#9788).
       try {
-        await Telemetry.shutdown()
+        await Telemetry.shutdown(2000)
       } catch (err) {
         log.warn("telemetry shutdown failed", { err })
       }

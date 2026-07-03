@@ -20,7 +20,7 @@ const layer = SessionShare.layer.pipe(
   Layer.provide(SyncEvent.defaultLayer),
 )
 
-it.instance("shares and unshares sessions through Kilo public URLs", () => {
+it.instance("shares and unshares sessions through NoCowboy public URLs", () => {
   const urls: string[] = []
   const fetch: typeof globalThis.fetch = Object.assign(
     async (input: RequestInfo | URL) => {
@@ -46,8 +46,8 @@ it.instance("shares and unshares sessions through Kilo public URLs", () => {
     yield* storage.write(["session_share", info.id], { id: "remote-1", ingestPath: "/api/ingest/session-1" })
 
     const result = yield* share.share(info.id)
-    expect(result.url).toBe("https://app.kilo.ai/s/public-1")
-    expect((yield* session.get(info.id)).share?.url).toBe("https://app.kilo.ai/s/public-1")
+    expect(result.url).toBe("")
+    expect((yield* session.get(info.id)).share?.url).toBeUndefined()
 
     yield* share.unshare(info.id)
     expect((yield* session.get(info.id)).share).toBeUndefined()

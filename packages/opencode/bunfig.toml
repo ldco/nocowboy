@@ -3,11 +3,13 @@ preload = ["@opentui/solid/preload"]
 
 [test]
 # Preload env vars, port randomization, and database isolation before each test.
-preload = "./test/preload.ts"
+# Also preload opentui/solid so SolidJS JSX transform works in TUI tests.
+preload = ["@opentui/solid/preload", "./test/preload.ts"]
 
 # Cap concurrency to prevent CPU starvation with 235+ test files.
 concurrency = 4
 
 # Increase default timeout from 5000ms. Under concurrent load, CPU scheduling
 # delays mean a test may not get 5000ms of wall-clock time.
-timeout = 15000
+# diff-full.test.ts needs 35s+ for 1200-file git batches.
+timeout = 60000

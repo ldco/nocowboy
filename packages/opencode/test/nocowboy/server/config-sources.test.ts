@@ -29,7 +29,7 @@ const env = {
   NOCOWBOY_CONFIG: process.env.NOCOWBOY_CONFIG,
   NOCOWBOY_CONFIG_CONTENT: process.env.NOCOWBOY_CONFIG_CONTENT,
   NOCOWBOY_CONFIG_DIR: process.env.NOCOWBOY_CONFIG_DIR,
-  KILO_DISABLE_PROJECT_CONFIG: process.env.KILO_DISABLE_PROJECT_CONFIG,
+  NOCOWBOY_DISABLE_PROJECT_CONFIG: process.env.NOCOWBOY_DISABLE_PROJECT_CONFIG,
   NOCOWBOY_TEST_MANAGED_CONFIG_DIR: process.env.NOCOWBOY_TEST_MANAGED_CONFIG_DIR,
   flagConfig: Flag.NOCOWBOY_CONFIG,
 }
@@ -44,7 +44,7 @@ function restore() {
   set("NOCOWBOY_CONFIG", env.NOCOWBOY_CONFIG)
   set("NOCOWBOY_CONFIG_CONTENT", env.NOCOWBOY_CONFIG_CONTENT)
   set("NOCOWBOY_CONFIG_DIR", env.NOCOWBOY_CONFIG_DIR)
-  set("KILO_DISABLE_PROJECT_CONFIG", env.KILO_DISABLE_PROJECT_CONFIG)
+  set("NOCOWBOY_DISABLE_PROJECT_CONFIG", env.NOCOWBOY_DISABLE_PROJECT_CONFIG)
   set("NOCOWBOY_TEST_MANAGED_CONFIG_DIR", env.NOCOWBOY_TEST_MANAGED_CONFIG_DIR)
   Flag.NOCOWBOY_CONFIG = env.flagConfig
 }
@@ -137,13 +137,13 @@ describe("config source routes", () => {
       },
     })
 
-    process.env.KILO_DISABLE_PROJECT_CONFIG = "1"
+    process.env.NOCOWBOY_DISABLE_PROJECT_CONFIG = "1"
 
     const body = await sources(tmp.path)
 
     expect(body.sources.some((source) => source.path === path.join(tmp.path, "nocowboy.json"))).toBe(false)
     expect(body.sources.some((source) => source.path === path.join(tmp.path, ".nocowboy", "nocowboy.json"))).toBe(false)
-    expect(body.sources.find((source) => source.source === "KILO_DISABLE_PROJECT_CONFIG")).toMatchObject({
+    expect(body.sources.find((source) => source.source === "NOCOWBOY_DISABLE_PROJECT_CONFIG")).toMatchObject({
       kind: "runtime-env",
       scope: "env",
       exists: true,
