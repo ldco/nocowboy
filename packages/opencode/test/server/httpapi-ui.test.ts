@@ -34,8 +34,8 @@ const testStateLayer = Layer.effectDiscard(
       Effect.sync(() => {
         Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
         Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
-        restoreEnv("KILO_SERVER_PASSWORD", original.envPassword)
-        restoreEnv("KILO_SERVER_USERNAME", original.envUsername)
+        restoreEnv("NOCOWBOY_SERVER_PASSWORD", original.envPassword)
+        restoreEnv("NOCOWBOY_SERVER_USERNAME", original.envUsername)
       }),
     )
   }),

@@ -28,21 +28,21 @@ process.env["XDG_DATA_HOME"] = path.join(dir, "share")
 process.env["XDG_CACHE_HOME"] = path.join(dir, "cache")
 process.env["XDG_CONFIG_HOME"] = path.join(dir, "config")
 process.env["XDG_STATE_HOME"] = path.join(dir, "state")
-process.env["KILO_MODELS_PATH"] = path.join(import.meta.dir, "tool", "fixtures", "models-api.json")
-process.env["NOCOWBOY_MODELS_PATH"] = process.env["KILO_MODELS_PATH"]
-process.env["KILO_EXPERIMENTAL_EVENT_SYSTEM"] = "true"
-process.env["KILO_EXPERIMENTAL_WORKSPACES"] = "true"
+process.env["NOCOWBOY_MODELS_PATH"] = path.join(import.meta.dir, "tool", "fixtures", "models-api.json")
+process.env["NOCOWBOY_MODELS_PATH"] = process.env["NOCOWBOY_MODELS_PATH"]
+process.env["NOCOWBOY_EXPERIMENTAL_EVENT_SYSTEM"] = "true"
+process.env["NOCOWBOY_EXPERIMENTAL_WORKSPACES"] = "true"
 process.env["NOCOWBOY_EXPERIMENTAL_WORKSPACES"] = "true"
 
 // Set test home directory to isolate tests from user's actual home directory
 // This prevents tests from picking up real user configs/skills from ~/.claude/skills
 const testHome = path.join(dir, "home")
 await fs.mkdir(testHome, { recursive: true })
-process.env["KILO_TEST_HOME"] = testHome
+process.env["NOCOWBOY_TEST_HOME"] = testHome
 
 // Set test managed config directory to isolate tests from system managed settings
 const testManagedConfigDir = path.join(dir, "managed")
-process.env["KILO_TEST_MANAGED_CONFIG_DIR"] = testManagedConfigDir
+process.env["NOCOWBOY_TEST_MANAGED_CONFIG_DIR"] = testManagedConfigDir
 
 // Write the cache version file to prevent global/index.ts from clearing the cache
 const cacheDir = path.join(dir, "cache", "kilo")
@@ -70,8 +70,8 @@ delete process.env["DEEPSEEK_API_KEY"]
 delete process.env["FIREWORKS_API_KEY"]
 delete process.env["CEREBRAS_API_KEY"]
 delete process.env["SAMBANOVA_API_KEY"]
-delete process.env["KILO_SERVER_PASSWORD"]
-delete process.env["KILO_SERVER_USERNAME"]
+delete process.env["NOCOWBOY_SERVER_PASSWORD"]
+delete process.env["NOCOWBOY_SERVER_USERNAME"]
 
 // Use in-memory sqlite. Some code paths reopen the database by path;
 // fall through to per-process temp file when needed.
@@ -79,11 +79,8 @@ process.env["NOCOWBOY_DB"] = ":memory:"
 process.env["NOCOWBOY_TEST_DB_PATH"] = path.join(dir, "test.db")
 
 // Map NOCOWBOY_* to KILO_* for source code that still reads the old names.
-process.env["KILO_ORG_ID"] = process.env.NOCOWBOY_ORG_ID ?? process.env.KILO_ORG_ID
-process.env["KILO_API_KEY"] = process.env.NOCOWBOY_API_KEY ?? process.env.KILO_API_KEY
-process.env["KILO_SESSION_EXPORT_AUTH_TOKEN"] = process.env.NOCOWBOY_SESSION_EXPORT_AUTH_TOKEN ?? process.env.KILO_SESSION_EXPORT_AUTH_TOKEN
-process.env["KILO_CLIENT"] = process.env.NOCOWBOY_CLIENT ?? process.env.KILO_CLIENT
-process.env["KILO_DISABLE_CODEBASE_INDEXING"] = process.env.NOCOWBOY_DISABLE_CODEBASE_INDEXING ?? process.env.KILO_DISABLE_CODEBASE_INDEXING
+// Set NOCOWBOY_* env vars for compatibility with runtime-flags
+process.env["NOCOWBOY_CLIENT"] = process.env.NOCOWBOY_CLIENT ?? "cli"
 
 // NOTE: Mirroring KILO_* → NOCOWBOY_* here is DANGEROUS — when a test later deletes
 // KILO_*, the NOCOWBOY_* mirror STAYS and confuses source code. Source code now reads

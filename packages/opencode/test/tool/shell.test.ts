@@ -547,7 +547,7 @@ describe("tool.shell permissions", () => {
           item,
           Effect.acquireUseRelease(
             Effect.sync(() => {
-              const key = "KILO_TEST_MISSING"
+              const key = "NOCOWBOY_TEST_MISSING"
               const prev = process.env[key]
               delete process.env[key]
               return { key, prev }

@@ -78,7 +78,7 @@ describe("typescript lightweight mode", () => {
 
     test("lsp/server.ts gates Typescript.spawn behind flag", async () => {
       const src = await Bun.file(path.resolve(import.meta.dir, "../../src/lsp/server.ts")).text()
-      expect(src).toContain("KILO_EXPERIMENTAL_LSP_TOOL")
+      expect(src).toContain("NOCOWBOY_EXPERIMENTAL_LSP_TOOL")
       expect(src).toContain("native_tsgo")
     })
 

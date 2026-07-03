@@ -125,8 +125,8 @@ afterEach(async () => {
   IndexingWorker.override()
   if (configDir === undefined) delete process.env["NOCOWBOY_CONFIG_DIR"]
   else process.env["NOCOWBOY_CONFIG_DIR"] = configDir
-  if (disabled === undefined) delete process.env["KILO_DISABLE_CODEBASE_INDEXING"]
-  else process.env["KILO_DISABLE_CODEBASE_INDEXING"] = disabled
+  if (disabled === undefined) delete process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"]
+  else process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] = disabled
   global.fetch = fetch
   await disposeAllInstances()
 })

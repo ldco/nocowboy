@@ -31,8 +31,8 @@ mock.module("@nocowboy/telemetry", () => ({
 }))
 
 mock.module("@nocowboy/gateway", () => ({
-  ENV_FEATURE: "KILO_FEATURE",
-  ENV_VERSION: "KILO_VERSION",
+  ENV_FEATURE: "NOCOWBOY_FEATURE",
+  ENV_VERSION: "NOCOWBOY_VERSION",
   async migrateLegacyKiloAuth() {},
 }))
 

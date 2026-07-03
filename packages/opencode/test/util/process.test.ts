@@ -80,7 +80,7 @@ describe("util.process", () => {
   test("uses shell in run on Windows", async () => {
     if (process.platform !== "win32") return
 
-    const out = await Process.run(["set", "KILO_TEST_SHELL"], {
+    const out = await Process.run(["set", "NOCOWBOY_TEST_SHELL"], {
       shell: true,
       env: {
         KILO_TEST_SHELL: "ok",
@@ -88,7 +88,7 @@ describe("util.process", () => {
     })
 
     expect(out.code).toBe(0)
-    expect(out.stdout.toString()).toContain("KILO_TEST_SHELL=ok")
+    expect(out.stdout.toString()).toContain("NOCOWBOY_TEST_SHELL=ok")
   })
 
   test("runs cmd scripts with spaces on Windows without shell", async () => {
