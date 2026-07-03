@@ -61,6 +61,13 @@ const AgentSchema = Schema.StructWithRest(
     // nocowboy_change end
     maxSteps: Schema.optional(PositiveInt).annotate({ description: "@deprecated Use 'steps' field instead." }),
     permission: Schema.optional(ConfigPermission.Info),
+    // nocowboy_change start - composable tool groups
+    groups: Schema.optional(
+      Schema.mutable(Schema.Array(Schema.String)),
+    ).annotate({
+      description: "Tool groups for this agent: read, edit, command, mcp. Resolved to baseline permissions.",
+    }),
+    // nocowboy_change end
   }),
   [Schema.Record(Schema.String, Schema.Any)],
 )
@@ -82,6 +89,7 @@ const KNOWN_KEYS = new Set([
   "permission",
   "disable",
   "tools",
+  "groups",
 ])
 
 // Post-parse normalisation:
@@ -107,8 +115,24 @@ const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema
   }
   globalThis.Object.assign(permission, agent.permission)
 
-  // nocowboy_change start - preserve null delete sentinel (?? would collapse null to maxSteps)
+  // nocowboy_change start - resolve groups to permissions + preserve null delete sentinel
   const steps = agent.steps !== undefined ? agent.steps : agent.maxSteps
+
+  // Resolve tool groups to baseline permissions
+  if (Array.isArray(agent.groups)) {
+    const GROUP_TOOLS: Record<string, Record<string, "allow">> = {
+      read: { read: "allow", grep: "allow", glob: "allow", list: "allow", codebase_search: "allow", semantic_search: "allow" },
+      edit: { edit: "allow", write: "allow" },
+      command: { bash: "allow" },
+      mcp: {},
+    }
+    const resolved: Record<string, unknown> = {}
+    for (const group of agent.groups) {
+      const tools = GROUP_TOOLS[group as string]
+      if (tools) Object.assign(resolved, tools)
+    }
+    Object.assign(permission, resolved, permission)
+  }
   return { ...agent, options, permission, ...(steps !== undefined ? { steps } : {}) }
   // nocowboy_change end
 }

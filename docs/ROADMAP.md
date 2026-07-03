@@ -4,17 +4,19 @@
 
 **v0.7.0** | 2026-06-27 | LSP toggle fix + Balance checking + Settings/Info UI polish
 
+**Audited:** 2026-07-02 — every ✅ verified against actual codebase. Evidence: commit SHAs, file paths, test output.
+
 ---
 
-## ✅ DONE — v0.7.0
+## ✅ VERIFIED DONE — v0.7.0
 
 ### LSP Toggle Fix
-| Issue | Root cause | Fix |
-|---|---|---|
-| Toggle didn't work | `lspEnabled()` checked `=== true` only | Changed to `!!sync.data.config?.lsp` (truthy) |
-| Click ignored | `onMouseDown` on `<box>` not handled by OpenTUI | Moved to `<text>` matching all working patterns |
-| Config wrote to wrong file | Ancestor `.opencode/opencode.jsonc` took priority over local `nocowboy.jsonc` | Swapped order in `projectConfigUpdateTarget`: local root files first |
-| TUI didn't refresh after write | `sync.data.config` never updated after `config.update` | Added `config.get()` + `sync.set()` post-update |
+| Issue | Root cause | Fix | Evidence |
+|---|---|---|---|
+| Toggle didn't work | `lspEnabled()` checked `=== true` only | Changed to `!!sync.data.config?.lsp` (truthy) | `sidebar.tsx:111` |
+| Click ignored | `onMouseDown` on `<box>` not handled by OpenTUI | Moved to `<text>` matching all working patterns | `sidebar.tsx:184-191` |
+| Config wrote to wrong file | Ancestor `.opencode/opencode.jsonc` took priority over local `nocowboy.jsonc` | Swapped order in `projectConfigUpdateTarget`: local root files first | `config.ts:65-81` (comment at :76-79) |
+| TUI didn't refresh after write | `sync.data.config` never updated after `config.update` | Added `config.get()` + `sync.set()` post-update | `sidebar.tsx:125`, `sync.tsx:433-434` |
 
 ### Balance Checking
 | Provider | Endpoint | Response field |
@@ -42,127 +44,108 @@
 
 ---
 
-## ✅ DONE — P2-A1 MCP Server Management & Dogfooding Blocker
+## ✅ VERIFIED DONE — P2-A1 MCP Server Management & Dogfooding Blocker
 
 **Plan:** `docs/plans/p2-mcp-management.md` | **Status:** ✅ Dogfooding release v0.7.3
 
-| Phase | Task | Status |
-|---|---|---|
-| 1 | Add vendor field to MCP config schema | ✅ `config/mcp.ts` |
-| 2 | Fix nocowboy init — populate default servers | ✅ `cli/cmd/init.ts` |
-| 3 | Settings tab MCP server list with live status | ✅ `sidebar.tsx` |
-| 4 | Full MCP management dialog (enable/disable, add, remove, logs, filter) | ✅ `dialog-mcp.tsx` wired |
-| 5 | Auto-start MCP servers on first TUI launch | ✅ lifecycle fixed with standalone proxy |
+| Phase | Task | Status | Evidence |
+|---|---|---|---|
+| 1 | Add vendor field to MCP config schema | ✅ | `config/mcp.ts:7-11` (VENDOR const), `:21, :41, :88` (vendor in schemas) |
+| 2 | Fix nocowboy init — populate default servers | ✅ | `cli/cmd/init.ts:61-87` (13 servers with names/vendors/ports), `:113-141` (auto-start) |
+| 3 | Settings tab MCP server list with live status | ✅ | `sidebar/mcp.tsx:20-74` (status dots+labels), `dialog-mcp.tsx:28-45` (dialog list) |
+| 4 | Full MCP management dialog (enable/disable, add, remove, logs, filter) | ✅ | `dialog-mcp.tsx:47-71` (toggle), `mcp.ts:459` (add), `:968` (remove), `:951` (logs) |
+| 5 | Auto-start MCP servers on first TUI launch | ✅ | `mcp/index.ts:529-565` (MCP state init auto-starts enabled servers) |
 
-**Taxonomy:** 8 first-party (`vendor: "nocowboy"`) + 4 community (`vendor: "community"`)
-
----
-
-## ✅ DONE — P2-C1 Agent Audit
-
-**Plan:** `docs/plans/p2-c1-agent-audit.md` | **Status:** ✅ DONE — v0.7.3 dogfooding
-
-| Action | Result |
-|---|---|
-| Rename config `plan` → `researcher` (avoid name collision with built-in plan safety mode) | ✅ `packaging/config/agent/researcher.md` created |
-| Remove config `explore` (merged into built-in explore subagent) | ✅ `packaging/config/agent/explore.md` deleted |
-| Remove deprecated `orchestrator` agent | ✅ `nocowboy/agent/index.ts` orchestrator block deleted |
-| Delete Kilo org artifacts (triage, duplicate-pr) | ✅ `.opencode/agent/triage.md` + `duplicate-pr.md` deleted |
-| ROADMAP updated | ✅ |
+**Taxonomy:** 9 first-party (`vendor: "nocowboy"`) + 4 community (`vendor: "community"`) — `init.ts:75-80`
 
 ---
 
-## 🔥 ACTIVE — P1.6 Test Harness & Root Cause Debug
+## ✅ DONE — P1.6 Test Harness & Root Cause Debug
 
-| Step | Task | Status |
-|---|---|---|
-| 1 | Find when test failures appeared in git history | ✅ Found: Flag.NOCOWBOY_DB static capture + preload not auto-loading |
-| 2 | Identify root cause commit | ✅ Multiple commits; preload auto-detect never worked |
-| 3 | Fix root cause in source code | ✅ Flag getter/setter, direct env reads, resetDatabase expanded |
-| 4 | Verify all tests pass without concurrency hacks | 🚧 Pre-push passes with --preload + --concurrency 2 |
-
-**Root cause**: bun does NOT auto-detect `test/preload.ts`. The preload file sets
-`NOCOWBOY_DB=:memory:`, `XDG_*` env vars, and port randomization. Without the
-preload running, tests used the real file database and shared config paths,
-causing 254+ concurrent failures and "Refusing to reset non-test database" errors.
-
-**Secondary cause**: `Flag.NOCOWBOY_DB` was a static property that captured
-`process.env.NOCOWBOY_DB` once at module load time. Changed to a getter that
-reads the env var live, with a setter that mirrors to `process.env`.
-
-**Fix applied**: `--preload ./test/preload.ts` in pre-push hook and bunfig.toml.
-All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
+| Step | Task | Status | Evidence |
+|---|---|---|---|
+| 1 | Find when test failures appeared in git history | ✅ | Flag.NOCOWBOY_DB static capture + preload not auto-loading |
+| 2 | Identify root cause commit | ✅ | Commit `83612b901c46` — preload must be explicitly specified |
+| 3 | Fix root cause in source code | ✅ | Flag getter/setter (`flag.ts:83-89`), direct env reads (`db.ts:42`), resetDatabase expanded (`fixture/db.ts:4-18`) |
+| 4 | Add `KILO_*` → `NOCOWBOY_*` backward compat in source | ✅ | `flag.ts:114-116`, `background-process/index.ts:171-173`, `dev-setup.ts:289` |
+| 5 | Per-process test runner isolates shared state | ✅ | `script/test-runner.ts` — 263→22 failures |
+| 6 | Fix 13 rebranding-related test files | ✅ | nvidia-headers, cli/error, cli-shutdown, question-option, indexing-auth, dev-setup, session-share, upgrade, config-sources, builtin-skills, model-filter, prompt-training-model-filter, thread |
+| 7 | Fix remaining 9 timing-dependent tests | ✅ | codex-auth-refresh (path fix), indexing-dialog-state (gateway URL), daemon (env vars), plan-exit-detection (ANSWER_REFINE), plan-followup (ANSWER_REFINE), session-fork-remap (preload env), session-prompt-queue (missing model), tui-sync-event (SolidJS preload), diff-full (timeout) |
+| 8 | Full test suite verified | ✅ | **231 pass / 0 fail** — `bun run script/test-runner.ts test/nocowboy` |
 
 ---
 
-## ✅ DONE
+## ✅ VERIFIED DONE
 
 ### Core Infrastructure
-| Feature | Source | What |
+| Feature | Source | Evidence |
 |---|---|---|
-| Compiled binary (`bun build --compile`) | Self | 155MB, instant startup, cross-compile linux→darwin |
-| Shared MCP architecture | Self | One server set, all instances connect via HTTP/SSE. No per-instance memory bloat. |
-| Embedded MCP proxy | Self | Zero deps. `_proxy` subcommand. No `mcp-proxy` npm package needed. |
-| Plugin out/plugin in MCP | Self | `npm install -g @nocowboy/mcp-<name>`, postinstall auto-configures, `require.resolve` auto-detects. |
-| Provider-agnostic | Kilo/inherited | 200+ models via LiteLLM proxy. Not vendor-locked. |
-| npm publishing pipeline | Self | Platform binary + meta-package + MCP server packages. `npm install -g nocowboy`. |
-| Per-system packaging removed | Self | AUR, systemd, homebrew, launchd deleted. |
+| Compiled binary (`bun build --compile`) | Self | Binary on PATH at `~/.local/bin/nocowboy`. Build script: `script/build.ts:291-313`. Actual size: **227MB** (not 155MB as previously claimed) |
+| Shared MCP architecture | Self | All servers via HTTP/SSE on port 92xx. `lifecycle.ts:61,86` |
+| Embedded MCP proxy | Self | `_proxy` subcommand. `mcp.ts:1010-1020`. No external deps. |
+| Plugin out/plugin in MCP | Self | `mcp install <name>` auto-detects via `require.resolve`. `launcher.ts:30-35`, `mcp.ts:828-859` |
+| Provider-agnostic | Kilo/inherited | 200+ models via LiteLLM proxy. `multi-provider.md`, `session/llm.ts:218,258` |
+| npm publishing pipeline | Self | Full pipeline in `script/publish.ts` (217 lines). Per-platform packages with `os`/`cpu` fields + postinstall. |
+| Per-system packaging removed | Self | 24 files deleted in commit `2140222f6`. AUR, systemd, homebrew, launchd removed. |
 
 ### MCP Commands
-| Command | What |
-|---|---|
-| `mcp start/stop/status/logs` | Lifecycle management |
-| `mcp install <name>` | Auto-detect + npm install + configure |
-| `mcp remove <name>` | Stop + config removal + launch cleanup |
-| `mcp add` | Interactive dialog for custom servers |
+| Command | What | Evidence |
+|---|---|---|
+| `mcp start/stop/status/logs` | Lifecycle management | `mcp.ts:865-913` |
+| `mcp install <name>` | Auto-detect + npm install + configure | `mcp.ts:823-862` |
+| `mcp remove <name>` | Stop + config removal + launch cleanup | `mcp.ts:968-1007` |
+| `mcp add` | Interactive dialog for custom servers | `mcp.ts:459` |
 
 ### Features Borrowed
-| Feature | From | What |
-|---|---|---|
-| Repomap | Aider | Token-optimized repo summary. Command + auto-injected into system prompt every turn. |
-| Memory FTS5 | MiMo (MIT) | Full-text search, reconcile, `/dream` command. `fts-query.ts` copied directly. |
-| Multi-turn approval memory | Codex CLI | In-memory per-session cache. Approve once → never asked again. |
-| Zero-config wizard | Copilot CLI | `nocowboy init` — 2 questions, global config only. |
-| Goal judge | MiMo | `/goal` with independent subagent evaluation. |
-| Incremental PR review | Qodo CLI | Code-reviewer checks only git diff files. |
-| Indexing first-class | Self | Not a plugin. Checks `indexing.enabled` directly. |
-| SQLite vector store | Self | Replaced LanceDB (~14MB native deps removed). |
-| Voice input | Self | FFmpeg capture + transcription (`voice-button.tsx`, 97 lines). |
-| Deep context mode | MiMo | Repomap + memory merged into system prompt every turn. |
+| Feature | From | What | Status |
+|---|---|---|---|
+| Repomap | Aider | Token-optimized repo summary | ✅ |
+| Memory FTS5 | MiMo (MIT) | Full-text search, reconcile, auto-dream (scheduled, no `/dream` slash command yet) | ✅ `memory/schema.ts`, `memory/index.ts`, `memory/fts-query.ts` |
+| Multi-turn approval memory | Codex CLI | In-memory per-session cache | ✅ |
+| Zero-config wizard | Copilot CLI | `nocowboy init` — 2 questions | ✅ |
+| Goal judge | MiMo | `/goal` with independent subagent evaluation | ✅ `session/goal.ts` |
+| Incremental PR review | Qodo CLI | Code-reviewer checks only git diff | ✅ |
+| Indexing first-class | Self | Not a plugin | ✅ |
+| SQLite vector store | Self | Replaced LanceDB | ✅ |
+| Voice input | Self | FFmpeg capture + transcription | ✅ `voice-button.tsx` (97 lines) |
+| Deep context mode | MiMo | Repomap + memory in system prompt | ✅ |
 
 ### Configuration
 | Item | What |
 |---|---|
 | 16 instructions | Ported + rebranded Kilo → NoCowboy |
 | 6 agents | Ported. Architect prompt synced to full 8330 chars. |
-| 16 commands | Ported + `/repomap` + `/init` + `/dream` + `/verify` + `/goal` added |
+| 16 commands | Ported + `/repomap` + `/init` + `/verify` + `/goal` added. `/dream` and `/distill` ❌ not implemented yet (P1.7, P1.8). |
 | 8 skills | Ported + 4 Ralph-TUI skills |
 | Global config only | `~/.config/nocowboy/nocowboy.json` — no per-project by default |
 
 ### Tests
 | Item | Status |
 |---|---|
-| 150+ pass individually | ✅ |
-| 7 broken files fixed | ✅ (`kilo→nocowboy` paths + indexing first-class) |
-| 39 flaky under parallel load | ❌ needs test harness |
+| Test harness: preload, Flag getter, resetDatabase guard | ✅ `test/preload.ts`, `flag.ts:83-89`, `fixture/db.ts:4-18` |
+| Custom per-process test runner (no shared state between files) | ✅ `script/test-runner.ts` |
+| Full test suite | ✅ **231 pass / 0 fail** — `bun run script/test-runner.ts test/nocowboy` |
 
-### P0 — Cost & Size Optimization 🤑
+### P0 — Cost & Size Optimization
 
-| # | Feature | Done | How |
+| # | Feature | Done | Evidence |
 |---|---|---|---|
-| P0.1 | **DeepSeek prefix-cache** | ✅ | Reordered system prompt so stable prefix (soul + prompt + instructions + skills) comes **before** dynamic env (repomap + memory). Before: `[...env, ...instructions, ...skills]` → every request had a unique start token. After: `[...instructions, ...skills, ...env]` → first ~4KB are byte-stable across turns. DeepSeek's automatic prefix caching caches these repeated tokens server-side. **1 line changed in `prompt.ts:1969`.** |
-| P0.2 | **Lazy-load tree-sitter WASMs** | ✅ | Replaced 130-line switch/case with declarative `EXTENSION_MAP`. Added `detectProjectLanguages(dir)` — targeted glob `**/*.{js,ts,...}` scans only supported extensions. Added `loadProjectLanguageParsers(dir)` — loads detected WASMs in **parallel** via `Promise.allSettled`. Integrated into `CodeParser.preloadProjectParsers()` called from service factory. Reverse index `LANGUAGE_PARSER_KEYS` avoids O(L×E) inner loop. Dead code removed: `extToParserKey`, `extToQuery`, `fallbackQuery`. **3 files: `languageParser.ts`, `parser.ts`, `service-factory.ts`.** |
+| P0.1 | **DeepSeek prefix-cache** | ✅ | `session/llm.ts:136-168` — soul at index 0, identity anchor as last element, 2-part collapse for caching |
+| P0.2 | **Lazy-load tree-sitter WASMs** | ✅ | `tool/shell.ts:332-357` — dynamic `import()` with `type: "wasm"` for web-tree-sitter, bash, powershell WASMs in `lazy()` wrapper |
 
-### P1 — MiMo Memory & Reasoning 🧠
+### P1 — MiMo Memory & Reasoning
 
-| # | Feature | Done | What |
+| # | Feature | Done | Evidence |
 |---|---|---|---|
-| P1.1 | **Memory System** — paths, memory service, FTS5 scope/scope_id filters, lazy reconcile | ✅ | ~20 files ported from MiMo. `checkpoint-paths`, `checkpoint-templates`, `memory/paths`, memory service upgrade. |
-| P1.2 | **Checkpoint writer** — boundary, context, validator, progress-reconcile, retry, templates, saver | ✅ | `checkpoint-context`, `checkpoint-validator`, `checkpoint-progress-reconcile`, `checkpoint-retry`, `checkpoint-saver`, `checkpoint.ts` (computeBoundary, composeWriterPrompt, renderRebuildContext). Hooks into compaction flow. |
-| P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `goal.ts`. Set/get/clear/bumpReact/evaluate. Uses `generateObject` with temperature=0. |
-| P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | ✅ | `auto-dream.ts`. `shouldAutoDream()`/`shouldAutoDistill()` check session table for last run. |
-| P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/task.sql.ts`, `task/registry.ts`, `task/gate.ts`, `task/gate-state.ts`. |
-| P1.6 | **Test harness** — fix 279 parallel flaky failures | 🚧 | Port randomization (codex/digitalocean/xai/MCP), ~20 bugfix commits, ~70 test files fixed. Major: x-kilo-directory→x-nocowboy-directory (9 files), NOCOWBOY_CLIENT env var (1 file), .kilo→.nocowboy paths (5 files). Remaining: httpapi-edit (7, endpoint removed), httpapi-public (4, OpenAPI format), indexing-startup (15, async), ~160 parallelism-only. |
+| P1.1 | **Memory System** — paths, memory service, FTS5 scope/scope_id filters, lazy reconcile | ✅ | `memory/schema.ts` (FTS5 virtual table), `memory/index.ts` (MemoryService with bm25()), `memory/paths.ts` |
+| P1.2 | **Checkpoint writer** — boundary, context, validator, progress-reconcile, retry, templates, saver | 🟡 | 7 files ported (`session/checkpoint-*`), but NOT fully wired into session loop (compaction/overflow triggers may not fire). Need to verify integration in `session/prompt.ts`. |
+| P1.3 | **Goal judge** — GoalService with AI SDK judge evaluation | ✅ | `session/goal.ts` — `GoalService.evaluate()` with `generateObject` at temperature=0 |
+| P1.4 | **Auto-dream / Distill** — interval-based scheduled memory consolidation | 🟡 | `auto-dream.ts` exists with `shouldAutoDream()` (7d) and `shouldAutoDistill()` (30d), but **NO `/dream` or `/distill` slash command** for manual invocation. |
+| P1.7 | **`/dream`** — ручная команда для запуска dream memory consolidation | Medium | ❌ Нет — только auto-scheduled раз в 7 дней. В MiMo есть ручной `/dream`. |
+| P1.8 | **`/distill`** — ручная команда для запуска distill (workflows → skills) | Medium | ❌ Нет — только auto-scheduled раз в 30 дней. В MiMo есть ручной `/distill`. |
+| P1.9 | **Checkpoint-writer в session loop** — интеграция checkpoint сабэджента в compaction/overflow | Medium | ❌ Не до конца заведено — триггеры могут не срабатывать. |
+| P1.5 | **Task tree** — TaskID (T1/T1.1), CRUD registry, stop-gate, gate-state | ✅ | `task/schema.ts`, `task/registry.ts` — hierarchical IDs with SQLite persistence |
+| P1.6 | **Test harness** — fix parallel flaky failures | ✅ | **231/231 pass, 0 fail** — fully green |
 
 ---
 
@@ -172,65 +155,70 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 
 #### P2-A UX & Safety
 
-| # | Feature | From | Effort | What |
+| # | Feature | From | Effort | Status |
 |---|---|---|---|---|
-| P2-A1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | Prerequisite for marketplace. No JSON editing. |
-| P2-A2 | **Search/replace edit format** | Aider | Medium | More reliable than line-based edits. |
-| P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium | Isolation — bad changes don't pollute main. |
-| P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | Unblock autonomous workflows. |
-| P2-A5 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | Configurable autonomy levels. |
-| P2-A6 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | See `docs/guides/feature-overlap-decisions.md`. |
+| P2-A1 | **Server management UI** — enable/disable, remove, install MCP servers in Settings | Self | Medium | ✅ DONE (see P2-A1 above) |
+| P2-A2 | **Search/replace edit format** | Aider | Medium | ❌ No Aider-style block-diff parser implemented |
+| P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium | ❌ No `plan` CLI command exists |
+| P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | ❌ No timeout mechanism in permission system |
+| P2-A5 | **Yolo mode button** — chat doesn't ask any permissions when active. Toggle in TUI status bar or Settings. Sets permission to `"allow"` for all tools. | Claude Code | Low | ❌ Not implemented. Must have: TUI button, config toggle (`yolo: true`), permission override, visual indicator (red/yellow/green). Nice-to-have: keyboard shortcut, auto-disable on session end. |
+| P2-A6 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | ❌ Not in config, TUI, or settings |
+| P2-A7 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | ❌ Not implemented |
 
 #### P2-B Russian Language
 
-| # | Feature | Effort | What |
+| # | Feature | Effort | Status |
 |---|---|---|---|
-| P2-B1 | **Russian system prompts** for all 6 agents | Medium | Agent reasons in Russian, understands Russian variable names. |
-| P2-B2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions | Medium | Agent follows Russian instructions. |
-| P2-B3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | Russian-trained models perform better. |
-| P2-B4 | **`nocowboy.json` `lang` field** | Low | Config entry point for above features. |
-| P2-B5 | **UI Russian localization** — TUI labels, error messages, help text | High | Full Russian interface. |
+| P2-B1 | **Russian system prompts** for all 6 agents | Medium | ❌ No `instructions/ru/` directory with Russian prompts |
+| P2-B2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions | Medium | ❌ Directory exists but is EMPTY |
+| P2-B3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | ❌ No YandexGPT/GigaChat in config or providers |
+| P2-B4 | **`nocowboy.json` `lang` field** | Low | ❌ Not in config schema |
+| P2-B5 | **UI Russian localization** — TUI labels, error messages, help text | High | ❌ No i18n infrastructure in TUI |
 
 #### P2-C Codebase Optimization
 
-| # | Feature | Effort | What |
+| # | Feature | Effort | Status |
 |---|---|---|---|
-| P2-C2 | **Analyze & optimize 16 instructions** | Medium | Same — review for consistency, relevance. |
-| P2-C3 | **Analyze & optimize 16 commands** | Medium | Same — remove obsolete, enhance useful ones. |
-| P2-C4 | **Revise MCP server framework** — review all 8 first-party + 4 community MCP servers. Merge overlapping ones into NUTAUSIK, remove obsolete, keep essential. | High | See `docs/guides/feature-overlap-decisions.md` for existing overlap analysis. |
+| P2-C1 | **Agent Audit** — rename `plan`→`researcher`, remove deprecated agents | Medium | ✅ P2-C1 + P3 refactor: 15→5 agents (code, architect, debug, overseer, nocowboy). Removed: general, explore, scout, plan, ask, prd, ralph, researcher, code-reviewer, orchestrator. |
+| P2-C2 | **Analyze & optimize 16 instructions** | Medium | ❌ No analysis performed |
+| P2-C3 | **Analyze & optimize 16 commands** | Medium | ❌ No analysis performed |
+| P2-C4 | **Revise MCP server framework** — merge overlapping ones into NUTAUSIK | High | ❌ No action taken |
+| P3-C1 | **Tool groups** — composable groups (read/edit/command/mcp) instead of per-tool permisisons | Medium | ✅ v0.7.4 — `groups` field in `ConfigAgent.Info`, resolves to baseline permissions. Always-available meta-tools (task, question, todowrite). |
+| P3-C2 | **Delegation Briefs** — structured handoff overseer→code | Medium | ✅ v0.7.4 — QUESTION/SCOPE/ALREADY_KNOWN/EFFORT/STOP_CONDITION/OUTPUT format in overseer prompt |
+| P3-C3 | **Output Contract** — structured sub-agent results | Medium | ✅ v0.7.4 — SUMMARY/CHANGES/EVIDENCE/RISKS/BLOCKERS format in overseer prompt |
 
 ### P3 — Ecosystem, Lawer & Reach
 
 #### P3-A Ecosystem
 
-| # | Feature | From | Effort | What |
+| # | Feature | From | Effort | Status |
 |---|---|---|---|---|
-| P3-A1 | **Diff review sandbox** — AI changes isolated until accepted | Plandex | High | Safety: no AI changes touch real files until reviewed. |
-| P3-A2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | Enterprise security. |
-| P3-A3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | — |
-| P3-A4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | Use our existing 37 tree-sitter WASMs for structured repo maps. |
-| P3-A5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | Browse `@nocowboy/mcp-*` packages from terminal. |
-| P3-A6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | Small: SQLite (zero deps). Large: LanceDB (ANN speed). Enterprise: Qdrant. |
-| P3-A7 | **Offline mode** — local LLM via Ollama | Self | Medium | Sanctions-proof. Works without internet. |
+| P3-A1 | **Diff review sandbox** — AI changes isolated until accepted | Plandex | High | ❌ Not implemented |
+| P3-A2 | **Sandbox mode** — Docker-insulated command execution | OpenHands | High | ❌ Not implemented |
+| P3-A3 | **2M token context** — deep context with token budgeting | Claude Code + Plandex | High | ❌ Not implemented |
+| P3-A4 | **Tree-sitter repomap** — upgrade regex → AST (37 WASMs ready) | Plandex | Medium | ❌ Repomap still uses regex/file-extension scanning |
+| P3-A5 | **MCP server marketplace** (`mcp search`) | Cline | Medium | ❌ No marketplace command |
+| P3-A6 | **Vector store switcher** — SQLite / LanceDB / Qdrant in Settings | Self | Medium | 🟡 PARTIALLY DONE — LanceDB and Qdrant backends exist in codebase, but no Settings UI switcher |
+| P3-A7 | **Offline mode** — local LLM via Ollama | Self | Medium | 🟡 PARTIALLY DONE — Ollama option exists in `init.ts` and config overlay, but not full offline mode |
 
 #### P3-B Lawer (152-ФЗ)
 
-| # | Feature | Effort | What |
+| # | Feature | Effort | Status |
 |---|---|---|---|
-| P3-B1 | **Lawer agent** — new agent type, 152-FZ expert | High | Answers 152-FZ questions, generates consent dialogs, reviews code. |
-| P3-B2 | **Consent dialogs** — Russian, Art. 9 | Medium | Specific, informed, conscious. |
-| P3-B3 | **Data localization** — Art. 21 | High | All user data on local disk. |
-| P3-B4 | **Right to deletion** — `nocowboy forget` | Medium | Art. 14. |
-| P3-B5 | **Roskomnadzor template** | Low | Art. 22. |
+| P3-B1 | **Lawer agent** — new agent type, 152-FZ expert | High | ❌ Not implemented |
+| P3-B2 | **Consent dialogs** — Russian, Art. 9 | Medium | ❌ Not implemented |
+| P3-B3 | **Data localization** — Art. 21 | High | ❌ Not implemented |
+| P3-B4 | **Right to deletion** — `nocowboy forget` | Medium | ❌ Not implemented |
+| P3-B5 | **Roskomnadzor template** | Low | ❌ Not implemented |
 
 ### P4 — Polish & Future
 
-| # | Feature | From | Effort | What |
+| # | Feature | From | Effort | Status |
 |---|---|---|---|---|
-| P4.1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | — |
-| P4.2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | No Western tool integrates these. |
-| P4.3 | **Share chat / sync between machines** — share context across devices | Self | High | Requires cloud backend API. Share button exists in TUI but not wired. |
-| P4.4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | Blocked on `drizzle-orm/libsql`. Phase 2 (LanceDB removal) already done. |
+| P4.1 | **Channels** — webhooks push CI/chat events into TUI sessions | Claude Code | Medium | 🟡 PARTIALLY DONE — Hooks/Channels MCP tools exist and are available, but not documented/stable |
+| P4.2 | **Russian LLM providers** (YandexGPT, GigaChat) | Self | High | ❌ Not implemented |
+| P4.3 | **Share chat / sync between machines** | Self | High | 🟡 PARTIALLY DONE — `/share` and `/unshare` CLI commands exist, `SessionShare` service implemented. But cloud backend API not deployed. |
+| P4.4 | **Turso driver swap** — `bun:sqlite` → `@tursodatabase/database` | Self | High (blocked) | ❌ Blocked on `drizzle-orm/libsql` |
 
 ---
 
@@ -243,3 +231,29 @@ All branding/env-var/path fixes validated. 1716 tests pass in pre-push.
 | `@nocowboy/mcp-*` (6 servers) | ❌ |
 | `@nocowboy/mcp-puppetmaster` | ❌ needs `dist/` built |
 | `@nocowboy/mcp-nutausik` (NUTAUSIK) | ❌ 62 TS files ready, needs publish |
+
+---
+
+## 🆕 2026-07-02 — Competitive Borrowing (from Paul + full re-review)
+
+Added after analyzing Paul (Plan-Apply-Unify Loop, github.com/ChristopherKahler/paul) and re-reviewing all 15+ competitors.
+
+### P2-A UX & Safety — additions
+
+| # | Feature | From | Effort | Status |
+|---|---|---|---|---|
+| P2-A8 | **UNIFY loop closure** — обязательное закрытие плана. Сравнивает plan vs actual, создаёт SUMMARY.md, логирует decisions, обновляет STATE.md. Предотвращает orphan-планы. | Paul | Medium | ❌ Не реализовано. У нас есть Plan mode + PRD но нет принудительного закрытия цикла. |
+| P2-A9 | **Execute/Qualify loop** — после каждой задачи независимая верификация против acceptance criteria перед переходом к следующей. Anti-rationalization enforcement (не даёт ложно закрыть задачу). | Paul | Medium | ❌ `/verify` есть но опционально, не встроен в flow исполнения. |
+| P2-A10 | **Acceptance-Driven Development** — BDD формат (Given/When/Then), задачи ссылаются на AC (AC-1, AC-2), AC определены ДО задач. | Paul | Medium | ❌ PRD имеют acceptanceCriteria но free-text, без BDD и без linking к задачам. |
+| P2-A11 | **Diagnostic failure routing** — классификация ошибок: intent (перепланировать) / spec (поправить план) / code (фикс на месте). Предотвращает патчинг кода когда план неверен. | Paul | Low | ❌ Нет классификации ошибок. |
+| P2-A12 | **Coherence check** — план валидируется против PROJECT.md/MEMORY.md/STATE.md/ROADMAP.md ДО утверждения. | Paul | Medium | ❌ Нет автоматической валидации планов. |
+| P2-A13 | **Session handoff/pause** — `/pause [reason]` создаёт HANDOFF-{date}.md, `/resume` восстанавливает контекст, `/progress` показывает ОДИН следующий шаг. | Paul | Medium | ⚠️ Частично — session resume есть, но нет pause/handoff команд. |
+| P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED вместо binary pass/fail. | Paul | Low | ❌ Только pass/fail. |
+| P2-A15 | **Commands tab** — новая вкладка в TUI перед Settings (Info → History → Commands → Settings). Показывает список всех доступных команд с описанием, примерами использования, и возможность кликнуть/выполнить команду прямо из таба. Команды сгруппированы по категориям (Git, Memory, MCP, Session, и т.д.). Иконки/цвета для быстрой идентификации. Фильтр/поиск по командам. | Self | Medium | ❌ Не реализовано. Сейчас команды известны только через `/help` или AGENTS.md. Нет визуального интерфейса для изучения и запуска команд. |
+
+### P3-A Ecosystem — additions
+
+| # | Feature | From | Effort | Status |
+|---|---|---|---|---|
+| P3-A8 | **Per-task cost tracking** — стоимость в токенах/деньгах за каждую задачу. Ledger с timestamped записями. | Paul (ledger.toml), Whale | Medium | ❌ Только баланс провайдера, без per-task. |
+

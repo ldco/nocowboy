@@ -52,10 +52,9 @@ it.instance("returns default native agents when no config", () =>
     const agents = yield* load((svc) => svc.list())
     const names = agents.map((a) => a.name)
     expect(names).toContain("code")
-    expect(names).toContain("plan")
-    expect(names).toContain("general")
-    expect(names).toContain("explore")
-    expect(names).not.toContain("scout")
+    expect(names).toContain("nocowboy")
+    expect(names).toContain("debug")
+    expect(names).toContain("overseer")
     expect(names).toContain("compaction")
     expect(names).toContain("title")
     expect(names).toContain("summary")
@@ -75,94 +74,13 @@ it.instance("build agent has correct default properties", () =>
   }),
 )
 
-it.instance("plan agent denies edits except .nocowboy/plans/*", () =>
+it.instance("overseer agent exists with correct permissions", () =>
   Effect.gen(function* () {
-    const plan = yield* load((svc) => svc.get("plan"))
-    expect(plan).toBeDefined()
-    // Wildcard is denied
-    expect(evalPerm(plan, "edit")).toBe("deny")
-    // But specific path is allowed
-    expect(Permission.evaluate("edit", ".nocowboy/plans/foo.md", plan!.permission).action).toBe("allow")
-  }),
-)
-
-it.instance("explore agent denies edit and write", () =>
-  Effect.gen(function* () {
-    const explore = yield* load((svc) => svc.get("explore"))
-    expect(explore).toBeDefined()
-    expect(explore?.mode).toBe("subagent")
-    expect(evalPerm(explore, "edit")).toBe("deny")
-    expect(evalPerm(explore, "write")).toBe("deny")
-    expect(evalPerm(explore, "todowrite")).toBe("deny")
-  }),
-)
-
-it.instance("explore agent asks for external directories and allows whitelisted external paths", () =>
-  Effect.gen(function* () {
-    const explore = yield* load((svc) => svc.get("explore"))
-    expect(explore).toBeDefined()
-    expect(Permission.evaluate("external_directory", "/some/other/path", explore!.permission).action).toBe("ask")
-    expect(Permission.evaluate("external_directory", Truncate.GLOB, explore!.permission).action).toBe("allow")
-    expect(
-      Permission.evaluate("external_directory", path.join(Global.Path.tmp, "agent-work"), explore!.permission).action,
-    ).toBe("allow")
-  }),
-)
-
-scout.instance("scout agent allows repo cloning and repo cache reads", () =>
-  Effect.gen(function* () {
-    const scout = yield* load((svc) => svc.get("scout"))
-    expect(scout).toBeDefined()
-    expect(scout?.mode).toBe("subagent")
-    expect(evalPerm(scout, "repo_clone")).toBe("allow")
-    expect(evalPerm(scout, "repo_overview")).toBe("allow")
-    expect(evalPerm(scout, "edit")).toBe("deny")
-    expect(
-      Permission.evaluate(
-        "external_directory",
-        path.join(Global.Path.repos, "github.com", "owner", "repo", "README.md"),
-        scout!.permission,
-      ).action,
-    ).toBe("allow")
-  }),
-)
-
-scout.instance(
-  "reference config creates scout-backed subagents",
-  () =>
-    Effect.gen(function* () {
-      const agents = yield* load((svc) => svc.list())
-      const names = agents.map((agent) => agent.name)
-      expect(names).toContain("scout")
-      expect(names).toContain("effect")
-      expect(names).toContain("effectFull")
-      expect(names).toContain("localdocs")
-      expect(names).toContain("localdocsFull")
-    }),
-  {
-    config: {
-      reference: {
-        effect: "github.com/effect/effect-smol",
-        effectFull: {
-          repository: "Effect-TS/effect",
-          branch: "main",
-        },
-        localdocs: "../docs",
-        localdocsFull: {
-          path: "../local-docs",
-        },
-      },
-    },
-  },
-)
-
-it.instance("general agent denies todo tools", () =>
-  Effect.gen(function* () {
-    const general = yield* load((svc) => svc.get("general"))
-    expect(general).toBeDefined()
-    expect(general?.mode).toBe("subagent")
-    expect(general?.hidden).toBeUndefined()
-    expect(evalPerm(general, "todowrite")).toBe("deny")
+    const overseer = yield* load((svc) => svc.get("overseer"))
+    expect(overseer).toBeDefined()
+    expect(overseer?.mode).toBe("primary")
+    expect(evalPerm(overseer, "question")).toBe("allow")
+    expect(evalPerm(overseer, "suggest")).toBe("allow")
   }),
 )
 
@@ -236,16 +154,16 @@ it.instance(
   "agent disable removes agent from list",
   () =>
     Effect.gen(function* () {
-      const explore = yield* load((svc) => svc.get("explore"))
-      expect(explore).toBeUndefined()
+      const disabled = yield* load((svc) => svc.get("debug"))
+      expect(disabled).toBeUndefined()
       const agents = yield* load((svc) => svc.list())
       const names = agents.map((a) => a.name)
-      expect(names).not.toContain("explore")
+      expect(names).not.toContain("debug")
     }),
   {
     config: {
       agent: {
-        explore: { disable: true },
+        debug: { disable: true },
       },
     },
   },
@@ -299,15 +217,15 @@ it.instance(
   () =>
     Effect.gen(function* () {
       const build = yield* load((svc) => svc.get("build"))
-      const plan = yield* load((svc) => svc.get("plan"))
+      const debug = yield* load((svc) => svc.get("debug"))
       expect(build?.steps).toBe(50)
-      expect(plan?.steps).toBe(100)
+      expect(debug?.steps).toBe(100)
     }),
   {
     config: {
       agent: {
         build: { steps: 50 },
-        plan: { maxSteps: 100 },
+        debug: { maxSteps: 100 },
       },
     },
   },
@@ -317,13 +235,13 @@ it.instance(
   "agent mode can be overridden",
   () =>
     Effect.gen(function* () {
-      const explore = yield* load((svc) => svc.get("explore"))
-      expect(explore?.mode).toBe("primary")
+      const debug = yield* load((svc) => svc.get("debug"))
+      expect(debug?.mode).toBe("primary")
     }),
   {
     config: {
       agent: {
-        explore: { mode: "primary" },
+        debug: { mode: "primary" },
       },
     },
   },
@@ -435,12 +353,12 @@ it.instance(
   () =>
     Effect.gen(function* () {
       const names = (yield* load((svc) => svc.list())).map((a) => a.name)
-      expect(names[0]).toBe("plan")
+      expect(names[0]).toBe("nocowboy")
       expect(names.slice(1)).toEqual(names.slice(1).toSorted((a, b) => a.localeCompare(b)))
     }),
   {
     config: {
-      default_agent: "plan",
+      default_agent: "nocowboy",
       agent: {
         zebra: {
           description: "Zebra",
@@ -623,31 +541,32 @@ description: Permission skill.
   { git: true },
 )
 
-it.instance("defaultAgent returns code when no default_agent config", () =>
+it.instance("defaultAgent returns nocowboy when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultAgent())
-    expect(agent).toBe("code")
+    // nocowboy is preferred over code by NoCowboy's defaultInfo
+    expect(agent).toBe("nocowboy")
   }),
 )
 
-it.instance("defaultInfo returns resolved code agent when no default_agent config", () =>
+it.instance("defaultInfo returns resolved nocowboy agent when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultInfo())
-    expect(agent.name).toBe("code")
+    expect(agent.name).toBe("nocowboy")
     expect(agent.mode).toBe("primary")
   }),
 )
 
 it.instance(
-  "defaultAgent respects default_agent config set to plan",
+  "defaultAgent respects default_agent config",
   () =>
     Effect.gen(function* () {
       const agent = yield* load((svc) => svc.defaultAgent())
-      expect(agent).toBe("plan")
+      expect(agent).toBe("nocowboy")
     }),
   {
     config: {
-      default_agent: "plan",
+      default_agent: "nocowboy",
     },
   },
 )
@@ -672,26 +591,6 @@ it.instance(
 )
 
 it.instance(
-  "defaultAgent throws when default_agent points to subagent",
-  () => expectDefaultAgentError('default agent "explore" is a subagent'),
-  {
-    config: {
-      default_agent: "explore",
-    },
-  },
-)
-
-it.instance(
-  "defaultAgent throws when default_agent points to hidden agent",
-  () => expectDefaultAgentError('default agent "compaction" is hidden'),
-  {
-    config: {
-      default_agent: "compaction",
-    },
-  },
-)
-
-it.instance(
   "defaultAgent throws when default_agent points to non-existent agent",
   () => expectDefaultAgentError('default agent "does_not_exist" not found'),
   {
@@ -702,12 +601,11 @@ it.instance(
 )
 
 it.instance(
-  "defaultAgent returns plan when build is disabled and default_agent not set",
+  "defaultAgent returns nocowboy when build is disabled and default_agent not set",
   () =>
     Effect.gen(function* () {
       const agent = yield* load((svc) => svc.defaultAgent())
-      // build is disabled, so it should return plan (next primary agent)
-      expect(agent).toBe("plan")
+      expect(agent).toBe("nocowboy")
     }),
   {
     config: {
@@ -725,10 +623,9 @@ it.instance(
     config: {
       agent: {
         code: { disable: true },
-        plan: { disable: true },
         debug: { disable: true },
-        orchestrator: { disable: true },
-        ask: { disable: true },
+        nocowboy: { disable: true },
+        overseer: { disable: true },
       },
     },
   },

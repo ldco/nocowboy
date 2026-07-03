@@ -24,7 +24,7 @@ import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
 
 export namespace NoCowboySessionPrompt {
-  const modes = ["ask", "plan", "architect"]
+  const modes = ["architect", "overseer"]
 
   export function titleID(sessionID: SessionID) {
     return `title-${sessionID}`
@@ -37,7 +37,7 @@ export namespace NoCowboySessionPrompt {
   function planning(input: { name: string; options?: Record<string, unknown> }) {
     const id = typeof input.options?.id === "string" ? mode(input.options.id) : undefined
     const name = mode(input.name)
-    return id === "architect" || name === "plan" || name === "architect"
+    return name === "architect" || name === "overseer"
   }
 
   /**
@@ -282,7 +282,7 @@ export namespace NoCowboySessionPrompt {
     const ctx = Instance.bind(() => Instance.current)()
     const plan = Session.plan(input.session, ctx)
 
-    if (mode(input.agent.name) === "plan") add(NATIVE_PLAN_PROMPT)
+    if (mode(input.agent.name) === "architect") add(NATIVE_PLAN_PROMPT)
 
     const file = input.messages ? PlanFile.latest(input.messages) : undefined
     const saved = PlanFile.resolve(file, ctx)

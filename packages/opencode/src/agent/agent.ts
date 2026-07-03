@@ -292,7 +292,7 @@ export const layer = Layer.effect(
           },
         }
 
-        // nocowboy_change start - rename build→code, add debug/orchestrator/ask, patch plan/explore
+        // nocowboy_change start - rename build→code, remove general/explore/scout/plan, add overseer, rewrite nocowboy
         NocowboyAgent.patchAgents(agents, defaults, user, cfg, ncAgent, ctx.worktree, whitelistedDirs)
 
         const agentConfigs = NocowboyAgent.preprocessConfig(cfg.agent ?? {})

@@ -270,19 +270,11 @@ export const Info = Schema.Struct({
   agent: Schema.optional(
     Schema.StructWithRest(
       Schema.Struct({
-        // primary
-        plan: Schema.optional(ConfigAgent.Info),
         build: Schema.optional(ConfigAgent.Info),
         // nocowboy_change start
         debug: Schema.optional(ConfigAgent.Info),
-        orchestrator: Schema.optional(ConfigAgent.Info),
-        ask: Schema.optional(ConfigAgent.Info),
         // nocowboy_change end
-        // subagent
-        general: Schema.optional(ConfigAgent.Info),
-        explore: Schema.optional(ConfigAgent.Info),
-        scout: Schema.optional(ConfigAgent.Info),
-        // specialized
+        // specialized (internal)
         title: Schema.optional(ConfigAgent.Info),
         summary: Schema.optional(ConfigAgent.Info),
         compaction: Schema.optional(ConfigAgent.Info),

@@ -11,8 +11,7 @@ import { Global } from "@opencode-ai/core/global"
 
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
-import PROMPT_ASK from "../../agent/prompt/ask.txt"
-import PROMPT_EXPLORE from "../../agent/prompt/explore.txt"
+import PROMPT_OVERSEER from "../../agent/prompt/overseer.txt"
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
   "*": "ask",
@@ -128,87 +127,15 @@ export const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
   "sort * --output*": "deny",
 }
 
-function askGuard(mcp: Record<string, "allow" | "ask" | "deny"> = {}) {
-  return Permission.fromConfig({
-    "*": "deny",
-    bash: readOnlyBash,
-    read: {
-      "*": "allow",
-      "*.env": "ask",
-      "*.env.*": "ask",
-      "*.env.example": "allow",
-    },
-    grep: "allow",
-    glob: "allow",
-    list: "allow",
-    skill: "allow",
-    question: "allow",
-    webfetch: "allow",
-    websearch: "allow",
-    codebase_search: "allow",
-    semantic_search: "allow",
-    external_directory: {
-      [Truncate.GLOB]: "allow",
-    },
-    ...mcp,
-  })
-}
+// Always-available meta-tools — every agent has these regardless of groups/config.
+export const META_TOOLS = Permission.fromConfig({
+  task: "allow",
+  question: "allow",
+  todowrite: "allow",
+})
 
-function denies(user: Permission.Ruleset) {
-  return user.filter((rule) => rule.action === "deny")
-}
-
-function askEditGuard() {
-  return Permission.fromConfig({ edit: "deny" })
-}
-
-// Upstream v1.14.33 builds Agent state outside the Instance ALS, so reading
-// Instance.worktree here would crash. Thread worktree through from patchAgents
-// instead.
-function planEditRules(worktree: string) {
-  return {
-    "*": "deny" as const,
-    [path.join(".nocowboy", "plans", "*.md")]: "allow" as const,
-    [path.join("plans", "*.md")]: "allow" as const,
-    [path.join(".plans", "*.md")]: "allow" as const,
-    [path.join(".opencode", "plans", "*.md")]: "allow" as const,
-    [path.relative(worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow" as const,
-  }
-}
-
-function planEditGuard(worktree: string) {
-  return Permission.fromConfig({ edit: planEditRules(worktree) })
-}
-
-function planGuard(worktree: string, mcp: Record<string, "allow" | "ask" | "deny"> = {}) {
-  return Permission.fromConfig({
-    "*": "deny",
-    question: "allow",
-    suggest: "allow",
-    skill: "allow",
-    plan_exit: "allow",
-    bash: readOnlyBash,
-    read: {
-      "*": "allow",
-      "*.env": "ask",
-      "*.env.*": "ask",
-      "*.env.example": "allow",
-    },
-    grep: "allow",
-    glob: "allow",
-    list: "allow",
-    webfetch: "allow",
-    websearch: "allow",
-    codebase_search: "allow",
-    semantic_search: "allow",
-    external_directory: {
-      [Truncate.GLOB]: "allow",
-      [path.join(Global.Path.data, "plans", "*")]: "allow",
-    },
-    edit: planEditRules(worktree),
-    ...mcp,
-  })
-}
+// All removed. askGuard, planGuard, planEditRules, planEditGuard,
+// denies were used by agents removed in the P3 agent refactor.
 
 // Generate per-server MCP wildcard rules that allow MCP tools with user approval.
 export function getMcpRules(cfg: Config.Info): Record<string, "allow" | "ask" | "deny"> {
@@ -299,12 +226,12 @@ export function telemetryOptions(_cfg: Config.Info) {
   return { isEnabled: false as const }
 }
 
-// Patch the base agents map in-place with all kilo-specific changes:
+// Patch the base agents map in-place with NoCowboy changes:
 // - Rename build → code
-// - Patch plan with readOnlyBash, mcpRules, .kilo paths
-// - Patch explore with codebase_search and conditional prompt
-// - Patch appropriate agents with semantic_search
-// - Add debug, orchestrator, ask agents
+// - Remove upstream unused agents: general, explore, scout, plan
+// - Rewrite nocowboy as OpenClaw-style general-purpose assistant
+// - Add overseer (Traycer-like review/orchestration agent)
+// - Keep debug
 export function patchAgents(
   agents: Record<
     string,
@@ -349,76 +276,43 @@ export function patchAgents(
     delete agents.build
   }
 
-  // Add nocowboy — super agent / consciousness
+  // Remove upstream agents we don't use
+  for (const name of ["general", "explore", "scout", "plan"]) {
+    delete agents[name]
+  }
+
+  // Add nocowboy — OpenClaw-style general-purpose automation agent
   agents.nocowboy = {
     name: "nocowboy",
-    description: "Super agent. NoCowboy consciousness. Decides what to do and which agents to launch.",
+    description: "General-purpose automation agent. Browser, filesystem, CLI, APIs — can do anything on the computer.",
     prompt: PROMPT_NOCOWBOY,
     options: {},
-    permission: Permission.merge(
-      defaults,
-      Permission.fromConfig({
-        question: "allow",
-        suggest: "allow",
-        plan_enter: "allow",
-        semantic_search: "allow",
-        codebase_search: "allow",
-      }),
-      user,
-    ),
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }
 
-  // Patch plan mode
-  if (agents.plan) {
-    agents.plan = {
-      ...agents.plan,
-      description: "Plan mode. Can only edit plan files; all other filesystem mutations are denied.",
-      permission: Permission.merge(
-        defaults,
-        planGuard(worktree, kilo.mcpRules),
-        user,
-        planEditGuard(worktree),
-        denies(user),
-      ),
-    }
-  }
-
-  // Patch explore with codebase_search and conditional prompt
-  if (agents.explore) {
-    agents.explore = {
-      ...agents.explore,
-      permission: Permission.merge(
-        defaults,
-        Permission.fromConfig({
-          "*": "deny",
-          grep: "allow",
-          glob: "allow",
-          list: "allow",
-          bash: "allow",
-          skill: "allow",
-          webfetch: "allow",
-          websearch: "allow",
-          codebase_search: "allow",
-          semantic_search: "allow",
-          read: "allow",
-          external_directory: {
-            // Mirror upstream explore's shape: the outer "*": "deny" above wins
-            // over defaults' external_directory rules via findLast, so re-apply
-            // the full whitelist (Truncate.GLOB, tmp, skill, config, globalDirs)
-            // here. Upstream adds these inline in agent.ts; we do the same from
-            // within the patch.
-            "*": "ask",
-            ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),
-          },
-        }),
-        user,
-      ),
-      prompt: cfg.experimental?.codebase_search
-        ? `Prefer using the codebase_search tool for codebase searches — it performs intelligent multi-step code search and returns the most relevant code spans.\n\n${PROMPT_EXPLORE}`
-        : PROMPT_EXPLORE,
-    }
+  // Add overseer — Traycer-like review/orchestration agent
+  agents.overseer = {
+    name: "overseer",
+    description:
+      "Strict review and orchestration agent. Delegates implementation to code, then reviews results with a fresh pair of eyes.",
+    prompt: PROMPT_OVERSEER,
+    options: {},
+    permission: Permission.merge(
+      defaults,
+      Permission.fromConfig({
+        suggest: "allow",
+        plan_enter: "allow",
+        plan_exit: "allow",
+        semantic_search: "allow",
+        codebase_search: "allow",
+      }),
+      user,
+      META_TOOLS,
+    ),
+    mode: "primary",
+    native: true,
   }
 
   // Add debug agent
@@ -427,29 +321,7 @@ export function patchAgents(
     description: "Diagnose and fix software issues with systematic debugging methodology.",
     prompt: PROMPT_DEBUG,
     options: {},
-    permission: Permission.merge(
-      defaults,
-      Permission.fromConfig({
-        question: "allow",
-        suggest: "allow", // nocowboy_change
-        plan_enter: "allow",
-        semantic_search: "allow",
-      }),
-      user,
-    ),
-    mode: "primary",
-    native: true,
-  }
-
-  // nocowboy_change - orchestrator agent removed (deprecated, P2-C1)
-
-  // Add ask agent
-  agents.ask = {
-    name: "ask",
-    description: "Get answers and explanations without making changes to the codebase.",
-    prompt: PROMPT_ASK,
-    options: {},
-    permission: Permission.merge(defaults, askGuard(kilo.mcpRules), user, askEditGuard(), denies(user)),
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }

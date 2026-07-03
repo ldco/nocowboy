@@ -13,7 +13,7 @@ afterEach(async () => {
   await disposeAllInstances()
 })
 
-test("ask agent honors user MCP allow over generated ask rule", async () => {
+test("debug agent honors user MCP allow", async () => {
   await using tmp = await tmpdir({
     config: {
       mcp: {
@@ -28,14 +28,14 @@ test("ask agent honors user MCP allow over generated ask rule", async () => {
   await provideTestInstance({
     directory: tmp.path,
     fn: async () => {
-      const ask = await load(tmp.path, (svc) => svc.get("ask"))
-      expect(ask).toBeDefined()
-      expect(Permission.evaluate("context7_query-docs", "*", ask!.permission).action).toBe("allow")
+      const debug = await load(tmp.path, (svc) => svc.get("debug"))
+      expect(debug).toBeDefined()
+      expect(Permission.evaluate("context7_query-docs", "*", debug!.permission).action).toBe("allow")
     },
   })
 })
 
-test("plan agent honors user bash allow over read-only deny default", async () => {
+test("code agent respects user bash permission", async () => {
   await using tmp = await tmpdir({
     config: {
       permission: {
@@ -47,31 +47,9 @@ test("plan agent honors user bash allow over read-only deny default", async () =
   await provideTestInstance({
     directory: tmp.path,
     fn: async () => {
-      const plan = await load(tmp.path, (svc) => svc.get("plan"))
-      expect(plan).toBeDefined()
-      expect(Permission.evaluate("bash", "cargo search serde", plan!.permission).action).toBe("allow")
-    },
-  })
-})
-
-test("plan agent still hard-denies non-plan edits after user edit allow", async () => {
-  await using tmp = await tmpdir({
-    config: {
-      permission: {
-        edit: { "src/output.log": "allow" },
-      },
-    },
-  })
-
-  await provideTestInstance({
-    directory: tmp.path,
-    fn: async () => {
-      const plan = await load(tmp.path, (svc) => svc.get("plan"))
-      expect(plan).toBeDefined()
-      expect(Permission.evaluate("edit", "src/output.log", plan!.permission).action).toBe("deny")
-      expect(Permission.evaluate("edit", ".nocowboy/plans/fix.md", plan!.permission).action).toBe("allow")
-      expect(Permission.evaluate("edit", "plans/fix.md", plan!.permission).action).toBe("allow")
-      expect(Permission.evaluate("edit", ".plans/fix.md", plan!.permission).action).toBe("allow")
+      const code = await load(tmp.path, (svc) => svc.get("code"))
+      expect(code).toBeDefined()
+      expect(Permission.evaluate("bash", "cargo search serde", code!.permission).action).toBe("allow")
     },
   })
 })

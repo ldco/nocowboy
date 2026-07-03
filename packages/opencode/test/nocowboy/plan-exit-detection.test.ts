@@ -304,9 +304,9 @@ describe("plan_exit detection", () => {
 
   test("JetBrains client enables plan follow-up with custom answer", () =>
     withInstance(async () => {
-      const prev = process.env.KILO_CLIENT
+      const prev = process.env.NOCOWBOY_CLIENT
       try {
-        process.env.KILO_CLIENT = "jetbrains"
+        process.env.NOCOWBOY_CLIENT = "jetbrains"
         const seeded = await seed({
           text: "Here is the plan",
           tools: [
@@ -338,6 +338,7 @@ describe("plan_exit detection", () => {
         expect(question.questions[0].options.map((item) => item.label)).toEqual([
           PlanFollowup.ANSWER_NEW_SESSION,
           PlanFollowup.ANSWER_CONTINUE,
+          PlanFollowup.ANSWER_REFINE,
         ])
         expect(question.questions[0].options.find((item) => item.label === PlanFollowup.ANSWER_CONTINUE)?.mode).toBe(
           "code",
@@ -345,8 +346,8 @@ describe("plan_exit detection", () => {
         await questions.reject(question.id)
         await expect(pending).resolves.toBe("break")
       } finally {
-        if (prev === undefined) delete process.env.KILO_CLIENT
-        else process.env.KILO_CLIENT = prev
+        if (prev === undefined) delete process.env.NOCOWBOY_CLIENT
+        else process.env.NOCOWBOY_CLIENT = prev
       }
     }))
 
@@ -658,7 +659,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: session.id,
           time: { created: Date.now() },
-          agent: "plan",
+          agent: "architect",
           model,
         },
         parts: [
@@ -673,7 +674,7 @@ describe("plan_exit detection", () => {
       }
 
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "plan", options: {} },
+        agent: { name: "architect", options: {} },
         session,
         userMessage: user,
         messages: [user],
@@ -710,7 +711,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: seeded.sessionID,
           time: { created: Date.now() },
-          agent: "plan",
+          agent: "architect",
           model,
         },
         parts: [
@@ -724,7 +725,7 @@ describe("plan_exit detection", () => {
         ],
       }
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "plan", options: {} },
+        agent: { name: "architect", options: {} },
         session,
         userMessage: user,
         messages: [...seeded.messages, user],
