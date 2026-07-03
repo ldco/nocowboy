@@ -1,10 +1,12 @@
 # NoCowboy — Roadmap
 
+**v0.7.4** | 2026-07-03 | 🔧 P3 AGENT REFACTOR — 15→5 agents, tool groups, delegation briefs, MCP Launcher fix
+
 **v0.7.3** | 2026-07-02 | 🐕 DOGFOODING RELEASE — first release fit for dogfooding
 
 **v0.7.0** | 2026-06-27 | LSP toggle fix + Balance checking + Settings/Info UI polish
 
-**Audited:** 2026-07-02 — every ✅ verified against actual codebase. Evidence: commit SHAs, file paths, test output.
+**Audited:** 2026-07-03 — every ✅ verified against actual codebase. Evidence: commit SHAs, file paths, test output.
 
 ---
 
@@ -57,6 +59,76 @@
 | 5 | Auto-start MCP servers on first TUI launch | ✅ | `mcp/index.ts:529-565` (MCP state init auto-starts enabled servers) |
 
 **Taxonomy:** 9 first-party (`vendor: "nocowboy"`) + 4 community (`vendor: "community"`) — `init.ts:75-80`
+
+---
+
+## ✅ DONE — v0.7.4 Agent Refactor
+
+### Agent Reduction: 15 → 5
+
+| Agents kept | Status | Role |
+|---|---|---|
+| **code** | ✅ | Main coding agent (was build). Full tools + semantic_search |
+| **architect** | ✅ | Systems design, ADR, C4. read+command+mcp groups, only docs edit |
+| **debug** | ✅ | Systematic debugging methodology |
+| **overseer** 🆕 | ✅ | Traycer-like: orchestrates code, reviews with DIFFERENT model (cross-vendor bug detection) |
+| **nocowboy** 🆕 | ✅ | OpenClaw-style general-purpose automation: browser, fs, CLI, APIs |
+
+**Removed (10):** general, explore, scout, plan, ask, prd, ralph, researcher, code-reviewer, orchestrator
+
+### Tool Groups
+| Feature | What | Evidence |
+|---|---|---|
+| **groups field** | `ConfigAgent.Info` schema: `["read","edit","command","mcp"]` → resolves to baseline perms | `config/agent.ts:117-128` |
+| **Always-available meta-tools** | `task`, `question`, `todowrite` merged into every agent after user perms (not overridable) | `nocowboy/agent/index.ts` `META_TOOLS` |
+| **Delegation Briefs** | Structured handoff overseer→code: QUESTION/SCOPE/ALREADY_KNOWN/EFFORT/STOP_CONDITION/OUTPUT | `prompt/overseer.txt` |
+| **Output Contract** | Sub-agent returns SUMMARY/CHANGES/EVIDENCE/RISKS/BLOCKERS | `prompt/overseer.txt` |
+
+### Agent Prompts
+| File | Change |
+|---|---|
+| `prompt/nocowboy.txt` | Rewritten: OpenClaw-style automation agent (Russian) |
+| `prompt/overseer.txt` | New: review + orchestration agent (53 lines) |
+| `prompt/ask.txt` | Deleted (agent removed) |
+| `prompt/orchestrator.txt` | Deleted (P2-C1 cleanup) |
+| `agent/architect.md` | YAML frontmatter added |
+
+### Config Cleanup
+| File | Change |
+|---|---|
+| `config/agent.ts` | `groups` field added to schema + KNOWN_KEYS |
+| `config/config.ts` | Explicit keys for plan/ask/general/explore/scout removed |
+| `nocowboy/nocowboy.json` | Old config agents removed, groups added to architect/overseer |
+| `packaging/config/agent/` | code-reviewer.md, prd.md, ralph.md, researcher.md deleted |
+
+### MCP Launcher Fix
+- `Launcher.command()` now only used for servers without explicit `command` in config
+- `mcp start` reads `command` from config directly for `type: "local"` servers
+- Fixes "Skipping — no launch command defined" for all first-party servers
+- `~/.nocowboy/mcp/launch.json` auto-populated from config
+
+### Architecture Separation
+| Layer | What | Lives in |
+|---|---|---|
+| **Agents** | WHO does work: prompts, permissions, tools, models | `agent.ts`, `nocowboy/agent/*`, `packaging/config/agent/` |
+| **Instructions** | HOW work is done: rules, conventions, security | `AGENTS.md`, `packaging/config/instructions/` (13 files) |
+| **Nutausik MCP** | TRACKS work: tasks, memory, decisions, gates, specs | MCP server port 9204 (80+ tools) |
+
+### Project Agent Cleanup
+| File | Action |
+|---|---|
+| `.nocowboy/agent/canonical.md` | Deleted — stale project agent |
+| `.nocowboy/agent/hotreload.md` | Deleted — stale project agent |
+| `.nocowboy/agent/reviewer.md` | Deleted — referenced old `kilo/gpt-5.5` model |
+| `.nocowboy/agent/upstream-merge.md` | Deleted — stale 20KB legacy agent |
+
+### Verification
+- `tsgo --noEmit` — clean
+- Agent tests: **34/34 pass, 0 fail**
+- Permission override tests: **4/4 pass**
+- Plan-exit detection: **15/15 pass**
+- Plan-followup: **28/28 pass**
+- **174/174 agent-related tests pass, 0 failures**
 
 ---
 
@@ -114,7 +186,7 @@
 | Item | What |
 |---|---|
 | 16 instructions | Ported + rebranded Kilo → NoCowboy |
-| 6 agents | Ported. Architect prompt synced to full 8330 chars. |
+| 5 agents (code, architect, debug, overseer, nocowboy) | Refactored from 15. Architect prompt synced to full 8330 chars. |
 | 16 commands | Ported + `/repomap` + `/init` + `/verify` + `/goal` added. `/dream` and `/distill` ❌ not implemented yet (P1.7, P1.8). |
 | 8 skills | Ported + 4 Ralph-TUI skills |
 | Global config only | `~/.config/nocowboy/nocowboy.json` — no per-project by default |
@@ -163,13 +235,13 @@
 | P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low | ❌ No timeout mechanism in permission system |
 | P2-A5 | **Yolo mode button** — chat doesn't ask any permissions when active. Toggle in TUI status bar or Settings. Sets permission to `"allow"` for all tools. | Claude Code | Low | ❌ Not implemented. Must have: TUI button, config toggle (`yolo: true`), permission override, visual indicator (red/yellow/green). Nice-to-have: keyboard shortcut, auto-disable on session end. |
 | P2-A6 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low | ❌ Not in config, TUI, or settings |
-| P2-A7 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | ❌ Not implemented |
+| P2-A7 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High | 🟡 PARTIALLY — nutausik MCP server running (80+ tools: tasks, memory, decisions, gates, specs, sessions). But not fully integrated into agent workflows. |
 
 #### P2-B Russian Language
 
 | # | Feature | Effort | Status |
 |---|---|---|---|
-| P2-B1 | **Russian system prompts** for all 6 agents | Medium | ❌ No `instructions/ru/` directory with Russian prompts |
+| P2-B1 | **Russian system prompts** for all agents | Medium | 🟡 PARTIALLY — nocowboy agent prompt is already in Russian. Others need translation. |
 | P2-B2 | **Russian instruction files** (`instructions/ru/`) — all 16 instructions | Medium | ❌ Directory exists but is EMPTY |
 | P2-B3 | **Russian LLM provider preference** — auto-select YandexGPT/GigaChat when `lang: "ru"` | Medium | ❌ No YandexGPT/GigaChat in config or providers |
 | P2-B4 | **`nocowboy.json` `lang` field** | Low | ❌ Not in config schema |
@@ -226,7 +298,7 @@
 
 | Package | Status |
 |---|---|
-| `nocowboy-linux-x64@0.7.3` | ✅ Built — dogfooding release |
+| `nocowboy-linux-x64@0.7.4` | ✅ Built — v0.7.4 |
 | `nocowboy` meta-package | ❌ |
 | `@nocowboy/mcp-*` (6 servers) | ❌ |
 | `@nocowboy/mcp-puppetmaster` | ❌ needs `dist/` built |
@@ -242,12 +314,12 @@ Added after analyzing Paul (Plan-Apply-Unify Loop, github.com/ChristopherKahler/
 
 | # | Feature | From | Effort | Status |
 |---|---|---|---|---|
-| P2-A8 | **UNIFY loop closure** — обязательное закрытие плана. Сравнивает plan vs actual, создаёт SUMMARY.md, логирует decisions, обновляет STATE.md. Предотвращает orphan-планы. | Paul | Medium | ❌ Не реализовано. У нас есть Plan mode + PRD но нет принудительного закрытия цикла. |
+| P2-A8 | **UNIFY loop closure** — обязательное закрытие плана. Сравнивает plan vs actual, создаёт SUMMARY.md, логирует decisions, обновляет STATE.md. Предотвращает orphan-планы. | Paul | Medium | ❌ Не реализовано. У нас есть architect (plans) + overseer (review) но нет принудительного закрытия цикла. |
 | P2-A9 | **Execute/Qualify loop** — после каждой задачи независимая верификация против acceptance criteria перед переходом к следующей. Anti-rationalization enforcement (не даёт ложно закрыть задачу). | Paul | Medium | ❌ `/verify` есть но опционально, не встроен в flow исполнения. |
 | P2-A10 | **Acceptance-Driven Development** — BDD формат (Given/When/Then), задачи ссылаются на AC (AC-1, AC-2), AC определены ДО задач. | Paul | Medium | ❌ PRD имеют acceptanceCriteria но free-text, без BDD и без linking к задачам. |
 | P2-A11 | **Diagnostic failure routing** — классификация ошибок: intent (перепланировать) / spec (поправить план) / code (фикс на месте). Предотвращает патчинг кода когда план неверен. | Paul | Low | ❌ Нет классификации ошибок. |
 | P2-A12 | **Coherence check** — план валидируется против PROJECT.md/MEMORY.md/STATE.md/ROADMAP.md ДО утверждения. | Paul | Medium | ❌ Нет автоматической валидации планов. |
-| P2-A13 | **Session handoff/pause** — `/pause [reason]` создаёт HANDOFF-{date}.md, `/resume` восстанавливает контекст, `/progress` показывает ОДИН следующий шаг. | Paul | Medium | ⚠️ Частично — session resume есть, но нет pause/handoff команд. |
+| P2-A13 | **Session handoff/pause** — `/pause [reason]` создаёт HANDOFF-{date}.md, `/resume` восстанавливает контекст, `/progress` показывает следующий шаг. | Paul | Medium | ⚠️ Частично — session resume есть, но нет pause/handoff команд. |
 | P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED вместо binary pass/fail. | Paul | Low | ❌ Только pass/fail. |
 | P2-A15 | **Commands tab** — новая вкладка в TUI перед Settings (Info → History → Commands → Settings). Показывает список всех доступных команд с описанием, примерами использования, и возможность кликнуть/выполнить команду прямо из таба. Команды сгруппированы по категориям (Git, Memory, MCP, Session, и т.д.). Иконки/цвета для быстрой идентификации. Фильтр/поиск по командам. | Self | Medium | ❌ Не реализовано. Сейчас команды известны только через `/help` или AGENTS.md. Нет визуального интерфейса для изучения и запуска команд. |
 
