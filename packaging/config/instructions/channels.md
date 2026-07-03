@@ -5,7 +5,7 @@ Channels let you receive messages from external tools (CI, alerts, chat) during 
 ## How It Works
 
 1. External tools POST JSON to the webhook endpoint
-2. Messages are stored in `~/.kilo/channels/<channel>.json`
+2. Messages are stored in `~/.nocowboy/channels/<channel>.json`
 3. The agent calls `channels_read()` at the start of each turn
 4. Messages are cleared after being read
 

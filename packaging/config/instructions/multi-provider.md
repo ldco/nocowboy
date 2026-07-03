@@ -68,14 +68,12 @@ The proxy config supports these providers out of the box:
 Use cheaper/faster models for simple tasks and stronger models for complex work:
 
 ```json
-"explore": {
-  "mode": "primary",
-  "model": "gpt-4o-mini",
+"nocowboy": {
+  "model": "deepseek/deepseek-v4-flash",
   ...
 },
-"code-reviewer": {
-  "mode": "primary",
-  "model": "claude-sonnet-4",
+"architect": {
+  "model": "deepseek/deepseek-v4-pro",
   ...
 }
 ```

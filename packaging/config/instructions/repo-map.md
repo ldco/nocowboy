@@ -90,7 +90,7 @@ Before writing code, output:
 
 ## Integration with Semantic Search
 
-Kilo's `semantic_search` tool can find related code by meaning. Use it as a complement to the structural survey:
+NoCowboy's `semantic_search` tool can find related code by meaning. Use it as a complement to the structural survey:
 
 ```
 1. Phase 1: Read directory structure

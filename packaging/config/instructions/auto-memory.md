@@ -2,14 +2,14 @@
 
 ## Concept
 
-Auto memory lets you accumulate knowledge across sessions. Every significant discovery, pattern, or preference is saved to `~/.kilo/memory/<project-slug>/MEMORY.md` and loaded at the start of every session (first 200 lines).
+Auto memory lets you accumulate knowledge across sessions. Every significant discovery, pattern, or preference is saved to `~/.nocowboy/memory/<project-slug>/MEMORY.md` and loaded at the start of every session (first 200 lines).
 
 This is NOT a replacement for AGENTS.md instructions. AGENTS.md = instructions you write. Auto memory = learnings discovered during work.
 
 ## Session Start (REQUIRED: Run at every boot)
 
 1. Determine the project slug from the git remote or working directory name
-2. Read `~/.kilo/memory/<project-slug>/MEMORY.md` (if it exists)
+2. Read `~/.nocowboy/memory/<project-slug>/MEMORY.md` (if it exists)
 3. Note any relevant entries to the conversation — they're your past learnings
 4. If MEMORY.md doesn't exist, say "No prior memory for this project"
 
@@ -23,18 +23,14 @@ Save learnings when you discover:
 - Gotchas — "Don't use raw SQL, always use Drizzle ORM"
 - Common mistakes — "Forgetting to run migrations causes mysterious 500s"
 
-Save using `task` to invoke the `memory-manager` skill:
+Save using task to invoke the `memory-manager` skill:
 ```
-task(
-  description: "Save memory",
-  prompt: "Save to project memory: {topic}: {content}. Use the memory-manager skill.",
-  subagent_type: "general"
-)
+Use nutausik MCP: memory_add(type: "pattern", title: "<topic>", content: "<content>")
 ```
 
 ## Session End (Run before completing)
 
-Consolidate this session's learnings into `~/.kilo/memory/<project-slug>/MEMORY.md`:
+Consolidate this session's learnings into `~/.nocowboy/memory/<project-slug>/MEMORY.md`:
 - Keep each entry to 1-2 sentences
 - Remove outdated or superseded entries
 - Group related entries under headers
@@ -66,7 +62,7 @@ Consolidate this session's learnings into `~/.kilo/memory/<project-slug>/MEMORY.
 ## Topic Files
 
 For detailed notes (>5 entries on one topic), create topic files:
-`~/.kilo/memory/<project-slug>/<topic>.md`
+`~/.nocowboy/memory/<project-slug>/<topic>.md`
 
 Reference them from MEMORY.md with a one-liner:
 ```

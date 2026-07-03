@@ -5,7 +5,7 @@ When running potentially destructive or untrusted operations, use sandboxed exec
 ## Sandbox Types (in priority order)
 
 ### 1. Permission Rules (built-in)
-kilo.json already has permission rules for destructive commands. These are the first line of defense.
+nocowboy.json already has permission rules for destructive commands. These are the first line of defense.
 
 ### 2. Read-Only Verification
 Before running destructive commands:

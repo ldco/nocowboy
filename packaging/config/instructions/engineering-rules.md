@@ -36,7 +36,7 @@
 - **NEVER commit API keys, tokens, passwords, or secrets.** Always use environment variables or `.env` files (gitignored).
 - Before any commit, explicitly check staged files for secrets: API keys (`sk-`, `pa-`, `ghp_`, etc.), private keys, passwords.
 - If a secret was ever committed (even in past history), it is COMPROMISED — notify the user immediately and recommend rotation.
-- Config files with secrets (`kilo.json`, `.env`) MUST be in `.gitignore`. Provide `.example` templates with placeholders instead.
+- Config files with secrets (`nocowboy.json`, `.env`) MUST be in `.gitignore`. Provide `.example` templates with placeholders instead.
 - When writing code that needs an API key, inject it via `process.env` or config read at runtime — never hardcode.
 - A global pre-commit hook scans for secrets on every commit. If the hook blocks a commit, do NOT use `--no-verify` — fix the problem.
 
@@ -49,6 +49,63 @@
 ### NVIDIA GSP Firmware
 - **On driver ≥610, NEVER disable GSP firmware (`NVreg_EnableGpuFirmware=0`)** — GSP handles VRAM preservation during suspend/resume. Without it, GPU memory corrupts on each wake cycle, producing irreversible visual artifacts on all displays.
 - ArchWiki GSP warnings are for older drivers (≤525). Not applicable to 610+.
+
+## No Excuses — Do The Work
+
+The following phrases are BANNED:
+| Banned Phrase | What It Really Means | What You Must Do Instead |
+|---|---|---|
+| "This would require a major refactor" | "I don't want to do it" | Assess the actual scope. If it's 5 files and 200 lines, that's not "major" — do it. |
+| "This is out of scope" | "I want to do less" | The user defines scope. If the fix requires touching adjacent code, touch it. |
+| "For now, we can just..." | "Here comes a hack" | No "for now." Do it properly or don't do it. |
+| "A simple workaround would be..." | "I found a hack" | Not a workaround. The real fix. |
+| "Good enough for now" | "I'm shipping a hack" | Not "good enough." Correct. Ship correct code or don't ship. |
+| "Let's just disable this" | "I don't want to debug it" | Debug it. Find the root cause. Fix it. |
+| "This module/feature has issues" | "I want to skip it entirely" | It has issues — that means it needs fixing, not disabling. |
+
+## Complete Implementations Only
+
+- **Implement ALL requirements.** Do not cherry-pick the easy ones and skip the hard ones.
+- **Handle ALL edge cases** specified in the requirements.
+- **No partial implementations.** "I implemented the basic version" is not acceptable.
+- **No TODO/FIXME as escape hatches.** If you write `// TODO: handle edge case X`, you have NOT completed the task.
+- **No "happy path only" implementations.** Every function must handle: null/undefined inputs, empty arrays/strings, error conditions, boundary values.
+
+## No Scope Reduction
+
+- **Do not redefine the task to be smaller.** If asked to "implement user authentication," that means the full auth flow.
+- **Do not skip parts of the acceptance criteria.** Every criterion must be satisfied.
+- **Do not implement a "simplified version."** Implement what was asked.
+- **Do not suggest "we can add X later."** Add X now.
+- **Read the ENTIRE requirement before starting.** Do not start implementing after reading the first sentence.
+
+## No Lazy Patterns
+
+| Lazy Pattern | Proper Approach |
+|---|---|
+| Copy-pasting code instead of extracting a shared utility | Create a shared function/module |
+| Using magic numbers/strings | Use named constants or config values |
+| Inline styles instead of proper CSS classes | Use the project's CSS system |
+| String concatenation for SQL/HTML/URLs | Use template literals, builders, or ORM |
+| Manual parsing when a library exists | Use the appropriate library |
+| One massive function that does everything | Break into small, single-responsibility functions |
+| Catching errors silently | Log, handle, or re-throw with context |
+| Using `setTimeout` to "fix" timing issues | Fix the actual async flow |
+| Ignoring return values | Check and handle every return value |
+
+## Honesty Over Speed
+
+- **Speed is NOT a virtue.** Correctness is. A correct fix that takes 30 minutes beats a hack that takes 5 minutes.
+- **If you don't understand the code, READ IT until you do.** Do not guess. Do not assume. Do not "try something and see if it works."
+- **If your first approach doesn't work, UNDERSTAND WHY before trying another.** Do not shotgun debug.
+- **If you realize mid-implementation that the approach is wrong, STOP and redesign.** Do not push through a bad approach because you've already started.
+
+## Severity Is Not a License to Hack
+
+- **Severity determines WHEN you fix something, never HOW.** A P3 bug gets the same quality fix as a P1 bug.
+- **"Not critical" is NEVER a reason to:** use a workaround, skip edge cases, write lower-quality code, leave it half-done.
+- **Every issue, regardless of severity, must be fixed** with the same code quality, root cause analysis, and full verification.
+- **The test:** Would you write THIS code for a P1 production outage? If no — rewrite it.
 
 ## Bash / System Scripts
 - **Sudo is FORBIDDEN:** Never call `sudo` directly in automation. Every bare `sudo` call after credential timeout (5 min) counts as a failed PAM auth — even with `2>/dev/null`. After 5 failures pam_faillock locks the user out. This is a SYSTEM-WIDE REQUIREMENT.

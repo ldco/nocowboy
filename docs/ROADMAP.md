@@ -1,4 +1,4 @@
-# NoCowboy — Roadmap
+tt# NoCowboy — Roadmap
 
 Only NOT implemented features. See CHANGELOG.md for completed items.
 
@@ -67,7 +67,7 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 
 | # | Feature | Effort |
 |---|---|---|
-| P2-C2 | **Optimize 16 instructions** — fix branding, agent refs, merge overlaps | Medium 📋 Analyzed (see docs/deferred/) |
+| P2-C2 | **Optimize instructions** — fix branding, merge overlaps, remove PM code | Medium ✅ Done — 16→14 files, all branding fixed |
 | P2-C3 | **Optimize 16 commands** | Medium |
 | P2-C4 | **Revise MCP server framework** — merge into NUTAUSIK | High 📋 Analyzed (see docs/deferred/) |
 

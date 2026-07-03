@@ -120,7 +120,7 @@ Use these scopes based on the project structure:
 - Examples: `fix(auth): ...`, `feat(api): ...`, `refactor(db): ...`
 - If unsure, omit scope: `fix: ...`
 
-## 10. Integration with Kilo's Existing Git MCP
+## 10. Integration with NoCowboy's Git MCP
 
 The git MCP provides structured git operations. Prefer using:
 - `git_git_status` — check working tree before committing
