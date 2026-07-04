@@ -1,12 +1,11 @@
-// nocowboy_change — NUTAUSIK session auto-wiring (Phase 3)
+// nocowboy_change — NUTAUSIK session auto-wiring
 //
 // Replaces the manual nutausik-hooks.sh with native code wired into
 // the NoCowboy session lifecycle:
-//   - SessionStart → auto-create NUTAUSIK session + task
-//   - PostToolUse → log tool calls to the task
-//   - SessionEnd → close NUTAUSIK session + auto-verify task
+//   - SessionStart → auto-create NUTAUSIK session + task (onSessionCreated)
+//   - PostToolUse  → log tool calls to the task (via hooks MCP registration)
+//   - SessionEnd   → close NUTAUSIK session + save handoff + compact memory
 
-import type { Effect as EffectType } from "effect"
 import * as Log from "@opencode-ai/core/util/log"
 
 const log = Log.create({ service: "nutausik.auto-wire" })
@@ -54,6 +53,7 @@ function hasNutausik(dir: string): boolean {
 /**
  * Called when a NoCowboy session is created.
  * Auto-creates a NUTAUSIK task and starts a NUTAUSIK session.
+ * Replaces the manual nutausik-hooks.sh SessionStart handler.
  */
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
   if (!hasNutausik(directory)) return
@@ -68,7 +68,6 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
     .then((result) => {
       if (result) {
         log.info("auto-created NUTAUSIK task", { sessionID, taskTitle })
-        // Start a NUTAUSIK session for time tracking
         fireTool("nutausik_session_start").then((sr) => {
           if (sr) log.info("auto-started NUTAUSIK session", { sessionID })
         })
@@ -78,25 +77,9 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
 }
 
 /**
- * Called when a tool is used during a session.
- * Logs the tool call to the active NUTAUSIK task.
- */
-export function onToolUsed(
-  toolName: string,
-  toolInput: { filePath?: string },
-  directory: string,
-): void {
-  if (!hasNutausik(directory)) return
-  // Avoid recursion — don't log NUTAUSIK tool calls
-  if (toolName.startsWith("nutausik_")) return
-
-  const msg = `Tool: ${toolName}${toolInput?.filePath ? ` — ${toolInput.filePath}` : ""}`
-  fireTool("nutausik_task_log", { message: msg, phase: "active" }).catch(() => {})
-}
-
-/**
  * Called when a NoCowboy session is removed/ended.
- * Auto-ends the NUTAUSIK session and saves handoff.
+ * Auto-ends the NUTAUSIK session, saves handoff, compacts memory.
+ * Replaces the manual nutausik-hooks.sh SessionEnd handler.
  */
 export function onSessionEnded(sessionID: string, directory: string): void {
   if (!hasNutausik(directory)) return
@@ -107,6 +90,8 @@ export function onSessionEnded(sessionID: string, directory: string): void {
         session_id: sessionID,
         summary: `Session ${sessionID.slice(0, 8)} ended`,
       })
+      // Compact memory — deduplicate and clean (moved from hooks.sh)
+      fireTool("nutausik_memory_compact", { last: 10 })
       log.info("nutausik session auto-ended", { sessionID })
     })
     .catch(() => log.warn("nutausik session end failed", { sessionID }))
