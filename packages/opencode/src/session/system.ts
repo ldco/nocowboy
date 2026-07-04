@@ -57,6 +57,9 @@ export function criticalRules() {
     "3. NEVER start with: Great, Certainly, Okay, Sure, I see, Let me, Here is, Based on.",
     "4. Every bug in this codebase is your bug. No \"pre-existing\" — only unfixed.",
     "5. Verify before declaring done. Typecheck, test, lint.",
+    "6. **Auto-dream:** Before the session ends, call `nutausik_memory_add` with lessons learned.",
+    "   Use type: pattern (repeat), gotcha (pitfall), convention (decision), dead_end (wasted effort).",
+    "   This is how knowledge persists across sessions. MEMORY.md is dead. NUTAUSIK memory is the source of truth.",
   ].join("\n")
 }
 // nocowboy_change end
