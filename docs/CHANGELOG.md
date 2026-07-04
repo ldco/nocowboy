@@ -1,32 +1,6 @@
 # NoCowboy — Changelog
 
-## v0.7.6 — Agent Instructions + NUTAUSIK Phase 1 (2026-07-04)
-
-### Agent Instructions (AGENTS.md + code.txt + debug.txt)
-- **AGENTS.md**: New sections — STRICTLY FORBIDDEN Openings, Behavioral Corrections (Lazy/Overeager/Conversational), Test Failures Invariant, extended Forbidden Phrases Table
-- **code.txt**: New prompt file for primary coding agent — What you do, What you never do, Behavioral discipline, Quality gates, Engineering invariants
-- **debug.txt**: Strengthened — NoCowboy identity, 5-step process, Engineering invariants, STRICTLY FORBIDDEN
-- All agent descriptions shortened to ~5 words for agent selector dialog
-- `dialog-agent.tsx`: Always show descriptions, never hide behind "native" badge
-
-### NUTAUSIK — Fix & Phase 1
-- **Fixed:** `better-sqlite3` пересобран для Node.js 26 (был собран под 24, NUTAUSIK не работал)
-- **Fixed:** Порт в `nocowboy.json` — nutausik MCP был прописан на 9204 (там ncp-validator), исправлен на 9210 (реальный NUTAUSIK)
-- **Init:** `.nutausik/nutausik.db` создан в проекте NoCowboy
-- **NutausikDot:** Индикатор в TopBar — проверяет MCP статус + наличие `.nutausik/nutausik.db`
-  - ✗ серый — сервер не подключен
-  - `init` жёлтый — сервер подключен, но проект не инициализирован
-  - ✓ зелёный — сервер работает и проект инициализирован
-- `nutausik-hooks.sh` — lifecycle hook script for SessionStart, PostToolUse (Write|Edit), SessionEnd
-- `docs/NUTAUSIK.md` — competitive analysis & design document (4 phases)
-
-### Verification
-- Typecheck: `tsgo --noEmit` — clean
-- 112/112 P2 tests pass, 0 failures
-
----
-
-## v0.7.5 — P2 UX & Safety (2026-07-03)
+## v0.7.5 — P2 UX & Safety + NUTAUSIK Auto-Wiring (2026-07-04)
 
 ### P2-A2: Search/Replace Edit Format
 - New `search_replace` tool — Aider-style SEARCH/REPLACE block-diff parser
@@ -46,16 +20,42 @@
 - Default: disabled (no timeout)
 
 ### P2-A5: Yolo Mode Toggle
-- `[YOLO]` button in prompt input bar (before clear button)
+- `[YOLO` button in prompt input bar (before clear button)
 - Brand-orange when active, gray when inactive
 - Toggles `allowEverything` permission via SDK
 - New `YoloButton` SolidJS component
 
+### Agent Instructions
+- **AGENTS.md**: New sections — STRICTLY FORBIDDEN Openings, Behavioral Corrections (Lazy/Overeager/Conversational), Test Failures Invariant, extended Forbidden Phrases Table
+- **code.txt**: New prompt file for primary coding agent
+- **debug.txt**: Strengthened — NoCowboy identity, 5-step process, Engineering invariants
+- All agent descriptions shortened to ~5 words for agent selector dialog
+- `dialog-agent.tsx`: Always show descriptions, never hide behind "native" badge
+
+### NUTAUSIK — Fix & Phase 1 (hooks + NutausikDot)
+- **Fixed:** `better-sqlite3` rebuilt for Node.js 26 (was compiled for Node 24)
+- **Fixed:** NUTAUSIK MCP port 9210 (9204 had ncp-validator)
+- **Init:** `.nutausik/nutausik.db` created in NoCowboy project
+- **NutausikDot:** 3-state indicator in TopBar — ✗ (no server), init (server, no DB), ✓ (ready)
+- **nutausik-hooks.sh:** lifecycle hooks for SessionStart, PostToolUse, SessionEnd
+- **docs/NUTAUSIK.md:** competitive analysis & design document
+
+### NUTAUSIK v0.2.0 — Session Auto-Wiring (separate repo)
+- `nutausik_context_inject` MCP tool — generates `<nutausik_context>` block for agent prompt injection
+- `nutausik_handoff_save` / `handoff_load` — session handoff persistence
+- `nutausik_coherence_check` — validates plan against memory/decisions
+- `nutausik_loop_close` — compares plan vs actual, generates UNIFY SUMMARY
+- CLI commands for all new tools
+- 488 tests (8 new), 45 files, 100% pass
+
+### Todo Injection (NoCowboy integration)
+- `system.ts`: env builder calls `nutausik_context_inject` MCP tool on system prompt assembly
+- `system-prompt.ts`: NUTAUSIK context block injected when `.nutausik/` exists
+- `nutausik-hooks.sh`: auto-saves handoff on SessionEnd
+
 ### Verification
 - Typecheck: `tsgo --noEmit` — clean
-- 112/112 P2 tests pass, 0 failures
-
----
+- All P2 tests pass, 0 failures
 
 ## v0.7.4 — P3 Agent Refactor (2026-07-03)
 

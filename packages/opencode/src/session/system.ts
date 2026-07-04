@@ -110,9 +110,36 @@ export const layer = Layer.effect(
         editorContext?: EditorContext,
       ) {
         const ctx = yield* InstanceState.context
-        return NoCowboySystemPrompt.environment({ ctx, model, editor: editorContext })
+        const envLines = NoCowboySystemPrompt.environment({ ctx, model: model as any, editor: editorContext as any })
+
+        // NUTAUSIK context injection — async call to MCP server
+        const dir = ctx.directory || process.cwd()
+        const nutausikDb = require("node:path").join(dir, ".nutausik", "nutausik.db")
+        const fs = require("node:fs")
+        if (fs.existsSync(nutausikDb)) {
+          const text = yield* Effect.promise<string>(async () => {
+            try {
+              const res = await fetch("http://127.0.0.1:9210/mcp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 1,
+                  method: "tools/call",
+                  params: { name: "nutausik_context_inject" },
+                }),
+                signal: AbortSignal.timeout(3000),
+              })
+              if (!res.ok) return ""
+              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
+              return data?.result?.content?.[0]?.text ?? ""
+            } catch { return "" }
+          }).pipe(Effect.catch(() => Effect.succeed("")))
+          if (text) envLines.push(text)
+        }
+
+        return envLines
       }),
-      // nocowboy_change end
 
       skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info) {
         if (Permission.disabled(["skill"], agent.permission).has("skill")) return
