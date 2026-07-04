@@ -1,112 +1,88 @@
 # NoCowboy — Roadmap
 
-> **Sync:** NoCowboy releases are paired with NUTAUSIK releases.
-> See [NUTAUSIK Roadmap](https://github.com/nocowboy/nutausik-js/blob/master/ROADMAP.md) for NUTAUSIK-side.
-> **Versioning:** x.y.z — z = bugfixes only. Roadmap tracks x.y.0.
-> **Status legend:** ✅ Done | 🟡 Partial | ❌ Nothing | ⚫ Dropped
+> **Что выйдет:** Этот файл — план будущих релизов. Что уже вышло → [CHANGELOG.md](CHANGELOG.md).
+> **Sync:** Релизы NoCowboy синхронизированы с [NUTAUSIK](https://github.com/nocowboy/nutausik-js/blob/master/ROADMAP.md).
+> **Версионирование:** x.y.z — z только для багфиксов. Роадмап планирует x.y.0.
 
 ---
 
-## v0.7.0 ✅ Released — P2 UX & Safety + NUTAUSIK Phase 1
+## v0.8.0 — Full Auto-Wiring + Russian Language
 
-### P2-A UX & Safety
+**NUTAUSIK companion: v0.3.0**
 
-| # | Feature | Status | Code evidence |
-|---|---|---|---|
-| P2-A2 | **search_replace** tool — Aider-style SEARCH/REPLACE parser | ✅ | `src/tool/search_replace.ts` + tests |
-| P2-A3 | **Branch-per-task** — `--branch` flag | ✅ | `src/git/index.ts` createBranch, `src/cli/cmd/run.ts` |
-| P2-A4 | **Permission timeout** — auto-deny | ✅ | `src/config/config.ts` permission_timeout, `src/permission/index.ts` |
-| P2-A5 | **Yolo mode** — `[YOLO]` button | ✅ | `src/nocowboy/components/yolo-button.tsx` |
-| P2-A6 | ~~Autonomy slider~~ | ⚫ | Dropped — Yolo covers it |
-| P2-A7-12 | **NUTAUSIK Auto-Wiring** | 🟡 | Phase 1 ✅ (hooks + NutausikDot). Phase 2-4 ❌ |
-| P2-A13 | **Session handoff** — automatic | 🟡 | `nutausik-hooks.sh` exists but manual. No auto-save/load. |
-| P2-A14 | **Escalation statuses** — DONE/DONE_WITH_CONCERNS/BLOCKED | ❌ | Zero code |
-| P2-A15 | **Commands tab** — TUI sidebar | ❌ | Zero code |
-| P2-A16 | ~~Documentation agent~~ → skill `write-docs` | ⚫ | Decision made. Code.txt needs doc-discipline lines. Skill not created. |
+### NUTAUSIK Auto-Wiring (Phases 2-4)
+- Phase 2: Todo injection — `context_inject` block в каждом системном промпте
+- Phase 3: Session auto-wiring — авто-создание task при старте, логирование tool calls, закрытие при завершении
+- Phase 4: Verification loop — авто-проверка AC перед task_done, coherence check при старте
+- `nutausik-hooks.sh` → перевести на автоматический режим (сейчас ручной)
 
-### P2-B Russian Language
+### Session Handoff
+- Автоматическое сохранение HANDOFF при завершении сессии
+- Авто-загрузка контекста из предыдущей сессии при старте
+- Интеграция с NUTAUSIK `handoff_save` / `handoff_load`
 
-| # | Feature | Status | Code evidence |
-|---|---|---|---|
-| P2-B1 | **Russian system prompts** | 🟡 | `nocowboy.txt` + `overseer.txt` are RU. code/debug/architect are EN. |
-| P2-B2 | **Russian instruction files** (`instructions/ru/`) | ❌ | Directory doesn't exist |
-| P2-B3 | **Russian LLM providers** (YandexGPT, GigaChat) | ❌ | Not in models-snapshot |
-| P2-B4 | **`nocowboy.json` `lang` field** | ❌ | No lang field exists |
-| P2-B5 | **UI Russian localization** | ❌ | No i18n framework. Some fragments translated ad-hoc. |
+### Escalation Statuses
+- DONE / DONE_WITH_CONCERNS / BLOCKED в NUTAUSIK task status
 
-### P2-C Codebase Optimization
+### TUI — Commands Tab
+- Новая вкладка в sidebar: Info → History → **Commands** → Settings
+- Список всех доступных команд с описанием и примерами
+- Иконки, группировка по категориям, поиск
 
-| # | Feature | Status | Code evidence |
-|---|---|---|---|
-| P2-C2 | **Optimize instructions** — merge overlaps | ✅ | 11 files (was 16). `cybersecurity.md` → puppetmaster MCP. |
-| P2-C3 | **Optimize 16 commands** — deduplicate | 🟡 | 30 commands registered. Not deduplicated. |
-| P2-C4 | **MCP server framework** → merge into NUTAUSIK | 🟡 | Analyzed (`docs/deferred/`). Not implemented. |
+### Russian Language
+- Русские системные промпты для всех агентов (code, debug, architect)
+- Русские инструкции (`instructions/ru/`)
+- Поддержка YandexGPT и GigaChat
+- Поле `lang` в `nocowboy.json`
+- UI локализация (метки, ошибки, помощь)
 
-### Agent Instructions (v0.7.0)
-
-| What | Status | Code evidence |
-|---|---|---|
-| AGENTS.md — forbidden phrases, behavioral corrections | ✅ | `AGENTS.md` |
-| code.txt — engineering agent prompt | ✅ | `src/agent/prompt/code.txt` |
-| debug.txt — strengthened debug agent | ✅ | `src/agent/prompt/debug.txt` |
-| NutausikDot — 3-state TopBar indicator | ✅ | `src/nocowboy/components/nocowboy-bars.tsx` |
-| Agent descriptions — short, no "native" | ✅ | `src/nocowboy/agent/index.ts` |
-
-### NUTAUSIK Integration (v0.7.0)
-
-| What | Status | Code evidence |
-|---|---|---|
-| SQLite rebuilt for Node 26 | ✅ | `better-sqlite3@12.11.1` |
-| Port fix — nutausik 9204→9210 | ✅ | `nocowboy.json` |
-| `.nutausik/` initialized | ✅ | `.nutausik/nutausik.db` (434KB) |
-| NutausikDot indicator | ✅ | `src/nocowboy/components/nocowboy-bars.tsx` |
-| Todo Injection — `context_inject` in prompt | ✅ | `src/session/system.ts` |
-| NUTAUSIK v0.2.0 tools | ✅ | context_inject, handoff, coherence, loop_close |
+### Codebase
+- Дедупликация и оптимизация 30 команд
+- MCP server framework → merge в NUTAUSIK
 
 ---
 
-## v0.8.0 🟡 — Full Auto-Wiring + Russian
+## v0.9.0 — Ecosystem
 
-| Domain | What | ↔ NUTAUSIK |
-|---|---|---|
-| P2-A7-12 Phases 2-4 | Full auto-wiring: task creation, log, verify on close | ↔ v0.3.0 |
-| P2-A13 | Session handoff — auto save/load HANDOFF | ↔ handoff tools |
-| P2-A14 | Escalation statuses | ↔ task status |
-| P2-A15 | Commands tab in TUI | — |
-| P2-B1..B5 | Russian language: full localization | — |
-| P2-C3 | Command deduplication | — |
+**NUTAUSIK companion: v0.4.0**
 
-**NUTAUSIK companion:** v0.3.0
+### Sandbox & Isolation
+- Diff review sandbox — изоляция AI-изменений до принятия (Plandex-style)
+- Sandbox mode — выполнение команд в Docker (OpenHands-style)
 
----
+### Deep Context
+- 2M token context с бюджетированием
+- Repomap через tree-sitter (AST-based, не regex)
 
-## v0.9.0 🟡 — Ecosystem
+### MCP Marketplace
+- `mcp search` — поиск и установка MCP серверов (Cline-style)
 
-| Domain | What | Truth (cross-checked) |
-|---|---|---|
-| P3-A1 | **Diff sandbox** — isolate AI changes | ❌ Zero code. |
-| P3-A2 | **Sandbox mode** — Docker execution | ❌ Zero code. Plugin references are for cloud, not sandbox. |
-| P3-A3 | **2M token context** — deep context with budgeting | 🟡 `checkpoint-validator.ts` has token budgeting. Not 2M. |
-| P3-A4 | **Tree-sitter repomap** — regex→AST | ✅ `src/nocowboy/repomap.ts` exists! |
-| P3-A5 | **MCP marketplace** — `mcp search` | ❌ Zero code. |
-| P3-A6 | **Vector store switcher** — LanceDB | ✅ `src/nocowboy/lancedb.ts` exists! |
-| P3-A7 | **Offline mode** — Ollama | ❌ Zero code. |
-| P3-A8 | **Per-task cost tracking** | ✅ `src/nocowboy/session/cost-propagation.ts` exists! |
-| P4.1 | **Channels** — webhooks | ❌ Tools in MCP but not stable. |
-
-**NUTAUSIK companion:** v0.4.0
+### Offline & Cost
+- Offline mode через Ollama (локальные модели)
+- Per-task cost tracking с леджером
 
 ---
 
-## v1.0.0 🟡 — Production
+## v1.0.0 — Production
 
-### Lawer (152-ФЗ) — Cross-checked vs Code
+**NUTAUSIK companion: v1.0.0**
 
-| # | Feature | Status | Truth |
-|---|---|---|---|
-| P3-B1 | **License** — RF proprietary | ❌ | **No LICENSE file exists.** Project is unlicensed. |
-| P3-B2 | **Consent dialogs** — Art. 9 | 🟡 | `share_consent` is UX only, not legal consent. Skill has template. |
-| P3-B3 | **Data localization** — Art. 21 | ❌ | SQLite local by accident, no RU logic. |
-| P3-B4 | **Right to deletion** — `nocowboy forget` | ❌ | Zero code. |
-| P3-B5 | **Roskomnadzor template** — Art. 22 | 🟡 | Skill has consent template. No RKN notification. |
-| P3-B6 | **Legal research** — does `.nutausik/nutausik.db` contain personal data? Task names, file paths, memory, session logs — are these ПДн under 152-ФЗ Art. 3? Does laptop travel violate Art. 21 localization? What about GDPR? **Requires RF-qualified lawyer opinion.** | 🟡 | Research task, no code |
+### 152-ФЗ Compliance
+- P3-B1: Лицензия под юрисдикцией РФ (сейчас LICENSE отсутствует)
+- P3-B2: Consent dialogs по ст. 9
+- P3-B3: Локализация данных по ст. 21
+- P3-B4: `nocowboy forget` — право на удаление
+- P3-B5: Уведомление РКН по ст. 22
+- P3-B6: Legal research — являются ли данные в nutausik.db персональными? (ответ юриста)
+
+### LLM Providers
+- YandexGPT и GigaChat с лёгким переключением
+
+### Sync & Deploy
+- Share chat / синхронизация между машинами
+- Turso — production SQLite для multi-machine
+
+### Publish
+- npm org `@nocowboy`
+- `@nocowboy/nocowboy`, `@nocowboy/mcp-*` (7 пакетов)
+- `@nocowboy/nutausik`
