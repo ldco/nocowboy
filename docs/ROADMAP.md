@@ -1,27 +1,67 @@
 # NoCowboy — Roadmap
 
 > **Sync:** NoCowboy releases are paired with NUTAUSIK releases.
-> See [NUTAUSIK Roadmap](https://github.com/nocowboy/nutausik-js/blob/master/ROADMAP.md) for NUTAUSIK-side details.
-> **Versioning:** x.y.z — z is for bugfixes only. This roadmap tracks x.y.0 releases.
+> See [NUTAUSIK Roadmap](https://github.com/nocowboy/nutausik-js/blob/master/ROADMAP.md) for NUTAUSIK-side.
+> **Versioning:** x.y.z — z = bugfixes only. Roadmap tracks x.y.0.
+> **Status legend:** ✅ Done | 🟡 Partial | ❌ Nothing | ⚫ Dropped
 
 ---
 
 ## v0.7.0 ✅ Released — P2 UX & Safety + NUTAUSIK Phase 1
 
-| Domain | What |
-|---|---|
-| P2-A2 | **search_replace** tool — Aider-style SEARCH/REPLACE block parser |
-| P2-A3 | **Branch-per-task** — `--branch` flag, `Git.createBranch` |
-| P2-A4 | **Permission timeout** — `experimental.permission_timeout` |
-| P2-A5 | **Yolo mode** — `[YOLO]` button in prompt bar |
-| Instructions | AGENTS.md (forbidden phrases, behavioral corrections), code.txt, debug.txt |
-| Agent UI | Short descriptions, no "native" badge hiding |
-| NUTAUSIK | Fix SQLite (Node 26), port 9210, `.nutausik/` init, NutausikDot in TopBar |
-| NUTAUSIK | v0.2.0 — context_inject, handoff_save/load, coherence_check, loop_close |
-| Todo Injection | `system.ts` calls `nutausik_context_inject` on prompt assembly |
-| P2-A16 | ~~Documentation agent~~ → skill `write-docs` instead |
+### P2-A UX & Safety
 
-**NUTAUSIK companion:** v0.2.0
+| # | Feature | Status | Code evidence |
+|---|---|---|---|
+| P2-A2 | **search_replace** tool — Aider-style SEARCH/REPLACE parser | ✅ | `src/tool/search_replace.ts` + tests |
+| P2-A3 | **Branch-per-task** — `--branch` flag | ✅ | `src/git/index.ts` createBranch, `src/cli/cmd/run.ts` |
+| P2-A4 | **Permission timeout** — auto-deny | ✅ | `src/config/config.ts` permission_timeout, `src/permission/index.ts` |
+| P2-A5 | **Yolo mode** — `[YOLO]` button | ✅ | `src/nocowboy/components/yolo-button.tsx` |
+| P2-A6 | ~~Autonomy slider~~ | ⚫ | Dropped — Yolo covers it |
+| P2-A7-12 | **NUTAUSIK Auto-Wiring** | 🟡 | Phase 1 ✅ (hooks + NutausikDot). Phase 2-4 ❌ |
+| P2-A13 | **Session handoff** — automatic | 🟡 | `nutausik-hooks.sh` exists but manual. No auto-save/load. |
+| P2-A14 | **Escalation statuses** — DONE/DONE_WITH_CONCERNS/BLOCKED | ❌ | Zero code |
+| P2-A15 | **Commands tab** — TUI sidebar | ❌ | Zero code |
+| P2-A16 | ~~Documentation agent~~ → skill `write-docs` | ⚫ | Decision made. Code.txt needs doc-discipline lines. Skill not created. |
+
+### P2-B Russian Language
+
+| # | Feature | Status | Code evidence |
+|---|---|---|---|
+| P2-B1 | **Russian system prompts** | 🟡 | `nocowboy.txt` + `overseer.txt` are RU. code/debug/architect are EN. |
+| P2-B2 | **Russian instruction files** (`instructions/ru/`) | ❌ | Directory doesn't exist |
+| P2-B3 | **Russian LLM providers** (YandexGPT, GigaChat) | ❌ | Not in models-snapshot |
+| P2-B4 | **`nocowboy.json` `lang` field** | ❌ | No lang field exists |
+| P2-B5 | **UI Russian localization** | ❌ | No i18n framework. Some fragments translated ad-hoc. |
+
+### P2-C Codebase Optimization
+
+| # | Feature | Status | Code evidence |
+|---|---|---|---|
+| P2-C2 | **Optimize instructions** — merge overlaps | ✅ | 11 files (was 16). `cybersecurity.md` → puppetmaster MCP. |
+| P2-C3 | **Optimize 16 commands** — deduplicate | 🟡 | 30 commands registered. Not deduplicated. |
+| P2-C4 | **MCP server framework** → merge into NUTAUSIK | 🟡 | Analyzed (`docs/deferred/`). Not implemented. |
+
+### Agent Instructions (v0.7.0)
+
+| What | Status | Code evidence |
+|---|---|---|
+| AGENTS.md — forbidden phrases, behavioral corrections | ✅ | `AGENTS.md` |
+| code.txt — engineering agent prompt | ✅ | `src/agent/prompt/code.txt` |
+| debug.txt — strengthened debug agent | ✅ | `src/agent/prompt/debug.txt` |
+| NutausikDot — 3-state TopBar indicator | ✅ | `src/nocowboy/components/nocowboy-bars.tsx` |
+| Agent descriptions — short, no "native" | ✅ | `src/nocowboy/agent/index.ts` |
+
+### NUTAUSIK Integration (v0.7.0)
+
+| What | Status | Code evidence |
+|---|---|---|
+| SQLite rebuilt for Node 26 | ✅ | `better-sqlite3@12.11.1` |
+| Port fix — nutausik 9204→9210 | ✅ | `nocowboy.json` |
+| `.nutausik/` initialized | ✅ | `.nutausik/nutausik.db` (434KB) |
+| NutausikDot indicator | ✅ | `src/nocowboy/components/nocowboy-bars.tsx` |
+| Todo Injection — `context_inject` in prompt | ✅ | `src/session/system.ts` |
+| NUTAUSIK v0.2.0 tools | ✅ | context_inject, handoff, coherence, loop_close |
 
 ---
 
@@ -29,47 +69,76 @@
 
 | Domain | What | ↔ NUTAUSIK |
 |---|---|---|
-| P2-A7-12 Phase 2-4 | Full NUTAUSIK auto-wiring: session → task, log edits, verify on close, coherence check | ↔ v0.3.0 hooks |
-| P2-A13 | **Session handoff** — automatic HANDOFF at session end, auto-load on start | ↔ `handoff_save/load` tools |
-| P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / BLOCKED | ↔ task status field |
-| P2-A15 | **Commands tab** — TUI sidebar tab (Info→History→Commands→Settings) | — |
-| P2-B1..B5 | **Russian language** — system prompts, UI labels, YandexGPT/GigaChat preference, `lang` field | — |
-| P2-C3 | **Optimize 16 commands** — deduplicate, merge overlaps | — |
-| P2-C4 | **MCP server framework** — merge into NUTAUSIK where possible | ↔ v0.3.0 |
+| P2-A7-12 Phases 2-4 | Full auto-wiring: task creation, log, verify on close | ↔ v0.3.0 |
+| P2-A13 | Session handoff — auto save/load HANDOFF | ↔ handoff tools |
+| P2-A14 | Escalation statuses | ↔ task status |
+| P2-A15 | Commands tab in TUI | — |
+| P2-B1..B5 | Russian language: full localization | — |
+| P2-C3 | Command deduplication | — |
 
 **NUTAUSIK companion:** v0.3.0
 
 ---
 
-## v0.9.0 🟡 — Ecosystem (Sandbox + Deep Context)
+## v0.9.0 🟡 — Ecosystem
 
-| Domain | What | ↔ NUTAUSIK |
+| Domain | What | Truth (cross-checked) |
 |---|---|---|
-| P3-A1 | **Diff review sandbox** — isolate AI changes until accepted (Plandex-style) | ↔ v0.4.0 |
-| P3-A2 | **Sandbox mode** — Docker-insulated command execution (OpenHands-style) | ↔ v0.4.0 |
-| P3-A3 | **2M token context** — deep context with token budgeting | — |
-| P3-A4 | **Tree-sitter repomap** — regex → AST file indexing (Aider-style) | ↔ v0.4.0 |
-| P3-A5 | **MCP server marketplace** (`mcp search`) — Cline-style | — |
-| P3-A6 | **Vector store switcher** — SQLite / LanceDB / Qdrant | — |
-| P3-A7 | **Offline mode** — local LLM via Ollama | — |
-| P3-A8 | **Per-task cost tracking** — ledger per task | ↔ v0.4.0 metrics |
-| P4.1 | **Channels** — webhooks push CI/chat into TUI sessions | — |
+| P3-A1 | **Diff sandbox** — isolate AI changes | ❌ Zero code. |
+| P3-A2 | **Sandbox mode** — Docker execution | ❌ Zero code. Plugin references are for cloud, not sandbox. |
+| P3-A3 | **2M token context** — deep context with budgeting | 🟡 `checkpoint-validator.ts` has token budgeting. Not 2M. |
+| P3-A4 | **Tree-sitter repomap** — regex→AST | ✅ `src/nocowboy/repomap.ts` exists! |
+| P3-A5 | **MCP marketplace** — `mcp search` | ❌ Zero code. |
+| P3-A6 | **Vector store switcher** — LanceDB | ✅ `src/nocowboy/lancedb.ts` exists! |
+| P3-A7 | **Offline mode** — Ollama | ❌ Zero code. |
+| P3-A8 | **Per-task cost tracking** | ✅ `src/nocowboy/session/cost-propagation.ts` exists! |
+| P4.1 | **Channels** — webhooks | ❌ Tools in MCP but not stable. |
 
 **NUTAUSIK companion:** v0.4.0
 
 ---
 
-## v1.0.0 🟡 — Production (Law + Market)
+## v1.0.0 🟡 — Production
 
-| Domain | What | ↔ NUTAUSIK |
-|---|---|---|
-### P3-B Lawer (152-ФЗ) — Cross-checked vs Code
+### Lawer (152-ФЗ) — Cross-checked vs Code
 
-| # | Feature | Code exists? | Truth |
+| # | Feature | Status | Truth |
 |---|---|---|---|
-| P3-B1 | **License** — proprietary RF license | ❌ | **No LICENSE file at all.** Project is unlicensed. `russian-it-law` skill has Art. 3-24 reference, not a license text. |
-| P3-B2 | **Consent dialogs** — Art. 9 | 🟡 | `share_consent` dialog exists (UX only, not legal consent). Skill has consent template, no code uses it. |
-| P3-B3 | **Data localization** — Art. 21 | ❌ | SQLite is local by accident, not by design. No RU-specific localization logic. |
-| P3-B4 | **Right to deletion** — `nocowboy forget` | ❌ | No command exists. Zero code. |
-| P3-B5 | **Roskomnadzor template** | 🟡 | Skill has consent template (Art. 9). No RKN notification templates. |
+| P3-B1 | **License** — RF proprietary | ❌ | **No LICENSE file exists.** Project is unlicensed. |
+| P3-B2 | **Consent dialogs** — Art. 9 | 🟡 | `share_consent` is UX only, not legal consent. Skill has template. |
+| P3-B3 | **Data localization** — Art. 21 | ❌ | SQLite local by accident, no RU logic. |
+| P3-B4 | **Right to deletion** — `nocowboy forget` | ❌ | Zero code. |
+| P3-B5 | **Roskomnadzor template** — Art. 22 | 🟡 | Skill has consent template. No RKN notification. |
 
+### Polish & Market
+
+| Domain | What | Status | Truth |
+|---|---|---|---|
+| P4.2 | **Russian LLM providers** — YandexGPT, GigaChat | ❌ | Zero code. |
+| P4.3 | **Share/sync** — between machines | ❌ | Zero code. `share_consent` is UI only. |
+| P4.4 | **Turso** — production SQLite | ❌ | Zero code. |
+
+### Publish
+
+| Package | Status |
+|---|---|
+| `@nocowboy/nocowboy` | ❌ Not published |
+| `@nocowboy/mcp-*` (6 servers + puppetmaster) | ❌ Not published |
+| `@nocowboy/nutausik` | ❌ Not published |
+| npm org `@nocowboy` | ❌ Not created |
+
+---
+
+## 🤖 Agent Architecture (Current)
+
+| Агент | Тип | Модель | Инструменты | Назначение |
+|---|---|---|---|---|
+| **code** | coding | Flash | read, edit, command, mcp | Пишет код, рефакторит, тестирует |
+| **architect** | coding | Pro | read, command, mcp + edit(docs/*.md) | Планы, ADR, C4, дизайн |
+| **debug** | coding | Flash | read, edit, command, mcp | Систематическая отладка |
+| **overseer** | review | **Kimi K2/Pro** | read, command, mcp | Оркестрирует code, кросс-модель ревью |
+| **nocowboy** | automation | Flash | Все | Браузер, файлы, система |
+
+**Always-available meta-tools:** `task`, `question`, `todowrite`, `search_replace`
+
+**Tool groups:** `read` → read/grep/glob/list/semantic_search · `edit` → search_replace/write · `command` → bash · `mcp` → все MCP 13 серверов
