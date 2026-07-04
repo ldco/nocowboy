@@ -130,6 +130,10 @@ const live: Layer.Layer<
       // TODO: move this to a proper hook
       const isOpenaiOauth = item.id === "openai" && info?.type === "oauth"
 
+      // nocowboy_change start — set lang for Russian Language Pack
+      SystemPrompt.setLang((cfg as Record<string, unknown>)?.lang as string | undefined)
+      // nocowboy_change end
+
       const system: string[] = []
       system.push(
         [

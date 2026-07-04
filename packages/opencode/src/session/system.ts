@@ -20,6 +20,8 @@ import { Skill } from "@/skill"
 
 // nocowboy_change start
 import SOUL from "../nocowboy/soul.txt"
+import SOUL_RU from "../nocowboy/soul.ru.txt"
+import PROMPT_RU from "./prompt/nocowboy-ru.txt"
 import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
@@ -30,9 +32,25 @@ export function instructions() {
   return PROMPT_CODEX.trim()
 }
 
-export function soul() {
-  return SOUL.trim()
+// nocowboy_change start — Russian Language Pack
+let _lang: string | undefined
+
+export function setLang(lang?: string) {
+  _lang = lang
 }
+
+export function isRU(): boolean {
+  return _lang === "ru"
+}
+
+export function soul() {
+  return isRU() ? SOUL_RU.trim() : SOUL.trim()
+}
+
+export function ruPrompt(): string | undefined {
+  return isRU() ? PROMPT_RU.trim() : undefined
+}
+// nocowboy_change end
 
 export function identityAnchor() {
   return [
@@ -92,6 +110,14 @@ export function provider(model: Provider.Model) {
   if (k) return k
   // nocowboy_change end
 
+  // nocowboy_change start — Russian Language Pack
+  // YandexGPT and GigaChat detection (lang=ru)
+  const modelId = model.api.id.toLowerCase()
+  if (isRU() && (modelId.includes("yandex") || modelId.includes("gigachat") || modelId.includes("yagpt"))) {
+    return [PROMPT_RU]
+  }
+  // nocowboy_change end
+
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
     return [PROMPT_BEAST]
   if (model.api.id.includes("gpt")) {
@@ -102,9 +128,12 @@ export function provider(model: Provider.Model) {
   }
   if (model.api.id.includes("gemini-")) return [PROMPT_GEMINI]
   if (model.api.id.includes("claude")) return [PROMPT_ANTHROPIC]
-  if (model.api.id.toLowerCase().includes("trinity")) return [PROMPT_TRINITY]
-  if (model.api.id.toLowerCase().includes("kimi")) return [PROMPT_KIMI]
+  if (modelId.includes("trinity")) return [PROMPT_TRINITY]
+  if (modelId.includes("kimi")) return [PROMPT_KIMI]
   if (isLing(model.api.id)) return [PROMPT_LING] // nocowboy_change
+  // nocowboy_change start — default to Russian prompt when lang=ru
+  if (isRU()) return [PROMPT_RU]
+  // nocowboy_change end
   return [PROMPT_DEFAULT]
 }
 
