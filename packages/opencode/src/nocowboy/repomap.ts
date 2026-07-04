@@ -129,12 +129,30 @@ function describeResponsibility(dir: string, files: FileEntry[]): string {
   return hints[baseName] || baseName
 }
 
-const lastResult = { time: 0, map: "" }
+// Cache keyed by root directory — invalidates when .git/index or root mtime changes
+const cache = new Map<string, { map: string; fingerprint: number }>()
+const CACHE_MAX = 10 // prevent unbounded growth for multi-project scenarios
+
+function dirFingerprint(root: string): number {
+  try {
+    // Use .git/index mtime as proxy for working tree changes (git updates index on add/edit/delete)
+    const gitIndex = path.join(root, ".git", "index")
+    if (fs.existsSync(gitIndex)) {
+      const stat = fs.statSync(gitIndex)
+      return stat.mtimeMs
+    }
+    // Fallback: root dir mtime (changes on file add/remove, not on edit)
+    return fs.statSync(root).mtimeMs
+  } catch {
+    return 0
+  }
+}
 
 export namespace RepoMap {
   export function generate(root: string, maxLines: number = 50): string {
-    const now = Date.now()
-    if (now - lastResult.time < 30000) return lastResult.map
+    const fingerprint = dirFingerprint(root)
+    const cached = cache.get(root)
+    if (cached && cached.fingerprint === fingerprint) return cached.map
 
     const entries = scanDir(root)
     const modules = groupByDirectory(entries)
@@ -160,8 +178,13 @@ export namespace RepoMap {
     lines.push("")
     lines.push(`**Total:** ${totalFiles} files, ${totalLines.toLocaleString()} lines across ${modules.length} directories.`)
 
-    lastResult.time = now
-    lastResult.map = lines.join("\n")
-    return lastResult.map
+    const result = lines.join("\n")
+    // Evict oldest entry if cache is full
+    if (cache.size >= CACHE_MAX) {
+      const oldest = cache.keys().next().value
+      if (oldest !== undefined) cache.delete(oldest)
+    }
+    cache.set(root, { map: result, fingerprint })
+    return result
   }
 }

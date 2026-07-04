@@ -1,5 +1,60 @@
 # NoCowboy — Changelog
 
+## v0.7.6 — Token Cost Optimization + Identity Scoping (2026-07-04)
+
+### Token Cost Investigation
+- Full audit of per-message system prompt composition and cost drivers
+- Identified: system prompt grew 2.5x (11K→27K chars) since initial fork due to repomap, soul identity, and instructions stacking
+- Root cause of $5.63 peak day (July 3): 30× more messages/day than baseline + 2.5× larger system prompt
+- NUTAUSIK excluded as cause (only ~200 chars/message, added after cost spike)
+- Full analysis logged to NUTAUSIK memory (`gotcha: Token cost explosion`)
+
+### Repomap Watcher-Based Cache
+- **Before:** 30-second global timer — repomap regenerated on every message outside the window (scanning 500+ files)
+- **After:** Cache keyed by project root, invalidated via `.git/index` mtime — repomap only rebuilt when files actually change
+- Cache limit: 10 projects (multi-project safety)
+- Saves ~750 tokens/message between file changes + eliminates redundant I/O
+
+### soul.txt — 71% Reduction
+- **Before:** 50 lines, 3,449 chars (860 tokens) — full biography, relationship manifesto, invariant behavior list
+- **After:** 11 lines, 980 chars (245 tokens) — compact bullet points preserving identity, self-hosting, engineering spirit
+- Core content preserved: identity invariant, self-improving, partner relationship, engineering precision
+
+### Soul + Identity Anchor Only for nocowboy Agent
+- **Before:** soul.txt + identityAnchor() injected into EVERY agent (code, debug, overseer, custom)
+- **After:** Only `nocowboy` agent (automation/browser role) receives identity persona
+- code/debug/overseer/custom agents: no soul, no identity anchor — pure engineering instructions
+- Identity anchor at end of system block (recency bias reinforcement) also scoped to nocowboy agent
+- Saves ~981 tokens/message for all non-nocowboy agents (~100% of current usage)
+
+### YoloButton on Home (New Session) Page
+- Added `<YoloButton />` to `home.tsx` prompt bar — was only present in existing session view
+- Now toggle auto-approve mode before starting a session
+
+### Auto-Dream (Critical Rules Enforcement)
+- New rule #6: `**Auto-dream:** Before the session ends, call \`nutausik_memory_add\` with lessons learned`
+- Categories: `pattern` (repeat), `gotcha` (pitfall), `convention` (decision), `dead_end` (wasted effort)
+- NUTAUSIK memory is now the single source of truth (MEMORY.md deprecated and removed)
+
+### MEMORY.md → NUTAUSIK Memory Migration
+- All MEMORY.md read/write code removed from system-prompt.ts and session hooks
+- `nutausik_context_inject` MCP tool is now the only memory injection path
+- FTS5 memory index reconciled at session start
+
+### Agent Quality Enforcement
+- `nutausik_coherence_check` — validates plan steps against existing memory/decisions (injected on failure only)
+- `nutausik_handoff_load` — restores previous session context via handoff system
+- All three NUTAUSIK calls (context_inject, coherence_check, handoff_load) have 2-3s timeouts with silent fallback
+
+### Overseer Prompt — Code Audit Procedure
+- New Code Audit section: project-agnostic review checklist (TS strict, dead code, security, error handling)
+- Verification cycle: Audit & Test → Review → Propose → Confirm → Apply → Verify
+
+### Verification
+- Typecheck: `tsgo --noEmit` — clean
+- Only pre-existing LSP errors (unrelated core/test files)
+- Config: nocowboy.json updated
+
 ## v0.7.5 — P2 UX & Safety + NUTAUSIK Auto-Wiring (2026-07-04)
 
 ### P2-A2: Search/Replace Edit Format
