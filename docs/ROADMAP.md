@@ -63,11 +63,13 @@
 
 | Domain | What | ↔ NUTAUSIK |
 |---|---|---|
-| P3-B1..B5 | **152-ФЗ compliance** — license, consent, data localization, deletion, Roskomnadzor | — |
-| P4.2 | **Russian LLM providers** — YandexGPT, GigaChat with easy switching | — |
-| P4.3 | **Share chat / sync** — sync sessions between machines | — |
-| P4.4 | **Turso driver** — production SQLite backend for multi-machine | ↔ v1.0.0 |
-| Publish | **npm publish** — `@nocowboy/nocowboy`, `@nocowboy/mcp-*` (7 packages) | ↔ v1.0.0 |
-| Publish | **NUTAUSIK npm** — `@nocowboy/nutausik` on public registry | ↔ v1.0.0 |
+### P3-B Lawer (152-ФЗ) — Cross-checked vs Code
 
-**NUTAUSIK companion:** v1.0.0
+| # | Feature | Code exists? | Truth |
+|---|---|---|---|
+| P3-B1 | **License** — proprietary RF license | ❌ | **No LICENSE file at all.** Project is unlicensed. `russian-it-law` skill has Art. 3-24 reference, not a license text. |
+| P3-B2 | **Consent dialogs** — Art. 9 | 🟡 | `share_consent` dialog exists (UX only, not legal consent). Skill has consent template, no code uses it. |
+| P3-B3 | **Data localization** — Art. 21 | ❌ | SQLite is local by accident, not by design. No RU-specific localization logic. |
+| P3-B4 | **Right to deletion** — `nocowboy forget` | ❌ | No command exists. Zero code. |
+| P3-B5 | **Roskomnadzor template** | 🟡 | Skill has consent template (Art. 9). No RKN notification templates. |
+
