@@ -6,6 +6,12 @@ node_modules
 # Fork lineage leftovers — remove on sight
 .tausik/
 .kilocode/
+.opencode/
+.changeset/
+kilo.json
+# Orphaned packages
+packages/http-recorder/
+packages/kilo-indexing/
 .sst
 .env
 .env.local
