@@ -24,7 +24,6 @@ function View(props: { api: TuiPluginApi }) {
       name: list.at(-1) ?? "",
     }
   })
-
   return (
     <box gap={1}>
       <Show when={show()}>

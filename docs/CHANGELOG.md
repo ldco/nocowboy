@@ -1,5 +1,36 @@
 # NoCowboy — Changelog
 
+## v0.7.5 — P2 UX & Safety (2026-07-03)
+
+### P2-A2: Search/Replace Edit Format
+- New `search_replace` tool — Aider-style SEARCH/REPLACE block-diff parser
+- Parses `<<<<<<< SEARCH` / `=======` / `>>>>>>> REPLACE` blocks
+- Multi-file support with unified permission flow
+- 13 parser + execution tests
+
+### P2-A3: Branch-per-task
+- `Git.Service.createBranch(cwd, branchName)` — programmatic branch creation
+- `--branch` CLI flag on `nocowboy run`
+- Auto-generates branch name from prompt when `--branch` given without value
+- Skipped in `--attach` mode
+
+### P2-A4: Permission Timeout
+- `experimental.permission_timeout` config — timeout in milliseconds
+- Auto-denies permission requests after timeout
+- Default: disabled (no timeout)
+
+### P2-A5: Yolo Mode Toggle
+- `[YOLO]` button in prompt input bar (before clear button)
+- Brand-orange when active, gray when inactive
+- Toggles `allowEverything` permission via SDK
+- New `YoloButton` SolidJS component
+
+### Verification
+- Typecheck: `tsgo --noEmit` — clean
+- 112/112 P2 tests pass, 0 failures
+
+---
+
 ## v0.7.4 — P3 Agent Refactor (2026-07-03)
 
 ### Agent Reduction: 15 → 5

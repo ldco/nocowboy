@@ -278,12 +278,24 @@ export const layer = Layer.effect(
       const deferred = yield* Deferred.make<void, RejectedError | CorrectedError>()
       pending.set(id, { info, ruleset, hardRuleset, deferred }) // nocowboy_change
       yield* bus.publish(Event.Asked, info)
+      // nocowboy_change start — permission timeout
+      const cfg = yield* config.get()
+      const timeoutMs = cfg.experimental?.permission_timeout
+      const awaitPermission = Deferred.await(deferred)
+      const withTimeout = timeoutMs && timeoutMs > 0
+        ? awaitPermission.pipe(
+            Effect.timeout(`${timeoutMs} millis`),
+            Effect.catchTag("TimeoutError", () => Effect.void),
+            Effect.map(() => undefined as void),
+          )
+        : awaitPermission as Effect.Effect<void>
       return yield* Effect.ensuring(
-        Deferred.await(deferred),
+        withTimeout,
         Effect.sync(() => {
           pending.delete(id)
         }),
       )
+      // nocowboy_change end
     })
 
     const reply = Effect.fn("Permission.reply")(function* (input: ReplyInput) {

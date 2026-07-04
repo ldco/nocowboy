@@ -38,10 +38,10 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 
 | # | Feature | From | Effort |
 |---|---|---|---|
-| P2-A2 | **Search/replace edit format** — Aider-style block-diff parser | Aider | Medium |
-| P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium |
-| P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low |
-| P2-A5 | **Yolo mode button** — TUI toggle, `"*": "allow"`, visual indicator | Claude Code | Low |
+| P2-A2 | **Search/replace edit format** — Aider-style block-diff parser | Aider | Medium ✅ Done — `search_replace` tool |
+| P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium ✅ Done — `--branch` flag, `Git.createBranch` |
+| P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low ✅ Done — `experimental.permission_timeout` |
+| P2-A5 | **Yolo mode button** — TUI toggle, `"*": "allow"`, visual indicator | Claude Code | Low ✅ Done — `YoloButton` in prompt bar |
 | P2-A6 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low |
 | P2-A7 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High 🟡 Partially — MCP runs, not integrated |
 | P2-A8 | **UNIFY loop closure** — plan vs actual, SUMMARY.md, STATE.md | Paul | Medium |

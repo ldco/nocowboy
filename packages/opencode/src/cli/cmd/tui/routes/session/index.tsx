@@ -67,6 +67,7 @@ import type { PromptInfo } from "../../component/prompt/history"
 import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { ErrorBlock } from "@/nocowboy/components/error-display" // nocowboy_change
 import { VoiceButton } from "@/nocowboy/components/voice-button" // nocowboy_change
+import { YoloButton } from "@/nocowboy/components/yolo-button" // nocowboy_change
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
@@ -1495,6 +1496,7 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
+                            <YoloButton />
                             <text
                               fg={theme.textMuted}
                               paddingLeft={1}

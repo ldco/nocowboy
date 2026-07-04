@@ -381,6 +381,12 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      // nocowboy_change start
+      permission_timeout: Schema.optional(PositiveInt).annotate({
+        description:
+          "Permission timeout in milliseconds. If the user doesn't respond within this window, the permission is auto-denied. Set to 0 to disable.",
+      }),
+      // nocowboy_change end
     }),
   ),
 }).annotate({ identifier: "Config" })

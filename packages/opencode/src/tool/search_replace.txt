@@ -1,0 +1,31 @@
+Edit files using Aider-style SEARCH/REPLACE blocks. Each block specifies a file path, the exact code to find (SEARCH), and the replacement code (REPLACE).
+
+Format:
+```
+path/to/file.ts
+<<<<<<< SEARCH
+exact code to find
+=======
+new code to replace with
+>>>>>>> REPLACE
+```
+
+Rules:
+- Each block MUST have a file path on its own line, followed by SEARCH/REPLACE delimiters
+- The SEARCH section must match the existing code exactly (including whitespace and indentation)
+- Multiple blocks can be used in a single call to edit multiple files
+- The tool will fail if a SEARCH block is not found in the file
+
+Example - renaming a function:
+```
+src/greeter.ts
+<<<<<<< SEARCH
+function greet(name: string) {
+  return `Hello, ${name}!`
+}
+=======
+function greetUser(name: string) {
+  return `Hello, ${name}!`
+}
+>>>>>>> REPLACE
+```

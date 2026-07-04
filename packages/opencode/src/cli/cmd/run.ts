@@ -249,6 +249,12 @@ export const RunCommand = effectCmd({
         default: false,
       })
       // nocowboy_change end
+      // nocowboy_change start
+      .option("branch", {
+        type: "string",
+        describe: "create and switch to a git branch before starting (branch-per-task). Auto-generates from prompt if no value given.",
+      })
+      // nocowboy_change end
       .option("demo", {
         type: "boolean",
         default: false,
@@ -312,6 +318,27 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
       })()
+
+      // nocowboy_change start — branch-per-task
+      if (args.branch && !args.attach) {
+        const branchName = typeof args.branch === "string" && args.branch.length > 0
+          ? args.branch
+          : `task/${rawMessage.slice(0, 40).replace(/[^a-zA-Z0-9_\/-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || Date.now()}`
+        try {
+          const result = Bun.spawnSync(["git", "checkout", "-b", branchName], {
+            cwd: directory ?? root,
+          })
+          if (result.exitCode === 0) {
+            UI.println(UI.Style.TEXT_NORMAL + "⎇", UI.Style.TEXT_NORMAL + ` Switched to branch: ${branchName}`)
+          } else {
+            const stderr = new TextDecoder().decode(result.stderr).trim()
+            UI.println(UI.Style.TEXT_WARNING + "⚠", UI.Style.TEXT_WARNING + ` Branch creation failed: ${stderr}`)
+          }
+        } catch (error) {
+          UI.println(UI.Style.TEXT_WARNING + "⚠", UI.Style.TEXT_WARNING + ` Branch creation error: ${error}`)
+        }
+      }
+      // nocowboy_change end
       const attachHeaders = args.attach
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined

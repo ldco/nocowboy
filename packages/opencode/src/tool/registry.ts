@@ -4,6 +4,7 @@ import { QuestionTool } from "./question"
 // nocowboy_change start
 import { SuggestTool } from "../nocowboy/suggestion/tool"
 import { Command } from "@/command"
+import { SearchReplaceTool } from "./search_replace"
 // nocowboy_change end
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
@@ -144,6 +145,7 @@ export const layer: Layer.Layer<
     const edit = yield* EditTool
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
+    const searchtool = yield* SearchReplaceTool
     const skilltool = yield* SkillTool
     const agent = yield* Agent.Service
     // nocowboy_change start
@@ -254,6 +256,7 @@ export const layer: Layer.Layer<
           repo_overview: Tool.init(repoOverview),
           skill: Tool.init(skilltool),
           patch: Tool.init(patchtool),
+          search_replace: Tool.init(searchtool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
@@ -289,6 +292,7 @@ export const layer: Layer.Layer<
               ...(flags.experimentalScout ? [tool.repo_clone, tool.repo_overview] : []),
               tool.skill,
               tool.patch,
+              tool.search_replace,
               tool.plan,
               ...(["cli", "vscode"].includes(flags.client) ? [tool.suggest] : []),
               ...NocowboyToolRegistry.extra(nocowboy, cfg),
