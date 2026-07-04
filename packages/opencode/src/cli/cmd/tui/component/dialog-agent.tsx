@@ -3,17 +3,19 @@ import { useLocal } from "@tui/context/local"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
 
+type AgentItem = { name: string; displayName?: string; description?: string; native?: boolean; deprecated?: boolean }
+
 export function DialogAgent() {
   const local = useLocal()
   const dialog = useDialog()
 
   const options = createMemo(() =>
-    local.agent.list().map((item) => {
+    local.agent.list().map((item: AgentItem) => {
       return {
         value: item.name,
-        title: item.displayName ?? item.name, // nocowboy_change
+        title: item.displayName ?? item.name,
         description:
-          [item.deprecated && "deprecated", item.native && "native"].filter(Boolean).join(", ") || item.description,
+          [item.deprecated && "deprecated"].filter(Boolean).join(", ") || (item.description ?? ""), // nocowboy_change — always show description, never hide behind "native"
       }
     }),
   )
@@ -23,7 +25,7 @@ export function DialogAgent() {
       title="Select agent"
       current={local.agent.current()?.name ?? ""} // nocowboy_change
       options={options()}
-      onSelect={(option) => {
+      onSelect={(option: { value: string }) => {
         local.agent.set(option.value)
         dialog.clear()
       }}

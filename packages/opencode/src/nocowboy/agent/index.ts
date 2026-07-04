@@ -12,6 +12,7 @@ import { Global } from "@opencode-ai/core/global"
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
 import PROMPT_OVERSEER from "../../agent/prompt/overseer.txt"
+import PROMPT_CODE from "../../agent/prompt/code.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -268,6 +269,8 @@ export function patchAgents(
     agents.code = {
       ...agents.build,
       name: "code",
+      description: "Primary coding agent — writes, refactors, tests, debugs", // nocowboy_change — short label
+      prompt: PROMPT_CODE, // nocowboy_change — code-specific engineering prompt
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -286,7 +289,7 @@ export function patchAgents(
   // Add nocowboy — OpenClaw-style general-purpose automation agent
   agents.nocowboy = {
     name: "nocowboy",
-    description: "General-purpose automation agent. Browser, filesystem, CLI, APIs — can do anything on the computer.",
+    description: "Browser, filesystem, shell — full system automation", // nocowboy_change — short label
     prompt: PROMPT_NOCOWBOY,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
@@ -297,8 +300,7 @@ export function patchAgents(
   // Add overseer — Traycer-like review/orchestration agent
   agents.overseer = {
     name: "overseer",
-    description:
-      "Strict review and orchestration agent. Delegates implementation to code, then reviews results with a fresh pair of eyes.",
+    description: "Orchestrates code agent + cross-model review. Read-only.", // nocowboy_change — short label
     prompt: PROMPT_OVERSEER,
     options: {},
     permission: Permission.merge(
@@ -320,7 +322,7 @@ export function patchAgents(
   // Add debug agent
   agents.debug = {
     name: "debug",
-    description: "Diagnose and fix software issues with systematic debugging methodology.",
+    description: "Systematic bug diagnosis and root cause analysis", // nocowboy_change — short label
     prompt: PROMPT_DEBUG,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
