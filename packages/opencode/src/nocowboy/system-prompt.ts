@@ -5,7 +5,6 @@ import { staticEnvLines, type EditorContext } from "@/nocowboy/editor-context"
 import type { Provider } from "@/provider/provider"
 import type { InstanceContext } from "@/project/instance-context"
 import { RepoMap } from "@/nocowboy/repomap"
-import { reconcile } from "@/nocowboy/memory/reconcile"
 
 export namespace NoCowboySystemPrompt {
   export function environment(input: { ctx: InstanceContext; model: Provider.Model; editor?: EditorContext }) {
@@ -24,32 +23,15 @@ export namespace NoCowboySystemPrompt {
       ].join("\n"),
     ]
 
-    // Deep context injection — repomap + memory for project understanding
+    // Deep context injection — repomap for project understanding
     try {
       const dir = input.ctx.directory || process.cwd()
       
       // Repomap: token-optimized repository structure
       const repomap = RepoMap.generate(dir, 40)
       if (repomap) lines.push(repomap)
-
-      // Memory: reconcile FTS5 index, load MEMORY.md content
-      reconcile()
-      const fs = require("node:fs")
-      const path = require("node:path")
-      const os = require("node:os")
-      const memPath = path.join(os.homedir(), ".nocowboy", "memory", "MEMORY.md")
-      if (fs.existsSync(memPath)) {
-        const memory = fs.readFileSync(memPath, "utf-8").slice(0, 2000) // first 2000 chars (~500 tokens)
-        if (memory.trim()) {
-          lines.push([
-            "## Project Memory (from MEMORY.md)",
-            "",
-            memory,
-          ].join("\n"))
-        }
-      }
     } catch {
-      // If repomap/memory fails, continue without — non-critical
+      // If repomap fails, continue without — non-critical
     }
 
     return lines
