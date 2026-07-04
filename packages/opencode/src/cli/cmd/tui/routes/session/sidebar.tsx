@@ -19,6 +19,10 @@ import { DialogProvider } from "../../component/dialog-provider" // nocowboy_cha
 import { DialogIndexing } from "@/nocowboy/components/dialog-indexing" // nocowboy_change
 import * as Clipboard from "../../util/clipboard" // nocowboy_change
 import { useToast } from "../../ui/toast" // nocowboy_change
+// nocowboy_change start - Commands tab imports
+import { commands as allCommands } from "@/nocowboy/commands"
+import type { CommandModule } from "yargs"
+// nocowboy_change end
 
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
@@ -30,7 +34,7 @@ const LOG = "/tmp/nocowboy-sidebar.log"
 function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
 log("=== SIDEBAR STARTED ===")
 
-type SidebarTab = "info" | "history" | "settings"
+type SidebarTab = "info" | "history" | "commands" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
 function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void }) {
@@ -38,6 +42,7 @@ function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void
   const tabs: { key: SidebarTab; label: string }[] = [
     { key: "info", label: "Info" },
     { key: "history", label: "History" },
+    { key: "commands", label: "Commands" },
     { key: "settings", label: "Settings" },
   ]
   return (
@@ -202,6 +207,82 @@ function SettingsTab() {
   )
 }
 
+// nocowboy_change start — Commands Tab
+function CommandsTab() {
+  const { theme } = useTheme()
+  const [search, setSearch] = createSignal("")
+
+  // Collect commands from the command registry + custom commands
+  const entries = createMemo(() => {
+    const q = search().toLowerCase()
+    const items: { command: string; description: string; group: string }[] = []
+
+    for (const cmd of allCommands) {
+      const c = (cmd as any).command ?? ""
+      const d = (cmd as any).describe ?? ""
+      if (!c) continue
+
+      // Determine group from command structure (parent.command)
+      const group = c.includes(" ") ? c.split(" ")[0] : "General"
+
+      if (q && !c.toLowerCase().includes(q) && !d.toLowerCase().includes(q)) continue
+      items.push({ command: c, description: d, group })
+    }
+
+    // Sort: grouped, then alphabetically
+    items.sort((a, b) => {
+      if (a.group !== b.group) return a.group.localeCompare(b.group)
+      return a.command.localeCompare(b.command)
+    })
+
+    return items
+  })
+
+  // Build grouped sections from sorted entries
+  const sections = createMemo(() => {
+    const all = entries()
+    const groups: { group: string; items: typeof all }[] = []
+    for (const item of all) {
+      const last = groups[groups.length - 1]
+      if (last && last.group === item.group) {
+        last.items.push(item)
+      } else {
+        groups.push({ group: item.group, items: [item] })
+      }
+    }
+    return groups
+  })
+
+  return (
+    <box flexDirection="column" flexGrow={1}>
+      {/* Search input */}
+      <box flexShrink={0} paddingBottom={1}>
+        <text fg={theme.textMuted}>/ </text>
+        <text fg={theme.text}>search commands...</text>
+      </box>
+
+      <scrollbox flexGrow={1} paddingRight={1}>
+        <For each={sections()}>
+          {(sec) => (
+            <box flexDirection="column" gap={1} paddingBottom={1}>
+              <text fg={brand} attributes={TextAttributes.BOLD}>{sec.group}</text>
+              <For each={sec.items}>
+                {(item) => (
+                  <box flexDirection="column" paddingLeft={1}>
+                    <text fg={theme.text} wrapMode="none">{item.command}</text>
+                    <text fg={theme.textMuted} wrapMode="word">{item.description}</text>
+                  </box>
+                )}
+              </For>
+            </box>
+          )}
+        </For>
+      </scrollbox>
+    </box>
+  )
+}
+// nocowboy_change end
+
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const project = useProject()
   const sync = useSync()
@@ -269,7 +350,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     }
   } // nocowboy_change end
 
-  const tabKeys = ["info", "history", "settings"] as const
+  const tabKeys = ["info", "history", "commands", "settings"] as const
 
   useBindings(() => ({
     enabled: true,
@@ -385,6 +466,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         </Show>
       </Show>
       {/* nocowboy_change end */}
+
+      {/* Commands Tab — nocowboy_change start */}
+      <Show when={tab() === "commands"}>
+        <CommandsTab />
+      </Show>
 
       {/* Settings Tab — API key management */}
       <Show when={tab() === "settings"}>
