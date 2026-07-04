@@ -89,6 +89,7 @@ const brandOrange = RGBA.fromInts(0xff, 0x68, 0x00)
 
 export function TopBar() {
   const { theme } = useTheme()
+  const sync = useSync()
   const [tick, setTick] = createSignal(0)
   onMount(() => { const id = setInterval(() => setTick((t) => t + 1), 10_000); onCleanup(() => clearInterval(id)) })
   const git = createMemo(() => { tick(); return gitInfo() })
@@ -103,7 +104,7 @@ export function TopBar() {
         <text fg={theme.success} flexGrow={1}>
           {` \uf126 ${git().branch}${git().ahead > 0 ? ` ⇡${git().ahead}` : ""}${git().behind > 0 ? ` ⇢${git().behind}` : ""}${git().dirty > 0 ? ` !${git().dirty}` : ""}${git().untracked > 0 ? ` ?${git().untracked}` : ""}`}
         </text>
-      {/* mcp status */}<McpDot />
+      {/* mcp status */}<NutausikDot /><McpDot />
     </box>
   )
 }
@@ -164,6 +165,17 @@ function SidebarToggle() {
       onMouseDown={(e: MouseEvent) => { e.preventDefault?.(); toggleSidebar() }}
     >
       {sidebarOpen() ? "▶ ctrl+b" : "◀ ctrl+b"}
+    </text>
+  )
+}
+
+function NutausikDot() {
+  const { theme } = useTheme()
+  const sync = useSync()
+  const nutausik = () => sync.data.mcp["nutausik"]
+  return (
+    <text fg={nutausik()?.status === "connected" ? theme.success : theme.textMuted} paddingLeft={1}>
+      Nutausik:{nutausik()?.status === "connected" ? "✓" : "✗"}
     </text>
   )
 }

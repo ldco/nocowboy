@@ -42,14 +42,9 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 | P2-A3 | **Branch-per-task** (`nocowboy plan --branch`) | Plandex | Medium ✅ Done — `--branch` flag, `Git.createBranch` |
 | P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low ✅ Done — `experimental.permission_timeout` |
 | P2-A5 | **Yolo mode button** — TUI toggle, `"*": "allow"`, visual indicator | Claude Code | Low ✅ Done — `YoloButton` in prompt bar |
-| P2-A6 | **Autonomy slider** — full auto ↔ step-by-step in Settings | Plandex | Low |
-| P2-A7 | **NUTAUSIK integration** — hybrid ProjMgmt | Self | High 🟡 Partially — MCP runs, not integrated |
-| P2-A8 | **UNIFY loop closure** — plan vs actual, SUMMARY.md, STATE.md | Paul | Medium |
-| P2-A9 | **Execute/Qualify loop** — verify vs AC before next task | Paul | Medium |
-| P2-A10 | **Acceptance-Driven Development** — BDD (Given/When/Then), AC linked to tasks | Paul | Medium |
-| P2-A11 | **Diagnostic failure routing** — intent/spec/code error classification | Paul | Low |
-| P2-A12 | **Coherence check** — plan validated against PROJECT/MEMORY/STATE/ROADMAP | Paul | Medium |
-| P2-A13 | **Session handoff/pause** — `/pause`, `/resume`, HANDOFF files | Paul | Medium ⚠️ Partially — resume exists |
+| P2-A6 | ~~**Autonomy slider**~~ — covered by Yolo mode + future Settings toggle | Plandex | ❌ Dropped |
+| **P2-A7-12** | **NUTAUSIK Auto-Wiring** — агенты автоматически используют NUTAUSIK: task creation, memory, verification, coherence check, BDD, loop closure. Zero manual intervention. | Self | High 🟡 Partially — MCP runs, not wired |
+| P2-A13 | **Session handoff/pause** — automatic. HANDOFF файлы при завершении сессии, авто-загрузка контекста при старте. | Paul | Medium |
 | P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / BLOCKED | Paul | Low |
 | P2-A15 | **Commands tab** — новая вкладка в TUI (Info → History → **Commands** → Settings). Список всех команд с описанием, примерами, возможностью кликнуть/выполнить. Команды сгруппированы по категориям (Git, Memory, MCP, Session). Иконки/цвета. Фильтр/поиск. | Self | Medium |
 
