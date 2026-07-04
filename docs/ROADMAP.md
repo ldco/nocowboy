@@ -43,7 +43,11 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 | P2-A4 | **Permission timeout** — auto-deny after N seconds | Claude Code | Low ✅ Done — `experimental.permission_timeout` |
 | P2-A5 | **Yolo mode button** — TUI toggle, `"*": "allow"`, visual indicator | Claude Code | Low ✅ Done — `YoloButton` in prompt bar |
 | P2-A6 | ~~**Autonomy slider**~~ — covered by Yolo mode + future Settings toggle | Plandex | ❌ Dropped |
-| **P2-A7-12** | **NUTAUSIK Auto-Wiring** — агенты автоматически используют NUTAUSIK: task creation, memory, verification, coherence check, BDD, loop closure. Zero manual intervention. | Self | High 🟡 Partially — MCP runs, not wired |
+| P2-A7-12 | **NUTAUSIK Auto-Wiring** — 4 Phases | Self | High |
+| | Phase 1: NoCowboy Hooks — hooks registered, NutausikDot in TopBar | | ✅ Done |
+| | Phase 2: Todo Injection — NUTAUSIK context in agent prompt | | 🟡 |
+| | Phase 3: Session Auto-Wiring — auto-create/log/close tasks | | 🟡 |
+| | Phase 4: Verification Loop — auto-verify AC on task_done | | 🟡 |
 | P2-A13 | **Session handoff/pause** — automatic. HANDOFF файлы при завершении сессии, авто-загрузка контекста при старте. | Paul | Medium |
 | P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / BLOCKED | Paul | Low |
 | P2-A15 | **Commands tab** — новая вкладка в TUI (Info → History → **Commands** → Settings). Список всех команд с описанием, примерами, возможностью кликнуть/выполнить. Команды сгруппированы по категориям (Git, Memory, MCP, Session). Иконки/цвета. Фильтр/поиск. | Self | Medium |

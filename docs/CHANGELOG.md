@@ -1,5 +1,27 @@
 # NoCowboy — Changelog
 
+## v0.7.6 — Agent Instructions + NUTAUSIK Phase 1 (2026-07-04)
+
+### Agent Instructions (AGENTS.md + code.txt + debug.txt)
+- **AGENTS.md**: New sections — STRICTLY FORBIDDEN Openings, Behavioral Corrections (Lazy/Overeager/Conversational), Test Failures Invariant, extended Forbidden Phrases Table
+- **code.txt**: New prompt file for primary coding agent — What you do, What you never do, Behavioral discipline, Quality gates, Engineering invariants
+- **debug.txt**: Strengthened — NoCowboy identity, 5-step process, Engineering invariants, STRICTLY FORBIDDEN
+- All agent descriptions shortened to ~5 words for agent selector dialog
+- `dialog-agent.tsx`: Always show descriptions, never hide behind "native" badge
+
+### NUTAUSIK Phase 1: NoCowboy Hooks
+- `nutausik-hooks.sh` — lifecycle hook script for SessionStart, PostToolUse (Write|Edit), SessionEnd
+- Registered in `~/.nocowboy/hooks.json` — fires on NUTAUSIK-initialized projects
+- Calls `nutausik` CLI (dist/index.js) to log edits, check active tasks, auto-verify on session end
+- `NutausikDot` component in TopBar — shows NUTAUSIK MCP server status (green ✓ / gray ✗)
+- `docs/NUTAUSIK.md` — competitive analysis & design document (4 phases)
+
+### Verification
+- Typecheck: `tsgo --noEmit` — clean
+- 112/112 P2 tests pass, 0 failures
+
+---
+
 ## v0.7.5 — P2 UX & Safety (2026-07-03)
 
 ### P2-A2: Search/Replace Edit Format
