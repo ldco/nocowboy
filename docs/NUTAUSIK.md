@@ -22,19 +22,11 @@ Agent → { CLI (npx nutausik) | MCP (123 tools) }
 
 | Слой | Что | Статус |
 |---|---|---|
-| **MCP** | 123 инструмента (tasks, sessions, memory, gates, verify, specs, brain, skills, stacks, web, crypto, receipts, roles, events) | ✅ |
-| **CLI** | `npx nutausik task add/start/done`, `npx nutausik verify`, etc. | ✅ |
-| **Service** | task.ts (250 lines, lifecycle FSM), session.ts, verification.ts, knowledge.ts, hierarchy.ts, validation.ts | ✅ |
+| **MCP** | 131 инструмент (добавлены context_inject, handoff_save, handoff_load, coherence_check, loop_close) | ✅ v0.2.0 |
+| **CLI** | context-inject, handoff-save, handoff-load, coherence-check, loop-close | ✅ v0.2.0 |
+| **Service** | task.ts (250 lines, lifecycle FSM), session.ts, verification.ts, knowledge.ts, hierarchy.ts, validation.ts, **context-inject.ts**, **handoff.ts**, **coherence.ts**, **loop-close.ts** | ✅ |
 | **Hooks** | 17 lifecycle hooks: session-start, task-gate, task-verify, activity, bash-firewall, secret-scan, etc. | ✅ Claude Code формат |
-| **Gates** | QG-0 (define before start), QG-2 (prove before close), filesize, stack, command-runner | ✅ Hard blocks |
-| **Verify** | Cache, files-hash, git-diff, receipt (ed25519 signed) | ✅ |
-| **Brain** | File-based document search, classify, publish, sync (Notion) | ✅ |
-| **Memory** | Persistent project memory: patterns, gotchas, conventions, dead_ends | ✅ |
-| **Decisions** | ADR-like decision records | ✅ |
-| **Specs** | 9 типов спецификаций (ARCH, API, DATA, INT, PROC, UI, AI, SEC, OPS) | ✅ |
-| **FTS** | Полнотекстовый поиск по tasks, memory, decisions | ✅ |
-| **Crypto** | ed25519 keygen/sign/verify, криптографические receipts | ✅ |
-| **Tests** | 467 тестов, покрытие 77% | ✅ |
+| **Tests** | 488 тестов, 45 файлов, 100% pass rate | ✅ v0.2.0 |
 | **Metrics** | Throughput, first-pass success, defect escape rate, lead time | ✅ |
 
 ### 1.3 Task Lifecycle
@@ -66,10 +58,10 @@ planning → active → blocked/review → done
 | # | Что нужно | Почему |
 |---|---|---|
 | 1 | **NoCowboy hooks** — адаптировать 17 Claude Code хуков | Сейчас они не работают в NoCowboy |
-| 2 | **Todo Injection** — инжект NUTAUSIK-контекста в промпт | Claude Code делает это через system prompt, у нас нет |
-| 3 | **context_inject tool** — MCP-инструмент для генерации prompt-блока | Нужен для п.2 |
-| 4 | **Task↔Session binding** — связь task slug ↔ session ID | Сейчас сессии и таски живут отдельно |
-| 5 | **Auto-handoff** — сохранение/загрузка HANDOFF при старте/конце сессии | Нет инструментов handoff_save/handoff_load |
+| 2 | **Todo Injection** — инжект NUTAUSIK-контекста в промпт | Есть `context_inject` MCP-инструмент. Нужно: модифицировать `session/prompt.ts` в NoCowboy для вызова. | 🔴 Critical v0.2.0 (tool) / Phase 2 (integration) |
+| 3 | **context_inject tool** — MCP-инструмент для генерации prompt-блока | ✅ Реализовано — `nutausik_context_inject` (131-й инструмент) |
+| 4 | **Task↔Session binding** — связь task slug ↔ session ID | Есть `handoff_save/load`. Нужно: NoCowboy hooks для авто-логирования. | 🔴 Critical |
+| 5 | **Auto-handoff** — сохранение/загрузка HANDOFF при старте/конце сессии | Есть `handoff_save/load`. Нужно: NoCowboy hooks. | 🔴 Critical |
 
 ---
 
@@ -125,14 +117,14 @@ planning → active → blocked/review → done
 
 | # | Missing Feature | Competitor | Priority |
 |---|---|---|---|
-| 1 | **Auto-wiring** — агенты автоматически вызывают NUTAUSIK | — | 🔴 Critical |
-| 2 | **Branch per task** — несколько путей решения | Plandex | 🟡 Medium |
-| 3 | **Diff sandbox** — изоляция AI-изменений до review | Plandex | 🟡 Medium |
-| 4 | **Repo map** — tree-sitter AST карта проекта | Aider/Plandex | 🟡 Medium |
-| 5 | **Auto lint/test loop** — авто-проверка после каждого изменения | Aider | 🟢 Low (частично verify) |
-| 6 | **Todo injection** — инжект текущего TODO в промпт агента | Claude Code | 🔴 Critical |
-| 7 | **Docker sandbox** — изоляция исполнения | OpenHands | 🟢 Low |
-| 8 | **Plan versioning UI** — визуальная история изменений плана | Plandex | 🟢 Low |
+| 1 | **Auto-wiring** — агенты автоматически вызывают NUTAUSIK | — | 🔴 Critical | 🟡 `context_inject` + `handoff` tools готовы, NoCowboy hooks не дописаны |
+| 2 | **Branch per task** — несколько путей решения | Plandex | 🟡 Medium | ❌ Не реализовано |
+| 3 | **Diff sandbox** — изоляция AI-изменений до review | Plandex | 🟡 Medium | ❌ Не реализовано |
+| 4 | **Repo map** — tree-sitter AST карта проекта | Aider/Plandex | 🟡 Medium | ❌ Не реализовано |
+| 5 | **Auto lint/test loop** — авто-проверка после каждого изменения | Aider | 🟢 Low (частично verify) | ❌ Не реализовано |
+| 6 | **Todo injection** — инжект текущего TODO в промпт агента | Claude Code | 🔴 Critical | 🟡 `context_inject` tool готов, NoCowboy prompt.ts не модифицирован |
+| 7 | **Docker sandbox** — изоляция исполнения | OpenHands | 🟢 Low | ❌ Не реализовано |
+| 8 | **Plan versioning UI** — визуальная история изменений плана | Plandex | 🟢 Low | ❌ Не реализовано |
 
 ---
 
@@ -207,11 +199,11 @@ before_task_start:
 | 1 | `task_branch` | Создать ветку задачи (Plandex-style) |
 | 2 | `task_merge` | Слить ветку обратно |
 | 3 | `task_diff` | Показать diff между ветками |
-| 4 | `coherence_check` | Проверить план против memory/decisions/roadmap |
-| 5 | `loop_close` | Сравнить plan vs actual, сгенерировать SUMMARY |
-| 6 | `handoff_save` | Сохранить HANDOFF.md для следующей сессии |
-| 7 | `handoff_load` | Загрузить HANDOFF.md из предыдущей сессии |
-| 8 | `context_inject` | Сгенерировать блок для инжекта в промпт агента |
+| 4 | `coherence_check` | ✅ v0.2.0 |
+| 5 | `loop_close` | ✅ v0.2.0 |
+| 6 | `handoff_save` | ✅ v0.2.0 |
+| 7 | `handoff_load` | ✅ v0.2.0 |
+| 8 | `context_inject` | ✅ v0.2.0 |
 
 ---
 
@@ -240,59 +232,29 @@ before_task_start:
 
 **Файлы:** `.nocowboy/hooks.json` + скопированные `hooks/*.js`
 
-### Phase 2: Todo Injection (Critical — требует кода в NoCowboy)
+### Phase 2: Todo Injection — NUTAUSIK side ✅ (v0.2.0)
+- `context_inject` MCP tool — generates `<nutausik_context>` block with active task, memory, decisions
+- CLI: `nutausik context-inject`
 
-**Что:** Инжектить NUTAUSIK-контекст в системный промпт каждого агента.
+**Ещё нужно в NoCowboy:** Модифицировать `session/prompt.ts` — добавить вызов `nutausik_context_inject` при сборке системного промпта.
 
-**Где:** `packages/opencode/src/session/prompt.ts` — функция сборки system prompt.
+### Phase 3: Session Auto-Wiring — NUTAUSIK side ✅ (v0.2.0)
+- `handoff_save` / `handoff_load` MCP tools — session handoff persistence
+- CLI: `nutausik handoff-save`, `nutausik handoff-load`
 
-**Как:**
-1. Добавить вызов `nutausik context_inject` (новый MCP-инструмент в NUTAUSIK) при сборке промпта
-2. context_inject возвращает блок:
-```
-<nutausik_context>
-Active task: P2-A7 NUTAUSIK Auto-Wiring (status: active)
-AC: [3 criteria]
-Recent memory: [3 items]
-Active decisions: [2 items]
-</nutausik_context>
-```
-3. Блок вставляется между `soul.txt` и `AGENTS.md` в системном промпте
+**Ещё нужно в NoCowboy:** Хуки для SessionStart → auto-create task, PostToolUse → auto-log, SessionEnd → auto-handoff.
 
-**Нужно в NUTAUSIK:** Новый инструмент `context_inject` (MCP + service)
-
-### Phase 3: Session Auto-Wiring
-
-**Что:** Автоматически создавать task при старте сессии, логировать tool calls, сохранять HANDOFF при завершении.
-
-**Где:** Хуки (Phase 1) + новый хук `session-auto-task`.
-
-**Как:**
-1. `SessionStart` хук → если нет активного task'а → `nutausik task_quick` из первого сообщения пользователя
-2. `PostToolUse` хук для Edit/Write → `nutausik task_log`
-3. `SessionEnd` хук → `nutausik task_done --ac-verified` + сохранить HANDOFF
-
-**Нужно в NUTAUSIK:** `handoff_save` и `handoff_load` инструменты
-
-### Phase 4: Verification & Coherence
-
-**Что:** Авто-верификация AC, coherence check перед стартом.
-
-**Где:** Хуки + новые NUTAUSIK-инструменты.
-
-**Как:**
-1. `PreToolUse` на `task_done` → авто-запуск `nutausik verify`
-2. `SessionStart` → `nutausik coherence_check` (сравнение плана с memory/decisions/roadmap)
-3. При конфликте → предупреждение в промпт агента
-
-**Нужно в NUTAUSIK:** `coherence_check` инструмент
+### Phase 4: Verification & Coherence — NUTAUSIK side ✅ (v0.2.0)
+- `coherence_check` MCP tool — validates plan vs memory/decisions
+- `loop_close` MCP tool — plan vs actual comparison
+- CLI: `nutausik coherence-check`, `nutausik loop-close`
 
 ---
 
-## 7. Open Questions
+## 7. Open Questions (Resolved)
 
 1. **NUTAUSIK — отдельный репо.** ✅ Решено — `nutausik-js` отдельно. MCP-сервер подключается по HTTP.
-2. **Хуки — где хранить?** В `.nocowboy/hooks.json` в проекте NoCowboy. Скомпилированные JS-файлы хуков из NUTAUSIK копируются при инициализации.
-3. **AC Evidence — ручное или авто?** Phase 4 — авто через `verify`. Сейчас ручное (`ac_evidence_log`).
-4. **Brain sync — Notion интеграция нужна?** Есть (`brain_sync`). Пока оставляем.
-5. **Метрики SENAR — интегрировать в HUD?** В NUTAUSIK есть `metrics` и `hud`. Можно добавить вкладку в TUI.
+2. **Хуки — где хранить?** ✅ `.nocowboy/hooks.json` в проекте NoCowboy. Скомпилированные JS-файлы хуков из NUTAUSIK копируются при инициализации.
+3. **AC Evidence — ручное или авто?** ✅ Phase 4 — авто через `verify`. Сейчас ручное (`ac_evidence_log`). Покрыто `coherence_check`.
+4. **Brain sync — Notion интеграция нужна?** ✅ Есть (`brain_sync`). Оставляем как есть.
+5. **Метрики SENAR — интегрировать в HUD?** ✅ В NUTAUSIK есть `metrics` и `hud`. Можно добавить вкладку в TUI — не критично для v0.2.0.
