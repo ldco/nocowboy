@@ -3,6 +3,9 @@
 .secrets/
 node_modules
 .worktrees
+# Fork lineage leftovers — remove on sight
+.tausik/
+.kilocode/
 .sst
 .env
 .env.local
