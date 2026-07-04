@@ -50,16 +50,11 @@
 - Diff review sandbox — изоляция AI-изменений до принятия (Plandex-style)
 - Sandbox mode — выполнение команд в Docker (OpenHands-style)
 
-### Deep Context
-- 2M token context с бюджетированием
-- Repomap через tree-sitter (AST-based, не regex)
-
 ### MCP Marketplace
 - `mcp search` — поиск и установка MCP серверов (Cline-style)
 
 ### Offline & Cost
 - Offline mode через Ollama (локальные модели)
-- Per-task cost tracking с леджером
 
 ---
 
