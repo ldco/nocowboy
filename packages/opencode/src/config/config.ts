@@ -308,6 +308,12 @@ export const Info = Schema.Struct({
   instructions: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Additional instruction files or patterns to include",
   }),
+  // nocowboy_change start - Russian Language Pack
+  lang: Schema.optional(Schema.String).annotate({
+    description:
+      "Language for system prompts and UI localization. 'ru' enables Russian prompts, YandexGPT/GigaChat support. Omit or set to 'en' for English.",
+  }),
+  // nocowboy_change end
   layout: Schema.optional(ConfigLayout.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermission.Info),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
