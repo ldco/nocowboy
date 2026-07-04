@@ -51,6 +51,7 @@ Only NOT implemented features. See CHANGELOG.md for completed items.
 | P2-A13 | **Session handoff/pause** — automatic. HANDOFF файлы при завершении сессии, авто-загрузка контекста при старте. | Paul | Medium |
 | P2-A14 | **Escalation statuses** — DONE / DONE_WITH_CONCERNS / BLOCKED | Paul | Low |
 | P2-A15 | **Commands tab** — новая вкладка в TUI (Info → History → **Commands** → Settings). Список всех команд с описанием, примерами, возможностью кликнуть/выполнить. Команды сгруппированы по категориям (Git, Memory, MCP, Session). Иконки/цвета. Фильтр/поиск. | Self | Medium |
+| P2-A16 | **~~Documentation agent~~** — rejected. Instead: `code.txt` doc-discipline + `write-docs` skill. Skill loads temporarily, no agent switching. | Self | ❌ Won't do — doc is code-agent job |
 
 #### P2-B Russian Language
 
