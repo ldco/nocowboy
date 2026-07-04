@@ -173,9 +173,25 @@ function NutausikDot() {
   const { theme } = useTheme()
   const sync = useSync()
   const nutausik = () => sync.data.mcp["nutausik"]
+  const connected = () => nutausik()?.status === "connected"
+  const initialized = () => {
+    try {
+      return existsSync(resolve(process.cwd(), ".nutausik", "nutausik.db"))
+    } catch {
+      return false
+    }
+  }
+  const fg = () => {
+    if (!connected()) return theme.textMuted
+    return initialized() ? theme.success : theme.warning
+  }
+  const label = () => {
+    if (!connected()) return "Nutausik:✗"
+    return initialized() ? "Nutausik:✓" : "Nutausik:init"
+  }
   return (
-    <text fg={nutausik()?.status === "connected" ? theme.success : theme.textMuted} paddingLeft={1}>
-      Nutausik:{nutausik()?.status === "connected" ? "✓" : "✗"}
+    <text fg={fg()} paddingLeft={1}>
+      {label()}
     </text>
   )
 }

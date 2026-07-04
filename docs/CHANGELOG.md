@@ -9,11 +9,15 @@
 - All agent descriptions shortened to ~5 words for agent selector dialog
 - `dialog-agent.tsx`: Always show descriptions, never hide behind "native" badge
 
-### NUTAUSIK Phase 1: NoCowboy Hooks
+### NUTAUSIK — Fix & Phase 1
+- **Fixed:** `better-sqlite3` пересобран для Node.js 26 (был собран под 24, NUTAUSIK не работал)
+- **Fixed:** Порт в `nocowboy.json` — nutausik MCP был прописан на 9204 (там ncp-validator), исправлен на 9210 (реальный NUTAUSIK)
+- **Init:** `.nutausik/nutausik.db` создан в проекте NoCowboy
+- **NutausikDot:** Индикатор в TopBar — проверяет MCP статус + наличие `.nutausik/nutausik.db`
+  - ✗ серый — сервер не подключен
+  - `init` жёлтый — сервер подключен, но проект не инициализирован
+  - ✓ зелёный — сервер работает и проект инициализирован
 - `nutausik-hooks.sh` — lifecycle hook script for SessionStart, PostToolUse (Write|Edit), SessionEnd
-- Registered in `~/.nocowboy/hooks.json` — fires on NUTAUSIK-initialized projects
-- Calls `nutausik` CLI (dist/index.js) to log edits, check active tasks, auto-verify on session end
-- `NutausikDot` component in TopBar — shows NUTAUSIK MCP server status (green ✓ / gray ✗)
 - `docs/NUTAUSIK.md` — competitive analysis & design document (4 phases)
 
 ### Verification
