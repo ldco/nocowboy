@@ -109,36 +109,4 @@
 | P3-B3 | **Data localization** — Art. 21 | ❌ | SQLite local by accident, no RU logic. |
 | P3-B4 | **Right to deletion** — `nocowboy forget` | ❌ | Zero code. |
 | P3-B5 | **Roskomnadzor template** — Art. 22 | 🟡 | Skill has consent template. No RKN notification. |
-
-### Polish & Market
-
-| Domain | What | Status | Truth |
-|---|---|---|---|
-| P4.2 | **Russian LLM providers** — YandexGPT, GigaChat | ❌ | Zero code. |
-| P4.3 | **Share/sync** — between machines | ❌ | Zero code. `share_consent` is UI only. |
-| P4.4 | **Turso** — production SQLite | ❌ | Zero code. |
-
-### Publish
-
-| Package | Status |
-|---|---|
-| `@nocowboy/nocowboy` | ❌ Not published |
-| `@nocowboy/mcp-*` (6 servers + puppetmaster) | ❌ Not published |
-| `@nocowboy/nutausik` | ❌ Not published |
-| npm org `@nocowboy` | ❌ Not created |
-
----
-
-## 🤖 Agent Architecture (Current)
-
-| Агент | Тип | Модель | Инструменты | Назначение |
-|---|---|---|---|---|
-| **code** | coding | Flash | read, edit, command, mcp | Пишет код, рефакторит, тестирует |
-| **architect** | coding | Pro | read, command, mcp + edit(docs/*.md) | Планы, ADR, C4, дизайн |
-| **debug** | coding | Flash | read, edit, command, mcp | Систематическая отладка |
-| **overseer** | review | **Kimi K2/Pro** | read, command, mcp | Оркестрирует code, кросс-модель ревью |
-| **nocowboy** | automation | Flash | Все | Браузер, файлы, система |
-
-**Always-available meta-tools:** `task`, `question`, `todowrite`, `search_replace`
-
-**Tool groups:** `read` → read/grep/glob/list/semantic_search · `edit` → search_replace/write · `command` → bash · `mcp` → все MCP 13 серверов
+| P3-B6 | **Legal research** — does `.nutausik/nutausik.db` contain personal data? Task names, file paths, memory, session logs — are these ПДн under 152-ФЗ Art. 3? Does laptop travel violate Art. 21 localization? What about GDPR? **Requires RF-qualified lawyer opinion.** | 🟡 | Research task, no code |
