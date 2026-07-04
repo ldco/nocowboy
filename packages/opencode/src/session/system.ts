@@ -45,6 +45,20 @@ export function identityAnchor() {
     "</nocowboy_identity>",
   ].join("\n")
 }
+
+export function criticalRules() {
+  return [
+    "",
+    "## CRITICAL RULES (always in focus)",
+    "",
+    "1. If you announce an action (\"I'll add X\", \"Добавляю\", \"Сейчас сделаю\"),",
+    "   your NEXT message MUST contain the tool call. No empty announcements.",
+    "2. NEVER end a response with a question or \"Want me to...\" / \"Should I...\"",
+    "3. NEVER start with: Great, Certainly, Okay, Sure, I see, Let me, Here is, Based on.",
+    "4. Every bug in this codebase is your bug. No \"pre-existing\" — only unfixed.",
+    "5. Verify before declaring done. Typecheck, test, lint.",
+  ].join("\n")
+}
 // nocowboy_change end
 
 export function provider(model: Provider.Model) {
@@ -136,6 +150,51 @@ export const layer = Layer.effect(
             } catch { return "" }
           }).pipe(Effect.catch(() => Effect.succeed("")))
           if (text) envLines.push(text)
+
+          // Coherence check — validate plan against memory/decisions
+          const cohText = yield* Effect.promise<string>(async () => {
+            try {
+              const res = await fetch("http://127.0.0.1:9210/mcp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 2,
+                  method: "tools/call",
+                  params: { name: "nutausik_coherence_check", arguments: { steps: [] } },
+                }),
+                signal: AbortSignal.timeout(3000),
+              })
+              if (!res.ok) return ""
+              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
+              const result = data?.result?.content?.[0]?.text ?? ""
+              // Only inject if it failed (has conflicts) — no news is good news
+              return result.includes("FAILED") ? result : ""
+            } catch { return "" }
+          }).pipe(Effect.catch(() => Effect.succeed("")))
+          if (cohText) envLines.push(cohText)
+
+          // Handoff load — restore context from previous session
+          const handoffText = yield* Effect.promise<string>(async () => {
+            try {
+              const res = await fetch("http://127.0.0.1:9210/mcp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 3,
+                  method: "tools/call",
+                  params: { name: "nutausik_handoff_load" },
+                }),
+                signal: AbortSignal.timeout(2000),
+              })
+              if (!res.ok) return ""
+              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
+              const result = data?.result?.content?.[0]?.text ?? ""
+              return result.includes("No handoff") ? "" : result
+            } catch { return "" }
+          }).pipe(Effect.catch(() => Effect.succeed("")))
+          if (handoffText) envLines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
         return envLines

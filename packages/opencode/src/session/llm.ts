@@ -152,6 +152,7 @@ const live: Layer.Layer<
       // This anchor ensures NoCowboy identity survives 10k+ tokens of tools,
       // agent instructions, and environment data for ANY model and ANY agent.
       system.push(SystemPrompt.identityAnchor())
+      system.push(SystemPrompt.criticalRules())
       // nocowboy_change end
 
       const header = system[0]
@@ -181,7 +182,7 @@ const live: Layer.Layer<
       const options = mergeOptions(mergeOptions(mergeOptions(base, input.model.options), input.agent.options), variant)
       if (isOpenaiOauth) {
         // nocowboy_change start - soul at beginning, anchor at end of instructions
-        options.instructions = SystemPrompt.soul() + "\n" + system.join("\n") + "\n" + SystemPrompt.identityAnchor()
+        options.instructions = SystemPrompt.soul() + "\n" + system.join("\n") + "\n" + SystemPrompt.identityAnchor() + "\n" + SystemPrompt.criticalRules()
         // nocowboy_change end
       }
 
