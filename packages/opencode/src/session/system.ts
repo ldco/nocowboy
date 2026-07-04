@@ -154,7 +154,9 @@ export const layer = Layer.effect(
           }).pipe(Effect.catch(() => Effect.succeed("")))
           if (text) envLines.push(text)
 
-          // Coherence check — validate plan against memory/decisions
+          // Phase 2: Coherence check with auto-detected plan steps
+          // The NUTAUSIK server auto-detects the active task's plan steps
+          // when none are provided in the arguments
           const cohText = yield* Effect.promise<string>(async () => {
             try {
               const res = await fetch("http://127.0.0.1:9210/mcp", {

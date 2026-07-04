@@ -34,6 +34,7 @@ import { BackgroundProcess } from "@/nocowboy/background-process"
 import { NoCowboySession, nocowboySessionFork } from "@/nocowboy/session"
 import { SessionExport } from "@/nocowboy/session-export"
 import { baseKey, cumulativeSessionDiff } from "@/nocowboy/session-portability/cumulative-diff" // nocowboy_change
+import { onSessionCreated, onSessionEnded } from "@/nocowboy/nutausik-auto-wire" // nocowboy_change - Phase 3 session auto-wiring
 // nocowboy_change end
 import { Effect, Layer, Option, Context, Schema, Types } from "effect"
 import { NonNegativeInt, optionalOmitUndefined } from "@opencode-ai/core/schema"
@@ -579,6 +580,10 @@ export const layer: Layer.Layer<
       NoCowboySession.register({ id: result.id, parentID: result.parentID, platform: input.platform })
       // nocowboy_change end
 
+      // nocowboy_change start - Phase 3: auto-create NUTAUSIK task + session
+      onSessionCreated(result.id, result.title, result.directory)
+      // nocowboy_change end
+
       yield* sync.run(Event.Created, { sessionID: result.id, info: result })
 
       if (!flags.experimentalWorkspaces) {
@@ -641,6 +646,9 @@ export const layer: Layer.Layer<
         // nocowboy_change start
         yield* Effect.promise(() => NoCowboySession.removeSession(sessionID)).pipe(Effect.ignore)
         NoCowboySession.clearPlatformOverride(sessionID)
+        // nocowboy_change start - Phase 3: auto-end NUTAUSIK session on NoCowboy session close
+        onSessionEnded(sessionID, session.directory)
+        // nocowboy_change end
         if (hasInstance) {
           yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID)).pipe(Effect.ignore)
           void Promise.all([import("@/effect/app-runtime"), import("./run-state")]).then(([app, run]) =>
