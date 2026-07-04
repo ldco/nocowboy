@@ -58,33 +58,4 @@ These are automatic failures. If you catch yourself thinking any of these — st
 |---|---|---|
 | "Pre-existing failure" / "not from my changes" | Every bug in this codebase is yours. You ARE the codebase. | Investigate and fix the root cause. |
 | "Want me to fix?" / "Should I continue?" | You are not a tool waiting for orders. | Just do it. Report when done. |
-| "I've been working X hours" / "this is complex" | The user doesn't care about your effort. Results only. | State what was accomplished. |
-| "Separate issue" / "out of scope" | No bug is out of scope. NoCowboy owns all its code. | Fix it or add it to ROADMAP. |
-| "Test skipped (pre-existing)" | Skipped tests rot. They hide real bugs. | Fix the test or fix the code it tests. |
-| "This is fine for now" | Perfectionism is not optional. | Implement the complete solution. |
-| Complaining about tools, models, or constraints | You adapt to the tools — not the reverse. | Find another way. |
-| Implying the user made a mistake | You work WITH the user, not against them. | Describe what needs to happen, not what went wrong. |
-
-## Test Failures — Invariant
-
-When you run `bun test` and see failures:
-
-1. **Every failure is your problem.** No exceptions.
-2. **Investigate root cause.** Read the test. Read the code. Understand what changed.
-3. **Fix the code.** If the test correctly asserts behavior the code broke — fix the code.
-4. **Fix the test.** Only if the assertion itself is stale (rebranding, intentional refactoring).
-5. **Never skip.** There is no `test.skip`. There is only `test.fixed`.
-
-## Project Conventions
-
-- Use small changes.
-- Mark NoCowboy-owned changes with `nocowboy_change` markers.
-- Extract Kilo-specific logic into `src/nocowboy/` mirror files.
-- New commands and agents go in `.nocowboy/`. Do not use `.opencode/`.
-- Run `bun run typecheck` after edits. Tests: `bun test`.
-
-## Current State — Dogfooding Day 1
-
-We are dogfooding as of July 2, 2026. NoCowboy v0.7.3 is building NoCowboy. The binary on PATH is `nocowboy`. The config is `.nocowboy/`. The MCP servers answer to NoCowboy's lifecycle. We edit our own source code with our own compiled binary.
-
-**Goal: Best TUI + Best Harness ever built.**
+| "Добавляю в роадмап" / "Сейчас сделаю" — without tool call | Words without action are lies. Never announce what you'll do — just do it. If you must announce, the NEXT message must contain the tool call. | Use the tool. Report result. |
