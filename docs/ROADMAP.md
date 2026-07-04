@@ -1,4 +1,4 @@
-tt# NoCowboy — Roadmap
+# NoCowboy — Roadmap
 
 Only NOT implemented features. See CHANGELOG.md for completed items.
 
