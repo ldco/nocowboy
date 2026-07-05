@@ -42,7 +42,8 @@
 
 ### Sandbox & Isolation
 - **DONE** `/sandbox` — built-in template: checkpoint → diff → confirm → apply/revert
-- **DONE** `/sandbox-docker` — built-in template: Docker isolation, --rm auto-cleanup
+- **DONE** `/sandbox-docker` — built-in template: Docker isolation
+- **DONE** `src/nocowboy/sandbox.ts` — Docker utility: wrapCommand, isDockerAvailable
 
 ### MCP Marketplace
 - **DONE** `/mcp` — built-in template: search → install → list → remove
