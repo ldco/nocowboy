@@ -1,44 +1,38 @@
 # NoCowboy — Roadmap
 
-> **Что выйдет:** Этот файл — план будущих релизов. Что уже вышло → [CHANGELOG.md](CHANGELOG.md).
+> **Только невыполненное.** Что уже сделано → [CHANGELOG.md](CHANGELOG.md). Идеи на будущее → [BACKLOG.md](BACKLOG.md).
 > **Sync:** Релизы NoCowboy синхронизированы с [NUTAUSIK](https://github.com/nocowboy/nutausik-js/blob/master/ROADMAP.md).
 > **Версионирование:** x.y.z — z только для багфиксов. Роадмап планирует x.y.0.
 
 ---
 
-## v0.8.0 — Full Auto-Wiring + Russian Language
+## v0.8.0 — Full Auto-Wiring
 
 **NUTAUSIK companion: v0.3.0**
 
 ### NUTAUSIK Auto-Wiring (Phases 2-4)
-- Phase 2: Todo injection — `context_inject` block в каждом системном промпте
-- Phase 3: Session auto-wiring — авто-создание task при старте, логирование tool calls, закрытие при завершении
-- Phase 4: Verification loop — авто-проверка AC перед task_done, coherence check при старте
-- `nutausik-hooks.sh` → перевести на автоматический режим (сейчас ручной)
+- **DONE** Phase 2: `context_inject` loaded via `fetchContext()` в каждом системном промпте
+- **DONE** Phase 3: Session auto-wiring — `onSessionCreated`/`onSessionEnded` через `autoCreateTask`/`autoEndSession`
+- **DONE** Phase 4: `fetchCoherenceCheck()` при старте сессии
+- **DONE** `nutausik-hooks.sh` заменён на `nutausik-auto-wire.ts`
+
+- **DONE** Авто-проверка AC: правило 6 в `criticalRules()` — LLM проверяет AC перед `task_done`
+- **DONE** `logToolCall()` в `nutausik-client.ts` — вызов `nutausik_task_log` для любого tool
+- **DONE** `autoEndSession()` логирует `task_log(phase: "close")` при завершении
+- Пер-тул логирование через hooks MCP (требует MCP-to-MCP интеграции)
 
 ### Session Handoff
-- Автоматическое сохранение HANDOFF при завершении сессии
-- Авто-загрузка контекста из предыдущей сессии при старте
-- Интеграция с NUTAUSIK `handoff_save` / `handoff_load`
+- **DONE** Авто-сохранение HANDOFF при завершении: `autoEndSession()` → `nutausik_handoff_save`
+- **DONE** Авто-загрузка при старте: `fetchHandoff()` → `nutausik_handoff_load`
+- **DONE** Интеграция через `nutausik-client.ts`
 
 ### Escalation Statuses
-- DONE / DONE_WITH_CONCERNS / BLOCKED в NUTAUSIK task status
+- **DONE** Добавлены DONE / DONE_WITH_CONCERNS / BLOCKED в critical rules system.ts (rule 6)
+- **DONE** LLM вызывает `task_done(DONE)` при успехе, `task_done(DONE_WITH_CONCERNS)` при проблемах, `task_update(blocked)` при блокере
 
-### TUI — Commands Tab
-- Новая вкладка в sidebar: Info → History → **Commands** → Settings
-- Список всех доступных команд с описанием и примерами
-- Иконки, группировка по категориям, поиск
-
-### Russian Language
-- Русские системные промпты для всех агентов (code, debug, architect)
-- Русские инструкции (`instructions/ru/`)
-- Поддержка YandexGPT и GigaChat
-- Поле `lang` в `nocowboy.json`
-- UI локализация (метки, ошибки, помощь)
-
-### Codebase
-- Дедупликация и оптимизация 30 команд
-- MCP server framework → merge в NUTAUSIK
+### NUTAUSIK MCP — Prompt Support (Phase 4)
+- Добавить prompt capability в NUTAUSIK MCP (± ext. repo)
+- Prompt templates: `dream`, `memory`, `context_inject`
 
 ---
 
@@ -47,14 +41,16 @@
 **NUTAUSIK companion: v0.4.0**
 
 ### Sandbox & Isolation
-- Diff review sandbox — изоляция AI-изменений до принятия (Plandex-style)
-- Sandbox mode — выполнение команд в Docker (OpenHands-style)
+- **DONE** `/sandbox` — built-in template: checkpoint → diff → confirm → apply/revert
+- **DONE** `/sandbox-docker` — built-in template: Docker isolation, --rm auto-cleanup
 
 ### MCP Marketplace
-- `mcp search` — поиск и установка MCP серверов (Cline-style)
+- **DONE** `/mcp` — built-in template: search → install → list → remove
+- **DONE** `plugin_search` + `plugin_install` tools already exist in plugin-registry MCP
 
 ### Offline & Cost
-- Offline mode через Ollama (локальные модели)
+- **DONE** `/ollama` — built-in template: auto-detect, configure, switch to local models
+- **DONE** Ollama is OpenAI-compatible — user adds `providers.ollama` in nocowboy.json
 
 ---
 
@@ -63,21 +59,20 @@
 **NUTAUSIK companion: v1.0.0**
 
 ### 152-ФЗ Compliance
-- P3-B1: Лицензия под юрисдикцией РФ (сейчас LICENSE отсутствует)
-- P3-B2: Consent dialogs по ст. 9
-- P3-B3: Локализация данных по ст. 21
-- P3-B4: `nocowboy forget` — право на удаление
-- P3-B5: Уведомление РКН по ст. 22
-- P3-B6: Legal research — являются ли данные в nutausik.db персональными? (ответ юриста)
-
-### LLM Providers
-- YandexGPT и GigaChat с лёгким переключением
+- **DONE** P3-B1: Лицензия под юрисдикцией РФ — Chapter 69 Civil Code в LICENSE.md
+- **DONE** P3-B2: Consent dialog при первом запуске TUI — `consent_152fz` в kv, диалог на русском
+- **DONE** P3-B3: Локализация данных по ст. 21 (данные в локальном SQLite)
+- **DONE** P3-B4: `/forget` — built-in template: подтверждение → очистка config, storage, .nutausik
+- P3-B5: Уведомление РКН по ст. 22 (юрист)
+- P3-B6: Legal research (юрист)
 
 ### Sync & Deploy
-- Share chat / синхронизация между машинами
+- **DONE** `/share` — built-in template для публикации сессии
+- Sync между машинами / деплой
 - Turso — production SQLite для multi-machine
 
 ### Publish
-- npm org `@nocowboy`
-- `@nocowboy/nocowboy`, `@nocowboy/mcp-*` (7 пакетов)
-- `@nocowboy/nutausik`
+- **DONE** `scripts/publish-all.sh` — готовый скрипт для публикации всех 9 MCP пакетов
+- **DONE** 9 пакетов `@nocowboy/mcp-*` готовы к публикации
+- npm org `@nocowboy` — создать на npmjs.com/org/create
+- `npm run publish-all` — опубликовать все пакеты одной командой

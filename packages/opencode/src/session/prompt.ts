@@ -10,6 +10,7 @@ import { NoCowboySessionProcessor } from "@/nocowboy/session/processor" // nocow
 import { CommandTimeout } from "@/nocowboy/command-timeout" // nocowboy_change
 import { Suggestion } from "@/nocowboy/suggestion" // nocowboy_change
 import { Question } from "@/question" // nocowboy_change
+import { hasRouteDirective, parseRoute } from "./router" // nocowboy_change — auto-router
 import { zod } from "@opencode-ai/core/effect-zod" // nocowboy_change
 import { withStatics } from "@opencode-ai/core/schema" // nocowboy_change
 import { SessionID, MessageID, PartID } from "./schema"
@@ -1665,7 +1666,7 @@ export const layer = Layer.effect(
         // Queue tails and runner fibers can resume outside the HTTP request's
         // ambient instance context; bridge both Effect refs and legacy ALS.
         const bridge = yield* runner()
-        return yield* NoCowboySessionPromptQueue.enqueue(
+        const loopResult = yield* NoCowboySessionPromptQueue.enqueue(
           input.sessionID,
           message.info.id,
           bridge.run(
@@ -1675,7 +1676,31 @@ export const layer = Layer.effect(
           ), // nocowboy_change
           bridge.run(lastAssistant(input.sessionID)),
         )
+        // nocowboy_change start — auto-router: intercept #route: in assistant output
+        const routeText = loopResult.parts
+          .filter((p) => p.type === "text")
+          .map((p) => (p as any).text ?? "")
+          .join("\n")
+        if (hasRouteDirective(routeText) && !session.parentID) {
+          const route = parseRoute(routeText)
+          if (route) {
+            const exit = yield* Effect.exit(agents.get(route.agent))
+            const nextAgent: Agent.Info | undefined = exit._tag === "Success" ? exit.value : undefined
+            if (nextAgent && nextAgent.mode !== "subagent") {
+              const rebridge = yield* runner()
+              return yield* NoCowboySessionPromptQueue.enqueue(
+                input.sessionID,
+                loopResult.info.id,
+                rebridge.run(
+                  loop({ sessionID: input.sessionID, snapshotInitialization: undefined }).pipe(Effect.orDie),
+                ),
+                rebridge.run(lastAssistant(input.sessionID)),
+              )
+            }
+          }
+        }
         // nocowboy_change end
+        return loopResult
       },
       Effect.catchTag("NotFoundError", Effect.die),
     )

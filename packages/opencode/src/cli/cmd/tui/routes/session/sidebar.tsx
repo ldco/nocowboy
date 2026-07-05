@@ -19,11 +19,7 @@ import { DialogProvider } from "../../component/dialog-provider" // nocowboy_cha
 import { DialogIndexing } from "@/nocowboy/components/dialog-indexing" // nocowboy_change
 import * as Clipboard from "../../util/clipboard" // nocowboy_change
 import { useToast } from "../../ui/toast" // nocowboy_change
-// nocowboy_change start - Commands tab imports
-import { commands as allCommands } from "@/nocowboy/commands"
-import type { CommandModule } from "yargs"
-// nocowboy_change end
-
+import { slashDisplay } from "@/nocowboy/cli/cmd/command-display" // nocowboy_change
 // nocowboy_change - module-level ref survives SolidJS remount
 let _historyScrollbox: any = undefined
 
@@ -42,7 +38,7 @@ function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void
   const tabs: { key: SidebarTab; label: string }[] = [
     { key: "info", label: "Info" },
     { key: "history", label: "History" },
-    { key: "commands", label: "Commands" },
+    { key: "commands", label: "Templates" },
     { key: "settings", label: "Settings" },
   ]
   return (
@@ -207,69 +203,131 @@ function SettingsTab() {
   )
 }
 
-// nocowboy_change start — Commands Tab
+// nocowboy_change start — Commands Tab (agentic commands from sync.data.command)
 function CommandsTab() {
   const { theme } = useTheme()
-  const [search, setSearch] = createSignal("")
+  const sync = useSync()
+  const sdk = useSDK()
+  const route = useRoute()
+  const dialog = useDialog()
+  const toast = useToast()
 
-  // Collect commands from the command registry + custom commands
+  const sessionID = () => {
+    if (route.data.type === "session") return route.data.sessionID
+    return undefined
+  }
+
+  // Pick primary agent (first non-hidden with mode !== "primary" means subagent; primary is the main one)
+  const primaryAgent = createMemo(() => {
+    const agents = sync.data.agent
+    const primary = agents.find((a: any) => a.mode === "primary" || a.name === "primary")
+    if (primary) return primary.name
+    // Fallback: first non-hidden
+    const visible = agents.find((a: any) => !a.hidden)
+    return visible?.name ?? ""
+  })
+
+  // Collect agentic commands from sync.data.command
   const entries = createMemo(() => {
-    const q = search().toLowerCase()
-    const items: { command: string; description: string; group: string }[] = []
+    const items: { name: string; display: string; description: string; source: string; agent?: string; model?: string }[] = []
 
-    for (const cmd of allCommands) {
-      const c = (cmd as any).command ?? ""
-      const d = (cmd as any).describe ?? ""
-      if (!c) continue
-
-      // Determine group from command structure (parent.command)
-      const group = c.includes(" ") ? c.split(" ")[0] : "General"
-
-      if (q && !c.toLowerCase().includes(q) && !d.toLowerCase().includes(q)) continue
-      items.push({ command: c, description: d, group })
+    for (const cmd of sync.data.command) {
+      items.push({
+        name: cmd.name,
+        display: slashDisplay(cmd),
+        description: cmd.description ?? "",
+        source: cmd.source ?? "command",
+        agent: cmd.agent,
+        model: cmd.model,
+      })
     }
 
-    // Sort: grouped, then alphabetically
-    items.sort((a, b) => {
-      if (a.group !== b.group) return a.group.localeCompare(b.group)
-      return a.command.localeCompare(b.command)
-    })
-
+    items.sort((a, b) => a.display.localeCompare(b.display))
     return items
   })
 
-  // Build grouped sections from sorted entries
+  // Group by source: Commands, MCP, Skills
   const sections = createMemo(() => {
     const all = entries()
-    const groups: { group: string; items: typeof all }[] = []
-    for (const item of all) {
-      const last = groups[groups.length - 1]
-      if (last && last.group === item.group) {
-        last.items.push(item)
-      } else {
-        groups.push({ group: item.group, items: [item] })
+    const groups: { label: string; items: typeof all }[] = []
+    const order = ["command", "mcp", "skill"]
+    const labels: Record<string, string> = {
+      command: "Commands",
+      mcp: "MCP",
+      skill: "Skills",
+    }
+    for (const src of order) {
+      const filtered = all.filter((i) => i.source === src)
+      if (filtered.length > 0) {
+        groups.push({ label: labels[src] ?? src, items: filtered })
       }
     }
     return groups
   })
 
+  const [executing, setExecuting] = createSignal<string | null>(null)
+
+  const fireCommand = async (item: { name: string; display: string; description: string; agent?: string; model?: string }) => {
+    const sid = sessionID()
+    if (!sid) {
+      toast.show({ message: "No active session", variant: "error" })
+      return
+    }
+
+    // Show input dialog — user can type arguments or submit empty to run as-is
+    const input = await DialogPrompt.show(dialog, item.display, {
+      description: () => <text fg={theme.textMuted}>{item.description}</text>,
+      placeholder: "Arguments (optional) — Enter to submit, Esc to cancel",
+    })
+    if (input === null) return // user cancelled
+
+    setExecuting(item.name)
+    try {
+      const result = await sdk.client.session.command({
+        sessionID: sid,
+        command: item.name,
+        agent: item.agent ?? primaryAgent(),
+        arguments: input,
+      })
+      if (result.error) {
+        toast.show({ message: `Command failed: ${result.error.data?.message ?? "unknown error"}`, variant: "error" })
+      } else {
+        toast.show({ message: `Executed ${item.display}`, variant: "success" })
+      }
+    } catch (e: any) {
+      toast.show({ message: `Command error: ${e?.message ?? e}`, variant: "error" })
+    } finally {
+      setExecuting(null)
+    }
+  }
+
   return (
     <box flexDirection="column" flexGrow={1}>
-      {/* Search input */}
+      {/* Hint text */}
       <box flexShrink={0} paddingBottom={1}>
-        <text fg={theme.textMuted}>/ </text>
-        <text fg={theme.text}>search commands...</text>
+        <text fg={theme.textMuted} wrapMode="word">
+          Click a template to run it — add optional arguments in the dialog.
+        </text>
       </box>
 
       <scrollbox flexGrow={1} paddingRight={1}>
         <For each={sections()}>
           {(sec) => (
             <box flexDirection="column" gap={1} paddingBottom={1}>
-              <text fg={brand} attributes={TextAttributes.BOLD}>{sec.group}</text>
+              <text fg={brand} attributes={TextAttributes.BOLD}>{sec.label}</text>
               <For each={sec.items}>
                 {(item) => (
-                  <box flexDirection="column" paddingLeft={1}>
-                    <text fg={theme.text} wrapMode="none">{item.command}</text>
+                  <box
+                    flexDirection="column"
+                    paddingLeft={1}
+                    onMouseDown={() => fireCommand(item)}
+                  >
+                    <text
+                      fg={executing() === item.name ? theme.warning : theme.text}
+                      wrapMode="none"
+                    >
+                      {executing() === item.name ? `${item.display}...` : item.display}
+                    </text>
                     <text fg={theme.textMuted} wrapMode="word">{item.description}</text>
                   </box>
                 )}
@@ -277,6 +335,10 @@ function CommandsTab() {
             </box>
           )}
         </For>
+
+        <Show when={entries().length === 0}>
+          <text fg={theme.textMuted}>No commands configured</text>
+        </Show>
       </scrollbox>
     </box>
   )

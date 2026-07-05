@@ -8,13 +8,11 @@
 //
 // All MCP communication is delegated to nutausik-client.ts.
 
-import { autoCreateTask, autoEndSession } from "./nutausik-client"
+import { autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
+import * as Log from "@opencode-ai/core/util/log"
 
-/**
- * Called when a NoCowboy session is created.
- * Auto-creates a NUTAUSIK task and starts a NUTAUSIK session.
- * Replaces the manual nutausik-hooks.sh SessionStart handler.
- */
+const log = Log.create({ service: "nutausik.auto-wire" })
+
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
   autoCreateTask(sessionID, title, directory)
 }

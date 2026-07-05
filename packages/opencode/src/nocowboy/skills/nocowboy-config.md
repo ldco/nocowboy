@@ -1,8 +1,8 @@
-# Kilo CLI Configuration Reference
+# NoCowboy CLI Configuration Reference
 
 All config lives in `nocowboy.json` (or `nocowboy.jsonc`). Precedence low-to-high: remote well-known, global (`~/.config/nocowboy/nocowboy.json`), env `NOCOWBOY_CONFIG`, project `./nocowboy.json`, `.nocowboy/nocowboy.json`, `NOCOWBOY_CONFIG_CONTENT`, managed (see Config File Locations). Deep-merged; later wins.
 
-This also covers where Kilo looks for config files, commands, agents, and skills across project, global, and legacy paths such as `.nocowboy/`, `.nocowboy/`, `.opencode/`, and `~/.config/nocowboy/`, plus Agent Manager setup/run scripts in the VS Code extension.
+This also covers where NoCowboy looks for config files, commands, agents, and skills across project, global, and legacy paths such as `.nocowboy/`, `.nocowboy/`, `.opencode/`, and `~/.config/nocowboy/`, plus Agent Manager setup/run scripts in the VS Code extension.
 
 ## Commands (`.nocowboy/command/*.md`)
 
@@ -219,16 +219,16 @@ Rules are evaluated top-to-bottom — the **last** matching rule wins. Put broad
 
 Use `disabled_providers` to prevent specific providers from loading. This is useful when you want to exclude providers that are built-in, or auto-detected via environment variables, from appearing in the model picker.
 
-For example, this configuration will hide all models from the built-in Kilo Gateway as well as any from the OpenAI provider which may be enabled automatically through environment variables.
+For example, this configuration will hide all models from the built-in NoCowboy Gateway as well as any from the OpenAI provider which may be enabled automatically through environment variables.
 
 ```jsonc
 {
   "$schema": "https://nocowboy.dev/config.json", // nocowboy_change - TODO: replace with own service
-  "disabled_providers": ["kilo", "openai"],
+  "disabled_providers": ["nocowboy", "openai"],
 }
 ```
 
-The provider ID is the lowercase name used in the `provider/model` format (e.g., `kilo`, `openai`, `anthropic`, `google`, `groq`).
+The provider ID is the lowercase name used in the `provider/model` format (e.g., `nocowboy`, `openai`, `anthropic`, `google`, `groq`).
 
 **Interaction with `enabled_providers`:**
 

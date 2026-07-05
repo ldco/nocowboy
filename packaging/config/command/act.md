@@ -24,17 +24,26 @@ You are the Act step of the Plan/Act workflow. Load the most recent plan from `.
    ```bash
    git tag "kg-ck-plan-$(date +%Y%m%d-%H%M%S)" -m "before: {plan title}"
    ```
-   This lets the user `/restore` if the implementation goes wrong.
+   This lets the user restore if the implementation goes wrong.
 
 4. **Implement — one step at a time** — For each file in the plan:
    - Read the file and surrounding context
    - Make the change (one logical change per commit)
-   - Run `puppetmaster_pm_review_run(scope: 'quick', fix: true)` for quality check
-   - Commit with conventional message (reference the plan file)
+   - Run a quality check:
+     ```bash
+     npm run lint -- --fix 2>/dev/null || bun run lint -- --fix 2>/dev/null || npx eslint . --fix 2>/dev/null || true
+     ```
+   - Check types:
+     ```bash
+     npx tsc --noEmit 2>/dev/null || bun run typecheck 2>/dev/null || cargo check 2>/dev/null || mypy . 2>/dev/null || true
+     ```
+   - If quality check fails, fix the issue before proceeding
+   - Commit with `git_git_commit(repo_path, message: 'type(scope): concise description (refs .kilo/plans/plan-name.md)')`
    - Report: "Implemented: [file] — [commit hash]"
 
 5. **Verify** — Run the acceptance criteria from the plan:
-   - `puppetmaster_pm_review_run(scope: 'full', fix: true)` if tests exist
+   - Run quality checks as in step 4
+   - Run tests: `npm test 2>/dev/null || bun test 2>/dev/null || cargo test 2>/dev/null || pytest 2>/dev/null || true`
    - Check each AC item
 
 6. **Update plan status** — Edit the plan file: change `**Status:** planned` to `**Status:** implemented`

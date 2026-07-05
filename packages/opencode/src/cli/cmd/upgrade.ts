@@ -6,7 +6,7 @@ import { InstallationVersion } from "@opencode-ai/core/installation/version"
 
 export const UpgradeCommand = {
   command: "upgrade [target]",
-  describe: "upgrade kilo to the latest or a specific version", // nocowboy_change
+  describe: "upgrade NoCowboy to the latest or a specific version", // nocowboy_change
   builder: (yargs: Argv) => {
     return yargs
       .positional("target", {
@@ -28,7 +28,7 @@ export const UpgradeCommand = {
     const detectedMethod = await Installation.method()
     const method = (args.method as Installation.Method) ?? detectedMethod
     if (method === "unknown") {
-      prompts.log.error(`kilo is installed to ${process.execPath} and may be managed by a package manager`) // nocowboy_change
+      prompts.log.error(`NoCowboy is installed to ${process.execPath} and may be managed by a package manager`) // nocowboy_change
       const install = await prompts.select({
         message: "Install anyways?",
         options: [
@@ -46,7 +46,7 @@ export const UpgradeCommand = {
     const target = args.target ? args.target.replace(/^v/, "") : await Installation.latest(method) // nocowboy_change
 
     if (InstallationVersion === target) {
-      prompts.log.warn(`kilo upgrade skipped: ${target} is already installed`) // nocowboy_change
+      prompts.log.warn(`NoCowboy upgrade skipped: ${target} is already installed`) // nocowboy_change
       prompts.outro("Done")
       return
     }

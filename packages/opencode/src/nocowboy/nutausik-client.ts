@@ -123,7 +123,7 @@ export function autoCreateTask(sessionID: string, title: string, directory: stri
 }
 
 /**
- * End the NUTAUSIK session, save handoff, and compact memory.
+ * End the NUTAUSIK session, save handoff, compact memory, and log tool summary.
  * Fire-and-forget: errors are logged but not propagated.
  */
 export function autoEndSession(sessionID: string, directory: string): void {
@@ -131,12 +131,30 @@ export function autoEndSession(sessionID: string, directory: string): void {
 
   callTool("nutausik_session_end")
     .then(() => {
+      const summary = `Session ${sessionID.slice(0, 8)} ended`
       callTool("nutausik_handoff_save", {
         session_id: sessionID,
-        summary: `Session ${sessionID.slice(0, 8)} ended`,
+        summary,
       })
       callTool("nutausik_memory_compact", { last: 10 })
+      callTool("nutausik_task_log", {
+        message: summary,
+        phase: "close",
+      })
       log.info("nutausik session auto-ended", { sessionID })
     })
     .catch(() => log.warn("nutausik session end failed", { sessionID }))
+}
+
+/**
+ * Log tool usage to the NUTAUSIK task.
+ * Fire-and-forget: errors are logged but not propagated.
+ */
+export function logToolCall(toolName: string, status: string, sessionID?: string): void {
+  callTool("nutausik_task_log", {
+    message: `Tool: ${toolName} — ${status}`,
+    phase: status === "completed" ? "execute" : "error",
+  })
+    .then(() => log.debug("tool call logged", { toolName, status, sessionID }))
+    .catch(() => {})
 }

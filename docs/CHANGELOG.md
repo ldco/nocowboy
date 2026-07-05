@@ -1,5 +1,73 @@
 # NoCowboy — Changelog
 
+## v0.7.9
+### v0.7.9 — Sandbox + Share (2026-07-06)
+- **DONE** /sandbox-docker — Docker sandbox isolation template
+- **DONE** /share — session sharing template
+
+## v0.7.8 — Ecosystem & Compliance (2026-07-05)
+### v0.9.0 — Ecosystem
+- **DONE** /sandbox — built-in template: checkpoint, diff, confirm, apply/revert
+- **DONE** /mcp — built-in template: search, install, list, remove MCP servers
+- **DONE** /ollama — built-in template: auto-detect, configure, switch to local Ollama models
+
+### v1.0.0 — Production (152-ФЗ Compliance)
+- **DONE** P3-B1: LICENSE.md — Chapter 69 Civil Code РФ
+- **DONE** P3-B2: Consent dialog на первом запуске TUI (consent_152fz)
+- **DONE** P3-B4: /forget — команда очистки всех данных
+- **DONE** P3-B3: Локализация данных — SQLite в .nutausik/ (уже было)
+
+
+## v0.7.7 — Template System Overhaul + Russian Language (2026-07-05)
+
+### TUI — Templates Tab
+- **DONE** Новая вкладка в sidebar: Info → History → **Templates** → Settings
+- **DONE** Переименовано из "Commands" (конфликт с ctrl+p "Command Palette")
+- **DONE** Клик открывает диалог ввода аргументов перед выполнением
+- **DONE** Клик выполняет шаблон на текущей сессии через sdk.client.session.command()
+
+### Agentic Template System — Cleanup
+- **DONE** 18 built-in templates → 7 (plan, act, verify, commit, init, json, continue)
+- **DONE** 12 dead/redundant/PM-contaminated templates удалены
+- **DONE** PM-зависимые вызовы удалены из всех built-in templates
+- **DONE** Server-hardcoded init удалён (дубль с template)
+- **DONE** /continue — built-in template: читает ROADMAP, выполняет следующую задачу
+
+### Skills Cleanup
+- **DONE** 6 Kilo/ralph skills удалены
+- **DONE** kilo-config → nocowboy-config (переименован, контент переписан)
+- **DONE** 5 skills оставлены (frontend-design, web-design-guidelines, memory-manager, skill-evaluator, gh-issues)
+
+### PuppetMaster MCP Refactoring
+- **DONE** Удалён pm_git_commit (generic git, заменён на Git MCP)
+- **DONE** Добавлены capabilities: { tools: {}, prompts: {} }
+- **DONE** 5 PM prompt templates: pm_build_and_deploy, pm_init_project, pm_db_full_reset, pm_review_full, pm_contribute_workflow
+
+### Git MCP — First-Party Wrapper
+- **DONE** Создан packaging/mcp-servers/git/ — first-party MCP wrapper
+- **DONE** Wrapper проксирует tool calls на uvx mcp-server-git
+- **DONE** 5 prompt templates: commit, diff, undo, checkpoint, restore
+- **DONE** tsc pass
+
+### Russian Language
+- **DONE** Поле lang в nocowboy.json (ru/en)
+- **DONE** instructions/ru/ — 4 русские инструкции
+- **DONE** Русские системные промпты: code.ru.txt, debug.ru.txt
+- **DONE** Lang-based выбор: cfg.lang === "ru" → RU prompt
+- **DONE** EN auto-memory.md переписан — NUTAUSIK-only
+
+### Three-Dimensional System
+- **DONE** ROADMAP.md — только невыполненное
+- **DONE** CHANGELOG.md — выполненное
+- **DONE** BACKLOG.md — идеи на будущее
+- **DONE** AGENTS.md: запрещённая фраза "What next?"
+
+### Backward Compatibility Removal
+- **DONE** Все упоминания MEMORY.md удалены из инструкций
+- **DONE** Kilo-референсы в nocowboy-config заменены на NoCowboy
+- **DONE** kilo → nocowboy в upgrade.ts
+
+
 ## v0.7.6 — Token Cost Optimization + Identity Scoping (2026-07-04)
 
 ### Token Cost Investigation

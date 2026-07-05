@@ -10,16 +10,16 @@ import { RouteProvider, useRoute } from "@tui/context/route"
 import {
   Switch,
   Match,
-  createEffect,
-  createMemo,
-  ErrorBoundary,
   createSignal,
-  onMount,
-  onCleanup,
-  batch,
   Show,
   on,
   untrack, // nocowboy_change
+  createEffect,
+  createMemo,
+  ErrorBoundary,
+  onMount,
+  onCleanup,
+  batch,
 } from "solid-js"
 import { win32DisableProcessedInput, win32FlushInputBuffer, win32InstallCtrlCGuard } from "./win32" // nocowboy_change
 import { Flag } from "@opencode-ai/core/flag/flag"
@@ -346,6 +346,27 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     offSelectionKeys()
     attention.dispose()
   })
+
+  // nocowboy_change start — 152-ФЗ consent dialog on first launch
+  createEffect(() => {
+    if (!ready()) return
+    if (kv.get("consent_152fz", false)) return
+    DialogConfirm.show(
+      dialog,
+      "Согласие на обработку данных (152-ФЗ)",
+      [
+        "NoCowboy хранит локально: историю сессий, память (NUTAUSIK), файлы конфигурации.",
+        "Эти данные НЕ передаются третьим лицам.",
+        "",
+        "Продолжая, вы даёте согласие на обработку данных в соответствии с 152-ФЗ.",
+        "Вы можете в любой момент удалить все данные через /forget.",
+      ].join("\n"),
+      "i_agree",
+    ).then((ok) => {
+      if (ok === true) kv.set("consent_152fz", true)
+    })
+  })
+  // nocowboy_change end
 
   // Wire up console copy-to-clipboard via opentui's onCopySelection callback
   renderer.console.onCopySelection = async (text: string) => {

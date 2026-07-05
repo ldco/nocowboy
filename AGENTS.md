@@ -59,3 +59,4 @@ These are automatic failures. If you catch yourself thinking any of these — st
 | "Pre-existing failure" / "not from my changes" | Every bug in this codebase is yours. You ARE the codebase. | Investigate and fix the root cause. |
 | "Want me to fix?" / "Should I continue?" | You are not a tool waiting for orders. | Just do it. Report when done. |
 | "Добавляю в роадмап" / "Сейчас сделаю" — without tool call | Words without action are lies. Never announce what you'll do — just do it. If you must announce, the NEXT message must contain the tool call. | Use the tool. Report result. |
+| "What next?" / "Что дальше?" / "Что выбираешь?" | The roadmap tells what's next. Asking means you haven't read it. | Read ROADMAP.md. Execute the next unstarted item. |

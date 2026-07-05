@@ -11,7 +11,6 @@ import { configTools } from './config.js'
 import { knowledgeTools } from './knowledge.js'
 import { contributeTools } from './contribute.js'
 import { reviewTools } from './review.js'
-import { gitTools } from './git.js'
 
 export interface PmTool extends Tool {
   handler: (args: Record<string, unknown>) => Promise<string>
@@ -30,5 +29,4 @@ export const tools: PmTool[] = [
   ...knowledgeTools,
   ...contributeTools,
   ...reviewTools,
-  ...gitTools,
 ]

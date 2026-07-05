@@ -12,7 +12,7 @@ const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   sqlite: { command: "npx mcp-sqlite-server" },
   puppeteer: { command: "npx puppeteer-mcp-claude serve" },
   git: { command: "uvx mcp-server-git" },
-  // First-party MCP servers (constitution, contract-guard, etc.) are published
+  // First-party MCP servers (constitution, contract-guard, git, etc.) are published
   // as separate @nocowboy/mcp-<name> packages. They're auto-detected below
   // via require.resolve when installed. No default entries needed.
 }

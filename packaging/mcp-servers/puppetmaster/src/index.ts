@@ -3,15 +3,18 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
   type CallToolRequest,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js'
 
 import { tools } from './tools/index.js'
+import { prompts, resolvePrompt } from './prompts.js'
 
 const server = new Server(
   { name: 'pm-mcp-server', version: '1.0.0' },
-  { capabilities: { tools: {} } },
+  { capabilities: { tools: {}, prompts: {} } },
 )
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -38,10 +41,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
   }
 })
 
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return { prompts }
+})
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params
+  return resolvePrompt(name, args ?? {})
+})
+
 async function main() {
   const transport = new StdioServerTransport()
   await server.connect(transport)
-  console.error('PM MCP Server running on stdio')
+  console.error('PM MCP Server running on stdio with prompts')
 }
 
 main().catch((e: unknown) => {
