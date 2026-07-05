@@ -19,7 +19,7 @@
 - **DONE** Авто-проверка AC: правило 6 в `criticalRules()` — LLM проверяет AC перед `task_done`
 - **DONE** `logToolCall()` в `nutausik-client.ts` — вызов `nutausik_task_log` для любого tool
 - **DONE** `autoEndSession()` логирует `task_log(phase: "close")` при завершении
-- Пер-тул логирование через hooks MCP (требует MCP-to-MCP интеграции)
+- **DONE** Пер-тул логирование: авто-регистрация PostToolUse hook в hooks.json
 
 ### Session Handoff
 - **DONE** Авто-сохранение HANDOFF при завершении: `autoEndSession()` → `nutausik_handoff_save`
