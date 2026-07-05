@@ -87,8 +87,8 @@ function stubOps(opts?: { onPrompt?: (input: SessionPrompt.PromptInput) => void 
           role: "assistant",
           parentID: input.messageID ?? MessageID.ascending(),
           sessionID: input.sessionID,
-          mode: input.agent ?? "general",
-          agent: input.agent ?? "general",
+          mode: input.agent ?? "code",
+          agent: input.agent ?? "code",
           cost: 0,
           path: { cwd: "/tmp", root: "/tmp" },
           tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
@@ -131,7 +131,7 @@ describe("Kilo task nesting", () => {
           {
             description: "inspect bug",
             prompt: "look into the cache key path",
-            subagent_type: "explore",
+            subagent_type: "code",
           },
           {
             sessionID: chat.id,
@@ -150,7 +150,7 @@ describe("Kilo task nesting", () => {
         expect(kids[0]?.id).toBe(result.metadata.sessionId)
         expect(kids[0]?.parentID).toBe(chat.id)
         expect(seen?.sessionID).toBe(result.metadata.sessionId)
-        expect(seen?.agent).toBe("explore")
+        expect(seen?.agent).toBe("code")
       }),
     ),
   )
@@ -170,7 +170,7 @@ describe("Kilo task nesting", () => {
             {
               description: "inspect bug",
               prompt: "look into the cache key path",
-              subagent_type: "explore",
+              subagent_type: "code",
             },
             {
               sessionID: chat.id,
@@ -250,7 +250,7 @@ describe("Kilo task nesting", () => {
             {
               description: "inspect bug",
               prompt: "look into the cache key path",
-              subagent_type: "explore",
+              subagent_type: "code",
               task_id: child.id,
             },
             {
@@ -295,7 +295,7 @@ describe("Kilo task nesting", () => {
             {
               description: "inspect bug",
               prompt: "look into the cache key path",
-              subagent_type: "explore",
+              subagent_type: "code",
               task_id: child.id,
             },
             {

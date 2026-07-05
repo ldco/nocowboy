@@ -7,10 +7,14 @@ describe("ModesMigrator", () => {
   describe("isDefaultMode", () => {
     test("returns true for default modes", () => {
       expect(ModesMigrator.isDefaultMode("code")).toBe(true)
+      expect(ModesMigrator.isDefaultMode("build")).toBe(true)
       expect(ModesMigrator.isDefaultMode("architect")).toBe(true)
-      expect(ModesMigrator.isDefaultMode("ask")).toBe(true)
       expect(ModesMigrator.isDefaultMode("debug")).toBe(true)
-      expect(ModesMigrator.isDefaultMode("orchestrator")).toBe(true)
+    })
+
+    test("returns false for upstream defaults not in NoCowboy set", () => {
+      expect(ModesMigrator.isDefaultMode("ask")).toBe(false)
+      expect(ModesMigrator.isDefaultMode("orchestrator")).toBe(false)
     })
 
     test("returns false for custom modes", () => {

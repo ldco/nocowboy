@@ -20,13 +20,13 @@ describe("NUTAUSIK initialization", () => {
 })
 
 describe("nocowboy.json NUTAUSIK config", () => {
-  it("points nutausik to correct port (9210)", () => {
+  it("points nutausik to correct port (9204)", () => {
     const configPath = resolve(PROJECT_DIR, "nocowboy.json")
     expect(existsSync(configPath)).toBe(true)
     const config = JSON.parse(readFileSync(configPath, "utf-8"))
     const nutausikMcp = config.mcp?.nutausik
     expect(nutausikMcp).toBeDefined()
-    expect(nutausikMcp.url).toContain(":9210/")
+    expect(nutausikMcp.url).toContain(":9204/")
     expect(nutausikMcp.enabled).toBe(true)
   })
 })

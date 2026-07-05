@@ -114,6 +114,7 @@ function args() {
 const tty = Object.getOwnPropertyDescriptor(process.stdin, "isTTY")
 
 afterEach(() => {
+  mock.restore()
   if (tty) {
     Object.defineProperty(process.stdin, "isTTY", tty)
     return

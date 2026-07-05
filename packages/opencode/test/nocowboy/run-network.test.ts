@@ -95,8 +95,14 @@ function args() {
 const timer = globalThis.setTimeout
 const tty = Object.getOwnPropertyDescriptor(process.stdin, "isTTY")
 
-afterEach(() => {
+afterEach(async () => {
+  // Restore the real timer FIRST, then drain to let any callbacks scheduled
+  // during the test fire with the real scheduler. Doing it the other way
+  // (draining with the mocked microtask shim) never yields the event loop
+  // and leaves SolidJS rendering callbacks in an inconsistent state.
   globalThis.setTimeout = timer
+  await new Promise((r) => timer(r, 0))
+  mock.restore()
   if (tty) {
     Object.defineProperty(process.stdin, "isTTY", tty)
     return

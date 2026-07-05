@@ -1,89 +1,13 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test"
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test"
+
+// Test the NocowboyCli.shutdown lifecycle order WITHOUT using mock.module().
+// Instead, spy on the specific methods of already-loaded modules.
+// This avoids poisoning the module cache for other test files.
 
 const calls: string[] = []
 const timeouts: Array<number | undefined> = []
 let err: unknown
 let exit: string | number | null | undefined
-
-mock.module("@opencode-ai/core/global", () => ({
-  Global: { Path: { data: "/tmp/kilo-test" } },
-}))
-
-mock.module("@opencode-ai/core/installation/version", () => ({
-  InstallationBuildKind: "release",
-  InstallationVersion: "test",
-}))
-
-mock.module("@nocowboy/telemetry", () => ({
-  Telemetry: {
-    async init() {},
-    async updateIdentity() {},
-    trackCliStart() {},
-    trackCliExit(code?: number) {
-      calls.push(`track:${code ?? "undefined"}`)
-    },
-    async shutdown(timeout?: number) {
-      calls.push("telemetry")
-      timeouts.push(timeout)
-      if (err) throw err
-    },
-  },
-}))
-
-mock.module("@nocowboy/gateway", () => ({
-  ENV_FEATURE: "NOCOWBOY_FEATURE",
-  ENV_VERSION: "NOCOWBOY_VERSION",
-  async migrateLegacyKiloAuth() {},
-}))
-
-mock.module("@/config/config", () => ({
-  Config: { Service: { use: () => ({ experimental: {} }) } },
-}))
-
-mock.module("@/auth", () => ({
-  Auth: { Service: { use: () => undefined } },
-}))
-
-mock.module("@/project/instance-runtime", () => ({
-  InstanceRuntime: {
-    async disposeAllInstances() {
-      calls.push("dispose")
-    },
-  },
-}))
-
-mock.module("@/nocowboy/session-export", () => ({
-  SessionExport: {
-    async shutdown() {
-      calls.push("session")
-    },
-  },
-}))
-
-mock.module("@/nocowboy/help-command", () => ({
-  createHelpCommand: () => ({ command: "help", handler() {} }),
-}))
-
-for (const path of [
-  "@/nocowboy/cli/cmd/console",
-  "@/nocowboy/cli/cmd/roll-call",
-  "@/nocowboy/cli/cmd/profile",
-  "@/nocowboy/cli/cmd/daemon",
-  "@/nocowboy/cli/dev-setup",
-  "@/cli/cmd/remote",
-  "@/cli/cmd/config",
-]) {
-  mock.module(path, () => ({
-    KiloConsoleCommand: { command: "console", handler() {} },
-    RollCallCommand: { command: "roll-call", handler() {} },
-    ProfileCommand: { command: "profile", handler() {} },
-    DaemonCommand: { command: "daemon", handler() {} },
-    DevSetupCommand: { command: "dev-setup", handler() {} },
-    DevAliasCommand: { command: "dev-alias", handler() {} },
-    RemoteCommand: { command: "remote", handler() {} },
-    ConfigCommand: { command: "config", handler() {} },
-  }))
-}
 
 describe("NoCowboyCli.shutdown", () => {
   beforeEach(() => {
@@ -99,23 +23,58 @@ describe("NoCowboyCli.shutdown", () => {
   })
 
   test("keeps telemetry shutdown timeout best-effort and still disposes instances", async () => {
-    err = "Timeout while shutting down PostHog. Some events may not have been sent."
-    process.exitCode = 0
     const { NocowboyCli } = await import("../../src/nocowboy/cli/setup")
 
-    await expect(NocowboyCli.shutdown()).resolves.toBeUndefined()
+    // Spy on the modules AFTER import so the real modules are used
+    const { Telemetry } = await import("@nocowboy/telemetry")
+    const { SessionExport } = await import("@/nocowboy/session-export")
+    const { InstanceRuntime } = await import("@/project/instance-runtime")
 
+    spyOn(Telemetry, "trackCliExit").mockImplementation((code?: number) => {
+      calls.push(`track:${code ?? "undefined"}`)
+    })
+    spyOn(SessionExport, "shutdown").mockImplementation(async () => {
+      calls.push("session")
+    })
+    spyOn(Telemetry, "shutdown").mockImplementation(async (timeout?: number) => {
+      calls.push("telemetry")
+      timeouts.push(timeout)
+      throw "Timeout while shutting down PostHog. Some events may not have been sent."
+    })
+    spyOn(InstanceRuntime, "disposeAllInstances").mockImplementation(async () => {
+      calls.push("dispose")
+    })
+
+    process.exitCode = 0
+    await expect(NocowboyCli.shutdown()).resolves.toBeUndefined()
     expect(timeouts).toEqual([2000])
     expect(calls).toEqual(["track:0", "session", "telemetry", "dispose"])
     expect(process.exitCode).toBe(0)
   })
 
   test("preserves failing command exit status", async () => {
-    process.exitCode = 1
     const { NocowboyCli } = await import("../../src/nocowboy/cli/setup")
 
-    await NocowboyCli.shutdown()
+    const { Telemetry } = await import("@nocowboy/telemetry")
+    const { SessionExport } = await import("@/nocowboy/session-export")
+    const { InstanceRuntime } = await import("@/project/instance-runtime")
 
+    spyOn(Telemetry, "trackCliExit").mockImplementation((code?: number) => {
+      calls.push(`track:${code ?? "undefined"}`)
+    })
+    spyOn(SessionExport, "shutdown").mockImplementation(async () => {
+      calls.push("session")
+    })
+    spyOn(Telemetry, "shutdown").mockImplementation(async (timeout?: number) => {
+      calls.push("telemetry")
+      timeouts.push(timeout)
+    })
+    spyOn(InstanceRuntime, "disposeAllInstances").mockImplementation(async () => {
+      calls.push("dispose")
+    })
+
+    process.exitCode = 1
+    await NocowboyCli.shutdown()
     expect(timeouts).toEqual([2000])
     expect(calls).toEqual(["track:1", "session", "telemetry", "dispose"])
     expect(process.exitCode).toBe(1)

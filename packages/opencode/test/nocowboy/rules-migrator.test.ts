@@ -6,16 +6,20 @@ import fs from "fs/promises"
 
 async function withHome<T>(home: string, fn: () => Promise<T>): Promise<T> {
   const prev = process.env.HOME
-  const prevTest = process.env.KILO_TEST_HOME
+  const prevKilo = process.env.KILO_TEST_HOME
+  const prevNoco = process.env.NOCOWBOY_TEST_HOME
   process.env.HOME = home
   process.env.KILO_TEST_HOME = home
+  process.env.NOCOWBOY_TEST_HOME = home
   try {
     return await fn()
   } finally {
     if (prev) process.env.HOME = prev
     else delete process.env.HOME
-    if (prevTest) process.env.KILO_TEST_HOME = prevTest
+    if (prevKilo) process.env.KILO_TEST_HOME = prevKilo
     else delete process.env.KILO_TEST_HOME
+    if (prevNoco) process.env.NOCOWBOY_TEST_HOME = prevNoco
+    else delete process.env.NOCOWBOY_TEST_HOME
   }
 }
 

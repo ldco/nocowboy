@@ -1,6 +1,14 @@
-import { afterEach, describe, expect, test } from "bun:test"
+import { afterEach, describe, expect, mock, test } from "bun:test"
 import { Effect } from "effect"
-import { createNocowboyClient } from "@nocowboy/sdk/v2/client"
+
+// Restore any module mocks before importing the SDK client.
+// Use a cache-busting query parameter to force Bun to load a fresh
+// module copy — even after mock.restore(), other modules that imported
+// @nocowboy/sdk/v2 during an active mock retain stale closure references.
+mock.restore()
+
+const nocache = `${Date.now()}-${Math.random()}`
+const { createNocowboyClient } = await import(`@nocowboy/sdk/v2/client?nocache=${nocache}`)
 import { provideTestInstance } from "../fixture/fixture"
 import { Server } from "../../src/server/server"
 import { Session } from "../../src/session/session"

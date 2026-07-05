@@ -25,6 +25,7 @@ import PROMPT_RU from "./prompt/nocowboy-ru.txt"
 import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
+import { fetchContext, fetchCoherenceCheck, fetchHandoff, hasNutausik } from "../nocowboy/nutausik-client"
 // nocowboy_change end
 
 // nocowboy_change start
@@ -158,76 +159,18 @@ export const layer = Layer.effect(
         const ctx = yield* InstanceState.context
         const envLines = NoCowboySystemPrompt.environment({ ctx, model: model as any, editor: editorContext as any })
 
-        // NUTAUSIK context injection — async call to MCP server
+        // NUTAUSIK context injection — via shared client abstraction
         const dir = ctx.directory || process.cwd()
-        const nutausikDb = require("node:path").join(dir, ".nutausik", "nutausik.db")
-        const fs = require("node:fs")
-        if (fs.existsSync(nutausikDb)) {
-          const text = yield* Effect.promise<string>(async () => {
-            try {
-              const res = await fetch("http://127.0.0.1:9210/mcp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  jsonrpc: "2.0",
-                  id: 1,
-                  method: "tools/call",
-                  params: { name: "nutausik_context_inject" },
-                }),
-                signal: AbortSignal.timeout(3000),
-              })
-              if (!res.ok) return ""
-              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
-              return data?.result?.content?.[0]?.text ?? ""
-            } catch { return "" }
-          }).pipe(Effect.catch(() => Effect.succeed("")))
+        if (hasNutausik(dir)) {
+          const text = yield* Effect.promise(() => fetchContext()).pipe(Effect.catch(() => Effect.succeed("")))
           if (text) envLines.push(text)
 
-          // Phase 2: Coherence check with auto-detected plan steps
-          // The NUTAUSIK server auto-detects the active task's plan steps
-          // when none are provided in the arguments
-          const cohText = yield* Effect.promise<string>(async () => {
-            try {
-              const res = await fetch("http://127.0.0.1:9210/mcp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  jsonrpc: "2.0",
-                  id: 2,
-                  method: "tools/call",
-                  params: { name: "nutausik_coherence_check", arguments: { steps: [] } },
-                }),
-                signal: AbortSignal.timeout(3000),
-              })
-              if (!res.ok) return ""
-              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
-              const result = data?.result?.content?.[0]?.text ?? ""
-              // Only inject if it failed (has conflicts) — no news is good news
-              return result.includes("FAILED") ? result : ""
-            } catch { return "" }
-          }).pipe(Effect.catch(() => Effect.succeed("")))
+          // Coherence check — only inject if there are conflicts
+          const cohText = yield* Effect.promise(() => fetchCoherenceCheck()).pipe(Effect.catch(() => Effect.succeed("")))
           if (cohText) envLines.push(cohText)
 
           // Handoff load — restore context from previous session
-          const handoffText = yield* Effect.promise<string>(async () => {
-            try {
-              const res = await fetch("http://127.0.0.1:9210/mcp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  jsonrpc: "2.0",
-                  id: 3,
-                  method: "tools/call",
-                  params: { name: "nutausik_handoff_load" },
-                }),
-                signal: AbortSignal.timeout(2000),
-              })
-              if (!res.ok) return ""
-              const data = await res.json() as { result?: { content?: Array<{ text?: string }> } }
-              const result = data?.result?.content?.[0]?.text ?? ""
-              return result.includes("No handoff") ? "" : result
-            } catch { return "" }
-          }).pipe(Effect.catch(() => Effect.succeed("")))
+          const handoffText = yield* Effect.promise(() => fetchHandoff()).pipe(Effect.catch(() => Effect.succeed("")))
           if (handoffText) envLines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
