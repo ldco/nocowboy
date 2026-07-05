@@ -4,33 +4,33 @@ import { NoCowboyGatewayApi } from "../groups/nocowboy-gateway"
 
 export const nocowboyGatewayHandlers = HttpApiBuilder.group(NoCowboyGatewayApi, "nocowboy-gateway", (handlers) =>
   Effect.gen(function* () {
-    const authStatus = Effect.fn("KilocodeGateway.authStatus")(function* () {
+    const authStatus = Effect.fn("NoCowboyGateway.authStatus")(function* () {
       return { authenticated: true, type: "api" }
     })
 
-    const cloudSessions = Effect.fn("KilocodeGateway.cloudSessions")(function* () {
+    const cloudSessions = Effect.fn("NoCowboyGateway.cloudSessions")(function* () {
       return { cliSessions: [], nextCursor: null }
     })
 
-    const cloudSession = Effect.fn("KilocodeGateway.cloudSession")(function* () {
+    const cloudSession = Effect.fn("NoCowboyGateway.cloudSession")(function* () {
       return yield* new HttpApiError.BadRequest({})
     })
 
-    const cloudSessionImport = Effect.fn("KilocodeGateway.cloudSessionImport")(function* () {
+    const cloudSessionImport = Effect.fn("NoCowboyGateway.cloudSessionImport")(function* () {
       return "ok"
     })
 
-    const clawStatus = Effect.fn("KilocodeGateway.clawStatus")(function* () {
+    const clawStatus = Effect.fn("NoCowboyGateway.clawStatus")(function* () {
       return { status: null, openclawVersion: null, lastStartedAt: null, lastStoppedAt: null, botName: null }
     })
 
-    const edit = Effect.fn("KilocodeGateway.edit")(function* () {
+    const edit = Effect.fn("NoCowboyGateway.edit")(function* () {
       const authRaw = (globalThis as Record<string, unknown>).__KILO_AUTH_CONTENT
       const auth = typeof authRaw === "object" && authRaw !== null ? authRaw : {}
       if (Object.keys(auth).length === 0) {
         return yield* new HttpApiError.BadRequest({})
       }
-      // nocowboy_change - TODO: replace with own service, was: .fetch?.("https://api.nocowboy.dev/edit/completions", {
+      // TODO: replace with own nocowboy.dev service
       const response = yield* Effect.promise<Response>(() =>
         (globalThis as any)
           .fetch?.("", {
@@ -42,15 +42,15 @@ export const nocowboyGatewayHandlers = HttpApiBuilder.group(NoCowboyGatewayApi, 
       return { status: response.status }
     })
 
-    const organization = Effect.fn("KilocodeGateway.organization")(function* () {
+    const organization = Effect.fn("NoCowboyGateway.organization")(function* () {
       return { organizationId: null }
     })
 
-    const profile = Effect.fn("KilocodeGateway.profile")(function* () {
+    const profile = Effect.fn("NoCowboyGateway.profile")(function* () {
       return {}
     })
 
-    const audioTranscriptions = Effect.fn("KilocodeGateway.audioTranscriptions")(function* () {
+    const audioTranscriptions = Effect.fn("NoCowboyGateway.audioTranscriptions")(function* () {
       return {}
     })
 
