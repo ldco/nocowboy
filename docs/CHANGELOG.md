@@ -29,6 +29,33 @@
 - **DONE** ADR: Turso Database adoption (Phase 1 blocked, Phase 2 done)
 - **DONE** Indexing first-class (в ядре, не плагин)
 
+## v0.8.0 — Full Auto-Wiring (2026-07-08)
+
+**NUTAUSIK companion: v0.3.0**
+
+### NUTAUSIK Auto-Wiring (Phases 2-4)
+- **DONE** `context_inject` — `fetchContext()` в каждом системном промпте
+- **DONE** Session auto-wiring — `onSessionCreated`/`onSessionEnded` через `autoCreateTask`/`autoEndSession`
+- **DONE** `fetchCoherenceCheck()` при старте сессии
+- **DONE** `nutausik-auto-wire.ts` — замена shell-хуков на нативный код
+- **DONE** Авто-проверка AC: правило 6 в `criticalRules()` — LLM проверяет AC перед `task_done`
+- **DONE** `nutausik-client.ts` — вызов `nutausik_task_log` для любого tool
+- **DONE** `autoEndSession()` логирует `task_log(phase: "close")` при завершении
+- **DONE** Пер-тул логирование: авто-регистрация PostToolUse hook в `.nocowboy/hooks.json`
+
+### Session Handoff
+- **DONE** Авто-сохранение HANDOFF при завершении
+- **DONE** Авто-загрузка HANDOFF при старте
+- **DONE** Интеграция через `nutausik-client.ts`
+
+### Escalation Statuses
+- **DONE** DONE / DONE_WITH_CONCERNS / BLOCKED в critical rules (rule 6)
+
+### Verification Pipeline
+- **DONE** `scripts/verify-roadmap.ts` — механический страж false positive DONE
+- **DONE** `.husky/pre-commit` — typecheck + verify-roadmap.ts при каждом коммите
+- **DONE** `docs/attestations/` — человеческая подпись DONE-пунктов
+
 ## v0.7.9
 ### v0.7.9 — Sandbox + Share (2026-07-06)
 - **DONE** /sandbox-docker — Docker sandbox isolation template
@@ -45,6 +72,12 @@
 - **DONE** P3-B2: Consent dialog на первом запуске TUI (consent_152fz)
 - **DONE** P3-B4: /forget — команда очистки всех данных
 - **DONE** P3-B3: Локализация данных — SQLite в .nutausik/ (уже было)
+- **DONE** P3-B5: Правовое обоснование — уведомление РКН не требуется (docs/legal/152FZ-COMPLIANCE.md)
+- **DONE** P3-B6: Полный правовой анализ 152-ФЗ (docs/legal/152FZ-COMPLIANCE.md)
+
+### v1.0.0 — Publish
+- **DONE** `scripts/publish-all.sh` — скрипт для публикации всех 9 MCP-пакетов
+- **DONE** 9 пакетов `@nocowboy/mcp-*` готовы к публикации
 
 
 ## v0.7.7 — Template System Overhaul + Russian Language (2026-07-05)
