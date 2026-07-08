@@ -96,3 +96,49 @@
   > auto-dream.ts есть, но ручной
 
 ---
+
+## v1.0.0-alpha — Alpha — internal testing
+
+- ⬜ v0.10.0 + v0.11.0 — все фичи реализованы
+  `verify:typecheck`
+- ⬜ Все тесты проходят — bun test
+  > 0 failures, 0 skipped. Запуск: bun run test
+  `verify:cmd bun run test 2>&1 | tail -5`
+- ⬜ Manual smoke test — основные сценарии пройдены
+  > Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify
+  `verify:agent`
+- ⬜ Нет критических багов — known issues документированы
+  > Все P0/P1 баги закрыты или занесены в known-issues.md
+
+---
+
+## v1.0.0-rc — RC — release candidate, user testing
+
+- ⬜ Alpha feedback incorporated
+  > Все фидбеки от alpha-тестеров обработаны и исправлены
+- ⬜ Пользовательское тестирование — 5+ тестеров
+  > 5+ человек прогнали основные сценарии. Баги записаны.
+  `verify:agent`
+- ⬜ Performance testing — startup < 500ms, memory < 200MB
+  > Холодный старт: < 500ms. RSS: < 200MB
+- ⬜ Все известные issues закрыты или имеют миграционный план
+- ⬜ Документация обновлена — CHANGELOG, ROADMAP, README
+  `verify:file docs/README.md`
+
+---
+
+## v1.0.0 — Production release
+
+- ⬜ RC feedback incorporated
+  > Все фидбеки от RC-тестеров обработаны
+- ⬜ All tests green — 0 failures, 0 flaky
+  `verify:cmd bun run test 2>&1 | tail -5`
+- ⬜ Typecheck clean — 0 errors
+  `verify:typecheck`
+- ⬜ Roadmap verified — 100% DONE features pass verify
+  `verify:cmd bun run scripts/verify-roadmap.ts 2>&1 | tail -3`
+- ⬜ npm publish — @nocowboy v1.0.0
+  > npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0
+  `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
+
+---

@@ -43,13 +43,27 @@ export interface RoadmapData {
   features: Feature[];
 }
 
-/** Version sort: v0.6.1 → [0,6,1], v0.10.0 → [0,10,0], v1.0.0 → [1,0,0] */
+/** Version sort: v0.6.1 → [0,6,1,1], v0.10.0 → [0,10,0,1], v1.0.0-alpha → [1,0,0,-2], v1.0.0-rc → [1,0,0,-1], v1.0.0 → [1,0,0,1] */
 export function parseVersionTag(tag: string): number[] {
-  const parts = tag.startsWith("v") ? tag.slice(1) : tag;
-  return parts.split(".").map(p => {
-    const n = parseInt(p, 10);
-    return isNaN(n) ? 0 : n;
-  });
+  const clean = tag.startsWith("v") ? tag.slice(1) : tag;
+  // Split pre-release suffix
+  const suffixMatch = clean.match(/^(\d+\.\d+\.\d+)[-.]?(alpha|rc|beta)?$/i);
+  if (!suffixMatch) {
+    // Fallback: just split by dots
+    return clean.split(".").map(p => {
+      const n = parseInt(p, 10);
+      return isNaN(n) ? 0 : n;
+    });
+  }
+  const main = suffixMatch[1].split(".").map(p => parseInt(p, 10));
+  const suffix = suffixMatch[2]?.toLowerCase();
+  // Suffix order: alpha < rc < release (no suffix = release)
+  if (suffix === "alpha") main.push(-2);
+  else if (suffix === "beta") main.push(-1);
+  else if (suffix === "rc") main.push(0);
+  else main.push(1); // release
+  
+  return main;
 }
 
 export function sortVersions(versions: Version[]): Version[] {

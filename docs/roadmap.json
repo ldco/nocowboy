@@ -61,6 +61,18 @@
     {
       "tag": "v0.11.0",
       "description": "Quality & Infrastructure"
+    },
+    {
+      "tag": "v1.0.0-alpha",
+      "description": "Alpha — internal testing"
+    },
+    {
+      "tag": "v1.0.0-rc",
+      "description": "RC — release candidate, user testing"
+    },
+    {
+      "tag": "v1.0.0",
+      "description": "Production release"
     }
   ],
   "features": [
@@ -955,6 +967,148 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts",
           "pattern": "Run {highlight}/share"
+        }
+      ]
+    },
+    {
+      "id": "alpha-all-features-done",
+      "title": "v0.10.0 + v0.11.0 — все фичи реализованы",
+      "status": "planned",
+      "version": "v1.0.0-alpha",
+      "verify": [
+        {
+          "type": "typecheck"
+        }
+      ]
+    },
+    {
+      "id": "alpha-tests-pass",
+      "title": "Все тесты проходят — bun test",
+      "status": "planned",
+      "version": "v1.0.0-alpha",
+      "notes": "0 failures, 0 skipped. Запуск: bun run test",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run test 2>&1 | tail -5"
+        }
+      ]
+    },
+    {
+      "id": "alpha-manual-smoke-test",
+      "title": "Manual smoke test — основные сценарии пройдены",
+      "status": "planned",
+      "version": "v1.0.0-alpha",
+      "notes": "Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify",
+      "verify": [
+        {
+          "type": "agent"
+        }
+      ]
+    },
+    {
+      "id": "alpha-no-critical-bugs",
+      "title": "Нет критических багов — known issues документированы",
+      "status": "planned",
+      "version": "v1.0.0-alpha",
+      "notes": "Все P0/P1 баги закрыты или занесены в known-issues.md"
+    },
+    {
+      "id": "rc-alpha-feedback-incorporated",
+      "title": "Alpha feedback incorporated",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены"
+    },
+    {
+      "id": "rc-user-testing-complete",
+      "title": "Пользовательское тестирование — 5+ тестеров",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "5+ человек прогнали основные сценарии. Баги записаны.",
+      "verify": [
+        {
+          "type": "agent"
+        }
+      ]
+    },
+    {
+      "id": "rc-performance-test",
+      "title": "Performance testing — startup < 500ms, memory < 200MB",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "Холодный старт: < 500ms. RSS: < 200MB"
+    },
+    {
+      "id": "rc-all-issues-resolved",
+      "title": "Все известные issues закрыты или имеют миграционный план",
+      "status": "planned",
+      "version": "v1.0.0-rc"
+    },
+    {
+      "id": "rc-docs-complete",
+      "title": "Документация обновлена — CHANGELOG, ROADMAP, README",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/README.md"
+        }
+      ]
+    },
+    {
+      "id": "release-beta-feedback-incorporated",
+      "title": "RC feedback incorporated",
+      "status": "planned",
+      "version": "v1.0.0",
+      "notes": "Все фидбеки от RC-тестеров обработаны"
+    },
+    {
+      "id": "release-all-tests-green",
+      "title": "All tests green — 0 failures, 0 flaky",
+      "status": "planned",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run test 2>&1 | tail -5"
+        }
+      ]
+    },
+    {
+      "id": "release-typecheck-clean",
+      "title": "Typecheck clean — 0 errors",
+      "status": "planned",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "typecheck"
+        }
+      ]
+    },
+    {
+      "id": "release-roadmap-verified",
+      "title": "Roadmap verified — 100% DONE features pass verify",
+      "status": "planned",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run scripts/verify-roadmap.ts 2>&1 | tail -3"
+        }
+      ]
+    },
+    {
+      "id": "release-published",
+      "title": "npm publish — @nocowboy v1.0.0",
+      "status": "planned",
+      "version": "v1.0.0",
+      "notes": "npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "npm view @nocowboy/nocowboy version 2>/dev/null"
         }
       ]
     }
