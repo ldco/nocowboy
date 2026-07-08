@@ -13,11 +13,28 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { execSync } from "node:child_process";
 
-const PROJECT_ROOT = join(import.meta.dir, "..");
+// Project root detection: works for both NoCowboy and generic projects
+const SCRIPT_DIR = import.meta.dir;
+const PROJECT_ROOT = join(SCRIPT_DIR, "..");
+
+// Paths relative to project root
 const DATA_PATH = join(PROJECT_ROOT, "docs", "roadmap.json");
 const ATTESTATIONS_DIR = join(PROJECT_ROOT, "docs", "attestations");
-const SOURCE_BASE = join(PROJECT_ROOT, "packages", "opencode", "src");
-const PACKAGES_OPENCODE = join(PROJECT_ROOT, "packages", "opencode");
+const PACKAGES_ROOT = join(PROJECT_ROOT, "packages");
+
+// Auto-detect source root: prefer packages/opencode/src (NoCowboy), fallback to src/ (generic)
+let SOURCE_BASE: string;
+if (existsSync(join(PROJECT_ROOT, "packages", "opencode", "src"))) {
+  SOURCE_BASE = join(PROJECT_ROOT, "packages", "opencode", "src");
+} else {
+  SOURCE_BASE = join(PROJECT_ROOT, "src");
+}
+
+let PACKAGES_OPENCODE = join(PROJECT_ROOT, "packages", "opencode");
+if (!existsSync(PACKAGES_OPENCODE)) {
+  // Generic project: test runner is at project root
+  PACKAGES_OPENCODE = PROJECT_ROOT;
+}
 
 interface VerifyDef {
   type: string;
