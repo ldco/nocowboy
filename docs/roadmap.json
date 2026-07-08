@@ -1174,6 +1174,12 @@
       "verify": [
         { "type": "file", "path": ".nocowboy/command/wayfinder.md" }
       ]
+    },
+    {
+      "id": "obsidian-integration",
+      "title": "Obsidian integration — connect NoCowboy to Obsidian vault via MCP",
+      "status": "backlog",
+      "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. See nutausik memory #51 for full analysis."
     }
   ]
 }
