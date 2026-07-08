@@ -94,6 +94,8 @@
   > В NUTAUSIK-side, не в NoCowboy
 - ⬜ Auto-dream programmatic — программаторное сканирование сессий
   > auto-dream.ts есть, но ручной
+- ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP
+  > Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.
 
 ---
 
