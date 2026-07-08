@@ -61,10 +61,6 @@
     {
       "tag": "v0.11.0",
       "description": "Quality & Infrastructure"
-    },
-    {
-      "tag": "v1.0.0",
-      "description": "Production"
     }
   ],
   "features": [
@@ -602,7 +598,7 @@
       "id": "turso-sync",
       "title": "Turso — production SQLite для multi-machine sync",
       "status": "blocked",
-      "version": "v1.0.0",
+      "version": "v0.11.0",
       "notes": "Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.",
       "subfeatures": [
         "src/sync/turso-sync.ts — push/pull sync engine",
@@ -621,7 +617,7 @@
       "id": "publish-npm",
       "title": "Publish: npm org @nocowboy + npm run publish-all",
       "status": "planned",
-      "version": "v1.0.0",
+      "version": "v0.11.0",
       "notes": "9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.",
       "verify": [
         {

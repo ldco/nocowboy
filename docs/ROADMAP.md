@@ -26,6 +26,16 @@
 
 ## v0.11.0 — Quality & Infrastructure
 
+- 🚫 Turso — production SQLite для multi-machine sync
+  > Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.
+  > **Блокер:** drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md
+  - src/sync/turso-sync.ts — push/pull sync engine
+  - CLI: tausik turso setup/sync/status
+  - turso секция в NutausikConfig (url, authToken, syncInterval)
+  `verify:file packages/opencode/src/sync/turso-sync.ts`
+- ⬜ Publish: npm org @nocowboy + npm run publish-all
+  > 9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.
+  `verify:cmd npm org ls nocowboy 2>/dev/null`
 - ⬜ Permission timeout — доработка (из P2-A4)
   > Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool.
 - ⬜ Agent Audit (P2-C1): inventory 21 агентов, name collisions
@@ -84,20 +94,5 @@
   > В NUTAUSIK-side, не в NoCowboy
 - ⬜ Auto-dream programmatic — программаторное сканирование сессий
   > auto-dream.ts есть, но ручной
-
----
-
-## v1.0.0 — Production
-
-- 🚫 Turso — production SQLite для multi-machine sync
-  > Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.
-  > **Блокер:** drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md
-  - src/sync/turso-sync.ts — push/pull sync engine
-  - CLI: tausik turso setup/sync/status
-  - turso секция в NutausikConfig (url, authToken, syncInterval)
-  `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ Publish: npm org @nocowboy + npm run publish-all
-  > 9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.
-  `verify:cmd npm org ls nocowboy 2>/dev/null`
 
 ---
