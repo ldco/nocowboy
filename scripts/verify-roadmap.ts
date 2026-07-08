@@ -11,7 +11,7 @@
 
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 
 // Project root detection: works for both NoCowboy and generic projects
 const SCRIPT_DIR = import.meta.dir;
@@ -32,7 +32,6 @@ if (existsSync(join(PROJECT_ROOT, "packages", "opencode", "src"))) {
 
 let PACKAGES_OPENCODE = join(PROJECT_ROOT, "packages", "opencode");
 if (!existsSync(PACKAGES_OPENCODE)) {
-  // Generic project: test runner is at project root
   PACKAGES_OPENCODE = PROJECT_ROOT;
 }
 
@@ -63,6 +62,7 @@ function resolvePath(ref: string): string {
   return join(PROJECT_ROOT, ref);
 }
 
+/** Run a shell command (used when shell interpretation is needed). */
 function runCmd(cmd: string, cwd?: string): { ok: boolean; out: string } {
   try {
     const out = execSync(cmd, {
@@ -74,6 +74,25 @@ function runCmd(cmd: string, cwd?: string): { ok: boolean; out: string } {
     return { ok: true, out: out.trim() };
   } catch (e: any) {
     return { ok: false, out: e.stderr?.trim() ?? e.message ?? String(e) };
+  }
+}
+
+/** Run a command with array arguments — NO shell interpretation, NO injection risk. */
+function runSpawn(bin: string, args: string[], cwd?: string): { ok: boolean; out: string } {
+  try {
+    const result = spawnSync(bin, args, {
+      cwd: cwd ?? PROJECT_ROOT,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 120_000,
+      maxBuffer: 1024 * 1024,
+    });
+    if (result.status === 0) {
+      return { ok: true, out: (result.stdout ?? "").trim() };
+    }
+    return { ok: false, out: (result.stderr ?? "").trim() || `exit code ${result.status}` };
+  } catch (e: any) {
+    return { ok: false, out: e.message ?? String(e) };
   }
 }
 
@@ -90,15 +109,19 @@ function checkGrep(path: string, pattern: string): string | null {
   }
   if (!existsSync(target)) return `not found: ${target}`;
   const isDir = existsSync(target) && statSync(target).isDirectory();
-  const cmd = isDir
-    ? `grep -rl '${pattern.replace(/'/g, "'\\''")}' "${target}" 2>/dev/null | head -3`
-    : `grep -l '${pattern.replace(/'/g, "'\\''")}' "${target}" 2>/dev/null | head -3`;
-  const result = runCmd(cmd, PROJECT_ROOT);
+  
+  // Use spawn with array args — NO shell injection possible
+  const args = isDir
+    ? ["-rl", pattern, target]
+    : ["-l", pattern, target];
+  
+  const result = runSpawn("grep", args, PROJECT_ROOT);
   if (!result.ok || !result.out) return `pattern "${pattern}" not found in ${target}`;
   return null;
 }
 
-function checkTest(path: string): string | null {
+function checkTest(args: string[]): string | null {
+  const path = args[0] ?? "";
   const resolved = resolvePath(path);
   if (!existsSync(resolved)) return `test not found: ${resolved}`;
   const rel = relative(PACKAGES_OPENCODE, resolved);
@@ -124,8 +147,8 @@ function checkAgent(version: string, name: string): string | null {
 function runVerify(v: VerifyDef, feat: Feature): string | null {
   switch (v.type) {
     case "file": return checkFile(v.path ?? "");
-    case "grep": return checkGrep(v.path ?? v.pattern ?? "", v.pattern ?? "");
-    case "test": return checkTest(v.path ?? "");
+    case "grep": return checkGrep(v.path ?? "", v.pattern ?? "");
+    case "test": return checkTest([v.path ?? ""]);
     case "typecheck": return checkTypecheck();
     case "cmd": return checkCmd(v.command ?? v.path ?? "");
     case "agent": return checkAgent(feat.version ?? "unknown", feat.title);
