@@ -52,6 +52,7 @@
     },
     {
       "tag": "v0.9.0",
+      "date": "2026-07-09",
       "description": "Ecosystem"
     },
     {
@@ -1110,6 +1111,68 @@
           "type": "cmd",
           "command": "npm view @nocowboy/nocowboy version 2>/dev/null"
         }
+      ]
+    },
+    {
+      "id": "ponytail-ladder",
+      "title": "Ponytail 7-rung ladder — lazy-senior.md rule file for code agent",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/rules/lazy-senior.md" }
+      ]
+    },
+    {
+      "id": "auto-grill",
+      "title": "Auto-grill — context check before work (auto-grill.md)",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "notes": "Domain model part excluded — NUTAUSIK memory already covers it.",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/rules/auto-grill.md" }
+      ]
+    },
+    {
+      "id": "debug-loop",
+      "title": "Debug loop — 6-step disciplined diagnosis (debug-loop.md)",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/rules/debug-loop.md" }
+      ]
+    },
+    {
+      "id": "spec-compliance-verify-axis",
+      "title": "Spec-compliance verify axis — spec-compliance.md + score-engine dimension",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Quality",
+      "notes": "Score-engine accepts spec_compliance as dimension. Rule formalizes agent behavior at task_done.",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/rules/spec-compliance.md" }
+      ]
+    },
+    {
+      "id": "to-spec-command",
+      "title": "/to-spec command — conversation to structured NUTAUSIK task",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Commands",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/command/to-spec.md" }
+      ]
+    },
+    {
+      "id": "wayfinder-command",
+      "title": "/wayfinder command — investigation tickets for multi-session work",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Commands",
+      "verify": [
+        { "type": "file", "path": ".nocowboy/command/wayfinder.md" }
       ]
     }
   ]

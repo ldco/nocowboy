@@ -129,3 +129,26 @@
 - **DONE** Single-source-of-truth: roadmap.json → generate .md docs
   `verify:file docs/roadmap.json`
   `verify:file scripts/generate-docs.ts`
+
+## v0.9.0 — Ecosystem (2026-07-09)
+
+### Agent Behavior Hardening
+
+- **DONE** Ponytail 7-rung ladder — lazy-senior.md rule file for code agent
+  `verify:file .nocowboy/rules/lazy-senior.md`
+- **DONE** Auto-grill — context check before work (auto-grill.md)
+  `verify:file .nocowboy/rules/auto-grill.md`
+- **DONE** Debug loop — 6-step disciplined diagnosis (debug-loop.md)
+  `verify:file .nocowboy/rules/debug-loop.md`
+
+### Quality
+
+- **DONE** Spec-compliance verify axis — spec-compliance.md + score-engine dimension
+  `verify:file .nocowboy/rules/spec-compliance.md`
+
+### Commands
+
+- **DONE** /to-spec command — conversation to structured NUTAUSIK task
+  `verify:file .nocowboy/command/to-spec.md`
+- **DONE** /wayfinder command — investigation tickets for multi-session work
+  `verify:file .nocowboy/command/wayfinder.md`
