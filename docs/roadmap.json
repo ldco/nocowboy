@@ -1,17 +1,63 @@
 {
   "versions": [
-    { "tag": "v0.6.1", "date": "2026-06-24", "description": "Fork & Foundation" },
-    { "tag": "v0.7.0", "date": "2026-06-27", "description": "LSP/UI Polish" },
-    { "tag": "v0.7.3", "date": "2026-07-02", "description": "Dogfooding Release" },
-    { "tag": "v0.7.4", "date": "2026-07-03", "description": "P3 Agent Refactor" },
-    { "tag": "v0.7.5", "date": "2026-07-04", "description": "P2 UX & Safety + NUTAUSIK Auto-Wiring" },
-    { "tag": "v0.7.6", "date": "2026-07-04", "description": "Token Cost Optimization + Identity Scoping" },
-    { "tag": "v0.7.7", "date": "2026-07-05", "description": "Template System Overhaul + Russian Language" },
-    { "tag": "v0.7.8", "date": "2026-07-05", "description": "Ecosystem & Compliance" },
-    { "tag": "v0.7.9", "date": "2026-07-06", "description": "Sandbox + Share" },
-    { "tag": "v0.8.0", "date": "2026-07-08", "description": "Full Auto-Wiring" },
-    { "tag": "v0.9.0", "description": "Ecosystem" },
-    { "tag": "v1.0.0", "description": "Production" }
+    {
+      "tag": "v0.6.1",
+      "date": "2026-06-24",
+      "description": "Fork & Foundation"
+    },
+    {
+      "tag": "v0.7.0",
+      "date": "2026-06-27",
+      "description": "LSP/UI Polish"
+    },
+    {
+      "tag": "v0.7.3",
+      "date": "2026-07-02",
+      "description": "Dogfooding Release"
+    },
+    {
+      "tag": "v0.7.4",
+      "date": "2026-07-03",
+      "description": "P3 Agent Refactor"
+    },
+    {
+      "tag": "v0.7.5",
+      "date": "2026-07-04",
+      "description": "P2 UX & Safety + NUTAUSIK Auto-Wiring"
+    },
+    {
+      "tag": "v0.7.6",
+      "date": "2026-07-04",
+      "description": "Token Cost Optimization + Identity Scoping"
+    },
+    {
+      "tag": "v0.7.7",
+      "date": "2026-07-05",
+      "description": "Template System Overhaul + Russian Language"
+    },
+    {
+      "tag": "v0.7.8",
+      "date": "2026-07-05",
+      "description": "Ecosystem & Compliance"
+    },
+    {
+      "tag": "v0.7.9",
+      "date": "2026-07-06",
+      "description": "Sandbox + Share"
+    },
+    {
+      "tag": "v0.8.0",
+      "date": "2026-07-08",
+      "description": "Full Auto-Wiring"
+    },
+    {
+      "tag": "v0.9.0",
+      "description": "Ecosystem"
+    },
+    {
+      "tag": "v1.0.0",
+      "description": "Production"
+    }
   ],
   "features": [
     {
@@ -27,7 +73,13 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "grep", "path": "package.json", "pattern": "release" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "package.json",
+          "pattern": "release"
+        }
+      ]
     },
     {
       "id": "repomap",
@@ -36,8 +88,15 @@
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
       "verify": [
-        { "type": "file", "path": "packages/opencode/src/nocowboy/repomap.ts" },
-        { "type": "grep", "path": "packages/opencode/src/nocowboy/system-prompt.ts", "pattern": "RepoMap" }
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/repomap.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/system-prompt.ts",
+          "pattern": "RepoMap"
+        }
       ]
     },
     {
@@ -46,7 +105,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/nocowboy/memory" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/memory"
+        }
+      ]
     },
     {
       "id": "goal-judge",
@@ -54,7 +118,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/nocowboy/session/goal.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/goal.ts"
+        }
+      ]
     },
     {
       "id": "voice-input",
@@ -62,7 +131,13 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/cli/cmd/tui", "pattern": "voice" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/cli/cmd/tui",
+          "pattern": "voice"
+        }
+      ]
     },
     {
       "id": "approval-memory",
@@ -70,7 +145,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/permission/index.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/permission/index.ts"
+        }
+      ]
     },
     {
       "id": "deep-context",
@@ -85,7 +165,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/config/config.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/config/config.ts"
+        }
+      ]
     },
     {
       "id": "indexing",
@@ -93,7 +178,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/nocowboy/indexing.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/indexing.ts"
+        }
+      ]
     },
     {
       "id": "russian-system-prompts",
@@ -102,8 +192,14 @@
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
       "verify": [
-        { "type": "file", "path": "packages/opencode/src/agent/prompt/code.ru.txt" },
-        { "type": "file", "path": "packages/opencode/src/agent/prompt/debug.ru.txt" }
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/code.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/debug.ru.txt"
+        }
       ]
     },
     {
@@ -112,7 +208,12 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "docs/reference/turso-database-adoption.md" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/reference/turso-database-adoption.md"
+        }
+      ]
     },
     {
       "id": "lang-config-field",
@@ -120,14 +221,25 @@
       "status": "done",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/nocowboy/config/config.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/config/config.ts"
+        }
+      ]
     },
     {
       "id": "agent-refactor-15to5",
       "title": "Agent reduction: 15 → 5",
       "status": "done",
       "version": "v0.7.4",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/nocowboy/agent", "pattern": "code" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/agent",
+          "pattern": "code"
+        }
+      ]
     },
     {
       "id": "tool-groups",
@@ -232,14 +344,16 @@
       "version": "v0.7.7"
     },
     {
-      "id": "russian-lang-pack",
-      "title": "Russian Language Pack — prompts, instructions, lang field",
-      "status": "done",
-      "version": "v0.7.7",
-      "verify": [
-        { "type": "file", "path": "packages/opencode/src/agent/prompt/code.ru.txt" },
-        { "type": "file", "path": "packages/opencode/src/agent/prompt/debug.ru.txt" }
-      ]
+      "id": "russian-system-prompts-all",
+      "title": "Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)",
+      "status": "backlog",
+      "notes": "2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д."
+    },
+    {
+      "id": "russian-instructions",
+      "title": "Russian instruction files — instructions/ru/",
+      "status": "backlog",
+      "notes": "Было заявлено как DONE в старом роадмапе, но директория не существует."
     },
     {
       "id": "three-doc-system",
@@ -259,8 +373,15 @@
       "status": "done",
       "version": "v0.7.9",
       "verify": [
-        { "type": "file", "path": "packages/opencode/src/nocowboy/sandbox.ts" },
-        { "type": "grep", "path": "packages/opencode/src/nocowboy/sandbox.ts", "pattern": "isDockerAvailable" }
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts",
+          "pattern": "isDockerAvailable"
+        }
       ]
     },
     {
@@ -269,8 +390,14 @@
       "status": "done",
       "version": "v0.7.9",
       "verify": [
-        { "type": "file", "path": "packages/opencode/src/share/share-next.ts" },
-        { "type": "file", "path": "packages/opencode/src/share/session.ts" }
+        {
+          "type": "file",
+          "path": "packages/opencode/src/share/share-next.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/share/session.ts"
+        }
       ]
     },
     {
@@ -278,63 +405,112 @@
       "title": "/sandbox — built-in template: checkpoint, diff, confirm, apply",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "file", "path": "packages/opencode/src/nocowboy/sandbox.ts" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts"
+        }
+      ]
     },
     {
       "id": "mcp-marketplace",
       "title": "/mcp — built-in template: search, install, list, remove MCP servers",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/server/routes/instance/httpapi/groups", "pattern": "mcp" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/server/routes/instance/httpapi/groups",
+          "pattern": "mcp"
+        }
+      ]
     },
     {
       "id": "ollama-template",
       "title": "/ollama — built-in template: auto-detect, configure, switch to local Ollama models",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/nocowboy/config/overlay.ts", "pattern": "ollama" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/config/overlay.ts",
+          "pattern": "ollama"
+        }
+      ]
     },
     {
       "id": "license-rf",
       "title": "P3-B1: LICENSE.md — Chapter 69 Civil Code РФ",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "file", "path": "LICENSE.md" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "LICENSE.md"
+        }
+      ]
     },
     {
       "id": "consent-152fz",
       "title": "P3-B2: Consent dialog на первом запуске TUI",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "file", "path": "docs/legal/152FZ-COMPLIANCE.md" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/legal/152FZ-COMPLIANCE.md"
+        }
+      ]
     },
     {
       "id": "forget-template",
       "title": "P3-B4: /forget — команда очистки всех данных",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/nocowboy/server/httpapi/groups/background-process.ts", "pattern": "forget" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/server/httpapi/groups/background-process.ts",
+          "pattern": "forget"
+        }
+      ]
     },
     {
       "id": "data-localization",
       "title": "P3-B3: Локализация данных — SQLite в .nocowboy/storage/",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/nocowboy/session/checkpoint-paths.ts", "pattern": "nocowboy/storage" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/checkpoint-paths.ts",
+          "pattern": "nocowboy/storage"
+        }
+      ]
     },
     {
       "id": "legal-152fz",
       "title": "P3-B5/B6: Правовое обоснование + полный анализ 152-ФЗ",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "file", "path": "docs/legal/152FZ-COMPLIANCE.md" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/legal/152FZ-COMPLIANCE.md"
+        }
+      ]
     },
     {
       "id": "publish-all-script",
       "title": "scripts/publish-all.sh — скрипт публикации 9 MCP-пакетов",
       "status": "done",
       "version": "v0.7.8",
-      "verify": [{ "type": "file", "path": "scripts/publish-all.sh" }]
+      "verify": [
+        {
+          "type": "file",
+          "path": "scripts/publish-all.sh"
+        }
+      ]
     },
     {
       "id": "mcp-packages-ready",
@@ -342,8 +518,14 @@
       "status": "done",
       "version": "v0.7.8",
       "verify": [
-        { "type": "file", "path": "packaging/mcp-servers/constitution/package.json" },
-        { "type": "file", "path": "packaging/mcp-servers/score-engine/package.json" }
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/constitution/package.json"
+        },
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/score-engine/package.json"
+        }
       ]
     },
     {
@@ -352,8 +534,16 @@
       "status": "done",
       "version": "v0.8.0",
       "verify": [
-        { "type": "grep", "path": "packages/opencode/src/nocowboy/nutausik-client.ts", "pattern": "fetchContext" },
-        { "type": "grep", "path": "packages/opencode/src/session/session.ts", "pattern": "onSessionCreated" }
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
+          "pattern": "fetchContext"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/session.ts",
+          "pattern": "onSessionCreated"
+        }
       ]
     },
     {
@@ -362,7 +552,11 @@
       "status": "done",
       "version": "v0.8.0",
       "verify": [
-        { "type": "grep", "path": "packages/opencode/src/nocowboy/nutausik-client.ts", "pattern": "handoff_save" }
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
+          "pattern": "handoff_save"
+        }
       ]
     },
     {
@@ -370,7 +564,13 @@
       "title": "Escalation Statuses: DONE/DONE_WITH_CONCERNS/BLOCKED в critical rules",
       "status": "done",
       "version": "v0.8.0",
-      "verify": [{ "type": "grep", "path": "packages/opencode/src/session/system.ts", "pattern": "DONE_WITH_CONCERNS" }]
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/system.ts",
+          "pattern": "DONE_WITH_CONCERNS"
+        }
+      ]
     },
     {
       "id": "verify-system",
@@ -378,8 +578,14 @@
       "status": "done",
       "version": "v0.8.0",
       "verify": [
-        { "type": "file", "path": "scripts/verify-roadmap.ts" },
-        { "type": "file", "path": "docs/plans/roadmap-verification-system.md" }
+        {
+          "type": "file",
+          "path": "scripts/verify-roadmap.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/plans/roadmap-verification-system.md"
+        }
       ]
     },
     {
@@ -394,7 +600,10 @@
         "turso секция в NutausikConfig (url, authToken, syncInterval)"
       ],
       "verify": [
-        { "type": "file", "path": "packages/opencode/src/sync/turso-sync.ts" }
+        {
+          "type": "file",
+          "path": "packages/opencode/src/sync/turso-sync.ts"
+        }
       ]
     },
     {
@@ -404,7 +613,10 @@
       "version": "v1.0.0",
       "notes": "9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.",
       "verify": [
-        { "type": "cmd", "command": "npm org ls nocowboy 2>/dev/null" }
+        {
+          "type": "cmd",
+          "command": "npm org ls nocowboy 2>/dev/null"
+        }
       ]
     },
     {
@@ -503,52 +715,256 @@
       "status": "done",
       "version": "v0.8.0",
       "verify": [
-        { "type": "file", "path": "docs/roadmap.json" },
-        { "type": "file", "path": "scripts/generate-docs.ts" }
+        {
+          "type": "file",
+          "path": "docs/roadmap.json"
+        },
+        {
+          "type": "file",
+          "path": "scripts/generate-docs.ts"
+        }
       ]
     },
-
-    {"id": "voice-input", "title": "Voice input — FFmpeg + transcription (voice-button.tsx)", "status": "done", "version": "v0.6.1"},
-    {"id": "sqlite-vector-store", "title": "SQLite vector store (LanceDB replacement, -15MB)", "status": "done", "version": "v0.6.1"},
-    {"id": "approval-memory", "title": "Multi-turn approval memory — Allow once per session (Codex CLI)", "status": "done", "version": "v0.6.1"},
-    {"id": "zero-config-wizard", "title": "Zero-config wizard — nocowboy init", "status": "done", "version": "v0.6.1"},
-    {"id": "provider-agnostic", "title": "Provider-agnostic — 200+ models via LiteLLM", "status": "done", "version": "v0.6.1"},
-    {"id": "embedded-mcp-proxy", "title": "Embedded MCP proxy — zero external deps, cross-platform", "status": "done", "version": "v0.6.1"},
-    {"id": "plugin-mcp", "title": "Plugin out/plugin in MCP — auto-detect, npm install", "status": "done", "version": "v0.6.1"},
-    {"id": "launch-spec-registry", "title": "Launch spec registry (~/.nocowboy/mcp/launch.json)", "status": "done", "version": "v0.6.1"},
-    {"id": "npm-publishing-pipeline", "title": "npm publishing pipeline — platform packages + meta-package", "status": "done", "version": "v0.6.1"},
-    {"id": "incremental-pr-review", "title": "Incremental PR review — code-reviewer checks only git diff", "status": "done", "version": "v0.6.1"},
-    {"id": "tool-groups-agents", "title": "Tool groups for agents (read/edit/command/mcp)", "status": "done", "version": "v0.7.4"},
-    {"id": "agent-descriptions-short", "title": "Agent descriptions — короткие, readable (v0.7.4)", "status": "done", "version": "v0.7.4"},
-    {"id": "nutausik-dot", "title": "NutausikDot — 3-state TopBar indicator (v0.7.5)", "status": "done", "version": "v0.7.5"},
-    {"id": "todo-injection", "title": "Todo injection — NUTAUSIK context block в system prompt (v0.7.5)", "status": "done", "version": "v0.7.5"},
-    {"id": "nutausik-v020-tools", "title": "NUTAUSIK v0.2.0: context_inject, handoff, coherence, loop_close", "status": "done", "version": "v0.7.5"},
-
-    {"id": "deep-context-2m", "title": "2M token context с бюджетированием", "status": "backlog", "notes": "checkpoint-validator.ts имеет частичное бюджетирование, не 2M"},
-    {"id": "per-task-cost", "title": "Per-task cost tracking с леджером", "status": "backlog", "notes": "cost-propagation.ts частично есть, леджера нет"},
-    {"id": "vector-store-switcher", "title": "Vector store switcher UI", "status": "backlog", "notes": "Был в старом P2 роадмапе"},
-    {"id": "deepseek-prefix-cache", "title": "DeepSeek prefix-cache optimization", "status": "backlog", "notes": "Из Whale (MIT). Структурировать промпты для byte-stable prefix"},
-    {"id": "lazy-treesitter", "title": "Lazy-load tree-sitter WASMs (40MB savings)", "status": "backlog", "notes": "Был в P0.1"},
-    {"id": "fts5-query-builder", "title": "FTS5 query builder (fts-query.ts)", "status": "backlog", "notes": "pure, 0 deps. Из MiMo"},
-    {"id": "fts5-schema-migration", "title": "FTS5 schema + migration", "status": "backlog", "notes": "Из MiMo"},
-    {"id": "memory-reconcile", "title": "Memory reconcile — index MEMORY.md, prune dead", "status": "backlog", "notes": "Базовое есть, полный reconcile нет"},
-    {"id": "goal-judge-native", "title": "Goal judge — интегрировать в agent stop loop (Effect-native)", "status": "backlog", "notes": "/goal команда есть, в lifecycle не встроен"},
-    {"id": "channels-webhooks", "title": "Channels (webhooks MCP)", "status": "backlog", "notes": "Инструменты в MCP есть, не стабильны"},
-    {"id": "bash-firewall-hook", "title": "Bash firewall hook — блокировать опасные команды", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "task-gate-hook", "title": "Task-gate hook — блокировать code tool calls без активного task", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "task-verify-hook", "title": "Task-verify hook — авто-запуск verify перед task_done", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "secret-scan-hook", "title": "Secret-scan hook — сканировать на секреты перед записью", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "activity-log-hook", "title": "Activity logging hook — PostToolUse для Write/Edit/Bash", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "memory-audit-hook", "title": "Memory-audit hook — проверка дубликатов", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "session-metrics-hook", "title": "Session-metrics hook — сбор метрик сессии", "status": "backlog", "notes": "В NUTAUSIK hooks есть, не портировано"},
-    {"id": "yandex-gigachat-providers", "title": "YandexGPT / GigaChat — полноценные провайдеры", "status": "backlog", "notes": "Детекция есть, реализации провайдеров нет"},
-    {"id": "ui-localization-ru", "title": "UI локализация — русские метки в TUI", "status": "backlog", "notes": "lang в конфиге есть, UI-меток нет"},
-    {"id": "lang-switcher-settings", "title": "Переключатель языка в настройках TUI (Settings → Language)", "status": "backlog", "notes": "Должен менять lang в nocowboy.json и перезагружать UI"},
-    {"id": "mcp-framework-merge", "title": "MCP Server framework → merge в NUTAUSIK", "status": "backlog", "notes": "P2-C4. Решить судьбу plugin-registry"},
-    {"id": "test-harness", "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой", "status": "backlog", "notes": "Нужен TestServer с in-memory DB + mock providers"},
-    {"id": "nutausik-mcp-prompts", "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)", "status": "backlog", "notes": "В NUTAUSIK-side, не в NoCowboy"},
-    {"id": "distill-command", "title": "Distill command — сессии → паттерны → skills/commands", "status": "backlog", "notes": "auto-dream.ts есть (только dream, не distill)"},
-    {"id": "auto-dream-prog", "title": "Auto-dream programmatic — программаторное сканирование сессий", "status": "backlog", "notes": "auto-dream.ts есть, но ручной"},
-    {"id": "mcp-marketplace-template", "title": "MCP marketplace — mcp search template", "status": "done", "version": "v0.7.9", "verify": [{"type": "grep", "path": "packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts", "pattern": "Run {highlight}/share"}]}
+    {
+      "id": "voice-input",
+      "title": "Voice input — FFmpeg + transcription (voice-button.tsx)",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "sqlite-vector-store",
+      "title": "SQLite vector store (LanceDB replacement, -15MB)",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "approval-memory",
+      "title": "Multi-turn approval memory — Allow once per session (Codex CLI)",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "zero-config-wizard",
+      "title": "Zero-config wizard — nocowboy init",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "provider-agnostic",
+      "title": "Provider-agnostic — 200+ models via LiteLLM",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "embedded-mcp-proxy",
+      "title": "Embedded MCP proxy — zero external deps, cross-platform",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "plugin-mcp",
+      "title": "Plugin out/plugin in MCP — auto-detect, npm install",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "launch-spec-registry",
+      "title": "Launch spec registry (~/.nocowboy/mcp/launch.json)",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "npm-publishing-pipeline",
+      "title": "npm publishing pipeline — platform packages + meta-package",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "incremental-pr-review",
+      "title": "Incremental PR review — code-reviewer checks only git diff",
+      "status": "done",
+      "version": "v0.6.1"
+    },
+    {
+      "id": "tool-groups-agents",
+      "title": "Tool groups for agents (read/edit/command/mcp)",
+      "status": "done",
+      "version": "v0.7.4"
+    },
+    {
+      "id": "agent-descriptions-short",
+      "title": "Agent descriptions — короткие, readable (v0.7.4)",
+      "status": "done",
+      "version": "v0.7.4"
+    },
+    {
+      "id": "nutausik-dot",
+      "title": "NutausikDot — 3-state TopBar indicator (v0.7.5)",
+      "status": "done",
+      "version": "v0.7.5"
+    },
+    {
+      "id": "todo-injection",
+      "title": "Todo injection — NUTAUSIK context block в system prompt (v0.7.5)",
+      "status": "done",
+      "version": "v0.7.5"
+    },
+    {
+      "id": "nutausik-v020-tools",
+      "title": "NUTAUSIK v0.2.0: context_inject, handoff, coherence, loop_close",
+      "status": "done",
+      "version": "v0.7.5"
+    },
+    {
+      "id": "deep-context-2m",
+      "title": "2M token context с бюджетированием",
+      "status": "backlog",
+      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, не 2M"
+    },
+    {
+      "id": "per-task-cost",
+      "title": "Per-task cost tracking с леджером",
+      "status": "backlog",
+      "notes": "cost-propagation.ts частично есть, леджера нет"
+    },
+    {
+      "id": "vector-store-switcher",
+      "title": "Vector store switcher UI",
+      "status": "backlog",
+      "notes": "Был в старом P2 роадмапе"
+    },
+    {
+      "id": "deepseek-prefix-cache",
+      "title": "DeepSeek prefix-cache optimization",
+      "status": "backlog",
+      "notes": "Из Whale (MIT). Структурировать промпты для byte-stable prefix"
+    },
+    {
+      "id": "lazy-treesitter",
+      "title": "Lazy-load tree-sitter WASMs (40MB savings)",
+      "status": "backlog",
+      "notes": "Был в P0.1"
+    },
+    {
+      "id": "fts5-query-builder",
+      "title": "FTS5 query builder (fts-query.ts)",
+      "status": "backlog",
+      "notes": "pure, 0 deps. Из MiMo"
+    },
+    {
+      "id": "fts5-schema-migration",
+      "title": "FTS5 schema + migration",
+      "status": "backlog",
+      "notes": "Из MiMo"
+    },
+    {
+      "id": "memory-reconcile",
+      "title": "Memory reconcile — index MEMORY.md, prune dead",
+      "status": "backlog",
+      "notes": "Базовое есть, полный reconcile нет"
+    },
+    {
+      "id": "goal-judge-native",
+      "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
+      "status": "backlog",
+      "notes": "/goal команда есть, в lifecycle не встроен"
+    },
+    {
+      "id": "channels-webhooks",
+      "title": "Channels (webhooks MCP)",
+      "status": "backlog",
+      "notes": "Инструменты в MCP есть, не стабильны"
+    },
+    {
+      "id": "bash-firewall-hook",
+      "title": "Bash firewall hook — блокировать опасные команды",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "task-gate-hook",
+      "title": "Task-gate hook — блокировать code tool calls без активного task",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "task-verify-hook",
+      "title": "Task-verify hook — авто-запуск verify перед task_done",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "secret-scan-hook",
+      "title": "Secret-scan hook — сканировать на секреты перед записью",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "activity-log-hook",
+      "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "memory-audit-hook",
+      "title": "Memory-audit hook — проверка дубликатов",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "session-metrics-hook",
+      "title": "Session-metrics hook — сбор метрик сессии",
+      "status": "backlog",
+      "notes": "В NUTAUSIK hooks есть, не портировано"
+    },
+    {
+      "id": "lang-switcher-settings",
+      "title": "Переключатель языка в настройках TUI (Settings → Language)",
+      "status": "backlog",
+      "notes": "Должен менять lang в nocowboy.json и перезагружать UI"
+    },
+    {
+      "id": "mcp-framework-merge",
+      "title": "MCP Server framework → merge в NUTAUSIK",
+      "status": "backlog",
+      "notes": "P2-C4. Решить судьбу plugin-registry"
+    },
+    {
+      "id": "test-harness",
+      "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
+      "status": "backlog",
+      "notes": "Нужен TestServer с in-memory DB + mock providers"
+    },
+    {
+      "id": "nutausik-mcp-prompts",
+      "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
+      "status": "backlog",
+      "notes": "В NUTAUSIK-side, не в NoCowboy"
+    },
+    {
+      "id": "distill-command",
+      "title": "Distill command — сессии → паттерны → skills/commands",
+      "status": "backlog",
+      "notes": "auto-dream.ts есть (только dream, не distill)"
+    },
+    {
+      "id": "auto-dream-prog",
+      "title": "Auto-dream programmatic — программаторное сканирование сессий",
+      "status": "backlog",
+      "notes": "auto-dream.ts есть, но ручной"
+    },
+    {
+      "id": "mcp-marketplace-template",
+      "title": "MCP marketplace — mcp search template",
+      "status": "done",
+      "version": "v0.7.9",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts",
+          "pattern": "Run {highlight}/share"
+        }
+      ]
+    }
   ]
 }
