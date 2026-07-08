@@ -55,16 +55,16 @@
       "description": "Ecosystem"
     },
     {
+      "tag": "v0.10.0",
+      "description": "Russian Language & Localization"
+    },
+    {
+      "tag": "v0.11.0",
+      "description": "Quality & Infrastructure"
+    },
+    {
       "tag": "v1.0.0",
       "description": "Production"
-    },
-    {
-      "tag": "v1.1.0",
-      "description": "Ecosystem & Localization"
-    },
-    {
-      "tag": "v1.2.0",
-      "description": "Quality & Infrastructure"
     }
   ],
   "features": [
@@ -356,14 +356,14 @@
       "title": "Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)",
       "status": "planned",
       "notes": "2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д.",
-      "version": "v1.1.0"
+      "version": "v0.10.0"
     },
     {
       "id": "russian-instructions",
       "title": "Russian instruction files — instructions/ru/",
       "status": "planned",
       "notes": "Было заявлено как DONE в старом роадмапе, но директория не существует.",
-      "version": "v1.1.0"
+      "version": "v0.10.0"
     },
     {
       "id": "three-doc-system",
@@ -635,28 +635,28 @@
       "title": "YandexGPT / GigaChat провайдеры",
       "status": "planned",
       "notes": "Код детекции есть, реализации провайдеров нет.",
-      "version": "v1.1.0"
+      "version": "v0.10.0"
     },
     {
       "id": "ui-localization",
       "title": "UI Локализация (русские метки + переключатель языка)",
       "status": "planned",
       "notes": "Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет.",
-      "version": "v1.1.0"
+      "version": "v0.10.0"
     },
     {
       "id": "permission-timeout-feature",
       "title": "Permission timeout — доработка (из P2-A4)",
       "status": "planned",
       "notes": "Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "agent-audit",
       "title": "Agent Audit (P2-C1): inventory 21 агентов, name collisions",
       "status": "planned",
       "notes": "Два name collision (plan, explore). Один deprecated (orchestrator).",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "diff-sandbox",
@@ -669,14 +669,14 @@
       "title": "Deep Context (2M tokens с бюджетированием)",
       "status": "planned",
       "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "mcp-framework-merge",
       "title": "MCP Framework — merge plugin-registry в NUTAUSIK",
       "status": "planned",
       "notes": "P2-C4. Решить судьбу first-party MCP серверов.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "command-dedup",
@@ -689,28 +689,28 @@
       "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
       "status": "planned",
       "notes": "/goal команда есть, не интегрирована в lifecycle.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "test-harness",
       "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
       "status": "planned",
       "notes": "Файлы: packages/opencode/test/",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "distill-command",
       "title": "Distill command — сканировать сессии → генерировать skills/commands",
       "status": "planned",
       "notes": "auto-dream.ts есть (только dream, не distill).",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "quality-enforcement",
       "title": "Agent Quality Enforcement — coherence_check, agent_log, task-gate hook",
       "status": "planned",
       "notes": "coherence_check частично реализован.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "self-being",
@@ -729,7 +729,7 @@
       "title": "Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts",
       "status": "planned",
       "notes": "Kilo-референсы, auto-memory пути.",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "roadmap-json-system",
@@ -824,7 +824,7 @@
       "title": "Per-task cost tracking с леджером",
       "status": "planned",
       "notes": "cost-propagation.ts частично есть, леджера нет",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "vector-store-switcher",
@@ -849,98 +849,98 @@
       "title": "FTS5 query builder (fts-query.ts)",
       "status": "planned",
       "notes": "pure, 0 deps. Из MiMo",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "fts5-schema-migration",
       "title": "FTS5 schema + migration",
       "status": "planned",
       "notes": "Из MiMo",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "memory-reconcile",
       "title": "Memory reconcile — index MEMORY.md, prune dead",
       "status": "planned",
       "notes": "Базовое есть, полный reconcile нет",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "channels-webhooks",
       "title": "Channels (webhooks MCP)",
       "status": "planned",
       "notes": "Инструменты в MCP есть, не стабильны",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "bash-firewall-hook",
       "title": "Bash firewall hook — блокировать опасные команды",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "task-gate-hook",
       "title": "Task-gate hook — блокировать code tool calls без активного task",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "task-verify-hook",
       "title": "Task-verify hook — авто-запуск verify перед task_done",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "secret-scan-hook",
       "title": "Secret-scan hook — сканировать на секреты перед записью",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "activity-log-hook",
       "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "memory-audit-hook",
       "title": "Memory-audit hook — проверка дубликатов",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "session-metrics-hook",
       "title": "Session-metrics hook — сбор метрик сессии",
       "status": "planned",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "lang-switcher-settings",
       "title": "Переключатель языка в настройках TUI (Settings → Language)",
       "status": "planned",
       "notes": "Должен менять lang в nocowboy.json и перезагружать UI",
-      "version": "v1.1.0"
+      "version": "v0.10.0"
     },
     {
       "id": "nutausik-mcp-prompts",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
       "status": "planned",
       "notes": "В NUTAUSIK-side, не в NoCowboy",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "auto-dream-prog",
       "title": "Auto-dream programmatic — программаторное сканирование сессий",
       "status": "planned",
       "notes": "auto-dream.ts есть, но ручной",
-      "version": "v1.2.0"
+      "version": "v0.11.0"
     },
     {
       "id": "mcp-marketplace-template",
