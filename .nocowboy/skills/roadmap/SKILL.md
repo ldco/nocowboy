@@ -1,5 +1,23 @@
 # Roadmap Verification System
 
+## Быстрый старт
+
+```bash
+# В любом проекте — одна команда:
+bash scripts/init-roadmap.sh
+```
+
+Или скачать и запустить:
+```bash
+curl -fsSL https://nocowboy.dev/init-roadmap | bash
+```
+
+Скрипт:
+1. Создаёт `docs/roadmap.json` с шаблоном
+2. Копирует `scripts/generate-docs.ts` и `scripts/verify-roadmap.ts`
+3. Настраивает `.husky/pre-commit`
+4. Запускает начальную генерацию
+
 ## Что это
 
 Система предотвращения false positive DONE-статусов. Единый источник истины (`docs/roadmap.json`) + два скрипта + pre-commit hook.
