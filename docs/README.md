@@ -1,31 +1,38 @@
 # NoCowboy Documentation
 
-## Start here
-- **[ROADMAP.md](ROADMAP.md)** — single source of truth. DONE / NOT DONE / NEXT.
+## System
+
+```
+BACKLOG  →  ROADMAP  →  CHANGELOG
+ идеи        план        свершившееся
+```
+
+| Документ | Что |
+|----------|-----|
+| [BACKLOG.md](BACKLOG.md) | Идеи на будущее. Свободный формат. |
+| [ROADMAP.md](ROADMAP.md) | План. DONE требует verify-директив. |
+| [CHANGELOG.md](CHANGELOG.md) | Релизы. Свершившиеся факты. |
 
 ## Development
+
 - [dogfooding-workflow.md](dogfooding-workflow.md) — rebuild, install, dev mode
 
-## Guides
-- [publish.md](guides/publish.md) — npm publishing
-- [tausik-js-port.md](guides/tausik-js-port.md) — NUTAUSIK JS port status
-- [nutausik-analysis.md](guides/nutausik-analysis.md) — NUTAUSIK strategy (hybrid architecture)
-- [feature-overlap-decisions.md](guides/feature-overlap-decisions.md) — what goes where
-- [performance-optimization.md](guides/performance-optimization.md)
-
 ## Plans
-- [P1 memory system](plans/p1-memory-system.md)
-- [P2 MCP management](plans/p2-mcp-management.md)
+
+- [roadmap-verification-system.md](plans/roadmap-verification-system.md) — **текущий план:** защита от false positive DONE
 
 ## Reference
+
 - [competitive-analysis.md](reference/competitive-analysis.md) — 30+ TUIs compared
-- [fork-playbook.md](reference/kilocode-fork-playbook.md) — deep reference manual (upstream)
+- [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep reference manual
 - [turso-database-adoption.md](reference/turso-database-adoption.md) — ADR: Turso plan
 - [glossary.md](reference/glossary.md)
-- [design-layout.md](reference/design-layout.md)
-- [design-session.md](reference/design-session.md)
-- [tui-layout-architecture.md](reference/tui-layout-architecture.md)
 - [known-test-failures.md](reference/known-test-failures.md)
 
+## Guides
+
+- [publish.md](guides/publish.md) — npm publishing
+
 ## Archive
-[archive/](archive/) — old plans, genesis, marketing
+
+[archive/](archive/) — old plans, genesis, marketing, historical analysis
