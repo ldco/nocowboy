@@ -51,6 +51,15 @@ export function DialogConfirm(props: DialogConfirmProps) {
           setStore("active", store.active === "confirm" ? "cancel" : "confirm")
         },
       },
+      {
+        key: "escape",
+        desc: "Close dialog",
+        group: "Dialog",
+        cmd: () => {
+          props.onCancel?.()
+          dialog.clear()
+        },
+      },
     ],
   }))
   return (
@@ -80,7 +89,7 @@ export function DialogConfirm(props: DialogConfirmProps) {
               }}
             >
               <text fg={key === store.active ? theme.selectedListItemText : theme.textMuted}>
-                {Locale.titlecase(key === "cancel" ? (props.label ?? key) : key)}
+                {Locale.titlecase(key === "confirm" ? (props.label ?? key) : key)}
               </text>
             </box>
           )}

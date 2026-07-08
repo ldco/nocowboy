@@ -348,10 +348,10 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   })
 
   // nocowboy_change start — 152-ФЗ consent dialog on first launch
-  createEffect(() => {
-    if (!ready()) return
+  onMount(async () => {
+    await new Promise((r) => setTimeout(r, 500))
     if (kv.get("consent_152fz", false)) return
-    DialogConfirm.show(
+    const ok = await DialogConfirm.show(
       dialog,
       "Согласие на обработку данных (152-ФЗ)",
       [
@@ -360,11 +360,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         "",
         "Продолжая, вы даёте согласие на обработку данных в соответствии с 152-ФЗ.",
         "Вы можете в любой момент удалить все данные через /forget.",
+        "Подробнее: PRIVACY.md",
       ].join("\n"),
       "i_agree",
-    ).then((ok) => {
-      if (ok === true) kv.set("consent_152fz", true)
-    })
+    )
+    if (ok === true) kv.set("consent_152fz", true)
   })
   // nocowboy_change end
 
