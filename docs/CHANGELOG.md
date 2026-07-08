@@ -33,11 +33,22 @@
 - **DONE** Поле `lang` в схеме конфига
   `verify:file packages/opencode/src/nocowboy/config/config.ts`
 
+- **DONE** SQLite vector store (LanceDB replacement, -15MB)
+- **DONE** Zero-config wizard — nocowboy init
+- **DONE** Provider-agnostic — 200+ models via LiteLLM
+- **DONE** Embedded MCP proxy — zero external deps, cross-platform
+- **DONE** Plugin out/plugin in MCP — auto-detect, npm install
+- **DONE** Launch spec registry (~/.nocowboy/mcp/launch.json)
+- **DONE** npm publishing pipeline — platform packages + meta-package
+- **DONE** Incremental PR review — code-reviewer checks only git diff
+
 ## v0.7.4 — P3 Agent Refactor (2026-07-03)
 
 - **DONE** Agent reduction: 15 → 5
   `verify:grep packages/opencode/src/nocowboy/agent code`
 - **DONE** Tool groups — `groups` field in ConfigAgent
+- **DONE** Tool groups for agents (read/edit/command/mcp)
+- **DONE** Agent descriptions — короткие, readable (v0.7.4)
 
 ## v0.7.5 — P2 UX & Safety + NUTAUSIK Auto-Wiring (2026-07-04)
 
@@ -48,6 +59,8 @@
 - **DONE** AGENTS.md + code.txt + debug.txt — укреплённые инструкции
 - **DONE** NUTAUSIK Phase 1 — hooks, NutausikDot, fix port + SQLite
 - **DONE** NUTAUSIK v0.2.0 — context_inject, handoff, coherence, loop_close
+- **DONE** NutausikDot — 3-state TopBar indicator (v0.7.5)
+- **DONE** Todo injection — NUTAUSIK context block в system prompt (v0.7.5)
 
 ## v0.7.6 — Token Cost Optimization + Identity Scoping (2026-07-04)
 
@@ -63,9 +76,6 @@
 - **DONE** Skills: 12→5, kilo-config→nocowboy-config
 - **DONE** PuppetMaster MCP: pm_git_commit removed, 5 prompts capability
 - **DONE** Git MCP wrapper — packaging/mcp-servers/git/
-- **DONE** Russian Language Pack — prompts, instructions, lang field
-  `verify:file packages/opencode/src/agent/prompt/code.ru.txt`
-  `verify:file packages/opencode/src/agent/prompt/debug.ru.txt`
 - **DONE** Three-dimensional doc system: ROADMAP/CHANGELOG/BACKLOG
 - **DONE** MEMORY.md + Kilo references removed from instructions
 
@@ -101,6 +111,8 @@
 - **DONE** /share — session sharing template
   `verify:file packages/opencode/src/share/share-next.ts`
   `verify:file packages/opencode/src/share/session.ts`
+- **DONE** MCP marketplace — mcp search template
+  `verify:grep packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts Run {highlight}/share`
 
 ## v0.8.0 — Full Auto-Wiring (2026-07-08)
 

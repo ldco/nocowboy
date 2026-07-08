@@ -24,10 +24,11 @@ interface VerifyDirective {
 interface Feature {
   id: string;
   title: string;
-  status: "done" | "planned" | "in_progress" | "backlog" | "abandoned";
+  status: "done" | "planned" | "in_progress" | "backlog" | "abandoned" | "blocked";
   version?: string;
   changelog?: string;
   notes?: string;
+  blocker?: string;
   subfeatures?: string[];
   verify?: VerifyDirective[];
 }
@@ -75,23 +76,28 @@ function generateRoadmap(data: RoadmapData): string {
   lines.push("<!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->");
   lines.push("");
 
-  // Group planned/in_progress features by version
+  // Group planned/in_progress/blocked features by version
+  const activeStatuses = ["planned", "in_progress", "blocked"];
   const activeVersions = data.versions.filter(v => {
-    const features = data.features.filter(f => f.version === v.tag && (f.status === "planned" || f.status === "in_progress"));
+    const features = data.features.filter(f => f.version === v.tag && activeStatuses.includes(f.status));
     return features.length > 0;
   });
 
   for (const ver of activeVersions) {
-    const features = data.features.filter(f => f.version === ver.tag && (f.status === "planned" || f.status === "in_progress"));
+    const features = data.features.filter(f => f.version === ver.tag && activeStatuses.includes(f.status));
     if (features.length === 0) continue;
 
     lines.push(`## ${ver.tag} — ${ver.description}`);
     lines.push("");
 
     for (const feat of features) {
-      lines.push(`- ${feat.title}`);
+      const prefix = feat.status === "blocked" ? "🚫" : "⬜";
+      lines.push(`- ${prefix} ${feat.title}`);
       if (feat.notes) {
         lines.push(`  > ${feat.notes}`);
+      }
+      if (feat.blocker) {
+        lines.push(`  > **Блокер:** ${feat.blocker}`);
       }
       if (feat.subfeatures) {
         for (const sub of feat.subfeatures) {

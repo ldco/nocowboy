@@ -57,6 +57,14 @@
     {
       "tag": "v1.0.0",
       "description": "Production"
+    },
+    {
+      "tag": "v1.1.0",
+      "description": "Ecosystem & Localization"
+    },
+    {
+      "tag": "v1.2.0",
+      "description": "Quality & Infrastructure"
     }
   ],
   "features": [
@@ -346,14 +354,16 @@
     {
       "id": "russian-system-prompts-all",
       "title": "Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)",
-      "status": "backlog",
-      "notes": "2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д."
+      "status": "planned",
+      "notes": "2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д.",
+      "version": "v1.1.0"
     },
     {
       "id": "russian-instructions",
       "title": "Russian instruction files — instructions/ru/",
-      "status": "backlog",
-      "notes": "Было заявлено как DONE в старом роадмапе, но директория не существует."
+      "status": "planned",
+      "notes": "Было заявлено как DONE в старом роадмапе, но директория не существует.",
+      "version": "v1.1.0"
     },
     {
       "id": "three-doc-system",
@@ -591,7 +601,7 @@
     {
       "id": "turso-sync",
       "title": "Turso — production SQLite для multi-machine sync",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
       "notes": "Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.",
       "subfeatures": [
@@ -604,7 +614,8 @@
           "type": "file",
           "path": "packages/opencode/src/sync/turso-sync.ts"
         }
-      ]
+      ],
+      "blocker": "drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md"
     },
     {
       "id": "publish-npm",
@@ -622,26 +633,30 @@
     {
       "id": "yandex-gigachat",
       "title": "YandexGPT / GigaChat провайдеры",
-      "status": "backlog",
-      "notes": "Код детекции есть, реализации провайдеров нет."
+      "status": "planned",
+      "notes": "Код детекции есть, реализации провайдеров нет.",
+      "version": "v1.1.0"
     },
     {
       "id": "ui-localization",
       "title": "UI Локализация (русские метки + переключатель языка)",
-      "status": "backlog",
-      "notes": "Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет."
+      "status": "planned",
+      "notes": "Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет.",
+      "version": "v1.1.0"
     },
     {
       "id": "permission-timeout-feature",
       "title": "Permission timeout — доработка (из P2-A4)",
-      "status": "backlog",
-      "notes": "Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool."
+      "status": "planned",
+      "notes": "Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool.",
+      "version": "v1.2.0"
     },
     {
       "id": "agent-audit",
       "title": "Agent Audit (P2-C1): inventory 21 агентов, name collisions",
-      "status": "backlog",
-      "notes": "Два name collision (plan, explore). Один deprecated (orchestrator)."
+      "status": "planned",
+      "notes": "Два name collision (plan, explore). Один deprecated (orchestrator).",
+      "version": "v1.2.0"
     },
     {
       "id": "diff-sandbox",
@@ -652,14 +667,16 @@
     {
       "id": "deep-context-2m",
       "title": "Deep Context (2M tokens с бюджетированием)",
-      "status": "backlog",
-      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M."
+      "status": "planned",
+      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
+      "version": "v1.2.0"
     },
     {
       "id": "mcp-framework-merge",
       "title": "MCP Framework — merge plugin-registry в NUTAUSIK",
-      "status": "backlog",
-      "notes": "P2-C4. Решить судьбу first-party MCP серверов."
+      "status": "planned",
+      "notes": "P2-C4. Решить судьбу first-party MCP серверов.",
+      "version": "v1.2.0"
     },
     {
       "id": "command-dedup",
@@ -670,26 +687,30 @@
     {
       "id": "goal-judge-native",
       "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
-      "status": "backlog",
-      "notes": "/goal команда есть, не интегрирована в lifecycle."
+      "status": "planned",
+      "notes": "/goal команда есть, не интегрирована в lifecycle.",
+      "version": "v1.2.0"
     },
     {
       "id": "test-harness",
       "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
-      "status": "backlog",
-      "notes": "Файлы: packages/opencode/test/"
+      "status": "planned",
+      "notes": "Файлы: packages/opencode/test/",
+      "version": "v1.2.0"
     },
     {
       "id": "distill-command",
       "title": "Distill command — сканировать сессии → генерировать skills/commands",
-      "status": "backlog",
-      "notes": "auto-dream.ts есть (только dream, не distill)."
+      "status": "planned",
+      "notes": "auto-dream.ts есть (только dream, не distill).",
+      "version": "v1.2.0"
     },
     {
       "id": "quality-enforcement",
       "title": "Agent Quality Enforcement — coherence_check, agent_log, task-gate hook",
-      "status": "backlog",
-      "notes": "coherence_check частично реализован."
+      "status": "planned",
+      "notes": "coherence_check частично реализован.",
+      "version": "v1.2.0"
     },
     {
       "id": "self-being",
@@ -706,8 +727,9 @@
     {
       "id": "instructions-analysis",
       "title": "Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts",
-      "status": "backlog",
-      "notes": "Kilo-референсы, auto-memory пути."
+      "status": "planned",
+      "notes": "Kilo-референсы, auto-memory пути.",
+      "version": "v1.2.0"
     },
     {
       "id": "roadmap-json-system",
@@ -726,20 +748,8 @@
       ]
     },
     {
-      "id": "voice-input",
-      "title": "Voice input — FFmpeg + transcription (voice-button.tsx)",
-      "status": "done",
-      "version": "v0.6.1"
-    },
-    {
       "id": "sqlite-vector-store",
       "title": "SQLite vector store (LanceDB replacement, -15MB)",
-      "status": "done",
-      "version": "v0.6.1"
-    },
-    {
-      "id": "approval-memory",
-      "title": "Multi-turn approval memory — Allow once per session (Codex CLI)",
       "status": "done",
       "version": "v0.6.1"
     },
@@ -810,22 +820,11 @@
       "version": "v0.7.5"
     },
     {
-      "id": "nutausik-v020-tools",
-      "title": "NUTAUSIK v0.2.0: context_inject, handoff, coherence, loop_close",
-      "status": "done",
-      "version": "v0.7.5"
-    },
-    {
-      "id": "deep-context-2m",
-      "title": "2M token context с бюджетированием",
-      "status": "backlog",
-      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, не 2M"
-    },
-    {
       "id": "per-task-cost",
       "title": "Per-task cost tracking с леджером",
-      "status": "backlog",
-      "notes": "cost-propagation.ts частично есть, леджера нет"
+      "status": "planned",
+      "notes": "cost-propagation.ts частично есть, леджера нет",
+      "version": "v1.2.0"
     },
     {
       "id": "vector-store-switcher",
@@ -848,110 +847,100 @@
     {
       "id": "fts5-query-builder",
       "title": "FTS5 query builder (fts-query.ts)",
-      "status": "backlog",
-      "notes": "pure, 0 deps. Из MiMo"
+      "status": "planned",
+      "notes": "pure, 0 deps. Из MiMo",
+      "version": "v1.2.0"
     },
     {
       "id": "fts5-schema-migration",
       "title": "FTS5 schema + migration",
-      "status": "backlog",
-      "notes": "Из MiMo"
+      "status": "planned",
+      "notes": "Из MiMo",
+      "version": "v1.2.0"
     },
     {
       "id": "memory-reconcile",
       "title": "Memory reconcile — index MEMORY.md, prune dead",
-      "status": "backlog",
-      "notes": "Базовое есть, полный reconcile нет"
-    },
-    {
-      "id": "goal-judge-native",
-      "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
-      "status": "backlog",
-      "notes": "/goal команда есть, в lifecycle не встроен"
+      "status": "planned",
+      "notes": "Базовое есть, полный reconcile нет",
+      "version": "v1.2.0"
     },
     {
       "id": "channels-webhooks",
       "title": "Channels (webhooks MCP)",
-      "status": "backlog",
-      "notes": "Инструменты в MCP есть, не стабильны"
+      "status": "planned",
+      "notes": "Инструменты в MCP есть, не стабильны",
+      "version": "v1.2.0"
     },
     {
       "id": "bash-firewall-hook",
       "title": "Bash firewall hook — блокировать опасные команды",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "task-gate-hook",
       "title": "Task-gate hook — блокировать code tool calls без активного task",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "task-verify-hook",
       "title": "Task-verify hook — авто-запуск verify перед task_done",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "secret-scan-hook",
       "title": "Secret-scan hook — сканировать на секреты перед записью",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "activity-log-hook",
       "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "memory-audit-hook",
       "title": "Memory-audit hook — проверка дубликатов",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "session-metrics-hook",
       "title": "Session-metrics hook — сбор метрик сессии",
-      "status": "backlog",
-      "notes": "В NUTAUSIK hooks есть, не портировано"
+      "status": "planned",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v1.2.0"
     },
     {
       "id": "lang-switcher-settings",
       "title": "Переключатель языка в настройках TUI (Settings → Language)",
-      "status": "backlog",
-      "notes": "Должен менять lang в nocowboy.json и перезагружать UI"
-    },
-    {
-      "id": "mcp-framework-merge",
-      "title": "MCP Server framework → merge в NUTAUSIK",
-      "status": "backlog",
-      "notes": "P2-C4. Решить судьбу plugin-registry"
-    },
-    {
-      "id": "test-harness",
-      "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
-      "status": "backlog",
-      "notes": "Нужен TestServer с in-memory DB + mock providers"
+      "status": "planned",
+      "notes": "Должен менять lang в nocowboy.json и перезагружать UI",
+      "version": "v1.1.0"
     },
     {
       "id": "nutausik-mcp-prompts",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
-      "status": "backlog",
-      "notes": "В NUTAUSIK-side, не в NoCowboy"
-    },
-    {
-      "id": "distill-command",
-      "title": "Distill command — сессии → паттерны → skills/commands",
-      "status": "backlog",
-      "notes": "auto-dream.ts есть (только dream, не distill)"
+      "status": "planned",
+      "notes": "В NUTAUSIK-side, не в NoCowboy",
+      "version": "v1.2.0"
     },
     {
       "id": "auto-dream-prog",
       "title": "Auto-dream programmatic — программаторное сканирование сессий",
-      "status": "backlog",
-      "notes": "auto-dream.ts есть, но ручной"
+      "status": "planned",
+      "notes": "auto-dream.ts есть, но ручной",
+      "version": "v1.2.0"
     },
     {
       "id": "mcp-marketplace-template",
