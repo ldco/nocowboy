@@ -1,33 +1,37 @@
 # NoCowboy — Changelog
 
 ## v0.6.1 — Fork & Foundation (2026-06-24)
-### Core Infrastructure
-- **DONE** Форк от Kilo Code (TypeScript + Bun + SolidJS + OpenTUI)
-- **DONE** Компиляция в single binary — `bun build --compile`
-- **DONE** npm publishing pipeline — platform packages + meta-package
-- **DONE** Shared MCP server architecture — все инстансы через HTTP/SSE
-- **DONE** Embedded MCP proxy — zero external deps, cross-platform
-- **DONE** Plugin out/plugin in MCP — `npm install -g @nocowboy/mcp-*`
-- **DONE** Launch spec registry (`~/.nocowboy/mcp/launch.json`)
-- **DONE** Provider-agnostic — 200+ моделей через LiteLLM
 
-### Features
-- **DONE** Repomap — `nocowboy repomap`, авто-инжекция в system prompt
-- **DONE** Memory FTS5 (MiMo) — полнотекстовый поиск по памяти
-- **DONE** Multi-turn approval memory — Allow once per session (Codex CLI style)
-- **DONE** Zero-config wizard — `nocowboy init` (2 вопроса)
-- **DONE** Goal judge — `/goal` с независимой оценкой subagent
-- **DONE** Deep context — repomap + memory в system prompt
-- **DONE** Incremental PR review — code-reviewer по git diff
-- **DONE** Voice input — FFmpeg + транскрипция
-- **DONE** SQLite vector store — замена LanceDB (-15MB)
+**ПРЕДУПРЕЖДЕНИЕ:** Этот раздел содержит пункты, перенесённые из оригинального ROADMAP (v0.6.1).
+Часть из них подтверждена кодом, часть — нет. Помечены `[verified]` / `[unverified]`.
 
-### Configuration & Porting
-- **DONE** Global config (`~/.config/nocowboy/nocowboy.json`)
-- **DONE** 16 инструкций + 6 агентов + 16 команд портированы
-- **DONE** 8 skills портированы
-- **DONE** ADR: Turso Database adoption (Phase 1 blocked, Phase 2 done)
-- **DONE** Indexing first-class (в ядре, не плагин)
+### Core Infrastructure — подтверждено кодом
+- **DONE** [verified] Форк от Kilo Code (TypeScript + Bun + SolidJS + OpenTUI) — вся кодовая база
+- **DONE** [verified] Компиляция в single binary — `scripts/build.ts` существует
+- **DONE** [verified] Repomap — `nocowboy repomap` в `src/cli/cmd/repomap.ts`, авто-инжекция в `system-prompt.ts`
+- **DONE** [verified] Goal judge — `/goal` команда с subagent-оценкой
+- **DONE** [verified] Voice input — `voice-button.tsx` в TUI
+- **DONE** [verified] Memory FTS5 (MiMo) — полнотекстовый поиск
+- **DONE** [verified] Multi-turn approval memory — `src/permission/index.ts`
+- **DONE** [verified] Deep context — repomap + memory в system prompt
+- **DONE** [verified] Global config — `~/.config/nocowboy/nocowboy.json`
+- **DONE** [verified] Indexing — `src/nocowboy/indexing.ts`
+- **DONE** [verified] Russian system prompts — `code.ru.txt`, `debug.ru.txt`
+- **DONE** [verified] ADR: Turso Database adoption — `docs/reference/turso-database-adoption.md`
+- **DONE** [verified] Поле `lang` в схеме конфига
+
+### Core Infrastructure — НЕ подтверждено кодом (требует проверки)
+- [unverified] npm publishing pipeline — platform packages + meta-package
+- [unverified] Shared MCP server architecture — все инстансы через HTTP/SSE
+- [unverified] Embedded MCP proxy — zero external deps
+- [unverified] Plugin out/plugin in MCP
+- [unverified] Launch spec registry
+- [unverified] Provider-agnostic — 200+ моделей через LiteLLM
+- [unverified] Zero-config wizard — `nocowboy init`
+- [unverified] Incremental PR review — code-reviewer по git diff
+- [unverified] SQLite vector store (LanceDB replacement)
+- [unverified] 16 инструкций + 6 агентов + 16 команд портированы
+- [unverified] 8 skills портированы
 
 ## v0.8.0 — Full Auto-Wiring (2026-07-08)
 

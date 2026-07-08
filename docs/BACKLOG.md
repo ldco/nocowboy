@@ -85,7 +85,47 @@
 ## UI Локализация
 
 **Источник:** старый BACKLOG
-**Суть:** Русские метки в sidebar, диалогах, ошибках. Подхватывает `lang: "ru"` из nocowboy.json.
+**Суть:** 
+- Русские метки в sidebar, диалогах, ошибках, кнопках
+- Переключатель языка в настройках (Settings → Language: ru/en)
+- Подхватывает `lang: "ru"` из nocowboy.json
+- **Сейчас:** `lang` поле в схеме конфига есть, русские system prompts (`code.ru.txt`, `debug.ru.txt`) — есть. UI-метки — нет.
+
+---
+
+## Diff Sandbox
+
+**Источник:** старый ROADMAP v0.9.0 (P3-A1)
+**Суть:** Изоляция AI-изменений до принятия (Plandex-style). Diff review + apply/revert.
+
+---
+
+## Deep Context (2M tokens)
+
+**Источник:** старый ROADMAP v0.9.0 (P3-A3)
+**Суть:** 2M token контекст с бюджетированием. `checkpoint-validator.ts` имеет частичное бюджетирование, но не 2M.
+
+---
+
+## MCP Framework → Merge into NUTAUSIK
+
+**Источник:** P2-C4
+**Суть:** Решить судьбу plugin-registry и других first-party MCP серверов.
+
+---
+
+## Command Deduplication (P2-C3)
+
+**Источник:** P2-C3
+**Суть:** 30 команд зарегистрировано. Не дедуплицированы.
+
+---
+
+## Goal Judge (native Effect loop)
+
+**Источник:** v0.6.1 ROADMAP (MiMo #4)
+**Суть:** Интегрировать goal judge в agent stop loop (Effect-native).
+**Сейчас:** `/goal` команда есть, но не интегрирована в lifecycle агента.
 
 ---
 
@@ -102,14 +142,6 @@
 **Источник:** v0.6.1 ROADMAP (MiMo #3)
 **Суть:** Сканировать сессии → извлекать паттерны → генерировать skills/commands.
 **Сейчас:** `auto-dream.ts` существует, но делает только dream (извлечение знаний в память), не distill (генерация команд).
-
----
-
-## Goal Judge (native Effect loop)
-
-**Источник:** v0.6.1 ROADMAP (MiMo #4)
-**Суть:** Интегрировать goal judge в agent stop loop (Effect-native).
-**Сейчас:** `/goal` команда есть, но не интегрирована в lifecycle агента.
 
 ---
 
