@@ -89,6 +89,37 @@
 
 ---
 
+## Test Harness (39 flaky tests)
+
+**Источник:** v0.6.1 ROADMAP (P1.7)
+**Суть:** 39 тестов падают под параллельной нагрузкой. Нужен test harness.
+**Файлы:** `packages/opencode/test/`
+
+---
+
+## Distill Command
+
+**Источник:** v0.6.1 ROADMAP (MiMo #3)
+**Суть:** Сканировать сессии → извлекать паттерны → генерировать skills/commands.
+**Сейчас:** `auto-dream.ts` существует, но делает только dream (извлечение знаний в память), не distill (генерация команд).
+
+---
+
+## Goal Judge (native Effect loop)
+
+**Источник:** v0.6.1 ROADMAP (MiMo #4)
+**Суть:** Интегрировать goal judge в agent stop loop (Effect-native).
+**Сейчас:** `/goal` команда есть, но не интегрирована в lifecycle агента.
+
+---
+
+## P2-C4: MCP Framework → Merge into NUTAUSIK
+
+**Источник:** docs/deferred/p2-c4-mcp-framework-analysis.md
+**Суть:** Решить судьбу plugin-registry и других first-party MCP серверов.
+
+---
+
 ## Publish
 
 - Создать npm org `@nocowboy` на npmjs.com

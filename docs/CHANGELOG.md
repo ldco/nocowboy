@@ -1,5 +1,34 @@
 # NoCowboy — Changelog
 
+## v0.6.1 — Fork & Foundation (2026-06-24)
+### Core Infrastructure
+- **DONE** Форк от Kilo Code (TypeScript + Bun + SolidJS + OpenTUI)
+- **DONE** Компиляция в single binary — `bun build --compile`
+- **DONE** npm publishing pipeline — platform packages + meta-package
+- **DONE** Shared MCP server architecture — все инстансы через HTTP/SSE
+- **DONE** Embedded MCP proxy — zero external deps, cross-platform
+- **DONE** Plugin out/plugin in MCP — `npm install -g @nocowboy/mcp-*`
+- **DONE** Launch spec registry (`~/.nocowboy/mcp/launch.json`)
+- **DONE** Provider-agnostic — 200+ моделей через LiteLLM
+
+### Features
+- **DONE** Repomap — `nocowboy repomap`, авто-инжекция в system prompt
+- **DONE** Memory FTS5 (MiMo) — полнотекстовый поиск по памяти
+- **DONE** Multi-turn approval memory — Allow once per session (Codex CLI style)
+- **DONE** Zero-config wizard — `nocowboy init` (2 вопроса)
+- **DONE** Goal judge — `/goal` с независимой оценкой subagent
+- **DONE** Deep context — repomap + memory в system prompt
+- **DONE** Incremental PR review — code-reviewer по git diff
+- **DONE** Voice input — FFmpeg + транскрипция
+- **DONE** SQLite vector store — замена LanceDB (-15MB)
+
+### Configuration & Porting
+- **DONE** Global config (`~/.config/nocowboy/nocowboy.json`)
+- **DONE** 16 инструкций + 6 агентов + 16 команд портированы
+- **DONE** 8 skills портированы
+- **DONE** ADR: Turso Database adoption (Phase 1 blocked, Phase 2 done)
+- **DONE** Indexing first-class (в ядре, не плагин)
+
 ## v0.7.9
 ### v0.7.9 — Sandbox + Share (2026-07-06)
 - **DONE** /sandbox-docker — Docker sandbox isolation template
