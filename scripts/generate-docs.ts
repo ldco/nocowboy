@@ -10,41 +10,20 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import {
+  type VerifyDef,
+  type Feature,
+  type Version,
+  type RoadmapData,
+  type FeatureStatus,
+  sortVersions,
+  validateRoadmap,
+} from "./lib/roadmap-types";
 
 const DATA_PATH = join(import.meta.dir, "..", "docs", "roadmap.json");
 const OUTPUT_DIR = join(import.meta.dir, "..", "docs");
 
-interface VerifyDirective {
-  type: string;
-  path?: string;
-  pattern?: string;
-  command?: string;
-}
-
-interface Feature {
-  id: string;
-  title: string;
-  status: "done" | "planned" | "in_progress" | "backlog" | "abandoned" | "blocked";
-  version?: string;
-  changelog?: string;
-  notes?: string;
-  blocker?: string;
-  subfeatures?: string[];
-  verify?: VerifyDirective[];
-}
-
-interface Version {
-  tag: string;
-  date?: string;
-  description: string;
-}
-
-interface RoadmapData {
-  versions: Version[];
-  features: Feature[];
-}
-
-function formatVerify(d: VerifyDirective): string {
+function formatVerify(d: VerifyDef): string {
   switch (d.type) {
     case "file": return `\`verify:file ${d.path}\``;
     case "grep": return `\`verify:grep ${d.path ?? ""} ${d.pattern ?? ""}\``;
@@ -56,13 +35,24 @@ function formatVerify(d: VerifyDirective): string {
   }
 }
 
-function versionDate(v: Version): string {
-  return v.date ?? "";
-}
-
 function loadData(): RoadmapData {
   const raw = readFileSync(DATA_PATH, "utf-8");
-  return JSON.parse(raw);
+  const data: RoadmapData = JSON.parse(raw);
+  
+  // Validate before proceeding
+  const errors = validateRoadmap(data);
+  if (errors.length > 0) {
+    console.error("❌ Roadmap validation errors:");
+    for (const err of errors) {
+      console.error(`   ${err}`);
+    }
+    process.exit(1);
+  }
+
+  // Sort versions by tag order (v0.6.1, v0.7.0, ..., v0.10.0, v1.0.0)
+  data.versions = sortVersions(data.versions);
+
+  return data;
 }
 
 function generateRoadmap(data: RoadmapData): string {
@@ -76,15 +66,14 @@ function generateRoadmap(data: RoadmapData): string {
   lines.push("<!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->");
   lines.push("");
 
-  // Group planned/in_progress/blocked features by version
-  const activeStatuses = ["planned", "in_progress", "blocked"];
+  const activeStatuses: FeatureStatus[] = ["planned", "in_progress", "blocked"];
   const activeVersions = data.versions.filter(v => {
-    const features = data.features.filter(f => f.version === v.tag && activeStatuses.includes(f.status));
+    const features = data.features.filter(f => f.version === v.tag && activeStatuses.includes(f.status as FeatureStatus));
     return features.length > 0;
   });
 
   for (const ver of activeVersions) {
-    const features = data.features.filter(f => f.version === ver.tag && activeStatuses.includes(f.status));
+    const features = data.features.filter(f => f.version === ver.tag && activeStatuses.includes(f.status as FeatureStatus));
     if (features.length === 0) continue;
 
     lines.push(`## ${ver.tag} — ${ver.description}`);
@@ -124,7 +113,6 @@ function generateChangelog(data: RoadmapData): string {
   lines.push("<!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->");
   lines.push("");
 
-  // Sort versions by release order
   const doneFeatures = data.features.filter(f => f.status === "done");
 
   for (const ver of data.versions) {

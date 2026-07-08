@@ -12,6 +12,7 @@
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { execSync, spawnSync } from "node:child_process";
+import { type VerifyDef, type Feature, type RoadmapData, validateRoadmap } from "./lib/roadmap-types";
 
 // Project root detection: works for both NoCowboy and generic projects
 const SCRIPT_DIR = import.meta.dir;
@@ -33,25 +34,6 @@ if (existsSync(join(PROJECT_ROOT, "packages", "opencode", "src"))) {
 let PACKAGES_OPENCODE = join(PROJECT_ROOT, "packages", "opencode");
 if (!existsSync(PACKAGES_OPENCODE)) {
   PACKAGES_OPENCODE = PROJECT_ROOT;
-}
-
-interface VerifyDef {
-  type: string;
-  path?: string;
-  pattern?: string;
-  command?: string;
-}
-
-interface Feature {
-  id: string;
-  title: string;
-  status: string;
-  version?: string;
-  verify?: VerifyDef[];
-}
-
-interface Data {
-  features: Feature[];
 }
 
 function resolvePath(ref: string): string {
@@ -163,8 +145,19 @@ function main(): number {
   }
 
   const raw = readFileSync(DATA_PATH, "utf-8");
-  const data: Data = JSON.parse(raw);
-  const doneFeatures = data.features.filter(f => f.status === "done" && f.verify && f.verify.length > 0);
+  const data: RoadmapData = JSON.parse(raw);
+  
+  // Validate before proceeding
+  const errors = validateRoadmap(data);
+  if (errors.length > 0) {
+    console.error("❌ Roadmap validation errors:");
+    for (const err of errors) {
+      console.error(`   ${err}`);
+    }
+    return 1;
+  }
+  
+  const doneFeatures = data.features.filter((f: Feature) => f.status === "done" && f.verify && f.verify.length > 0);
 
   if (doneFeatures.length === 0) {
     console.log("No done features with verify directives to check.");
