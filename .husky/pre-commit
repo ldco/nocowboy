@@ -1,1 +1,32 @@
-cd packages/opencode && bun run typecheck && cd "$(git rev-parse --show-toplevel)" && bun run scripts/generate-docs.ts && bun run scripts/verify-roadmap.ts
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+# Typecheck (only in NoCowboy project)
+if [ -f "$ROOT/packages/opencode/package.json" ]; then
+  cd "$ROOT/packages/opencode" && bun run typecheck
+  cd "$ROOT"
+fi
+
+# Generate docs from roadmap.json
+if [ -f "$ROOT/scripts/generate-docs.ts" ]; then
+  if command -v bun &>/dev/null; then
+    bun run scripts/generate-docs.ts
+  elif command -v npx &>/dev/null; then
+    npx tsx scripts/generate-docs.ts
+  else
+    echo "⚠️  Skipping docs generation — need bun or tsx"
+  fi
+fi
+
+# Verify roadmap claims
+if [ -f "$ROOT/scripts/verify-roadmap.ts" ]; then
+  if command -v bun &>/dev/null; then
+    bun run scripts/verify-roadmap.ts
+  elif command -v npx &>/dev/null; then
+    npx tsx scripts/verify-roadmap.ts
+  else
+    echo "⚠️  Skipping roadmap verification — need bun or tsx"
+  fi
+fi

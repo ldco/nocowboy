@@ -661,8 +661,9 @@
     {
       "id": "diff-sandbox",
       "title": "Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)",
-      "status": "backlog",
-      "notes": "Старый ROADMAP v0.9.0 (P3-A1)."
+      "status": "planned",
+      "notes": "Старый ROADMAP v0.9.0 (P3-A1).",
+      "version": "v0.10.0"
     },
     {
       "id": "deep-context-2m",
@@ -681,8 +682,9 @@
     {
       "id": "command-dedup",
       "title": "Command deduplication (P2-C3)",
-      "status": "backlog",
-      "notes": "30 команд зарегистрировано, не дедуплицированы."
+      "status": "planned",
+      "notes": "30 команд зарегистрировано, не дедуплицированы.",
+      "version": "v0.11.0"
     },
     {
       "id": "goal-judge-native",
@@ -715,14 +717,16 @@
     {
       "id": "self-being",
       "title": "Self-Being Meta-Cognitive Architecture (P3-SELF)",
-      "status": "backlog",
-      "notes": "NoCowboy как самосовершенствующееся существо."
+      "status": "planned",
+      "notes": "NoCowboy как самосовершенствующееся существо.",
+      "version": "v0.11.0"
     },
     {
       "id": "mcp-prompt-support",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)",
-      "status": "backlog",
-      "notes": "Было в старом ROADMAP как NOT DONE."
+      "status": "planned",
+      "notes": "Было в старом ROADMAP как NOT DONE.",
+      "version": "v0.11.0"
     },
     {
       "id": "instructions-analysis",
@@ -829,20 +833,23 @@
     {
       "id": "vector-store-switcher",
       "title": "Vector store switcher UI",
-      "status": "backlog",
-      "notes": "Был в старом P2 роадмапе"
+      "status": "planned",
+      "notes": "Был в старом P2 роадмапе",
+      "version": "v0.11.0"
     },
     {
       "id": "deepseek-prefix-cache",
       "title": "DeepSeek prefix-cache optimization",
-      "status": "backlog",
-      "notes": "Из Whale (MIT). Структурировать промпты для byte-stable prefix"
+      "status": "planned",
+      "notes": "Из Whale (MIT). Структурировать промпты для byte-stable prefix",
+      "version": "v0.11.0"
     },
     {
       "id": "lazy-treesitter",
       "title": "Lazy-load tree-sitter WASMs (40MB savings)",
-      "status": "backlog",
-      "notes": "Был в P0.1"
+      "status": "planned",
+      "notes": "Был в P0.1",
+      "version": "v0.11.0"
     },
     {
       "id": "fts5-query-builder",

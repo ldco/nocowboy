@@ -139,6 +139,9 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
 }
 
 function main(): number {
+  const args = process.argv.slice(2);
+  const dryRun = args.includes("--dry-run") || args.includes("-n");
+
   if (!existsSync(DATA_PATH)) {
     console.error(`roadmap.json not found at ${DATA_PATH}`);
     return 1;
@@ -161,6 +164,20 @@ function main(): number {
 
   if (doneFeatures.length === 0) {
     console.log("No done features with verify directives to check.");
+    return 0;
+  }
+
+  if (dryRun) {
+    console.log(`\n📋 Dry run — ${doneFeatures.length} features would be checked:\n`);
+    for (const feat of doneFeatures) {
+      console.log(`  📌 ${feat.title} [${feat.version ?? "?"}]`);
+      for (const v of feat.verify!) {
+        const label = `${v.type} ${v.path ?? v.pattern ?? v.command ?? ""}`;
+        console.log(`     ${label}`);
+      }
+      console.log("");
+    }
+    console.log(`(No checks executed — use --dry-run to preview)\n`);
     return 0;
   }
 

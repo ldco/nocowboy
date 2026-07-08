@@ -17,6 +17,8 @@
   > Код детекции есть, реализации провайдеров нет.
 - ⬜ UI Локализация (русские метки + переключатель языка)
   > Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет.
+- ⬜ Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)
+  > Старый ROADMAP v0.9.0 (P3-A1).
 - ⬜ Переключатель языка в настройках TUI (Settings → Language)
   > Должен менять lang в nocowboy.json и перезагружать UI
 
@@ -32,6 +34,8 @@
   > checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.
 - ⬜ MCP Framework — merge plugin-registry в NUTAUSIK
   > P2-C4. Решить судьбу first-party MCP серверов.
+- ⬜ Command deduplication (P2-C3)
+  > 30 команд зарегистрировано, не дедуплицированы.
 - ⬜ Goal judge — интегрировать в agent stop loop (Effect-native)
   > /goal команда есть, не интегрирована в lifecycle.
 - ⬜ Test harness — исправить 39 flaky тестов под параллельной нагрузкой
@@ -40,10 +44,20 @@
   > auto-dream.ts есть (только dream, не distill).
 - ⬜ Agent Quality Enforcement — coherence_check, agent_log, task-gate hook
   > coherence_check частично реализован.
+- ⬜ Self-Being Meta-Cognitive Architecture (P3-SELF)
+  > NoCowboy как самосовершенствующееся существо.
+- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
+  > Было в старом ROADMAP как NOT DONE.
 - ⬜ Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts
   > Kilo-референсы, auto-memory пути.
 - ⬜ Per-task cost tracking с леджером
   > cost-propagation.ts частично есть, леджера нет
+- ⬜ Vector store switcher UI
+  > Был в старом P2 роадмапе
+- ⬜ DeepSeek prefix-cache optimization
+  > Из Whale (MIT). Структурировать промпты для byte-stable prefix
+- ⬜ Lazy-load tree-sitter WASMs (40MB savings)
+  > Был в P0.1
 - ⬜ FTS5 query builder (fts-query.ts)
   > pure, 0 deps. Из MiMo
 - ⬜ FTS5 schema + migration

@@ -49,20 +49,26 @@ fi
 
 # ── 2. Copy scripts ──────────────────────────────────────────────────
 SCRIPT_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-mkdir -p "$TARGET/scripts"
+mkdir -p "$TARGET/scripts" "$TARGET/scripts/lib"
 
+# Copy scripts and shared library
 for script in generate-docs.ts verify-roadmap.ts; do
   if [ -f "$SCRIPT_SRC/$script" ]; then
     cp "$SCRIPT_SRC/$script" "$TARGET/scripts/$script"
-    chmod +x "$TARGET/scripts/$script"
     echo "  ✅ Copied scripts/$script"
   else
-    echo "  ⚠️  scripts/$script not found at $SCRIPT_SRC — downloading from nocowboy.dev..."
-    curl -fsSL "https://nocowboy.dev/scripts/$script" -o "$TARGET/scripts/$script" 2>/dev/null || {
-      echo "  ❌ Cannot download $script. Place it manually from the NoCowboy repo."
-    }
+    echo "  ❌ Cannot find $script. Run init from the NoCowboy project root."
+    exit 1
   fi
 done
+
+# Copy shared library
+if [ -f "$SCRIPT_SRC/lib/roadmap-types.ts" ]; then
+  cp "$SCRIPT_SRC/lib/roadmap-types.ts" "$TARGET/scripts/lib/roadmap-types.ts"
+  echo "  ✅ Copied scripts/lib/roadmap-types.ts"
+fi
+
+chmod +x "$TARGET/scripts/generate-docs.ts" "$TARGET/scripts/verify-roadmap.ts" 2>/dev/null || true
 
 # ── 3. Set up pre-commit hook ────────────────────────────────────────
 mkdir -p "$TARGET/.husky"
