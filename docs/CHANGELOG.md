@@ -1,5 +1,5 @@
-# CHANGELOG.md — generated from docs/roadmap.json
-> Edit the JSON, not this file.
+# CHANGELOG.md
+> generated from docs/roadmap.json — do not edit directly.
 
 ## v0.6.1
 

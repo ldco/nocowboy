@@ -1,5 +1,7 @@
-# ROADMAP.md — generated from docs/roadmap.json
-> Edit the JSON, not this file.
+# ROADMAP.md
+> generated from docs/roadmap.json — do not edit directly.
+> Run `nocowboy roadmap generate` to regenerate.
+> 📋 Use `/backlog-promote "feature"` to add new features.
 
 - ⬜ Publish: npm org @nocowboy + npm run publish-all (v0.11.0)
 - 🏗️ YandexGPT / GigaChat провайдеры (v0.10.0)

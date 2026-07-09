@@ -13,6 +13,11 @@ Process:
 4. Добавляет фичу в roadmap.json со статусом "planned"
 5. Добавляет verify-директиву: {"type": "overseer"}
 
+После promote — предложи пользователю создать spec:
+
+> `/backlog-spec <feature-id>` — architect напишет детальный spec
+> `/fast` — сделать сразу без spec (только для простых задач)
+
 Шаблон acceptance_criteria:
 ```json
 "acceptance_criteria": [
