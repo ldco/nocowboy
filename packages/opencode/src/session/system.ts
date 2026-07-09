@@ -179,6 +179,29 @@ export const layer = Layer.effect(
           if (handoffText) envLines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
+        // nocowboy_change — roadmap spec check: inject instruction for features without specs
+        const roadmapSpecCheck = yield* Effect.promise(async () => {
+          try {
+            const { existsSync, readFileSync } = await import("fs")
+            const { join } = await import("path")
+            const projectRoot = ctx.directory || process.cwd()
+            const roadmapPath = join(projectRoot, "docs", "roadmap.json")
+            if (!existsSync(roadmapPath)) return ""
+            const data = JSON.parse(readFileSync(roadmapPath, "utf-8"))
+            const noSpec = data.features?.filter((f: any) =>
+              (f.status === "planned" || f.status === "in_progress" || f.status === "backlog") &&
+              !existsSync(join(projectRoot, ".nocowboy", "specs", `${f.id}.md`))
+            )
+            if (!noSpec || noSpec.length === 0) return ""
+            return noSpec.slice(0, 5).map((f: any) => `#route: architect write spec for "${f.title}" (${f.id})`).join("\n") +
+                   (noSpec.length > 5 ? `\n\n... and ${noSpec.length - 5} more features without specs. Process all of them.` : "")
+          } catch { return "" }
+        }).pipe(Effect.catch(() => Effect.succeed("")))
+        if (roadmapSpecCheck) {
+          envLines.push(["## ⚠️ Roadmap Spec Check", "", "These features have NO spec. You MUST process them before ANY user interaction:", "", roadmapSpecCheck].join("\n"))
+        }
+        // nocowboy_change end
+
         return envLines
       }),
 
