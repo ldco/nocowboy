@@ -428,7 +428,7 @@ export const layer = Layer.effect(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "code"), "desc"], // nocowboy_change - renamed from "build" to "code"
+              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "auto"), "desc"], // nocowboy_change - Auto is default
               [(x) => x.name, "asc"],
             ),
           )

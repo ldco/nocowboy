@@ -25,6 +25,8 @@ import PROMPT_SUMMARY from "../../agent/prompt/summary.txt"
 import PROMPT_SUMMARY_RU from "../../agent/prompt/summary.ru.txt"
 import PROMPT_ROUTER from "../../agent/prompt/router.txt"
 import PROMPT_ROUTER_RU from "../../agent/prompt/router.ru.txt"
+import PROMPT_AUTO from "../../agent/prompt/auto.txt"
+import PROMPT_AUTO_RU from "../../agent/prompt/auto.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -341,6 +343,17 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
+    mode: "primary",
+    native: true,
+  }
+
+  // Add Auto agent — orchestrator, default agent
+  agents.auto = {
+    name: "auto",
+    description: "Orchestrator — routes to architect → code → overseer automatically", // nocowboy_change
+    prompt: (lang === "ru" ? PROMPT_AUTO_RU : PROMPT_AUTO),
+    options: {},
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }
