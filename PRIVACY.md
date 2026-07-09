@@ -1,28 +1,117 @@
-# Kilo CLI Privacy Policy
+# Политика конфиденциальности NoCowboy
 
-**Last Updated: March 7th, 2025**
-
-Kilo CLI respects your privacy and is committed to transparency about how we handle your data. Below is a simple breakdown of where key pieces of data go—and, importantly, where they don't.
-
-### **Where Your Data Goes (And Where It Doesn't)**
-
-- **Code & Files**: Kilo CLI accesses files on your local machine when needed for AI-assisted features. When you send commands to Kilo CLI, relevant files may be transmitted to your chosen AI model provider (e.g., OpenAI, Anthropic, OpenRouter) to generate responses. We do not have access to this data, but AI providers may store it per their privacy policies.
-- **Commands**: Any commands executed through Kilo CLI happen on your local environment. However, when you use AI-powered features, the relevant code and context from your commands may be transmitted to your chosen AI model provider (e.g., OpenAI, Anthropic, OpenRouter) to generate responses. We do not have access to or store this data, but AI providers may process it per their privacy policies.
-- **Prompts & AI Requests**: When you use AI-powered features, your prompts and relevant project context are sent to your chosen AI model provider (e.g., OpenAI, Anthropic, OpenRouter) to generate responses. We do not store or process this data. These AI providers have their own privacy policies and may store data per their terms of service.
-- **API Keys & Credentials**: If you enter an API key (e.g., to connect an AI model), it is stored locally on your device and never sent to us or any third party, except the provider you have chosen.
-
-### **Your Choices & Control**
-
-- You can run models locally to prevent data being sent to third-parties.
-
-### **Security & Updates**
-
-We take reasonable measures to secure your data, but no system is 100% secure. If our privacy policy changes, we will update this document and note the changes in our release notes.
-
-### **Contact Us**
-
-For any privacy-related questions, you can reach out to us at hi@kilo.ai.
+**Последнее обновление:** 6 июля 2026 г.
+**Юрисдикция:** Российская Федерация (152-ФЗ «О персональных данных»)
 
 ---
 
-By using Kilo CLI, you agree to this Privacy Policy.
+## 1. Кто мы
+
+NoCowboy — AI-ассистент для разработки программного обеспечения. Распространяется как локальное приложение (TUI + MCP framework). Разработчик: NoCowboy (далее — «Разработчик»).
+
+Политика конфиденциальности регулирует обработку данных в связи с использованием программного обеспечения NoCowboy.
+
+---
+
+## 2. Оператор персональных данных
+
+**NoCowboy НЕ является оператором персональных данных по смыслу ст. 3 152-ФЗ.**
+
+NoCowboy — инструмент (программное обеспечение), аналогичный интегрированной среде разработки, текстовому редактору или системе управления базами данных. Пользователь самостоятельно:
+- Определяет цели обработки данных (написание кода, исследование архитектуры и т.д.)
+- Определяет состав данных, подлежащих обработке
+- Совершает действия с данными через интерфейс инструмента
+- Контролирует, какие данные покидают устройство (через выбор AI-провайдера)
+
+Разработчик не инициирует сбор данных, не имеет к ним доступа и не определяет цели обработки.
+
+---
+
+## 3. Какие данные хранятся и где
+
+Все данные хранятся **исключительно локально** на устройстве пользователя:
+
+| Директория | Содержимое |
+|------------|-----------|
+| `~/.config/nocowboy/` | Конфигурация, навыки, хуки, настройки провайдеров |
+| `~/.local/share/nocowboy/` | История сессий, хранилище данных, кэш |
+| `.nutausik/` (в проекте) | Память NUTAUSIK (задачи, решения, паттерны) |
+
+Формат хранения: SQLite (WAL mode). Базы данных не шифрованы по умолчанию (пользователь может применить шифрование на уровне ОС).
+
+Никакие данные из этих директорий **не передаются** Разработчику или третьим лицам.
+
+---
+
+## 4. Передача данных AI-провайдерам
+
+NoCowboy отправляет промпты и контекст проекта к AI-провайдерам **только по прямому указанию пользователя**.
+
+- Пользователь самостоятельно выбирает AI-провайдера (OpenAI, Anthropic, OpenRouter, и др.)
+- Пользователь самостоятельно вводит API-ключ (хранится локально)
+- Пользователь может использовать локальные модели (Ollama) — данные не покидают устройство
+- Разработчик NoCowboy не имеет доступа к данным, передаваемым AI-провайдерам
+
+AI-провайдеры обрабатывают данные в соответствии со своими собственными политиками конфиденциальности и пользовательскими соглашениями. NoCowboy выступает как технический посредник (аналогично браузеру).
+
+---
+
+## 5. Правовые основания обработки
+
+Обработка данных осуществляется на основании:
+- **Согласия пользователя** (ст. 6 152-ФЗ) — запрашивается при первом запуске TUI
+- **Исполнения договора** — использование NoCowboy для разработки ПО
+- **Личных нужд** — инструмент используется физическим лицом для собственных задач программирования
+
+---
+
+## 6. Права пользователя (ст. 21 152-ФЗ)
+
+Пользователь имеет право:
+
+| Право | Реализация |
+|-------|-----------|
+| Доступ к данным | Все данные в локальных SQLite базах, доступны напрямую |
+| Исправление данных | Пользователь может редактировать конфигурацию и данные через интерфейс |
+| **Удаление данных** | **Команда `/forget`** — удаляет все данные NoCowboy |
+| Отзыв согласия | Отзыв согласия = удаление данных через `/forget` |
+| Ограничение обработки | Использование локальных моделей (Ollama) — данные не покидают устройство |
+
+---
+
+## 7. Безопасность данных
+
+Принятые меры:
+- Локальное хранение — данные не покидают устройство без явного указания пользователя
+- SQLite WAL mode — целостность данных при сбоях
+- Отсутствие центрального сервера — нет единой точки сбора данных
+- Минимальный сбор телеметрии — только анонимный идентификатор для подсчёта установок
+- API-ключи хранятся локально и не передаются Разработчику
+
+---
+
+## 8. Изменения политики конфиденциальности
+
+При изменениях настоящей политики обновляется дата в начале документа и публикуется уведомление в релизных заметках.
+
+---
+
+## 9. Контакты
+
+По вопросам конфиденциальности и обработки данных:
+
+- **Email:** [INSERT CONTACT EMAIL]
+- **GitHub:** https://github.com/nocowboy/nocowboy
+- **Удаление данных:** `/forget` в интерфейсе NoCowboy
+
+---
+
+## 10. Применимое право
+
+Настоящая политика регулируется и толкуется в соответствии с законодательством Российской Федерации, в том числе:
+- Федеральный закон от 27.07.2006 № 152-ФЗ «О персональных данных»
+- Глава 69 Гражданского кодекса РФ (статьи 1235–1239)
+
+---
+
+*Используя NoCowboy, вы соглашаетесь с настоящей Политикой конфиденциальности.*

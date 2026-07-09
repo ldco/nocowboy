@@ -14,15 +14,15 @@ import path from "path"
 // cache themselves and silence the eager refresh fork. Save/restore around
 // the suite — never leak the mutation to subsequent test files in the same
 // bun process.
-const ORIGINAL_MODELS_PATH = Flag.KILO_MODELS_PATH
-const ORIGINAL_DISABLE_FETCH = Flag.KILO_DISABLE_MODELS_FETCH
+const ORIGINAL_MODELS_PATH = Flag.NOCOWBOY_MODELS_PATH
+const ORIGINAL_DISABLE_FETCH = Flag.NOCOWBOY_DISABLE_MODELS_FETCH
 beforeAll(() => {
-  Flag.KILO_MODELS_PATH = undefined
-  Flag.KILO_DISABLE_MODELS_FETCH = true
+  Flag.NOCOWBOY_MODELS_PATH = undefined
+  Flag.NOCOWBOY_DISABLE_MODELS_FETCH = true
 })
 afterAll(() => {
-  Flag.KILO_MODELS_PATH = ORIGINAL_MODELS_PATH
-  Flag.KILO_DISABLE_MODELS_FETCH = ORIGINAL_DISABLE_FETCH
+  Flag.NOCOWBOY_MODELS_PATH = ORIGINAL_MODELS_PATH
+  Flag.NOCOWBOY_DISABLE_MODELS_FETCH = ORIGINAL_DISABLE_FETCH
 })
 
 const cacheFile = path.join(Global.Path.cache, "models.json")
@@ -206,7 +206,7 @@ describe("ModelsDev Service", () => {
       expect(final.calls.length).toBe(1)
       expect(final.calls[0].url).toContain("/api.json")
       expect(final.calls[0].userAgent).toStartWith("opencode/")
-      expect(final.calls[0].userAgent).toEndWith(`/${Flag.KILO_CLIENT}`)
+      expect(final.calls[0].userAgent).toEndWith(`/${Flag.NOCOWBOY_CLIENT}`)
     }),
   )
 

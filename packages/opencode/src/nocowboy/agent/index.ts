@@ -12,10 +12,19 @@ import { Global } from "@opencode-ai/core/global"
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
 import PROMPT_DEBUG_RU from "../../agent/prompt/debug.ru.txt"
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
+import PROMPT_NOCOWBOY_RU from "../../agent/prompt/nocowboy.ru.txt"
 import PROMPT_OVERSEER from "../../agent/prompt/overseer.txt"
+import PROMPT_OVERSEER_RU from "../../agent/prompt/overseer.ru.txt"
 import PROMPT_CODE from "../../agent/prompt/code.txt"
 import PROMPT_CODE_RU from "../../agent/prompt/code.ru.txt"
+import PROMPT_COMPACTION from "../../agent/prompt/compaction.txt"
+import PROMPT_COMPACTION_RU from "../../agent/prompt/compaction.ru.txt"
+import PROMPT_TITLE from "../../agent/prompt/title.txt"
+import PROMPT_TITLE_RU from "../../agent/prompt/title.ru.txt"
+import PROMPT_SUMMARY from "../../agent/prompt/summary.txt"
+import PROMPT_SUMMARY_RU from "../../agent/prompt/summary.ru.txt"
 import PROMPT_ROUTER from "../../agent/prompt/router.txt"
+import PROMPT_ROUTER_RU from "../../agent/prompt/router.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -268,6 +277,7 @@ export function patchAgents(
   whitelistedDirs: string[],
 ) {
   const lang = cfg.lang ?? "en"
+  const routerPrompt = lang === "ru" ? PROMPT_ROUTER_RU : PROMPT_ROUTER
 
   // Rename "build" → "code" for backward compatibility
   if (agents.build) {
@@ -275,7 +285,7 @@ export function patchAgents(
       ...agents.build,
       name: "code",
       description: "Primary coding agent — writes, refactors, tests, debugs", // nocowboy_change — short label
-      prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + PROMPT_ROUTER, // nocowboy_change — code-specific engineering prompt + router
+      prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt, // nocowboy_change — code-specific engineering prompt + router
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -295,7 +305,7 @@ export function patchAgents(
   agents.nocowboy = {
     name: "nocowboy",
     description: "Browser, filesystem, shell — full system automation", // nocowboy_change — short label
-    prompt: PROMPT_NOCOWBOY + PROMPT_ROUTER,
+    prompt: (lang === "ru" ? PROMPT_NOCOWBOY_RU : PROMPT_NOCOWBOY) + routerPrompt,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -306,7 +316,7 @@ export function patchAgents(
   agents.overseer = {
     name: "overseer",
     description: "Orchestrates code agent + cross-model review. Read-only.", // nocowboy_change — short label
-    prompt: PROMPT_OVERSEER + PROMPT_ROUTER,
+    prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
     options: {},
     permission: Permission.merge(
       defaults,
@@ -328,11 +338,18 @@ export function patchAgents(
   agents.debug = {
     name: "debug",
     description: "Systematic bug diagnosis and root cause analysis", // nocowboy_change — short label
-    prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + PROMPT_ROUTER,
+    prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
+  }
+
+  // Russian system prompts for internal agents (compaction, title, summary)
+  if (lang === "ru") {
+    if (agents.compaction) agents.compaction.prompt = PROMPT_COMPACTION_RU
+    if (agents.title) agents.title.prompt = PROMPT_TITLE_RU
+    if (agents.summary) agents.summary.prompt = PROMPT_SUMMARY_RU
   }
 
   hardenSystemAgents(agents)

@@ -71,6 +71,6 @@ export const recordedTests = (options: RecordedTestsOptions) =>
       )
       return Layer.mergeAll(deps, LLMClient.layerWithWebSocket.pipe(Layer.provide(deps))).pipe(
         Layer.provide(cassetteService),
-      )
+      ) as any
     },
   })

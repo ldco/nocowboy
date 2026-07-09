@@ -1,4 +1,4 @@
-import { Cassette, makeWebSocketExecutor, type RecordReplayMode } from "@opencode-ai/http-recorder"
+import { HttpRecorder, makeWebSocketExecutor, type RecordReplayMode } from "@opencode-ai/http-recorder"
 import { Effect, Layer } from "effect"
 import { WebSocketExecutor } from "../src/route"
 import type { Service as WebSocketExecutorService } from "../src/route/transport/websocket"
@@ -8,11 +8,11 @@ const liveWebSocket = WebSocketExecutor.open
 export const webSocketCassetteLayer = (
   cassette: string,
   input: { readonly metadata?: Record<string, unknown>; readonly mode: RecordReplayMode },
-): Layer.Layer<WebSocketExecutorService, never, Cassette.Service> =>
+): Layer.Layer<WebSocketExecutorService, never, any> =>
   Layer.effect(
     WebSocketExecutor.Service,
     Effect.gen(function* () {
-      const cassetteService = yield* Cassette.Service
+      const cassetteService = yield* HttpRecorder.Cassette.Service
       const executor = yield* makeWebSocketExecutor({
         name: cassette,
         mode: input.mode,
@@ -23,4 +23,4 @@ export const webSocketCassetteLayer = (
       })
       return WebSocketExecutor.Service.of(executor)
     }),
-  )
+  ) as any

@@ -222,3 +222,120 @@ cd packages/opencode && bun run typecheck && cd ../.. && bun run scripts/verify-
 - NUTAUSIK signed receipts (ed25519) — будет в плане NUTAUSIK G2
 - Release script + auto-CHANGELOG — будет отдельным планом
 - `verify:agent` интеграция с NUTAUSIK — когда NUTAUSIK получит QG-2
+
+---
+
+## 6. Архитектурный обзор реализованной системы (2026-07-08)
+
+### 6.1 Найденные проблемы
+
+Обзор компонентов: `docs/roadmap.json` (500 строк, 100 фич), `scripts/generate-docs.ts` (225 строк), `scripts/verify-roadmap.ts` (190 строк), `scripts/init-roadmap.sh` (126 строк), `.husky/pre-commit`.
+
+| # | Severity | Проблема | Где | Суть |
+|---|----------|----------|-----|------|
+| 1 | 🔴 КРИТ | **Shell injection** | `verify-roadmap.ts:94` | `grep -rl '${pattern}'` — user-controlled verify-паттерн идёт в shell-команду без экранирования. Паттерн с `'; rm -rf /; '` пройдёт. |
+| 2 | 🔴 КРИТ | **Дубликаты Feature-интерфейса** | `generate-docs.ts:24-34` vs `verify-roadmap.ts:46-52` | Две копии интерфейса Feature в двух скриптах. При добавлении поля нужно править оба. Уже расхождение: `blocker` есть в generate, нет в verify. |
+| 3 | 🔴 КРИТ | **JSON без валидации** | `generate-docs.ts:64-65` | `JSON.parse()` без проверки структуры. Одна опечатка — креш. Нет проверки: уникальность ID, существование версий, валидность verify-типов. |
+| 4 | 🟡 СЕРЬЁЗНО | **No CLI** | — | Добавить фичу = руками править 500-строчный JSON. Нет `nocowboy roadmap add`. |
+| 5 | 🟡 СЕРЬЁЗНО | **init-roadmap.sh → мёртвый URL** | `init-roadmap.sh:50` | `https://nocowboy.dev/init-roadmap` не существует. Фолбек: «поставьте руками». |
+| 6 | 🟡 СЕРЬЁЗНО | **7 backlog без версий** | `roadmap.json` | DeepSeek prefix-cache, lazy tree-sitter, vector switcher, self-being, etc. — не приписаны ни к какой версии. |
+| 7 | 🟡 СЕРЬЁЗНО | **Нет --dry-run** | — | Нельзя посмотреть, что сломается ДО коммита. |
+| 8 | 🟢 MINOR | **Экранирование в grep хрупкое** | `verify-roadmap.ts:86-98` | `pattern.replace(/'/g, "'\\''")` — только ординарные кавычки. Двойные, бэк-слеш, амперсанд — креш. |
+| 9 | 🟢 MINOR | **Порядок версий — ручной** | `generate-docs.ts:80-84` | Версии идут как в JSON-массиве. Если вставить не туда — генерация в неправильном порядке. |
+| 10 | 🟢 MINOR | **Нет shared-библиотеки** | — | Три скрипта дублируют resolvePath, runCmd, парсинг JSON. ~60 строк дублирования. |
+| 11 | 🟢 MINOR | **Жёсткая привязка к bun** | Все скрипты | `#!/usr/bin/env bun`. Если bun не установлен — падает. Нет tsx/node-фолбека. |
+
+### 6.2 ISO 25010 оценка
+
+| Quality Attribute | Risk | Комментарий |
+|-------------------|------|-------------|
+| **Security** | 🔴 High | Shell injection в checkGrep |
+| **Maintainability** | 🔴 High | Дубликаты интерфейсов, нет валидации |
+| Usability | 🟡 Medium | Редактировать JSON руками |
+| Portability | 🟡 Medium | Только bun |
+
+---
+
+## 7. План исправлений — Phase 2 (Hardening)
+
+### Шаг 1: Shell injection fix (🔴 → 🟢)
+**Файл:** `scripts/verify-roadmap.ts`
+- Переписать `checkGrep` на `Bun.spawn` / `child_process.spawn` с аргументами массивом: `['grep', '-rl', pattern, target]`
+- Или использовать `bun`-нативный `Bun.grep()` если доступен
+- **Тест:** паттерн с кавычками, спецсимволами должен работать без инжекшена
+
+### Шаг 2: Shared types library (🔴 → 🟢)
+**Файл:** `scripts/lib/roadmap-types.ts` (новый)
+- Вынести общие интерфейсы: `Feature`, `VerifyDef`, `Version`, `RoadmapData`
+- Импортировать в `generate-docs.ts` и `verify-roadmap.ts`
+- Удалить дубликаты интерфейсов из обоих скриптов
+
+### Шаг 3: JSON schema validation (🔴 → 🟢)
+**Файл:** `scripts/lib/roadmap-validator.ts` (новый)
+- `validateRoadmap(data: RoadmapData): string[]` — возвращает список ошибок
+- Проверки:
+  - Все `id` уникальны (включая `backlog` и `planned`)
+  - Все `version` ссылаются на существующие версии в `data.versions`
+  - Все `verify` типы — из закрытого списка: `file|grep|test|typecheck|cmd|agent`
+  - Все `verify:file` и `verify:grep` имеют поле `path`
+  - `status` — из закрытого списка: `done|planned|in_progress|backlog|abandoned|blocked`
+- Вызывать в `generate-docs.ts` и `verify-roadmap.ts` ПЕРЕД основной логикой
+- При ошибках: выводить список, exit 1
+
+### Шаг 4: Приписать 7 backlog к версиям (🟡 → 🟢)
+**Файл:** `docs/roadmap.json`
+- `deepseek-prefix-cache` → v0.11.0
+- `lazy-treesitter` → v0.11.0
+- `vector-store-switcher` → v0.11.0
+- `self-being` → v0.11.0
+- `diff-sandbox` → v0.10.0
+- `command-dedup` → v0.11.0
+- `mcp-prompt-support` → v0.11.0
+
+### Шаг 5: init-roadmap.sh — working URL (🟡 → 🟢)
+**Файл:** `scripts/init-roadmap.sh`
+- Заменить `https://nocowboy.dev/scripts/$script` на локальный копи-паст из текущего репозитория
+- Или захардкодить содержимое скриптов в init-roadmap.sh (меньше точек отказа)
+
+### Шаг 6: CLI — `nocowboy roadmap` (🟡 → 🟢, если time permits)
+**Файл:** `packages/opencode/src/cli/cmd/roadmap.ts` (новый)
+- Команды:
+  - `nocowboy roadmap add "Title" --version v0.10.0 --status planned` — добавляет в JSON
+  - `nocowboy roadmap status` — показывает сводку (done/planned/blocked)
+  - `nocowboy roadmap verify` — запускает verify (обёртка над `scripts/verify-roadmap.ts`)
+- **Скоуп:** если сложно — отложить. Основная ценность — шаги 1-3.
+
+### Шаг 7: --dry-run mode (🟢)
+**Файл:** `scripts/verify-roadmap.ts`
+- `--dry-run` флаг: выводит что БУДЕТ проверено, но не запускает проверки
+- Полезно перед коммитом: `bun run scripts/verify-roadmap.ts --dry-run`
+
+### Шаг 8: Сортировка версий (🟢)
+**Файл:** `scripts/generate-docs.ts`
+- При загрузке: сортировать `data.versions` по `tag` через `version_sort_key`
+- Убрать зависимость от порядка в JSON
+
+### Шаг 9: tsx/node fallback (🟢)
+**Файл:** `.husky/pre-commit`
+- Заменить `bun run` на `bun run` c фолбеком: `bun run scripts/verify-roadmap.ts || npx tsx scripts/verify-roadmap.ts`
+
+### Шаг 10: Тест shell injection fix
+- Добавить в `roadmap.json` тестовую фичу с вредоносным паттерном в verify:grep
+- Запустить verify — должен PASS (найти текст) или FAIL (не найти), но НЕ выполнить инжектированную команду
+
+---
+
+## 8. Порядок реализации
+
+Приоритет: 1 → 2 → 3 → 4 → 5. Остальное — если есть ресурс.
+
+После реализации КАЖДОГО шага:
+- `bun run scripts/generate-docs.ts` — регенерировать
+- `bun run scripts/verify-roadmap.ts` — проверить (30/30 должны PASS)
+- Коммитить с сообщением, описывающим конкретный шаг
+
+Финальная проверка:
+- `bun run typecheck` — чистые типы
+- `bun run scripts/generate-docs.ts` — генерирует без ошибок
+- `bun run scripts/verify-roadmap.ts` — 30/30 PASS
+- Попробовать коммит с ложным DONE — pre-commit блокирует

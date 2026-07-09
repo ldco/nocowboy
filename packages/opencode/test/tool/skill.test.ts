@@ -97,7 +97,7 @@ Use this skill.
   )
 
   // kilocode_change start
-  it.live("built-in kilo-config includes named command lookup guidance", () =>
+  it.live("built-in nocowboy-config includes named command lookup guidance", () =>
     provideTmpdirInstance(
       (dir) =>
         Effect.gen(function* () {
@@ -123,7 +123,7 @@ Use this skill.
             ask: () => Effect.void,
           }
 
-          const result = yield* tool.execute({ name: "kilo-config" }, ctx)
+          const result = yield* tool.execute({ name: "nocowboy-config" }, ctx)
 
           expect(result.metadata.dir).toBe("builtin")
           expect(result.output).toContain("Finding a named command")

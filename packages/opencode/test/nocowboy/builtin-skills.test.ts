@@ -32,21 +32,21 @@ it.instance(
   () =>
     Effect.gen(function* () {
       const skill = yield* Skill.Service
-      const item = yield* skill.get("kilo-config")
+      const item = yield* skill.get("nocowboy-config")
       expect(item).toBeDefined()
-      expect(item!.name).toBe("kilo-config")
+      expect(item!.name).toBe("nocowboy-config")
       expect(item!.location).toBe(Skill.BUILTIN_LOCATION)
-      expect(item!.content).toContain("kilo")
+      expect(item!.content).toContain("nocowboy")
     }),
   { git: true },
 )
 
 it.instance(
-  "kilo-config is protected from removal",
+  "nocowboy-config is protected from removal",
   () =>
     Effect.gen(function* () {
       const skill = yield* Skill.Service
-      const item = yield* skill.get("kilo-config")
+      const item = yield* skill.get("nocowboy-config")
       expect(item).toBeDefined()
       expect(KiloSkill.builtin(item!.location)).toBe(true)
     }),
@@ -58,16 +58,16 @@ it.instance(
   () =>
     Effect.gen(function* () {
       const instance = yield* TestInstance
-      const dir = path.join(instance.directory, ".nocowboy", "skill", "kilo-config")
+      const dir = path.join(instance.directory, ".nocowboy", "skill", "nocowboy-config")
       yield* Effect.promise(() =>
         Bun.write(
           path.join(dir, "SKILL.md"),
           `---
-name: kilo-config
-description: User override of kilo-config.
+name: nocowboy-config
+description: User override of nocowboy-config.
 ---
 
-# Custom kilo-config
+# Custom nocowboy-config
 
 User-provided content.
 `,
@@ -75,11 +75,11 @@ User-provided content.
       )
 
       const skill = yield* Skill.Service
-      const item = yield* skill.get("kilo-config")
+      const item = yield* skill.get("nocowboy-config")
       expect(item).toBeDefined()
-      expect(item!.description).toBe("User override of kilo-config.")
+      expect(item!.description).toBe("User override of nocowboy-config.")
       expect(item!.location).not.toBe(Skill.BUILTIN_LOCATION)
-      expect(item!.location).toContain(path.join("skill", "kilo-config", "SKILL.md"))
+      expect(item!.location).toContain(path.join("skill", "nocowboy-config", "SKILL.md"))
     }),
   { git: true },
 )

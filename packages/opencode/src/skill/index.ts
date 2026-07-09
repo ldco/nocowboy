@@ -30,6 +30,7 @@ const SKILL_PATTERN = "**/SKILL.md"
 export const Info = Schema.Struct({
   name: Schema.String,
   description: Schema.optional(Schema.String),
+  category: Schema.optional(Schema.String),
   location: Schema.String,
   content: Schema.String,
 })
@@ -43,12 +44,16 @@ const Issue = Schema.StructWithRest(
   [Schema.Record(Schema.String, Schema.Unknown)],
 )
 
-function isSkillFrontmatter(data: unknown): data is { name: string; description?: string } {
+function isSkillFrontmatter(data: unknown): data is { name: string; description?: string; category?: string; metadata?: { category?: string } } {
   return (
     isRecord(data) &&
     typeof data.name === "string" &&
     (data.description === undefined || typeof data.description === "string")
   )
+}
+
+function extractCategory(data: { category?: string; metadata?: { category?: string } }): string | undefined {
+  return data.category ?? data.metadata?.category ?? undefined
 }
 
 export const InvalidError = NamedError.create("SkillInvalidError", {
@@ -119,6 +124,7 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
   state.skills[md.data.name] = {
     name: md.data.name,
     description: md.data.description,
+    category: extractCategory(md.data),
     location: match,
     content: md.content,
   }
@@ -222,6 +228,7 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
     state.skills[skill.name] = {
       name: skill.name,
       description: skill.description,
+      category: skill.category,
       location: BUILTIN_LOCATION,
       content: skill.content,
     }
@@ -303,31 +310,48 @@ export const defaultLayer = layer.pipe(
   Layer.provide(RuntimeFlags.defaultLayer),
 )
 
+function groupByCategory(list: Info[]): Array<{ category: string; skills: Info[] }> {
+  const groups: Record<string, Info[]> = {}
+  for (const skill of list.toSorted((a, b) => a.name.localeCompare(b.name))) {
+    const cat = skill.category ?? "General"
+    if (!groups[cat]) groups[cat] = []
+    groups[cat].push(skill)
+  }
+  return Object.entries(groups)
+    .toSorted(([a], [b]) => a.localeCompare(b))
+    .map(([category, skills]) => ({ category, skills }))
+}
+
 export function fmt(list: Info[], opts: { verbose: boolean }) {
   const described = list.filter((skill) => skill.description !== undefined)
   if (described.length === 0) return "No skills are currently available."
   if (opts.verbose) {
-    return [
-      "<available_skills>",
-      ...described
-        .toSorted((a, b) => a.name.localeCompare(b.name))
-        .flatMap((skill) => [
-          "  <skill>",
-          `    <name>${skill.name}</name>`,
-          `    <description>${skill.description}</description>`,
-          `    <location>${pathToFileURL(skill.location).href}</location>`,
-          "  </skill>",
-        ]),
-      "</available_skills>",
-    ].join("\n")
+    const grouped = groupByCategory(described)
+    const lines = ["<available_skills>"]
+    for (const { category, skills } of grouped) {
+      lines.push(`  <category name="${category}">`)
+      for (const skill of skills) {
+        lines.push("    <skill>")
+        lines.push(`      <name>${skill.name}</name>`)
+        lines.push(`      <description>${skill.description}</description>`)
+        lines.push(`      <location>${pathToFileURL(skill.location).href}</location>`)
+        lines.push("    </skill>")
+      }
+      lines.push("  </category>")
+    }
+    lines.push("</available_skills>")
+    return lines.join("\n")
   }
 
-  return [
-    "## Available Skills",
-    ...described
-      .toSorted((a, b) => a.name.localeCompare(b.name))
-      .map((skill) => `- **${skill.name}**: ${skill.description}`),
-  ].join("\n")
+  const grouped = groupByCategory(described)
+  const lines = ["## Available Skills"]
+  for (const { category, skills } of grouped) {
+    lines.push(`### ${category}`)
+    for (const skill of skills) {
+      lines.push(`- **${skill.name}**: ${skill.description}`)
+    }
+  }
+  return lines.join("\n")
 }
 
 export * as Skill from "."

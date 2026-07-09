@@ -8,6 +8,7 @@ import KILO_CONFIG from "./nocowboy-config.md"
 export interface BuiltinSkill {
   name: string
   description: string
+  category?: string
   content: string
 }
 
@@ -16,6 +17,7 @@ export const BUILTIN_SKILLS: BuiltinSkill[] = [
     name: "nocowboy-config",
     description:
       "Guide for NoCowboy configuration: config paths, nocowboy.json fields, commands, agents, skills, permissions, MCPs, providers, TUI settings, and conventions.",
+    category: "NoCowboy",
     content: KILO_CONFIG,
   },
 ]
