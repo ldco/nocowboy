@@ -64,10 +64,10 @@ export function hasNutausik(dir: string): boolean {
 // High-level NUTAUSIK operations — used by system.ts and nutausik-auto-wire.ts
 // ---------------------------------------------------------------------------
 
-/** Inject NUTAUSIK context into the system prompt. */
+/** Inject NUTAUSIK context (recent memory block) into the system prompt. */
 export async function fetchContext(): Promise<string> {
   try {
-    return await callTool("nutausik_context_inject")
+    return await callTool("nutausik_memory_block", { last: 10 })
   } catch {
     return ""
   }
