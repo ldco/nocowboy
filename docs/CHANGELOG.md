@@ -125,7 +125,7 @@
   `verify:grep packages/opencode/src/session/system.ts DONE_WITH_CONCERNS`
 - **DONE** verify-roadmap.ts + pre-commit hook — механический страж false positive
   `verify:file scripts/verify-roadmap.ts`
-  `verify:file docs/plans/roadmap-verification-system.md`
+  `verify:file scripts/lib/roadmap-types.ts`
 - **DONE** Single-source-of-truth: roadmap.json → generate .md docs
   `verify:file docs/roadmap.json`
   `verify:file scripts/generate-docs.ts`

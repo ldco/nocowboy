@@ -36,6 +36,38 @@ type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
 type TuiInput = Parameters<typeof import("./app").tui>[0]
 
 async function start(input: TuiInput) {
+  // nocowboy_change start — auto-init roadmap.json on TUI start
+  try {
+    const { existsSync, mkdirSync, writeFileSync } = await import("fs")
+    const { join } = await import("path")
+    const projectRoot = process.cwd()
+    const roadmapPath = join(projectRoot, "docs", "roadmap.json")
+    if (!existsSync(roadmapPath)) {
+      // Check if we're in a git repo (saveguard)
+      const { execSync } = await import("child_process")
+      try {
+        execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore", timeout: 5000 })
+      } catch {
+        // Not a git repo — don't create a roadmap
+        return
+      }
+      const docsDir = join(projectRoot, "docs")
+      if (!existsSync(docsDir)) mkdirSync(docsDir, { recursive: true })
+      const attestationsDir = join(docsDir, "attestations")
+      if (!existsSync(attestationsDir)) mkdirSync(attestationsDir, { recursive: true })
+
+      const template = {
+        versions: [{ tag: "v0.1.0", description: "Initial" }],
+        features: [],
+      }
+      writeFileSync(roadmapPath, JSON.stringify(template, null, 2) + "\n", "utf-8")
+      // Silently created — user doesn't see this
+    }
+  } catch {
+    // Silent fail — auto-init is best-effort
+  }
+  // nocowboy_change end
+
   const app = await import("./app")
   return await app.tui(input)
 }

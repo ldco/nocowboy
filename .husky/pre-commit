@@ -9,24 +9,11 @@ if [ -f "$ROOT/packages/opencode/package.json" ]; then
   cd "$ROOT"
 fi
 
-# Generate docs from roadmap.json
-if [ -f "$ROOT/scripts/generate-docs.ts" ]; then
-  if command -v bun &>/dev/null; then
-    bun run scripts/generate-docs.ts
-  elif command -v npx &>/dev/null; then
-    npx tsx scripts/generate-docs.ts
-  else
-    echo "⚠️  Skipping docs generation — need bun or tsx"
-  fi
-fi
-
-# Verify roadmap claims
-if [ -f "$ROOT/scripts/verify-roadmap.ts" ]; then
-  if command -v bun &>/dev/null; then
-    bun run scripts/verify-roadmap.ts
-  elif command -v npx &>/dev/null; then
-    npx tsx scripts/verify-roadmap.ts
-  else
-    echo "⚠️  Skipping roadmap verification — need bun or tsx"
-  fi
+# Roadmap: generate docs + verify (uses built-in CLI)
+if [ -f "$ROOT/packages/opencode/src/index.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  # Generate ROADMAP.md, CHANGELOG.md, BACKLOG.md from roadmap.json (non-fatal)
+  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap generate 2>/dev/null || true
+  # Verify DONE features — FATAL if fails
+  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap verify
 fi

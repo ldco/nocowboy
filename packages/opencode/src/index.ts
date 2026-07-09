@@ -3,6 +3,7 @@ import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
 import { InitCommand } from "./cli/cmd/init" // nocowboy_change
 import { RepoMapCommand } from "./cli/cmd/repomap" // nocowboy_change
+import { RoadmapCommand } from "./cli/cmd/roadmap" // nocowboy_change
 import { GenerateCommand } from "./cli/cmd/generate"
 import * as Log from "@opencode-ai/core/util/log"
 // import { ConsoleCommand } from "./cli/cmd/account" // nocowboy_change - reserve `kilo console` for local settings
@@ -188,6 +189,8 @@ let cli = yargs(args) // nocowboy_change
 
 // nocowboy_change start - register Kilo-specific commands after the upstream chain
 cli = NocowboyCli.register(cli)
+cli = cli
+  .command(RoadmapCommand) // nocowboy_change
 cli = cli
   // nocowboy_change end
   .fail((msg, err) => {

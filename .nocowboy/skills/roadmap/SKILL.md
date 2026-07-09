@@ -2,37 +2,107 @@
 
 ## Быстрый старт
 
+В любом проекте с NoCowboy — roadmap.json создаётся автоматически при первом запуске TUI. Ничего копировать не нужно.
+
+Если нужно создать вручную:
 ```bash
-# В любом проекте — одна команда:
-bash scripts/init-roadmap.sh
+bun run --cwd packages/opencode src/index.ts roadmap init
 ```
 
-Или скачать и запустить:
+Или если NoCowboy установлен глобально:
 ```bash
-curl -fsSL https://nocowboy.dev/init-roadmap | bash
+nocowboy roadmap init
 ```
-
-Скрипт:
-1. Создаёт `docs/roadmap.json` с шаблоном
-2. Копирует `scripts/generate-docs.ts` и `scripts/verify-roadmap.ts`
-3. Настраивает `.husky/pre-commit`
-4. Запускает начальную генерацию
 
 ## Что это
 
-Система предотвращения false positive DONE-статусов. Единый источник истины (`docs/roadmap.json`) + два скрипта + pre-commit hook.
+Система предотвращения false positive DONE-статусов. Трёхфазная верификация:
 
-Работает в ЛЮБОМ проекте — TypeScript, Python, Go, Rust.
+1. **Механическая** (`file`/`grep`/`test`/`typecheck`) — verify-директивы в roadmap.json
+2. **Функциональная** (overseer) — другая модель проверяет acceptance criteria, пишет attestation
+3. **Аттестационная** — pre-commit проверяет attestation с PASS вердиктом
 
-## Как установить в новый проект
-
-### 1. Скопировать скрипты
+## CLI команды (встроены в nocowboy)
 
 ```bash
-cp -r scripts/verify-roadmap.ts scripts/generate-docs.ts <target-project>/scripts/
+nocowboy roadmap init      # создать docs/roadmap.json с шаблоном
+nocowboy roadmap generate  # сгенерировать ROADMAP.md, CHANGELOG.md, BACKLOG.md
+nocowboy roadmap verify    # проверить все DONE фичи (запускается в pre-commit)
 ```
 
-### 2. Создать `docs/roadmap.json`
+## Как это работает
+
+```
+                                nocowboy roadmap init
+                                        │
+                                        ▼
+TUI старт ──(нет roadmap.json)──→ docs/roadmap.json создаётся автоматически
+                                        │
+                          agent ──→ /backlog-promote → Architect пишет acceptance_criteria
+                                        │
+                          agent ──→ #route overseer: verify feature
+                                        │
+                                        ▼
+                              docs/attestations/<version>/<id>.md
+                                        │
+                          pre-commit ──→ nocowboy roadmap verify → PASS? → коммит
+                                                                  FAIL → блок
+```
+
+## Статусы фич
+
+| status | Куда попадает | Описание |
+|--------|---------------|----------|
+| `backlog` | BACKLOG.md | Идея, не взята в работу |
+| `planned` | ROADMAP.md | Запланирована на версию |
+| `in_progress` | ROADMAP.md | В разработке |
+| `done` | CHANGELOG.md | Готово, overseer attestation PASS |
+| `abandoned` | — | Отменено |
+| `blocked` | ROADMAP.md | Заблокировано внешней зависимостью |
+
+## Verify-директивы
+
+| type | Синтаксис | Что проверяет |
+|------|-----------|---------------|
+| `file` | `{"type": "file", "path": "src/main.ts"}` | Файл существует |
+| `grep` | `{"type": "grep", "path": "src/", "pattern": "myFunction"}` | Паттерн найден |
+| `test` | `{"type": "test", "path": "test/my.test.ts"}` | Тест проходит |
+| `typecheck` | `{"type": "typecheck"}` | `bun run typecheck` |
+| `cmd` | `{"type": "cmd", "command": "cargo check"}` | Команда возвращает 0 |
+| `agent` | `{"type": "agent"}` | Attestation-файл существует (старый формат) |
+| `overseer` | `{"type": "overseer"}` | Attestation с PASS от overseer агента |
+
+## Acceptance criteria
+
+Architect генерирует при `/backlog-promote`:
+
+```json
+"acceptance_criteria": [
+  {
+    "check": "Конкретное описание что должно работать",
+    "verify": "Как overseer проверит",
+    "critical": true
+  }
+]
+```
+
+## Для существующего проекта без NoCowboy
+
+```bash
+# Установить NoCowboy
+npm i -g nocowboy
+
+# Войти в проект, запустить TUI — roadmap.json создастся автоматически
+cd my-project
+nocowboy
+
+# Добавить pre-commit hook для верификации
+cat >> .husky/pre-commit << 'EOF'
+nocowboy roadmap verify
+EOF
+```
+
+## Пример roadmap.json
 
 ```json
 {
@@ -45,76 +115,18 @@ cp -r scripts/verify-roadmap.ts scripts/generate-docs.ts <target-project>/script
       "title": "My first feature",
       "status": "planned",
       "version": "v0.1.0",
+      "acceptance_criteria": [
+        {
+          "check": "Feature работает",
+          "verify": "ручная проверка",
+          "critical": true
+        }
+      ],
       "verify": [
-        { "type": "file", "path": "src/my-feature.ts" }
+        { "type": "file", "path": "src/my-feature.ts" },
+        { "type": "overseer" }
       ]
     }
   ]
 }
 ```
-
-### 3. Добавить pre-commit hook
-
-```bash
-mkdir -p .husky
-cat > .husky/pre-commit << 'EOF'
-bun run scripts/generate-docs.ts && bun run scripts/verify-roadmap.ts
-EOF
-```
-
-(Или добавьте в существующий `.husky/pre-commit`)
-
-### 4. Проверить
-
-```bash
-bun run scripts/generate-docs.ts    # создаст ROADMAP.md, CHANGELOG.md, BACKLOG.md
-bun run scripts/verify-roadmap.ts   # проверит все DONE фичи против кода
-```
-
-## Статусы фич
-
-| status | Куда попадает | Описание |
-|--------|---------------|----------|
-| `backlog` | BACKLOG.md | Идея, не взята в работу |
-| `planned` | ROADMAP.md | Запланирована на версию |
-| `in_progress` | ROADMAP.md | В разработке |
-| `done` | CHANGELOG.md | Готово, verify-директивы проверяются |
-| `abandoned` | — | Отменено, не показывается |
-
-## Verify-директивы
-
-| type | Синтаксис | Что проверяет |
-|------|-----------|---------------|
-| `file` | `{"type": "file", "path": "src/main.ts"}` | Файл существует |
-| `grep` | `{"type": "grep", "path": "src/", "pattern": "myFunction"}` | Паттерн найден в файле/директории |
-| `test` | `{"type": "test", "path": "test/my.test.ts"}` | Тест проходит |
-| `typecheck` | `{"type": "typecheck"}` | `bun run typecheck` |
-| `cmd` | `{"type": "cmd", "command": "cargo check"}` | Команда возвращает 0 |
-| `agent` | `{"type": "agent"}` | Attestation-файл существует |
-
-## Как это работает
-
-```
-roadmap.json (68 фич, 12 версий)
-     │
-     ├── generate-docs.ts → ROADMAP.md (planned/in_progress)
-     ├── generate-docs.ts → CHANGELOG.md (done)
-     └── generate-docs.ts → BACKLOG.md (backlog)
-
-     ├── verify-roadmap.ts → 30 done features → 39 verify directives
-     │                       → file:exists → grep:found → test:passes
-     │                       → FAIL = commit blocked
-     └── .husky/pre-commit  → typecheck + generate + verify
-```
-
-## Пример roadmap.json
-
-См. `docs/roadmap.json` в этом проекте. Полный пример с 68 фичами, 12 версиями, verify-директивами.
-
-## Для существующего проекта
-
-1. Создать `docs/roadmap.json` — перенести все текущие фичи/планы
-2. Запустить `generate-docs.ts` — создаст три .md файла
-3. Запустить `verify-roadmap.ts` — покажет какие фичи не проходят проверку
-4. Исправить verify-директивы или статусы
-5. Поставить pre-commit hook
