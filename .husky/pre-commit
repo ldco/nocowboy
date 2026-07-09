@@ -3,17 +3,28 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 
-# Typecheck (only in NoCowboy project)
+# Typecheck (only in NoCowboy dev project)
 if [ -f "$ROOT/packages/opencode/package.json" ]; then
   cd "$ROOT/packages/opencode" && bun run typecheck
   cd "$ROOT"
 fi
 
-# Roadmap: generate docs + verify (uses built-in CLI)
+# ── Roadmap verification ──
+# Priority: dev source (latest) → standalone scripts → global nocowboy (may lag)
+
 if [ -f "$ROOT/packages/opencode/src/index.ts" ] && command -v bun &>/dev/null; then
+  # NoCowboy dev project: use source tree (always latest)
   cd "$ROOT"
-  # Generate ROADMAP.md, CHANGELOG.md, BACKLOG.md from roadmap.json (non-fatal)
   bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap generate 2>/dev/null || true
-  # Verify DONE features — FATAL if fails
   bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap verify
+elif [ -f "$ROOT/scripts/verify-roadmap.ts" ] && command -v bun &>/dev/null; then
+  # Fallback: standalone scripts
+  cd "$ROOT"
+  bun run "$ROOT/scripts/generate-docs.ts" 2>/dev/null || true
+  bun run "$ROOT/scripts/verify-roadmap.ts"
+elif command -v nocowboy &>/dev/null; then
+  # Fallback: globally installed nocowboy
+  cd "$ROOT"
+  nocowboy roadmap generate 2>/dev/null || true
+  nocowboy roadmap verify
 fi

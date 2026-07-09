@@ -3,7 +3,7 @@
 
 import { EOL } from "os"
 import { join, dirname } from "path"
-import { readFileSync, writeFileSync, existsSync, statSync, mkdirSync } from "fs"
+import { readFileSync, writeFileSync, existsSync, statSync, mkdirSync, copyFileSync } from "fs"
 import { execSync, spawnSync } from "child_process"
 import { cmd } from "./cmd"
 import { UI } from "../ui"
@@ -87,14 +87,20 @@ const ROADMAP_TEMPLATE: RoadmapData = {
   features: [],
 }
 
-const ROADMAP_TEMPLATE_MD = `# ROADMAP.md — generated from docs/roadmap.json
-> Edit the JSON, not this file. Run \`nocowboy roadmap generate\` to regenerate.
+const ROADMAP_TEMPLATE_MD = `# ROADMAP.md
+> generated from docs/roadmap.json — do not edit directly.
+> Run \`nocowboy roadmap generate\` to regenerate.
+>
+> 📋 Roadmap-верификация NoCowboy. Как пользоваться:
+>   • \`/backlog-promote "feature"\` → добавить фичу с acceptance criteria
+>   • Разработать → \`#route overseer: verify\` → attestation
+>   • Только PASS → DONE → коммит с \`nocowboy roadmap verify\`
 
-_No features yet — add them to \`docs/roadmap.json\`._
+_No features planned yet. Add them to \`docs/roadmap.json\`._
 `
 
-const CHANGELOG_TEMPLATE_MD = `# CHANGELOG.md — generated from docs/roadmap.json
-> Edit the JSON, not this file.
+const CHANGELOG_TEMPLATE_MD = `# CHANGELOG.md
+> generated from docs/roadmap.json — do not edit directly.
 
 _No releases yet._
 `
@@ -126,6 +132,23 @@ function initRoadmap(force: boolean): boolean {
 
 // ── Generate ───────────────────────────────────────────────────────────────
 
+const GENERATED_MARKER = "generated from docs/roadmap.json"
+
+/** Write generated .md file with overwrite protection.
+ *  If file exists and doesn't contain GENERATED_MARKER → backup to .backup.md first. */
+function safeWriteGenerated(path: string, content: string): void {
+  if (existsSync(path)) {
+    const firstLines = readFileSync(path, "utf-8").trim().split("\n").slice(0, 3).join("\n")
+    if (!firstLines.includes(GENERATED_MARKER)) {
+      // Existing file has custom content — backup before overwriting
+      const backupPath = path.replace(/\.md$/, ".backup.md")
+      copyFileSync(path, backupPath)
+      process.stderr.write(`⚠️  Existing ${path} backed up to ${backupPath}${EOL}`)
+    }
+  }
+  writeFileSync(path, content, "utf-8")
+}
+
 function generateDocs(): boolean {
   const data = loadRoadmap()
   if (!data) {
@@ -139,7 +162,7 @@ function generateDocs(): boolean {
   const blockedFeatures = data.features.filter(f => f.status === "blocked")
 
   // CHANGELOG.md
-  let changelog = "# CHANGELOG.md — generated from docs/roadmap.json\n> Edit the JSON, not this file.\n\n"
+  let changelog = "# CHANGELOG.md\n> generated from docs/roadmap.json — do not edit directly.\n\n"
   if (doneFeatures.length === 0) {
     changelog += "_No releases yet._\n"
   } else {
@@ -158,10 +181,10 @@ function generateDocs(): boolean {
       changelog += "\n"
     }
   }
-  writeFileSync(join(PROJECT_ROOT, "docs", "CHANGELOG.md"), changelog)
+  safeWriteGenerated(join(PROJECT_ROOT, "docs", "CHANGELOG.md"), changelog)
 
   // ROADMAP.md
-  let roadmap = "# ROADMAP.md — generated from docs/roadmap.json\n> Edit the JSON, not this file.\n\n"
+  let roadmap = "# ROADMAP.md\n> generated from docs/roadmap.json — do not edit directly.\n> Run `nocowboy roadmap generate` to regenerate.\n> 📋 Use `/backlog-promote \"feature\"` to add new features.\n\n"
   const allPlanned = [...plannedFeatures, ...blockedFeatures]
   if (allPlanned.length === 0) {
     roadmap += "_No features planned._\n"
@@ -172,10 +195,10 @@ function generateDocs(): boolean {
       roadmap += `- ${icon} ${f.title}${f.version ? ` (${f.version})` : ""}${blocker}\n`
     }
   }
-  writeFileSync(join(PROJECT_ROOT, "docs", "ROADMAP.md"), roadmap)
+  safeWriteGenerated(join(PROJECT_ROOT, "docs", "ROADMAP.md"), roadmap)
 
   // BACKLOG.md
-  let backlog = "# BACKLOG.md — generated from docs/roadmap.json\n> Edit the JSON, not this file.\n\n"
+  let backlog = "# BACKLOG.md\n> generated from docs/roadmap.json — do not edit directly.\n\n"
   if (backlogFeatures.length === 0) {
     backlog += "_Nothing in backlog._\n"
   } else {
@@ -183,7 +206,7 @@ function generateDocs(): boolean {
       backlog += `- ${f.title}${f.version ? ` (${f.version})` : ""}\n`
     }
   }
-  writeFileSync(join(PROJECT_ROOT, "docs", "BACKLOG.md"), backlog)
+  safeWriteGenerated(join(PROJECT_ROOT, "docs", "BACKLOG.md"), backlog)
 
   process.stdout.write(`Generated:\n  ROADMAP.md   — ${plannedFeatures.length + blockedFeatures.length} planned\n  CHANGELOG.md — ${doneFeatures.length} done\n  BACKLOG.md   — ${backlogFeatures.length} ideas\n`)
   return true

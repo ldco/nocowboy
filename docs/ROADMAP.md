@@ -1,143 +1,51 @@
-# NoCowboy — Roadmap
+# ROADMAP.md — generated from docs/roadmap.json
+> Edit the JSON, not this file.
 
-> **Только планируемое.** Что уже сделано → [CHANGELOG.md](CHANGELOG.md). Идеи на будущее → [BACKLOG.md](BACKLOG.md).
-> **Версионирование:** x.y.z — z только для багфиксов. Роадмап планирует x.y.0.
-> **Единственный источник:** `docs/roadmap.json`. `.md` файлы генерируются автоматически.
-> **Правило:** DONE-пункт обязан иметь verify-директивы. Если регрессия ломает verify — DONE недействителен.
-
-<!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->
-
-## v0.10.0 — Russian Language & Localization
-
-- ⬜ YandexGPT / GigaChat провайдеры
-  > Профили yandexgpt и gigachat в openai-compatible-profile.ts, экспорт из openai-compatible.ts, детекция в session/system.ts. GigaChat требует OAuth токен.
-  `verify:grep packages/llm/src/providers/openai-compatible-profile.ts yandexgpt`
-  `verify:grep packages/llm/src/providers/openai-compatible.ts gigachat`
-  
-- ⬜ UI Локализация (русские метки + переключатель языка)
-  > Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига.
-  `verify:file packages/opencode/src/nocowboy/ui/i18n.ts`
-  
-
----
-
-## v0.11.0 — Quality & Infrastructure
-
-- 🚫 Turso — production SQLite для multi-machine sync
-  > Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.
-  > **Блокер:** drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md
-  - src/sync/turso-sync.ts — push/pull sync engine
-  - CLI: tausik turso setup/sync/status
-  - turso секция в NutausikConfig (url, authToken, syncInterval)
-  `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ Publish: npm org @nocowboy + npm run publish-all
-  > 9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.
-  `verify:cmd npm org ls nocowboy 2>/dev/null`
-- ⬜ Permission timeout — доработка (из P2-A4)
-  > Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool.
-- ⬜ Agent Audit (P2-C1): inventory 21 агентов, name collisions
-  > Два name collision (plan, explore). Один deprecated (orchestrator).
-- ⬜ Deep Context (2M tokens с бюджетированием)
-  > checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.
-- ⬜ MCP Framework — merge plugin-registry в NUTAUSIK
-  > P2-C4. Решить судьбу first-party MCP серверов.
-- ⬜ Command deduplication (P2-C3)
-  > 30 команд зарегистрировано, не дедуплицированы.
-- ⬜ Goal judge — интегрировать в agent stop loop (Effect-native)
-  > /goal команда есть, не интегрирована в lifecycle.
-- ⬜ Test harness — исправить 39 flaky тестов под параллельной нагрузкой
-  > Файлы: packages/opencode/test/
-- ⬜ Distill command — сканировать сессии → генерировать skills/commands
-  > auto-dream.ts есть (только dream, не distill).
-- ⬜ Agent Quality Enforcement — coherence_check, agent_log, task-gate hook
-  > coherence_check частично реализован.
-- ⬜ Self-Being Meta-Cognitive Architecture (P3-SELF)
-  > NoCowboy как самосовершенствующееся существо.
-- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
-  > Было в старом ROADMAP как NOT DONE.
-- ⬜ Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts
-  > Kilo-референсы, auto-memory пути.
-- ⬜ Per-task cost tracking с леджером
-  > cost-propagation.ts частично есть, леджера нет
-- ⬜ Vector store switcher UI
-  > Был в старом P2 роадмапе
-- ⬜ DeepSeek prefix-cache optimization
-  > Из Whale (MIT). Структурировать промпты для byte-stable prefix
-- ⬜ Lazy-load tree-sitter WASMs (40MB savings)
-  > Был в P0.1
-- ⬜ FTS5 query builder (fts-query.ts)
-  > pure, 0 deps. Из MiMo
-- ⬜ FTS5 schema + migration
-  > Из MiMo
-- ⬜ Memory reconcile — index MEMORY.md, prune dead
-  > Базовое есть, полный reconcile нет
-- ⬜ Channels (webhooks MCP)
-  > Инструменты в MCP есть, не стабильны
-- ⬜ Bash firewall hook — блокировать опасные команды
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Task-gate hook — блокировать code tool calls без активного task
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Task-verify hook — авто-запуск verify перед task_done
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Secret-scan hook — сканировать на секреты перед записью
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Activity logging hook — PostToolUse для Write/Edit/Bash
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Memory-audit hook — проверка дубликатов
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ Session-metrics hook — сбор метрик сессии
-  > В NUTAUSIK hooks есть, не портировано
-- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)
-  > В NUTAUSIK-side, не в NoCowboy
-- ⬜ Auto-dream programmatic — программаторное сканирование сессий
-  > auto-dream.ts есть, но ручной
-- ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP
-  > Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.
-
----
-
-## v1.0.0-alpha — Alpha — internal testing
-
-- ⬜ v0.10.0 + v0.11.0 — все фичи реализованы
-  `verify:typecheck`
-- ⬜ Все тесты проходят — bun test
-  > 0 failures, 0 skipped. Запуск: bun run test
-  `verify:cmd bun run test 2>&1 | tail -5`
-- ⬜ Manual smoke test — основные сценарии пройдены
-  > Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify
-  `verify:agent`
-- ⬜ Нет критических багов — known issues документированы
-  > Все P0/P1 баги закрыты или занесены в known-issues.md
-
----
-
-## v1.0.0-rc — RC — release candidate, user testing
-
-- ⬜ Alpha feedback incorporated
-  > Все фидбеки от alpha-тестеров обработаны и исправлены
-- ⬜ Пользовательское тестирование — 5+ тестеров
-  > 5+ человек прогнали основные сценарии. Баги записаны.
-  `verify:agent`
-- ⬜ Performance testing — startup < 500ms, memory < 200MB
-  > Холодный старт: < 500ms. RSS: < 200MB
-- ⬜ Все известные issues закрыты или имеют миграционный план
-- ⬜ Документация обновлена — CHANGELOG, ROADMAP, README
-  `verify:file docs/README.md`
-
----
-
-## v1.0.0 — Production release
-
-- ⬜ RC feedback incorporated
-  > Все фидбеки от RC-тестеров обработаны
-- ⬜ All tests green — 0 failures, 0 flaky
-  `verify:cmd bun run test 2>&1 | tail -5`
-- ⬜ Typecheck clean — 0 errors
-  `verify:typecheck`
-- ⬜ Roadmap verified — 100% DONE features pass verify
-  `verify:cmd bun run scripts/verify-roadmap.ts 2>&1 | tail -3`
-- ⬜ npm publish — @nocowboy v1.0.0
-  > npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0
-  `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
-
----
+- ⬜ Publish: npm org @nocowboy + npm run publish-all (v0.11.0)
+- 🏗️ YandexGPT / GigaChat провайдеры (v0.10.0)
+- 🏗️ UI Локализация (русские метки + переключатель языка) (v0.10.0)
+- ⬜ Permission timeout — доработка (из P2-A4) (v0.11.0)
+- ⬜ Agent Audit (P2-C1): inventory 21 агентов, name collisions (v0.11.0)
+- ⬜ Deep Context (2M tokens с бюджетированием) (v0.11.0)
+- ⬜ MCP Framework — merge plugin-registry в NUTAUSIK (v0.11.0)
+- ⬜ Command deduplication (P2-C3) (v0.11.0)
+- ⬜ Goal judge — интегрировать в agent stop loop (Effect-native) (v0.11.0)
+- ⬜ Test harness — исправить 39 flaky тестов под параллельной нагрузкой (v0.11.0)
+- ⬜ Distill command — сканировать сессии → генерировать skills/commands (v0.11.0)
+- ⬜ Agent Quality Enforcement — coherence_check, agent_log, task-gate hook (v0.11.0)
+- ⬜ Self-Being Meta-Cognitive Architecture (P3-SELF) (v0.11.0)
+- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates) (v0.11.0)
+- ⬜ Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts (v0.11.0)
+- ⬜ Per-task cost tracking с леджером (v0.11.0)
+- ⬜ Vector store switcher UI (v0.11.0)
+- ⬜ DeepSeek prefix-cache optimization (v0.11.0)
+- ⬜ Lazy-load tree-sitter WASMs (40MB savings) (v0.11.0)
+- ⬜ FTS5 query builder (fts-query.ts) (v0.11.0)
+- ⬜ FTS5 schema + migration (v0.11.0)
+- ⬜ Memory reconcile — index MEMORY.md, prune dead (v0.11.0)
+- ⬜ Channels (webhooks MCP) (v0.11.0)
+- ⬜ Bash firewall hook — блокировать опасные команды (v0.11.0)
+- ⬜ Task-gate hook — блокировать code tool calls без активного task (v0.11.0)
+- ⬜ Task-verify hook — авто-запуск verify перед task_done (v0.11.0)
+- ⬜ Secret-scan hook — сканировать на секреты перед записью (v0.11.0)
+- ⬜ Activity logging hook — PostToolUse для Write/Edit/Bash (v0.11.0)
+- ⬜ Memory-audit hook — проверка дубликатов (v0.11.0)
+- ⬜ Session-metrics hook — сбор метрик сессии (v0.11.0)
+- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates) (v0.11.0)
+- ⬜ Auto-dream programmatic — программаторное сканирование сессий (v0.11.0)
+- ⬜ v0.10.0 + v0.11.0 — все фичи реализованы (v1.0.0-alpha)
+- ⬜ Все тесты проходят — bun test (v1.0.0-alpha)
+- ⬜ Manual smoke test — основные сценарии пройдены (v1.0.0-alpha)
+- ⬜ Нет критических багов — known issues документированы (v1.0.0-alpha)
+- ⬜ Alpha feedback incorporated (v1.0.0-rc)
+- ⬜ Пользовательское тестирование — 5+ тестеров (v1.0.0-rc)
+- ⬜ Performance testing — startup < 500ms, memory < 200MB (v1.0.0-rc)
+- ⬜ Все известные issues закрыты или имеют миграционный план (v1.0.0-rc)
+- ⬜ Документация обновлена — CHANGELOG, ROADMAP, README (v1.0.0-rc)
+- ⬜ RC feedback incorporated (v1.0.0)
+- ⬜ All tests green — 0 failures, 0 flaky (v1.0.0)
+- ⬜ Typecheck clean — 0 errors (v1.0.0)
+- ⬜ Roadmap verified — 100% DONE features pass verify (v1.0.0)
+- ⬜ npm publish — @nocowboy v1.0.0 (v1.0.0)
+- ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP (v0.11.0)
+- 🔴 Turso — production SQLite для multi-machine sync (v0.11.0) — **Blocked:** drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md

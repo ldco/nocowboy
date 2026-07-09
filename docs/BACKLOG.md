@@ -1,6 +1,4 @@
-# NoCowboy — Backlog
+# BACKLOG.md — generated from docs/roadmap.json
+> Edit the JSON, not this file.
 
-> Идеи, которые мы накидываем. Не в роадмапе, не в работе.
-> Когда идея созрела → переносим в `docs/roadmap.json` (status: planned → ROADMAP).
-
-<!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->
+_Nothing in backlog._

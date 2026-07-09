@@ -61,7 +61,19 @@ async function start(input: TuiInput) {
         features: [],
       }
       writeFileSync(roadmapPath, JSON.stringify(template, null, 2) + "\n", "utf-8")
-      // Silently created — user doesn't see this
+
+      // Generate minimal .md files (only if they don't already exist)
+      const generateIfMissing = (file: string, content: string) => {
+        if (!existsSync(file)) writeFileSync(file, content, "utf-8")
+      }
+      const roadmapMd = join(docsDir, "ROADMAP.md")
+      const changelogMd = join(docsDir, "CHANGELOG.md")
+      const backlogMd = join(docsDir, "BACKLOG.md")
+      const genNotice = "> generated from docs/roadmap.json — do not edit directly. Run `nocowboy roadmap generate`.\n\n"
+
+      generateIfMissing(roadmapMd, `# ROADMAP.md\n${genNotice}_No features planned yet. Add them to \`docs/roadmap.json\`._\n`)
+      generateIfMissing(changelogMd, `# CHANGELOG.md\n${genNotice}_No releases yet._\n`)
+      generateIfMissing(backlogMd, `# BACKLOG.md\n${genNotice}_Nothing in backlog._\n`)
     }
   } catch {
     // Silent fail — auto-init is best-effort
