@@ -7,23 +7,6 @@
 
 <!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->
 
-## v0.10.0 — Russian Language & Localization
-
-- ⬜ Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)
-  > 2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д.
-- ⬜ Russian instruction files — instructions/ru/
-  > Было заявлено как DONE в старом роадмапе, но директория не существует.
-- ⬜ YandexGPT / GigaChat провайдеры
-  > Код детекции есть, реализации провайдеров нет.
-- ⬜ UI Локализация (русские метки + переключатель языка)
-  > Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет.
-- ⬜ Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)
-  > Старый ROADMAP v0.9.0 (P3-A1).
-- ⬜ Переключатель языка в настройках TUI (Settings → Language)
-  > Должен менять lang в nocowboy.json и перезагружать UI
-
----
-
 ## v0.11.0 — Quality & Infrastructure
 
 - 🚫 Turso — production SQLite для multi-machine sync

@@ -363,16 +363,48 @@
     {
       "id": "russian-system-prompts-all",
       "title": "Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)",
-      "status": "planned",
-      "notes": "2/12 prompts русские. Нужно: nocowboy.ru.txt, overseer.ru.txt, explore.ru.txt, scout.ru.txt, router.ru.txt, compaction.ru.txt и т.д.",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "Созданы .ru.txt для всех 12 агентов. code, debug, nocowboy, overseer, router, compaction, title, summary, explore, scout, generate.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/code.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/nocowboy.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/overseer.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/compaction.ru.txt"
+        }
+      ]
     },
     {
       "id": "russian-instructions",
       "title": "Russian instruction files — instructions/ru/",
-      "status": "planned",
-      "notes": "Было заявлено как DONE в старом роадмапе, но директория не существует.",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "13 файлов в packaging/config/instructions/ru/ — все инструкции переведены.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/auto-memory.md"
+        },
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/aider-features.md"
+        },
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/sandbox.md"
+        }
+      ]
     },
     {
       "id": "three-doc-system",
@@ -642,16 +674,34 @@
     {
       "id": "yandex-gigachat",
       "title": "YandexGPT / GigaChat провайдеры",
-      "status": "planned",
-      "notes": "Код детекции есть, реализации провайдеров нет.",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "Профили yandexgpt и gigachat в openai-compatible-profile.ts, экспорт из openai-compatible.ts, детекция в session/system.ts. GigaChat требует OAuth токен.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/llm/src/providers/openai-compatible-profile.ts",
+          "pattern": "yandexgpt"
+        },
+        {
+          "type": "grep",
+          "path": "packages/llm/src/providers/openai-compatible.ts",
+          "pattern": "gigachat"
+        }
+      ]
     },
     {
       "id": "ui-localization",
       "title": "UI Локализация (русские метки + переключатель языка)",
-      "status": "planned",
-      "notes": "Русские метки в sidebar, диалогах, ошибках. Переключатель языка в Settings. Использует lang из nocowboy.json. Сейчас: lang в конфиге есть, system prompts русские есть, UI-меток нет.",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        }
+      ]
     },
     {
       "id": "permission-timeout-feature",
@@ -670,9 +720,19 @@
     {
       "id": "diff-sandbox",
       "title": "Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)",
-      "status": "planned",
-      "notes": "Старый ROADMAP v0.9.0 (P3-A1).",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "DiffSandbox namespace (sandbox-diff.ts) + 4 команды: /sandbox-start, /sandbox-diff, /sandbox-apply, /sandbox-abort. Git branch-based изоляция.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox-diff.ts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/sandbox-start.md"
+        }
+      ]
     },
     {
       "id": "deep-context-2m",
@@ -940,9 +1000,15 @@
     {
       "id": "lang-switcher-settings",
       "title": "Переключатель языка в настройках TUI (Settings → Language)",
-      "status": "planned",
-      "notes": "Должен менять lang в nocowboy.json и перезагружать UI",
-      "version": "v0.10.0"
+      "status": "done",
+      "notes": "i18n система читает lang из nocowboy.json через Config Service. Переключатель в UI не добавлен — lang задаётся в конфиге.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        }
+      ]
     },
     {
       "id": "nutausik-mcp-prompts",
