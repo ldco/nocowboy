@@ -82,7 +82,13 @@
       "title": "Форк от Kilo Code (TypeScript + Bun + SolidJS + OpenTUI)",
       "status": "done",
       "version": "v0.6.1",
-      "changelog": "Core Infrastructure"
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/fork-from-kilocode.md"
+        }
+      ]
     },
     {
       "id": "compiled-binary",
@@ -95,6 +101,10 @@
           "type": "grep",
           "path": "package.json",
           "pattern": "release"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/compiled-binary.md"
         }
       ]
     },
@@ -113,6 +123,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/system-prompt.ts",
           "pattern": "RepoMap"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/repomap.md"
         }
       ]
     },
@@ -126,6 +140,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/memory"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/memory-fts5.md"
         }
       ]
     },
@@ -139,6 +157,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/session/goal.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/goal-judge.md"
         }
       ]
     },
@@ -153,6 +175,10 @@
           "type": "grep",
           "path": "packages/opencode/src/cli/cmd/tui",
           "pattern": "voice"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/voice-input.md"
         }
       ]
     },
@@ -166,6 +192,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/permission/index.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/approval-memory.md"
         }
       ]
     },
@@ -174,7 +204,13 @@
       "title": "Deep context — repomap + memory в system prompt",
       "status": "done",
       "version": "v0.6.1",
-      "changelog": "Core Infrastructure"
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/deep-context.md"
+        }
+      ]
     },
     {
       "id": "global-config",
@@ -186,6 +222,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/config/config.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/global-config.md"
         }
       ]
     },
@@ -199,6 +239,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/indexing.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/indexing.md"
         }
       ]
     },
@@ -216,6 +260,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/agent/prompt/debug.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-system-prompts.md"
         }
       ]
     },
@@ -229,6 +277,10 @@
         {
           "type": "file",
           "path": "docs/reference/turso-database-adoption.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/turso-adr.md"
         }
       ]
     },
@@ -242,6 +294,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/config/config.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-config-field.md"
         }
       ]
     },
@@ -255,6 +311,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/agent",
           "pattern": "code"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/agent-refactor-15to5.md"
         }
       ]
     },
@@ -262,103 +322,205 @@
       "id": "tool-groups",
       "title": "Tool groups — `groups` field in ConfigAgent",
       "status": "done",
-      "version": "v0.7.4"
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tool-groups.md"
+        }
+      ]
     },
     {
       "id": "search-replace",
       "title": "P2-A2: Search/Replace edit format (Aider-style)",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/search-replace.md"
+        }
+      ]
     },
     {
       "id": "branch-per-task",
       "title": "P2-A3: Branch-per-task",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/branch-per-task.md"
+        }
+      ]
     },
     {
       "id": "permission-timeout",
       "title": "P2-A4: Permission timeout (auto-deny)",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/permission-timeout.md"
+        }
+      ]
     },
     {
       "id": "yolo-mode",
       "title": "P2-A5: Yolo mode toggle",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/yolo-mode.md"
+        }
+      ]
     },
     {
       "id": "agent-instructions",
       "title": "AGENTS.md + code.txt + debug.txt — укреплённые инструкции",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-instructions.md"
+        }
+      ]
     },
     {
       "id": "nutausik-phase1",
       "title": "NUTAUSIK Phase 1 — hooks, NutausikDot, fix port + SQLite",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-phase1.md"
+        }
+      ]
     },
     {
       "id": "nutausik-v020-tools",
       "title": "NUTAUSIK v0.2.0 — context_inject, handoff, coherence, loop_close",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-v020-tools.md"
+        }
+      ]
     },
     {
       "id": "token-cost-optimization",
       "title": "Token cost investigation + repomap watcher cache",
       "status": "done",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/token-cost-optimization.md"
+        }
+      ]
     },
     {
       "id": "soul-reduction",
       "title": "soul.txt — 71% reduction (3449→980 chars)",
       "status": "done",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/soul-reduction.md"
+        }
+      ]
     },
     {
       "id": "soul-scoping",
       "title": "Soul + identity only for nocowboy agent",
       "status": "done",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/soul-scoping.md"
+        }
+      ]
     },
     {
       "id": "auto-dream-rule",
       "title": "Auto-dream: critical rules enforce nutausik_memory_add",
       "status": "done",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-dream-rule.md"
+        }
+      ]
     },
     {
       "id": "memory-migration",
       "title": "MEMORY.md → NUTAUSIK memory migration",
       "status": "done",
-      "version": "v0.7.6"
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/memory-migration.md"
+        }
+      ]
     },
     {
       "id": "template-overhaul",
       "title": "Template system: 18→7 built-in templates, /continue",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/template-overhaul.md"
+        }
+      ]
     },
     {
       "id": "skills-cleanup",
       "title": "Skills: 12→5, kilo-config→nocowboy-config",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/skills-cleanup.md"
+        }
+      ]
     },
     {
       "id": "puppetmaster-mcp-refactor",
       "title": "PuppetMaster MCP: pm_git_commit removed, 5 prompts capability",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/puppetmaster-mcp-refactor.md"
+        }
+      ]
     },
     {
       "id": "git-mcp-wrapper",
       "title": "Git MCP wrapper — packaging/mcp-servers/git/",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/git-mcp-wrapper.md"
+        }
+      ]
     },
     {
       "id": "russian-system-prompts-all",
@@ -382,6 +544,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/agent/prompt/compaction.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-system-prompts-all.md"
         }
       ]
     },
@@ -403,6 +569,10 @@
         {
           "type": "file",
           "path": "packaging/config/instructions/ru/sandbox.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-instructions.md"
         }
       ]
     },
@@ -410,13 +580,25 @@
       "id": "three-doc-system",
       "title": "Three-dimensional doc system: ROADMAP/CHANGELOG/BACKLOG",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/three-doc-system.md"
+        }
+      ]
     },
     {
       "id": "backward-compat-removal",
       "title": "MEMORY.md + Kilo references removed from instructions",
       "status": "done",
-      "version": "v0.7.7"
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/backward-compat-removal.md"
+        }
+      ]
     },
     {
       "id": "sandbox-docker",
@@ -432,6 +614,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/sandbox.ts",
           "pattern": "isDockerAvailable"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/sandbox-docker.md"
         }
       ]
     },
@@ -448,6 +634,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/share/session.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/share-template.md"
         }
       ]
     },
@@ -460,6 +650,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/sandbox.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/sandbox-template.md"
         }
       ]
     },
@@ -473,6 +667,10 @@
           "type": "grep",
           "path": "packages/opencode/src/server/routes/instance/httpapi/groups",
           "pattern": "mcp"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-marketplace.md"
         }
       ]
     },
@@ -486,6 +684,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/config/overlay.ts",
           "pattern": "ollama"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/ollama-template.md"
         }
       ]
     },
@@ -498,6 +700,10 @@
         {
           "type": "file",
           "path": "LICENSE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/license-rf.md"
         }
       ]
     },
@@ -510,6 +716,10 @@
         {
           "type": "file",
           "path": "docs/legal/152FZ-COMPLIANCE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/consent-152fz.md"
         }
       ]
     },
@@ -523,6 +733,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/server/httpapi/groups/background-process.ts",
           "pattern": "forget"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/forget-template.md"
         }
       ]
     },
@@ -536,6 +750,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/session/checkpoint-paths.ts",
           "pattern": "nocowboy/storage"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/data-localization.md"
         }
       ]
     },
@@ -548,6 +766,10 @@
         {
           "type": "file",
           "path": "docs/legal/152FZ-COMPLIANCE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/legal-152fz.md"
         }
       ]
     },
@@ -560,6 +782,10 @@
         {
           "type": "file",
           "path": "scripts/publish-all.sh"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/publish-all-script.md"
         }
       ]
     },
@@ -576,6 +802,10 @@
         {
           "type": "file",
           "path": "packaging/mcp-servers/score-engine/package.json"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-packages-ready.md"
         }
       ]
     },
@@ -594,6 +824,10 @@
           "type": "grep",
           "path": "packages/opencode/src/session/session.ts",
           "pattern": "onSessionCreated"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-auto-wiring.md"
         }
       ]
     },
@@ -607,6 +841,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
           "pattern": "handoff_save"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/handoff-auto.md"
         }
       ]
     },
@@ -620,6 +858,10 @@
           "type": "grep",
           "path": "packages/opencode/src/session/system.ts",
           "pattern": "DONE_WITH_CONCERNS"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/escalation-statuses.md"
         }
       ]
     },
@@ -636,6 +878,10 @@
         {
           "type": "file",
           "path": "scripts/lib/roadmap-types.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/verify-system.md"
         }
       ]
     },
@@ -796,6 +1042,10 @@
         },
         {
           "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/diff-sandbox.md"
         }
       ]
     },
@@ -882,6 +1132,10 @@
         {
           "type": "file",
           "path": "scripts/generate-docs.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/roadmap-json-system.md"
         }
       ]
     },
@@ -889,73 +1143,145 @@
       "id": "sqlite-vector-store",
       "title": "SQLite vector store (LanceDB replacement, -15MB)",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/sqlite-vector-store.md"
+        }
+      ]
     },
     {
       "id": "zero-config-wizard",
       "title": "Zero-config wizard — nocowboy init",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/zero-config-wizard.md"
+        }
+      ]
     },
     {
       "id": "provider-agnostic",
       "title": "Provider-agnostic — 200+ models via LiteLLM",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/provider-agnostic.md"
+        }
+      ]
     },
     {
       "id": "embedded-mcp-proxy",
       "title": "Embedded MCP proxy — zero external deps, cross-platform",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/embedded-mcp-proxy.md"
+        }
+      ]
     },
     {
       "id": "plugin-mcp",
       "title": "Plugin out/plugin in MCP — auto-detect, npm install",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/plugin-mcp.md"
+        }
+      ]
     },
     {
       "id": "launch-spec-registry",
       "title": "Launch spec registry (~/.nocowboy/mcp/launch.json)",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/launch-spec-registry.md"
+        }
+      ]
     },
     {
       "id": "npm-publishing-pipeline",
       "title": "npm publishing pipeline — platform packages + meta-package",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/npm-publishing-pipeline.md"
+        }
+      ]
     },
     {
       "id": "incremental-pr-review",
       "title": "Incremental PR review — code-reviewer checks only git diff",
       "status": "done",
-      "version": "v0.6.1"
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/incremental-pr-review.md"
+        }
+      ]
     },
     {
       "id": "tool-groups-agents",
       "title": "Tool groups for agents (read/edit/command/mcp)",
       "status": "done",
-      "version": "v0.7.4"
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tool-groups-agents.md"
+        }
+      ]
     },
     {
       "id": "agent-descriptions-short",
       "title": "Agent descriptions — короткие, readable (v0.7.4)",
       "status": "done",
-      "version": "v0.7.4"
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-descriptions-short.md"
+        }
+      ]
     },
     {
       "id": "nutausik-dot",
       "title": "NutausikDot — 3-state TopBar indicator (v0.7.5)",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-dot.md"
+        }
+      ]
     },
     {
       "id": "todo-injection",
       "title": "Todo injection — NUTAUSIK context block в system prompt (v0.7.5)",
       "status": "done",
-      "version": "v0.7.5"
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/todo-injection.md"
+        }
+      ]
     },
     {
       "id": "per-task-cost",
@@ -1087,6 +1413,10 @@
         },
         {
           "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-switcher-settings.md"
         }
       ]
     },
@@ -1114,6 +1444,10 @@
           "type": "grep",
           "path": "packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts",
           "pattern": "Run {highlight}/share"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-marketplace-template.md"
         }
       ]
     },
@@ -1266,7 +1600,14 @@
       "version": "v0.9.0",
       "changelog": "Agent Behavior Hardening",
       "verify": [
-        { "type": "file", "path": ".nocowboy/rules/lazy-senior.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/lazy-senior.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/ponytail-ladder.md"
+        }
       ]
     },
     {
@@ -1277,7 +1618,14 @@
       "changelog": "Agent Behavior Hardening",
       "notes": "Domain model part excluded — NUTAUSIK memory already covers it.",
       "verify": [
-        { "type": "file", "path": ".nocowboy/rules/auto-grill.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/auto-grill.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/auto-grill.md"
+        }
       ]
     },
     {
@@ -1287,7 +1635,14 @@
       "version": "v0.9.0",
       "changelog": "Agent Behavior Hardening",
       "verify": [
-        { "type": "file", "path": ".nocowboy/rules/debug-loop.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/debug-loop.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/debug-loop.md"
+        }
       ]
     },
     {
@@ -1298,7 +1653,14 @@
       "changelog": "Quality",
       "notes": "Score-engine accepts spec_compliance as dimension. Rule formalizes agent behavior at task_done.",
       "verify": [
-        { "type": "file", "path": ".nocowboy/rules/spec-compliance.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/spec-compliance.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/spec-compliance-verify-axis.md"
+        }
       ]
     },
     {
@@ -1308,7 +1670,14 @@
       "version": "v0.9.0",
       "changelog": "Commands",
       "verify": [
-        { "type": "file", "path": ".nocowboy/command/to-spec.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/command/to-spec.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/to-spec-command.md"
+        }
       ]
     },
     {
@@ -1318,7 +1687,14 @@
       "version": "v0.9.0",
       "changelog": "Commands",
       "verify": [
-        { "type": "file", "path": ".nocowboy/command/wayfinder.md" }
+        {
+          "type": "file",
+          "path": ".nocowboy/command/wayfinder.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/wayfinder-command.md"
+        }
       ]
     },
     {
