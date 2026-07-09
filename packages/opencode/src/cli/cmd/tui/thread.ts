@@ -78,6 +78,24 @@ async function start(input: TuiInput) {
   } catch {
     // Silent fail — auto-init is best-effort
   }
+  // nocowboy_change — auto-start soul engine
+  try {
+    const { existsSync: fex } = await import("fs")
+    const { join: pjoin } = await import("path")
+    const http = await import("http")
+    const basePath = process.cwd()
+    const req = http.request({ hostname: "127.0.0.1", port: 9339, method: "GET", timeout: 2000 }, (res) => res.resume())
+    req.on("error", () => {
+      const { spawn } = require("child_process")
+      const soulServer = pjoin(basePath, ".nocowboy", "soul", "server.js")
+      if (fex(soulServer)) {
+        spawn("node", [soulServer], { stdio: "ignore", detached: true }).unref()
+      }
+    })
+    req.end()
+  } catch {
+    // Silent fail — soul engine is optional
+  }
   // nocowboy_change end
 
   const app = await import("./app")
