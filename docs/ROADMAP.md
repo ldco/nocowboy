@@ -7,6 +7,20 @@
 
 <!-- AUTO-GENERATED from docs/roadmap.json. Do not edit manually. -->
 
+## v0.10.0 — Russian Language & Localization
+
+- ⬜ YandexGPT / GigaChat провайдеры
+  > Профили yandexgpt и gigachat в openai-compatible-profile.ts, экспорт из openai-compatible.ts, детекция в session/system.ts. GigaChat требует OAuth токен.
+  `verify:grep packages/llm/src/providers/openai-compatible-profile.ts yandexgpt`
+  `verify:grep packages/llm/src/providers/openai-compatible.ts gigachat`
+  
+- ⬜ UI Локализация (русские метки + переключатель языка)
+  > Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига.
+  `verify:file packages/opencode/src/nocowboy/ui/i18n.ts`
+  
+
+---
+
 ## v0.11.0 — Quality & Infrastructure
 
 - 🚫 Turso — production SQLite для multi-machine sync

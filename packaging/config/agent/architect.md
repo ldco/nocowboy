@@ -157,7 +157,8 @@ When asked to create a PRD for Ralph TUI, generate a `prd.json` file at the proj
 ```
 
 ## Output format
-- Save all plans and ADRs under the project's `docs/` directory
-- Use descriptive filenames: `docs/adr/NNN-title.md`, `docs/plans/feature-name.md`
+- Save ADRs under `docs/adr/` (permanent, version-controlled)
+- Save temporary plans under `.nocowboy/plans/` (in .gitignore, local-only)
+- Use descriptive filenames: `docs/adr/NNN-title.md`, `.nocowboy/plans/feature-name.md`
 - Prefer tables over prose for comparisons
 - Use text-based diagrams (UTF-8 box-drawing) — no external tools needed

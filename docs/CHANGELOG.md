@@ -164,13 +164,10 @@
   `verify:file packaging/config/instructions/ru/auto-memory.md`
   `verify:file packaging/config/instructions/ru/aider-features.md`
   `verify:file packaging/config/instructions/ru/sandbox.md`
-- **DONE** YandexGPT / GigaChat провайдеры
-  `verify:grep packages/llm/src/providers/openai-compatible-profile.ts yandexgpt`
-  `verify:grep packages/llm/src/providers/openai-compatible.ts gigachat`
-- **DONE** UI Локализация (русские метки + переключатель языка)
-  `verify:file packages/opencode/src/nocowboy/ui/i18n.ts`
 - **DONE** Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)
   `verify:file packages/opencode/src/nocowboy/sandbox-diff.ts`
   `verify:file .nocowboy/command/sandbox-start.md`
+  
 - **DONE** Переключатель языка в настройках TUI (Settings → Language)
   `verify:file packages/opencode/src/nocowboy/ui/i18n.ts`
+  

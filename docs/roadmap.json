@@ -635,7 +635,7 @@
         },
         {
           "type": "file",
-          "path": "docs/plans/roadmap-verification-system.md"
+          "path": "scripts/lib/roadmap-types.ts"
         }
       ]
     },
@@ -674,9 +674,26 @@
     {
       "id": "yandex-gigachat",
       "title": "YandexGPT / GigaChat провайдеры",
-      "status": "done",
+      "status": "in_progress",
       "notes": "Профили yandexgpt и gigachat в openai-compatible-profile.ts, экспорт из openai-compatible.ts, детекция в session/system.ts. GigaChat требует OAuth токен.",
       "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "Провайдер yandexgpt принимает API ключ и отправляет запрос к https://llm.api.cloud.yandex.net/v1/chat/completions",
+          "verify": "unit-тест yandexgpt.test.ts вызывает chat/completions",
+          "critical": true
+        },
+        {
+          "check": "GigaChat OAuth: client credentials → access token → API запрос",
+          "verify": "файл gigachat-auth.ts + тест на получение токена",
+          "critical": true
+        },
+        {
+          "check": "Обе модели дают ответы на русском языке с корректными system prompt'ами",
+          "verify": "ручная проверка или e2e тест",
+          "critical": false
+        }
+      ],
       "verify": [
         {
           "type": "grep",
@@ -687,19 +704,42 @@
           "type": "grep",
           "path": "packages/llm/src/providers/openai-compatible.ts",
           "pattern": "gigachat"
+        },
+        {
+          "type": "overseer"
         }
       ]
     },
     {
       "id": "ui-localization",
       "title": "UI Локализация (русские метки + переключатель языка)",
-      "status": "done",
+      "status": "in_progress",
       "notes": "Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига.",
       "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "I18n модуль экспортирует I18nService с get(key) методом",
+          "verify": "grep i18n.ts загружается через Config Service",
+          "critical": true
+        },
+        {
+          "check": "Русские метки для sidebar, диалогов, ошибок определены в словаре",
+          "verify": "grep в i18n.ts содержит sidebar.sessions и dialog.ok",
+          "critical": true
+        },
+        {
+          "check": "TUI sidebar отображает русские заголовки когда lang=ru",
+          "verify": "ручная проверка: nocowboy --lang ru → TUI sidebar",
+          "critical": false
+        }
+      ],
       "verify": [
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        },
+        {
+          "type": "overseer"
         }
       ]
     },
@@ -723,6 +763,28 @@
       "status": "done",
       "notes": "DiffSandbox namespace (sandbox-diff.ts) + 4 команды: /sandbox-start, /sandbox-diff, /sandbox-apply, /sandbox-abort. Git branch-based изоляция.",
       "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "DiffSandbox.start() создаёт git branch с префиксом nocowboy-sandbox/",
+          "verify": "grep в sandbox-diff.ts: SANDBOX_BRANCH_PREFIX",
+          "critical": true
+        },
+        {
+          "check": "DiffSandbox.apply() делает merge sandbox ветки в base и удаляет sandbox",
+          "verify": "чтение кода: apply → git checkout + git merge + git branch -D",
+          "critical": true
+        },
+        {
+          "check": "DiffSandbox.abort() возвращает к base ветке и удаляет sandbox",
+          "verify": "чтение кода: abort → git checkout + git branch -D",
+          "critical": true
+        },
+        {
+          "check": "Команды /sandbox-start, /sandbox-diff, /sandbox-apply, /sandbox-abort зарегистрированы",
+          "verify": "file .nocowboy/command/sandbox-start.md существует",
+          "critical": true
+        }
+      ],
       "verify": [
         {
           "type": "file",
@@ -731,6 +793,9 @@
         {
           "type": "file",
           "path": ".nocowboy/command/sandbox-start.md"
+        },
+        {
+          "type": "overseer"
         }
       ]
     },
@@ -1003,10 +1068,25 @@
       "status": "done",
       "notes": "i18n система читает lang из nocowboy.json через Config Service. Переключатель в UI не добавлен — lang задаётся в конфиге.",
       "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "I18n система читает lang из Config Service (nocowboy.json)",
+          "verify": "grep i18n.ts: Config.Service + config.lang",
+          "critical": true
+        },
+        {
+          "check": "Русские строки возвращаются при lang=ru, английские при lang=en",
+          "verify": "чтение кода: I18n.getStrings('ru') содержит sidebar.sessions",
+          "critical": true
+        }
+      ],
       "verify": [
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        },
+        {
+          "type": "overseer"
         }
       ]
     },

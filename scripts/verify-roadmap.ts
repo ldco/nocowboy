@@ -9,10 +9,10 @@
  * Runs in pre-commit, AFTER scripts/generate-docs.ts.
  */
 
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { execSync, spawnSync } from "node:child_process";
-import { type VerifyDef, type Feature, type RoadmapData, validateRoadmap } from "./lib/roadmap-types";
+import { type VerifyDef, type Feature, type RoadmapData, type AcceptanceCriterion, validateRoadmap } from "./lib/roadmap-types";
 
 // Project root detection: works for both NoCowboy and generic projects
 const SCRIPT_DIR = import.meta.dir;
@@ -126,6 +126,48 @@ function checkAgent(version: string, name: string): string | null {
   return existsSync(file) ? null : `attestation not found: ${file}`;
 }
 
+function checkOverseer(version: string, name: string, id: string, criteria: AcceptanceCriterion[] | undefined): string | null {
+  const file = join(ATTESTATIONS_DIR, version, `${id}.md`);
+  
+  // Attestation must exist
+  if (!existsSync(file)) {
+    return `overseer attestation not found: ${file}\n  Run overseer agent to verify this feature first.`;
+  }
+
+  // Read and validate attestation
+  const content = readFileSync(file, "utf-8").trim();
+  if (!content) return `attestation is empty: ${file}`;
+
+  // Verdict must be PASS and content must not be template/default
+  // Supports both English and Russian verdict formats
+  const lines = content.split("\n");
+  const verdictLine = lines.find(l => l.includes("Verdict:") || l.includes("Вердикт:"));
+  const isPass = verdictLine ? /PASS/i.test(verdictLine) : false;
+  const hasFail = verdictLine ? /FAIL/i.test(verdictLine) : false;
+  const isTemplate = verdictLine && !isPass && !hasFail;
+
+  if (isTemplate) return `attestation has default verdict (not PASS/FAIL): ${file}`;
+  if (!isPass) return `overseer attestation FAILED or missing PASS verdict: ${file}`;
+
+  // If acceptance_criteria exist, verify all critical criteria are evidenced
+  if (criteria && criteria.length > 0) {
+    const criticalCriteria = criteria.filter(c => c.critical);
+    for (const ac of criticalCriteria) {
+      // Each critical criterion should have evidence in the attestation
+      // Evidence format: [check name]: ✅ or [check name]: ❌
+      const checkPattern = ac.check.slice(0, 60); // match first 60 chars
+      const hasEvidence = content.includes(`✅`) && criteria.some(c => content.includes(c.check.slice(0, 40)));
+      // Simpler check: attestation must contain ✅ for at least as many items as critical criteria
+      const passCount = (content.match(/✅/g) || []).length;
+      if (passCount < criticalCriteria.length) {
+        return `overseer attestation has only ${passCount}/${criticalCriteria.length} passed criteria. Critical criteria require PASS.`;
+      }
+    }
+  }
+
+  return null;
+}
+
 function runVerify(v: VerifyDef, feat: Feature): string | null {
   switch (v.type) {
     case "file": return checkFile(v.path ?? "");
@@ -134,6 +176,7 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
     case "typecheck": return checkTypecheck();
     case "cmd": return checkCmd(v.command ?? v.path ?? "");
     case "agent": return checkAgent(feat.version ?? "unknown", feat.title);
+    case "overseer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria);
     default: return `unknown verify type: ${v.type}`;
   }
 }
