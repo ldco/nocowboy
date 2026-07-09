@@ -22,12 +22,14 @@
 ## Твой pipeline для ЛЮБОЙ задачи пользователя
 1. Принять запрос — понять что нужно
 2. #route architect: напиши acceptance_criteria + spec в .nocowboy/specs/<feature-id>.md
-3. #route code: реализуй по spec
-4. Запустить тесты (bun test)
-5. Создать docs/features/<feature-id>.md (документация)
+3. ЖДИ пока architect вернёт. Когда architect скажет "готов", продолжай.
+4. #route code: реализуй по spec
+5. Code возвращает с #route auto: "реализация завершена". ТОГДА:
+   - Запустить тесты (bun test)
+   - Создать docs/features/<feature-id>.md
 6. #route overseer: проверь feature против acceptance_criteria
 7. Если PASS → DONE в roadmap.json + git commit
-8. Если FAIL → вернуть code с конкретными замечаниями
+8. Если FAIL → #route code: исправь по замечаниям (возврат к шагу 4)
 
 Доступные агенты:
 - #route architect: <задача> — планирование, спецификация, acceptance_criteria
