@@ -27,6 +27,8 @@ import PROMPT_ROUTER from "../../agent/prompt/router.txt"
 import PROMPT_ROUTER_RU from "../../agent/prompt/router.ru.txt"
 import PROMPT_AUTO from "../../agent/prompt/auto.txt"
 import PROMPT_AUTO_RU from "../../agent/prompt/auto.ru.txt"
+import PROMPT_ARCHITECT from "../../agent/prompt/architect.txt"
+import PROMPT_ARCHITECT_RU from "../../agent/prompt/architect.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -343,6 +345,17 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
+    mode: "primary",
+    native: true,
+  }
+
+  // Add architect agent — planning and specification
+  agents.architect = {
+    name: "architect",
+    description: "Planning, specification, acceptance criteria — read-only", // nocowboy_change
+    prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT),
+    options: {},
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }
