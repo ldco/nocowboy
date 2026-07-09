@@ -183,16 +183,34 @@ function generateDocs(): boolean {
   }
   safeWriteGenerated(join(PROJECT_ROOT, "docs", "CHANGELOG.md"), changelog)
 
-  // ROADMAP.md
+  // ROADMAP.md — grouped by version, shows spec status
   let roadmap = "# ROADMAP.md\n> generated from docs/roadmap.json — do not edit directly.\n> Run `nocowboy roadmap generate` to regenerate.\n> 📋 Use `/backlog-promote \"feature\"` to add new features.\n\n"
   const allPlanned = [...plannedFeatures, ...blockedFeatures]
   if (allPlanned.length === 0) {
     roadmap += "_No features planned._\n"
   } else {
+    // Group by version
+    const byVersion: Record<string, Feature[]> = {}
+    const versionMeta: Record<string, string> = {}
+    for (const v of data.versions ?? []) {
+      versionMeta[v.tag] = v.description
+    }
     for (const f of allPlanned) {
-      const icon = f.status === "blocked" ? "🔴" : f.status === "in_progress" ? "🏗️" : "⬜"
-      const blocker = f.status === "blocked" && f.blocker ? ` — **Blocked:** ${f.blocker}` : ""
-      roadmap += `- ${icon} ${f.title}${f.version ? ` (${f.version})` : ""}${blocker}\n`
+      const v = f.version ?? "unsorted"
+      if (!byVersion[v]) byVersion[v] = []
+      byVersion[v].push(f)
+    }
+    const specDir = join(PROJECT_ROOT, ".nocowboy", "specs")
+    for (const [version, features] of Object.entries(byVersion).sort()) {
+      roadmap += `## ${version} — ${versionMeta[version] ?? ""}\n\n`
+      for (const f of features) {
+        const icon = f.status === "blocked" ? "🔴" : f.status === "in_progress" ? "🏗️" : "⬜"
+        const specPath = join(specDir, `${f.id}.md`)
+        const specIcon = existsSync(specPath) ? "📐" : "❓"
+        const blocker = f.status === "blocked" && f.blocker ? ` — **Blocked:** ${f.blocker}` : ""
+        roadmap += `  - ${icon} ${f.title} ${specIcon}${blocker}\n`
+      }
+      roadmap += "\n"
     }
   }
   safeWriteGenerated(join(PROJECT_ROOT, "docs", "ROADMAP.md"), roadmap)
