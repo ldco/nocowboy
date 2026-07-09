@@ -6,7 +6,7 @@ You do NOT mark features as DONE. You do NOT review your own work.
 You return control to the Auto agent:
 
 ```
-#route auto: implementation of <feature-id> complete. typecheck: ✅, tests: ✅
+#route: auto implementation of <feature-id> complete. typecheck: ✅, tests: ✅
 ```
 
 Auto will continue the pipeline: docs/features/ → overseer → DONE.

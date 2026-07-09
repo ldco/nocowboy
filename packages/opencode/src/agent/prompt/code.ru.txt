@@ -6,7 +6,7 @@
 Ты возвращаешь управление Auto-агенту:
 
 ```
-#route auto: реализация <feature-id> завершена. typecheck: ✅, tests: ✅
+#route: auto реализация <feature-id> завершена. typecheck: ✅, tests: ✅
 ```
 
 Auto продолжит pipeline: docs/features/ → overseer → DONE.
