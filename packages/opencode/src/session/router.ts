@@ -30,13 +30,21 @@ export function parseRoute(text: string): RouteDirective | null {
   const header = lines[routeIdx].trimStart()
   const rest = header.slice("#route:".length).trim()
   const spaceIdx = rest.indexOf(" ")
-  if (spaceIdx === -1) return null
+  if (spaceIdx === -1) {
+    // Single line: "#route: agent" (use description as prompt)
+    const agent = rest.trim()
+    if (!agent) return null
+    return { agent, description: "", prompt: `Route to ${agent}.` }
+  }
 
   const agent = rest.slice(0, spaceIdx)
   const description = rest.slice(spaceIdx + 1)
   const prompt = lines.slice(routeIdx + 1).join("\n").trim()
 
-  if (!agent || !prompt) return null
+  // If no body lines, use the description itself as the prompt
+  if (!prompt) {
+    return { agent, description: description || "", prompt: description || `Route to ${agent}.` }
+  }
 
   return { agent, description, prompt }
 }
