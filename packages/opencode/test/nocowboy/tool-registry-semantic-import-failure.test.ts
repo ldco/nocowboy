@@ -10,7 +10,7 @@ import { provideTestInstance, tmpdir } from "../fixture/fixture"
 const logger = Log.create({ service: "kilocode-tool-registry" })
 const deps = { agent: {} as Agent.Interface, truncate: {} as Truncate.Interface }
 
-describe("kilocode tool registry semantic tool import failure", () => {
+describe("NoCowboy tool registry semantic tool import failure", () => {
   test("omits semantic_search when the semantic search tool cannot load", async () => {
     const err = new Error("semantic tool import failed")
     const warn = spyOn(logger, "warn").mockImplementation(() => {})

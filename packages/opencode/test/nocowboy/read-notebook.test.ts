@@ -72,7 +72,7 @@ const notebook = JSON.stringify({
   ],
 })
 
-describe("kilocode notebook reads", () => {
+describe("NoCowboy notebook reads", () => {
   it.live("extracts markdown and code cells without notebook payloads", () =>
     Effect.gen(function* () {
       const dir = yield* tmpdirScoped()

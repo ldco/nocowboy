@@ -45,7 +45,7 @@ const layer = Config.layer.pipe(
 )
 
 const load = () => Effect.runPromise(Config.Service.use((svc) => svc.get()).pipe(Effect.scoped, Effect.provide(layer)))
-describe("kilocode default indexing plugin", () => {
+describe("NoCowboy default indexing plugin", () => {
   afterEach(async () => {
     await disposeAllInstances()
   })

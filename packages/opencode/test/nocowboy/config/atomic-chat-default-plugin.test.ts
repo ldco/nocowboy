@@ -7,7 +7,7 @@ import { PluginLoader } from "@/plugin/loader"
 
 const atomic = "@nocowboy/plugin-atomic-chat"
 
-describe("kilocode default atomic chat plugin", () => {
+describe("NoCowboy default atomic chat plugin", () => {
   test("does not inject atomic chat as a bundled plugin", () => {
     const external: ConfigPlugin.Origin = { spec: "global-plugin", source: "global", scope: "global" }
     const cfg = { plugin: [external.spec], plugin_origins: [external] }

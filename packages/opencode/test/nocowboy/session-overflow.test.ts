@@ -136,7 +136,7 @@ describe("Kilo request estimation", () => {
   })
 })
 
-describe("Kilo preflight compaction", () => {
+describe("NoCowboy preflight compaction", () => {
   test("triggers from estimated outgoing context without provider usage", () => {
     const conf = cfg({ threshold_percent: 75 })
     const mdl = model({ context: 200_000, output: 32_000 })

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import type { PluginInput } from "@nocowboy/plugin"
 import { CodexAuthPlugin } from "../../src/plugin/codex"
 
-test("identifies Codex refresh requests as Kilo", async () => {
+test("identifies Codex refresh requests as NoCowboy", async () => {
   const original = globalThis.fetch
   const seen: Request[] = []
   const signals: (AbortSignal | null | undefined)[] = []

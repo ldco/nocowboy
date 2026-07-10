@@ -9,7 +9,7 @@ import type * as Tool from "../../src/tool/tool"
 const logger = Log.create({ service: "kilocode-tool-registry" })
 const deps = { agent: {} as Agent.Interface, truncate: {} as Truncate.Interface }
 
-describe("kilocode tool registry indexing import failure", () => {
+describe("NoCowboy tool registry indexing import failure", () => {
   test("omits semantic_search when the indexing module cannot load", async () => {
     const err = new Error("indexing import failed")
     const warn = spyOn(logger, "warn").mockImplementation(() => {})

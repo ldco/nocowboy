@@ -104,7 +104,7 @@ describe("markdown substitutions", () => {
   })
 })
 
-describe("kilocode indexing config", () => {
+describe("NoCowboy indexing config", () => {
   test("ignores retired semantic indexing flags in existing configs", async () => {
     await using tmp = await tmpdir({ git: true })
     await writeConfig(tmp.path, {

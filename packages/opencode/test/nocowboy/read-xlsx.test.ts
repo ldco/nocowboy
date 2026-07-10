@@ -247,7 +247,7 @@ describe("kilocode XLSX reads", () => {
   )
 })
 
-describe("kilocode ODS reads", () => {
+describe("NoCowboy ODS reads", () => {
   it.live("extracts labelled formatted content from case-variant ODS files", () =>
     Effect.gen(function* () {
       const dir = yield* tmpdirScoped()

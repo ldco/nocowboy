@@ -37,7 +37,7 @@ const asks = () => {
   return { items, ctx }
 }
 
-describe("kilocode external directory boundaries", () => {
+describe("NoCowboy external directory boundaries", () => {
   test("asks before accessing outside a repo-root session", async () => {
     await using repo = await tmpdir({ git: true })
     await using outer = await tmpdir()

@@ -14,7 +14,7 @@ import path from "node:path"
 
 const PROMPT_FILE = path.resolve(import.meta.dir, "../../src/session/prompt.ts")
 
-describe("prompt.ts Kilo-specific invariants", () => {
+describe("prompt.ts NoCowboy-specific invariants", () => {
   test("imports Suggestion from kilocode/suggestion", () => {
     const content = fs.readFileSync(PROMPT_FILE, "utf-8")
     expect(content).toMatch(/import\s*\{[^}]*Suggestion[^}]*\}\s*from\s*["']@\/nocowboy\/suggestion["']/)

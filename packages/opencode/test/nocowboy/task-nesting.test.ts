@@ -116,7 +116,7 @@ function stubOps(opts?: { onPrompt?: (input: SessionPrompt.PromptInput) => void 
   }
 }
 
-describe("Kilo task nesting", () => {
+describe("NoCowboy task nesting", () => {
   it.live("allows primary agents to delegate one level to a subagent", () =>
     provideTmpdirInstance(() =>
       Effect.gen(function* () {

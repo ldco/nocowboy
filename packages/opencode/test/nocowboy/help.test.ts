@@ -173,7 +173,7 @@ describe("generateCommandTable", () => {
   })
 })
 
-describe("Kilo CLI customizations are wired into index.ts", () => {
+describe("NoCowboy CLI customizations are wired into index.ts", () => {
   const file = (rel: string) => Bun.file(path.resolve(import.meta.dir, rel)).text()
   const INDEX = "../../src/index.ts"
   const SETUP = "../../src/nocowboy/cli/setup.ts"
@@ -186,8 +186,8 @@ describe("Kilo CLI customizations are wired into index.ts", () => {
   })
 
   test("index.ts invokes the NoCowboyCli integration points", async () => {
-    // These thin call-sites are the only wiring between upstream index.ts and the Kilo
-    // customizations in setup.ts. If a future upstream merge drops them, every Kilo command
+    // These thin call-sites are the only wiring between upstream index.ts and the NoCowboy
+    // customizations in setup.ts. If a future upstream merge drops them, every NoCowboy command
     // and the telemetry/lifecycle hooks silently disappear, exactly the regression this guards.
     const index = await file(INDEX)
     expect(index).toContain("NocowboyCli.register(")

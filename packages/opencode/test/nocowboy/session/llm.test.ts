@@ -3,7 +3,7 @@ import { Effect, Stream } from "effect"
 import { KiloLLM } from "@/nocowboy/session/llm"
 import type { LLM } from "@/session/llm"
 
-describe("kilocode.session.llm.text", () => {
+describe("nocowboy.session.llm.text", () => {
   test("joins text delta events", async () => {
     const out = await Effect.runPromise(
       KiloLLM.text(

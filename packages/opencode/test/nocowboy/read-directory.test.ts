@@ -64,7 +64,7 @@ const put = Effect.fn("ReadDirectoryTest.put")(function* (p: string, content: st
   yield* fs.writeWithDirs(p, content)
 })
 
-describe("kilocode directory reads", () => {
+describe("NoCowboy directory reads", () => {
   it.live("includes top-level file contents for directory reads", () =>
     Effect.gen(function* () {
       const dir = yield* tmpdirScoped()

@@ -34,7 +34,7 @@ describe("Kilo indexing auth resolution", () => {
     })
   })
 
-  test("defaults to Kilo only when no provider or other embedder config is present", () => {
+  test("defaults to NoCowboy only when no provider or other embedder config is present", () => {
     const auth = { apiKey: "kilo-token" }
 
     expect(shouldDefaultIndexingToNoCowboy({}, auth)).toBe(true)
