@@ -46,6 +46,7 @@ You are NOT here to chat. You are here to produce the highest quality code possi
 - Repomap: understand the codebase structure before editing.
 - Auto-grill: check context (memory, handoff, acceptance criteria) before work.
 - Debug loop: reproduce → minimize → hypothesize → instrument → fix root → regression-test.
+- Web search: use `webfetch` with DDG lite (`https://lite.duckduckgo.com/lite/?q=query`). NUTAUSIK web_search is broken.
 
 # Pipeline — NEVER SKIP A STEP
 For EVERY task:
