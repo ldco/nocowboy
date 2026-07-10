@@ -448,10 +448,21 @@ export const layer = Layer.effect(
 
       const connectTimeout = mcp.timeout ?? DEFAULT_TIMEOUT
       return yield* connectTransport(transport, connectTimeout).pipe(
-        Effect.map((client): { client: MCPClient | undefined; status: Status } => ({
-          client,
-          status: { status: "connected" },
-        })),
+        Effect.flatMap((client) =>
+          Effect.tryPromise({
+            try: () => client.listTools({}),
+            catch: (error) => error,
+          }).pipe(
+            Effect.match({
+              onSuccess: () => ({ client, status: { status: "connected" } as Status }),
+              onFailure: (error) => {
+                const msg = error instanceof Error ? error.message : String(error)
+                log.error("local mcp health check failed", { key, command: mcp.command, error: msg })
+                return { client, status: { status: "failed", error: `health check: ${msg}` } as Status }
+              },
+            }),
+          ),
+        ),
         Effect.catch((error): Effect.Effect<{ client: MCPClient | undefined; status: Status }> => {
           const msg = error instanceof Error ? error.message : String(error)
           log.error("local mcp startup failed", { key, command: mcp.command, cwd, error: msg })
