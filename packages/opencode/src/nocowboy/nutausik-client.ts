@@ -16,11 +16,10 @@ const log = Log.create({ service: "nutausik.client" })
 
 /**
  * Default NUTAUSIK MCP URL.
- * Matches the canonical port (9204) from packaging/config/nocowboy.json.
  * Can be overridden via the NUTAUSIK_MCP_URL env var for testing.
  */
 export const NUTAUSIK_MCP_URL: string =
-  process.env.NUTAUSIK_MCP_URL ?? "http://127.0.0.1:9204/mcp"
+  process.env.NUTAUSIK_MCP_URL ?? "http://127.0.0.1:9210/mcp"
 
 let reqId = 1
 
