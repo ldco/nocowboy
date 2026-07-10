@@ -33,6 +33,7 @@ import { RollCallCommand } from "./cli/cmd/roll-call"
 import { ProfileCommand } from "./cli/cmd/profile"
 import { DaemonCommand } from "./cli/cmd/daemon"
 import { KiloConsoleCommand } from "./cli/cmd/console"
+import { RoadmapCommand } from "../cli/cmd/roadmap" // nocowboy_change
 import { HelpCommand } from "./help-command"
 import { InstallationBuildKind } from "@opencode-ai/core/installation/version"
 
@@ -83,6 +84,7 @@ export const commands = [
   ConfigCLICommand,
   ...dev,
   PluginCommand,
+  RoadmapCommand, // nocowboy_change
   HelpCommand,
   CompletionCommand,
 ]
