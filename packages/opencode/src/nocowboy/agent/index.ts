@@ -322,7 +322,7 @@ export function patchAgents(
     name: "overseer",
     description: "Orchestrates code agent + cross-model review. Read-only.", // nocowboy_change — short label
     prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any }, // nocowboy_change — strong model, different from code
+    model: { providerID: "opencode" as any, modelID: "kimi-k2-thinking" as any }, // nocowboy_change — different vendor (Moonshot), cross-model review
     options: {},
     permission: Permission.merge(
       defaults,
