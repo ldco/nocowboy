@@ -290,6 +290,7 @@ export function patchAgents(
       name: "code",
       description: "Primary coding agent — writes, refactors, tests, debugs", // nocowboy_change — short label
       prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt, // nocowboy_change — code-specific engineering prompt + router
+      model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -321,6 +322,7 @@ export function patchAgents(
     name: "overseer",
     description: "Orchestrates code agent + cross-model review. Read-only.", // nocowboy_change — short label
     prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any }, // nocowboy_change — strong model, different from code
     options: {},
     permission: Permission.merge(
       defaults,
@@ -354,6 +356,7 @@ export function patchAgents(
     name: "architect",
     description: "Planning, specification, acceptance criteria — read-only", // nocowboy_change
     prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT),
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any }, // nocowboy_change — strong model for planning
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -365,6 +368,7 @@ export function patchAgents(
     name: "auto",
     description: "Orchestrator — routes to architect → code → overseer automatically", // nocowboy_change
     prompt: (lang === "ru" ? PROMPT_AUTO_RU : PROMPT_AUTO),
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model for orchestration
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
