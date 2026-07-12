@@ -283,6 +283,12 @@ export function patchAgents(
   const lang = cfg.lang ?? "en"
   const routerPrompt = lang === "ru" ? PROMPT_ROUTER_RU : PROMPT_ROUTER
 
+  // ── Agent model configuration ──────────────────────────────────────
+  // Each agent can have an explicit `model` field. If omitted, the agent
+  // uses the system default (cfg.model in nocowboy.json).
+  // Configured here: patchAgents() → agents.<name>.model
+  // ────────────────────────────────────────────────────────────────────
+
   // Rename "build" → "code" for backward compatibility
   if (agents.build) {
     agents.code = {
@@ -311,6 +317,7 @@ export function patchAgents(
     name: "nocowboy",
     description: "Browser, filesystem, shell — full system automation", // nocowboy_change — short label
     prompt: (lang === "ru" ? PROMPT_NOCOWBOY_RU : PROMPT_NOCOWBOY) + routerPrompt,
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -345,6 +352,7 @@ export function patchAgents(
     name: "debug",
     description: "Systematic bug diagnosis and root cause analysis", // nocowboy_change — short label
     prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
     mode: "primary",

@@ -428,7 +428,7 @@ export const layer = Layer.effect(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "auto"), "desc"], // nocowboy_change - Auto is default
+              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "auto"), "desc"], // nocowboy_change - Auto is default (configurable: nocowboy.json → default_agent)
               [(x) => x.name, "asc"],
             ),
           )
