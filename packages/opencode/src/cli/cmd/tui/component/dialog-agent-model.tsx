@@ -1,6 +1,7 @@
 import { createMemo } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { useSync } from "@tui/context/sync"
+import { useSDK } from "@tui/context/sdk"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
 
@@ -9,10 +10,10 @@ type AgentItem = { name: string; displayName?: string; description?: string; nat
 export function DialogAgentModel() {
   const local = useLocal()
   const sync = useSync()
+  const sdk = useSDK()
   const dialog = useDialog()
   dialog.setSize("xlarge")
 
-  // Build list of all available models from all providers
   const allModels = createMemo(() => {
     const result: { providerID: string; modelID: string; label: string }[] = []
     for (const provider of sync.data.provider ?? []) {
@@ -26,7 +27,6 @@ export function DialogAgentModel() {
     return result.sort((a, b) => a.label.localeCompare(b.label))
   })
 
-  // Get current model for an agent (read from agent definition config)
   function currentModel(agentName: string): string {
     const agents = sync.data.agent ?? []
     const agent = agents.find((a: any) => a.name === agentName)
@@ -44,22 +44,34 @@ export function DialogAgentModel() {
     for (const agent of agents) {
       const name = agent.displayName ?? agent.name
       const cur = currentModel(agent.name)
-      // Header row — shows current model
       result.push({
         category: `⚙ ${name}  (${cur || "not configured"})`,
         value: { agentName: agent.name },
         title: "",
         disabled: true,
       })
-      // Model options
       for (const model of models) {
-        const selected = model.modelID === cur.split(" ")[0] // simple compare
+        const isCurrent = model.modelID === cur.split(" ")[0]
         result.push({
           value: { agentName: agent.name, providerID: model.providerID, modelID: model.modelID },
           title: model.label,
           indent: 1,
-          ...(selected ? { action: "(current)" } : {}),
+          ...(isCurrent ? { action: "(current)" } : {}),
           onSelect: async () => {
+            // Save per-agent model to config via overlay endpoint
+            try {
+              await fetch("/config/overlay", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  scope: "project",
+                  set: {
+                    [`agents.${agent.name}.model.modelID`]: model.modelID,
+                    [`agents.${agent.name}.model.providerID`]: model.providerID,
+                  },
+                }),
+              })
+            } catch {}
             dialog.clear()
           },
         })
