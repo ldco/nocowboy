@@ -58,18 +58,16 @@ export function DialogAgentModel() {
           indent: 1,
           ...(isCurrent ? { action: "(current)" } : {}),
           onSelect: async () => {
-            // Save per-agent model to config via overlay endpoint
+            // Save per-agent model to config via overlayUpdate
             try {
-              await fetch("/config/overlay", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+              ;(sdk.client as any).overlayUpdate({
+                body: {
                   scope: "project",
                   set: {
-                    [`agents.${agent.name}.model.modelID`]: model.modelID,
-                    [`agents.${agent.name}.model.providerID`]: model.providerID,
+                    [`agent.${agent.name}.model.modelID`]: model.modelID,
+                    [`agent.${agent.name}.model.providerID`]: model.providerID,
                   },
-                }),
+                },
               })
             } catch {}
             dialog.clear()
