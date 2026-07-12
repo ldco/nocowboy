@@ -51,6 +51,7 @@ import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
 import { DialogModel } from "../dialog-model" // nocowboy_change
 import { DialogAgent } from "../dialog-agent" // nocowboy_change
+import { DialogAgentModel } from "../dialog-agent-model" // nocowboy_change
 import { DialogVariant } from "../dialog-variant" // nocowboy_change
 import {
   confirmWorkspaceFileChanges,
@@ -1628,6 +1629,12 @@ export function Prompt(props: PromptProps) {
                             {local.model.parsed().model}
                           </text>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
+                          <text
+                            fg={fadeColor(theme.textMuted, modelMetaAlpha())}
+                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgentModel />) }} // nocowboy_change
+                          >
+                            ⚙ agents
+                          </text>
                           <Show when={showVariant()}>
                             <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
                             <text
