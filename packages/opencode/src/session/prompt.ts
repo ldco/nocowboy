@@ -514,6 +514,9 @@ export const layer = Layer.effect(
         providerID: input.model.providerID,
         agent: input.agent,
       })) {
+        // HARD BLOCK: agent must use complete_task (with verification gate)
+        // instead of nutausik_task_done (raw MCP tool, no verification).
+        if (item.id === "nutausik_task_done") continue
         const schema = ProviderTransform.schema(input.model, ToolJsonSchema.fromTool(item))
         tools[item.id] = tool({
           description: item.description,
