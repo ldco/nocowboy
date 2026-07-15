@@ -70,12 +70,10 @@ export const RevertPayload = Schema.Struct(Struct.omit(SessionRevert.RevertInput
 export const PermissionResponsePayload = Schema.Struct({
   response: Permission.Reply,
 })
-// nocowboy_change start
 export const ViewedPayload = Schema.Struct({
   focused: Schema.optional(Schema.Array(Schema.String)),
   open: Schema.optional(Schema.Array(Schema.String)),
 })
-// nocowboy_change end
 
 export const SessionPaths = {
   list: root,
@@ -104,7 +102,7 @@ export const SessionPaths = {
   deleteMessage: `${root}/:sessionID/message/:messageID`,
   deletePart: `${root}/:sessionID/message/:messageID/part/:partID`,
   updatePart: `${root}/:sessionID/message/:messageID/part/:partID`,
-  viewed: `${root}/viewed`, // nocowboy_change
+  viewed: `${root}/viewed`,
 } as const
 
 export const SessionApi = HttpApi.make("session")
@@ -118,7 +116,7 @@ export const SessionApi = HttpApi.make("session")
           OpenApi.annotations({
             identifier: "session.list",
             summary: "List sessions",
-            description: "Get a list of all Kilo sessions, sorted by most recently updated.", // nocowboy_change
+            description: "Get a list of all Kilo sessions, sorted by most recently updated.",
           }),
         ),
         HttpApiEndpoint.get("status", SessionPaths.status, {
@@ -141,7 +139,7 @@ export const SessionApi = HttpApi.make("session")
           OpenApi.annotations({
             identifier: "session.get",
             summary: "Get session",
-            description: "Retrieve detailed information about a specific Kilo session.", // nocowboy_change
+            description: "Retrieve detailed information about a specific Kilo session.",
           }),
         ),
         HttpApiEndpoint.get("children", SessionPaths.children, {
@@ -212,7 +210,7 @@ export const SessionApi = HttpApi.make("session")
           OpenApi.annotations({
             identifier: "session.create",
             summary: "Create session",
-            description: "Create a new Kilo session for interacting with AI assistants and managing conversations.", // nocowboy_change
+            description: "Create a new Kilo session for interacting with AI assistants and managing conversations.",
           }),
         ),
         HttpApiEndpoint.delete("remove", SessionPaths.remove, {
@@ -243,9 +241,9 @@ export const SessionApi = HttpApi.make("session")
         HttpApiEndpoint.post("fork", SessionPaths.fork, {
           params: { sessionID: SessionID },
           query: WorkspaceRoutingQuery,
-          payload: Schema.optional(ForkPayload), // nocowboy_change - carry upstream bodyless full-session fork support
+          payload: Schema.optional(ForkPayload),
           success: described(Session.Info, "200"),
-          error: [HttpApiError.BadRequest, ApiNotFoundError], // nocowboy_change - carry upstream malformed payload response
+          error: [HttpApiError.BadRequest, ApiNotFoundError],
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "session.fork",
@@ -445,7 +443,6 @@ export const SessionApi = HttpApi.make("session")
             description: "Update a part in a message.",
           }),
         ),
-        // nocowboy_change start
         HttpApiEndpoint.post("viewed", SessionPaths.viewed, {
           query: WorkspaceRoutingQuery,
           payload: ViewedPayload,
@@ -457,7 +454,6 @@ export const SessionApi = HttpApi.make("session")
             description: "Notify the server which sessions the user is currently viewing, or clear all.",
           }),
         ),
-        // nocowboy_change end
       )
       .annotateMerge(
         OpenApi.annotations({
@@ -471,7 +467,7 @@ export const SessionApi = HttpApi.make("session")
   )
   .annotateMerge(
     OpenApi.annotations({
-      title: "opencode experimental HttpApi",
+      title: "nocowboy experimental HttpApi",
       version: "0.0.1",
       description: "Experimental HttpApi surface for selected instance routes.",
     }),

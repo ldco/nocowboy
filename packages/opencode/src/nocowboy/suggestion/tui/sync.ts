@@ -1,4 +1,4 @@
-import { Binary } from "@opencode-ai/core/util/binary"
+import { Binary } from "@nocowboy/core/util/binary"
 import type { SuggestionRequest } from "@nocowboy/sdk/v2"
 
 type RemovedEvent = {

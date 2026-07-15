@@ -1,4 +1,3 @@
-// nocowboy_change — auto-router agent capability registry
 
 /**
  * Each agent declares what it excels at.

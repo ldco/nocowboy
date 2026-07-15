@@ -4,7 +4,7 @@ import { Effect } from "effect"
 import { testEffect } from "../lib/effect"
 import { Agent } from "../../src/agent/agent"
 import { Permission } from "../../src/permission"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 
 const it = testEffect(Agent.defaultLayer)
 

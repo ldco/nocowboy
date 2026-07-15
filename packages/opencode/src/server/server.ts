@@ -1,7 +1,7 @@
 import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { ConfigProvider, Context, Effect, Exit, Layer, Scope } from "effect"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
@@ -52,7 +52,7 @@ interface ListenerServer {
 }
 
 class ListenerServerService extends Context.Service<ListenerServerService, ListenerServer>()(
-  "@opencode/ListenerServer",
+  "@nocowboy/ListenerServer",
 ) {}
 
 export const Default = lazy(() => {

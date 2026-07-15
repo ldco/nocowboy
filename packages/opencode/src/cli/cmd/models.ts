@@ -2,7 +2,7 @@ import { EOL } from "os"
 import { Effect } from "effect"
 import { Provider } from "@/provider/provider"
 import { ProviderID } from "../../provider/schema"
-import { ModelsDev } from "@opencode-ai/core/models"
+import { ModelsDev } from "@nocowboy/core/models"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 
@@ -53,15 +53,13 @@ export const ModelsCommand = effectCmd({
       return
     }
 
-    // nocowboy_change start
     const ids = Object.keys(providers).sort((a, b) => {
-      const aIsKilo = a === "nocowboy" || a.startsWith("opencode")
-      const bIsKilo = b === "nocowboy" || b.startsWith("opencode")
+      const aIsKilo = a === "nocowboy" || a.startsWith("nocowboy")
+      const bIsKilo = b === "nocowboy" || b.startsWith("nocowboy")
       if (aIsKilo && !bIsKilo) return -1
       if (!aIsKilo && bIsKilo) return 1
       return a.localeCompare(b)
     })
-    // nocowboy_change end
 
     for (const providerID of ids) print(ProviderID.make(providerID), args.verbose)
   }),

@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 //
 // Slow-repo guard for Snapshot.track.
 //
@@ -42,14 +41,14 @@
 
 import { Duration, Effect, Fiber } from "effect"
 import { applyEdits, modify } from "jsonc-parser"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Question } from "@/question"
 import type { MessageID, PartID, SessionID } from "@/session/schema"
 import { PartID as PartIDSchema } from "@/session/schema"
 import type { MessageV2 } from "@/session/message-v2"
 import { NoCowboyConfig } from "@/nocowboy/config/config"
 import { ConfigParse } from "@/config/parse"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { iife } from "@/util/iife"
 import { makeRuntime } from "@/effect/run-service"
 import type { Config } from "@/config/config"

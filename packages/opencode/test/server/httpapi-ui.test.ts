@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import { describe, expect } from "bun:test"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import * as Log from "@opencode-ai/core/util/log"
+import { Flag } from "@nocowboy/core/flag/flag"
+import * as Log from "@nocowboy/core/util/log"
 import { ConfigProvider, Effect, Layer } from "effect"
 import {
   HttpClient,
@@ -11,7 +11,7 @@ import {
   HttpServer,
   HttpServerResponse,
 } from "effect/unstable/http"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { RuntimeFlags } from "../../src/effect/runtime-flags"
 import { ServerAuth } from "../../src/server/auth"
 import { authorizationRouterMiddleware } from "../../src/server/routes/instance/httpapi/middleware/authorization"

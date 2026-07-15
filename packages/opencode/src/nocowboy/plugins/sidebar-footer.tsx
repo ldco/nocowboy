@@ -1,6 +1,6 @@
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/tui"
 import { createMemo, Show } from "solid-js"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 
 const id = "internal:nocowboy-sidebar-footer"
 
@@ -9,7 +9,7 @@ function View(props: { api: TuiPluginApi }) {
   const has = createMemo(() =>
     props.api.state.provider.some(
       (item) =>
-        (item.id !== "opencode" && item.id !== "kilo") ||
+        (item.id !== "nocowboy" && item.id !== "kilo") ||
         Object.values(item.models).some((model) => model.cost?.input !== 0),
     ),
   )

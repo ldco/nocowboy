@@ -4,7 +4,7 @@ import { Effect } from "effect"
 import { Snapshot } from "../../src/snapshot"
 import { provideTestInstance } from "../fixture/fixture"
 import { Filesystem } from "../../src/util/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { tmpdir } from "../fixture/fixture"
 
 void Log.init({ print: false })

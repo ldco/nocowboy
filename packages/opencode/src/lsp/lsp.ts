@@ -1,6 +1,6 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import * as LSPClient from "./client"
 import path from "path"
 import { pathToFileURL, fileURLToPath } from "url"
@@ -11,8 +11,8 @@ import { spawn as lspspawn } from "./launch"
 import { Effect, Layer, Context, Schema } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { containsPath } from "@/project/instance-context"
-import { TsClient } from "../nocowboy/ts-client" // nocowboy_change
-import { NonNegativeInt } from "@opencode-ai/core/schema"
+import { TsClient } from "../nocowboy/ts-client"
+import { NonNegativeInt } from "@nocowboy/core/schema"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
 const log = Log.create({ service: "lsp" })
@@ -138,7 +138,7 @@ export interface Interface {
   readonly outgoingCalls: (input: LocInput) => Effect.Effect<any[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/LSP") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/LSP") {}
 
 export const layer = Layer.effect(
   Service,
@@ -265,7 +265,6 @@ export const layer = Layer.effect(
           if (!root) continue
           if (s.broken.has(root + server.id)) continue
 
-          // nocowboy_change start - use lightweight tsgo-based client when persistent LSP is not enabled
           if (server.id === "typescript" && !flags.experimentalLspTool) {
             const existing = s.clients.find((x) => x.root === root && x.serverID === server.id)
             if (existing) {
@@ -278,7 +277,6 @@ export const layer = Layer.effect(
             await Bus.publish(ctx, Event.Updated, {})
             continue
           }
-          // nocowboy_change end
 
           const match = s.clients.find((x) => x.root === root && x.serverID === server.id)
           if (match) {

@@ -1,7 +1,7 @@
 import path from "path"
 import { Effect, Context, Layer, Scope } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import { Global } from "@opencode-ai/core/global"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import { Global } from "@nocowboy/core/global"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -46,7 +46,7 @@ export interface Interface {
   readonly contains: (target?: string) => Effect.Effect<boolean>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Reference") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Reference") {}
 
 export function referencePath(input: { directory: string; worktree: string; value: string }) {
   if (input.value.startsWith("~/")) return path.join(Global.Path.home, input.value.slice(2))

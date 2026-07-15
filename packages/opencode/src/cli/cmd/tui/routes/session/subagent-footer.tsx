@@ -3,22 +3,22 @@ import { useRouteData } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
-import { Spinner } from "@tui/component/spinner" // nocowboy_change
-import { useLocal } from "@tui/context/local" // nocowboy_change
+import { Spinner } from "@tui/component/spinner"
+import { useLocal } from "@tui/context/local"
 import type { AssistantMessage, Message, Provider, Session } from "@nocowboy/sdk/v2"
 import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
 import { useCommandShortcut } from "../../keymap"
+import { fetchBalance, findBalanceProvider, getBalanceColor } from "@/nocowboy/provider-balance"
 
 export function SubagentFooter() {
   const route = useRouteData("session")
   const sync = useSync()
-  const local = useLocal() // nocowboy_change
+  const local = useLocal()
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
   const session = createMemo(() => sync.session.get(route.sessionID))
 
-  // nocowboy_change start
   const lastAssistant = createMemo(() => messages().findLast((m: Message) => m.role === "assistant"))
 
   const isRunning = createMemo(() => {
@@ -30,7 +30,6 @@ export function SubagentFooter() {
   })
 
   const agentColor = createMemo(() => local.agent.color(lastAssistant()?.agent ?? ""))
-  // nocowboy_change end
 
   const subagentInfo = createMemo(() => {
     const s = session()
@@ -48,53 +47,32 @@ export function SubagentFooter() {
     return { label, index: index + 1, total: siblings.length }
   })
 
-  // nocowboy_change start — real DeepSeek balance from API
   const money = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   })
 
-  const deepseekKey = createMemo(() => {
-    for (const p of sync.data.provider as Provider[]) {
-      if (p.id === "deepseek") return p.key ?? null
-    }
-    return null
+  // For subagent footer, find any balance-aware provider (typically deepseek)
+  const balanceProvider = createMemo(() => {
+    return findBalanceProvider(sync.data.provider as Provider[], "deepseek", "")
   })
-
-  const fetchDeepSeekBalance = async (key: string): Promise<number> => {
-    try {
-      const res = await fetch("https://api.deepseek.com/user/balance", {
-        headers: { Authorization: `Bearer ${key}` },
-      })
-      if (!res.ok) return 0
-      const data = await res.json() as { balance_infos?: Array<{ currency: string; total_balance: string }> }
-      const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
-      return usd ? parseFloat(usd.total_balance) : 0
-    } catch {
-      return 0
-    }
-  }
 
   const { theme } = useTheme()
 
   const [balanceData] = createResource(
     () => {
-      const key = deepseekKey()
-      if (!key) return null
-      return { key, version: messages().length }
+      const bp = balanceProvider()
+      if (!bp) return null
+      return { key: bp.apiKey, pid: bp.providerID, baseURL: bp.baseURL, version: messages().length }
     },
-    (input) => fetchDeepSeekBalance(input.key),
+    (input) => fetchBalance(input.pid, input.key, input.baseURL),
   )
 
   const balance = createMemo(() => balanceData() ?? 0)
   const balanceFg = createMemo(() => {
-    const b = balance()
-    if (b > 10) return theme.success
-    if (b >= 3) return theme.warning
-    return theme.error
+    const color = getBalanceColor(balance())
+    return theme[color]
   })
-  // nocowboy_change end
-  // nocowboy_change end
 
   const usage = createMemo(() => {
     const msg = messages()
@@ -142,11 +120,9 @@ export function SubagentFooter() {
                 ({subagentInfo().index} of {subagentInfo().total})
               </text>
             </Show>
-            {/* nocowboy_change start */}
             <Show when={isRunning()}>
               <Spinner color={agentColor()} />
             </Show>
-            {/* nocowboy_change end */}
             <Show when={usage()} keyed={true}>
               {(item: { context: string }) => (
                 <text fg={theme.textMuted} wrapMode="none">

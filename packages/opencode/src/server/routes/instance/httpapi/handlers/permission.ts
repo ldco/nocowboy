@@ -1,16 +1,12 @@
-import { AllowEverythingPermission } from "@/nocowboy/permission/allow-everything" // nocowboy_change
+import { AllowEverythingPermission } from "@/nocowboy/permission/allow-everything"
 import { Permission } from "@/permission"
 import { PermissionID } from "@/permission/schema"
-// nocowboy_change start
 import { SessionID } from "@/session/schema"
 import { Effect, Schema } from "effect"
-// nocowboy_change end
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../api"
-// nocowboy_change start
 import { notFound } from "../errors"
 import { AllowEverythingBody, SaveAlwaysRulesBody } from "../groups/permission"
-// nocowboy_change end
 
 export const permissionHandlers = HttpApiBuilder.group(InstanceHttpApi, "permission", (handlers) =>
   Effect.gen(function* () {
@@ -25,16 +21,14 @@ export const permissionHandlers = HttpApiBuilder.group(InstanceHttpApi, "permiss
       payload: Permission.ReplyBody
     }) {
       const ok = yield* svc.reply({
-        // nocowboy_change
         requestID: ctx.params.requestID,
         reply: ctx.payload.reply,
         message: ctx.payload.message,
       })
-      if (!ok) return yield* notFound(`Permission request not found: ${ctx.params.requestID}`) // nocowboy_change
+      if (!ok) return yield* notFound(`Permission request not found: ${ctx.params.requestID}`)
       return true
     })
 
-    // nocowboy_change start
     const saveAlwaysRules = Effect.fn("PermissionHttpApi.saveAlwaysRules")(function* (ctx: {
       params: { requestID: PermissionID }
       payload: Schema.Schema.Type<typeof SaveAlwaysRulesBody>
@@ -63,6 +57,5 @@ export const permissionHandlers = HttpApiBuilder.group(InstanceHttpApi, "permiss
       .handle("reply", reply)
       .handle("saveAlwaysRules", saveAlwaysRules)
       .handle("allowEverything", allowEverything)
-    // nocowboy_change end
   }),
 )

@@ -1,14 +1,13 @@
-// nocowboy_change - new file
 import { $ } from "bun"
 import { createTwoFilesPatch } from "diff"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { Schema } from "effect"
-import { zod } from "@opencode-ai/core/effect-zod"
+import { zod } from "@nocowboy/core/effect-zod"
 import { FileIgnore } from "@/file/ignore"
 import { Snapshot } from "@/snapshot"
-import * as Log from "@opencode-ai/core/util/log"
-import { withStatics } from "@opencode-ai/core/schema"
+import * as Log from "@nocowboy/core/util/log"
+import { withStatics } from "@nocowboy/core/schema"
 
 export namespace WorktreeDiff {
   export const Item = Schema.Struct({

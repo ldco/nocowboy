@@ -5,7 +5,7 @@ import { SessionID, MessageID, PartID } from "./schema"
 import { Provider } from "@/provider/provider"
 import { MessageV2 } from "./message-v2"
 import { Token } from "@/util/token"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { SessionProcessor } from "./processor"
 import { Agent } from "@/agent/agent"
 import { Plugin } from "@/plugin"
@@ -17,16 +17,14 @@ import * as DateTime from "effect/DateTime"
 import { InstanceState } from "@/effect/instance-state"
 import { isOverflow as overflow, usable } from "./overflow"
 import { serviceUse } from "@/effect/service-use"
-// nocowboy_change start
 import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { KiloCompactionPayloadRecovery } from "@/nocowboy/session/compaction-payload-recovery"
 import { KiloCompactionChunks } from "@/nocowboy/session/compaction-chunks"
 import { SessionExport } from "@/nocowboy/session-export"
 import { NoCowboySession } from "@/nocowboy/session"
-// nocowboy_change end
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
-import { SessionEvent } from "@opencode-ai/core/session-event"
+import { SessionEvent } from "@nocowboy/core/session-event"
 
 const log = Log.create({ service: "session.compaction" })
 
@@ -99,9 +97,7 @@ type CompletedCompaction = {
   summary: string | undefined
 }
 
-// nocowboy_change start - allow safe pruning at cache-invalidating boundaries
 export type PruneReason = "normal" | "post-compaction" | "payload-limit"
-// nocowboy_change end
 
 function summaryText(message: MessageV2.WithParts) {
   const text = message.parts
@@ -145,7 +141,6 @@ function buildPrompt(input: { previousSummary?: string; context: string[] }) {
 }
 
 function preserveRecentBudget(input: { cfg: Config.Info; model: Provider.Model; outputTokenMax?: number }) {
-  // nocowboy_change
   return (
     input.cfg.compaction?.preserve_recent_tokens ??
     Math.min(MAX_PRESERVE_RECENT_TOKENS, Math.max(MIN_PRESERVE_RECENT_TOKENS, Math.floor(usable(input) * 0.25)))
@@ -200,7 +195,7 @@ export interface Interface {
     tokens: MessageV2.Assistant["tokens"]
     model: Provider.Model
   }) => Effect.Effect<boolean>
-  readonly prune: (input: { sessionID: SessionID; reason?: PruneReason }) => Effect.Effect<void> // nocowboy_change
+  readonly prune: (input: { sessionID: SessionID; reason?: PruneReason }) => Effect.Effect<void>
   readonly process: (input: {
     parentID: MessageID
     messages: MessageV2.WithParts[]
@@ -217,7 +212,7 @@ export interface Interface {
   }) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionCompaction") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SessionCompaction") {}
 
 export const use = serviceUse(Service)
 
@@ -261,13 +256,11 @@ export const layer = Layer.effect(
     }) {
       const limit = input.cfg.compaction?.tail_turns ?? DEFAULT_TAIL_TURNS
       if (limit <= 0) return { head: input.messages, tail_start_id: undefined }
-      // nocowboy_change start
       const budget = preserveRecentBudget({
         cfg: input.cfg,
         model: input.model,
         outputTokenMax: flags.outputTokenMax,
       })
-      // nocowboy_change end
       const all = turns(input.messages)
       if (!all.length) return { head: input.messages, tail_start_id: undefined }
       const recent = all.slice(-limit)
@@ -313,7 +306,6 @@ export const layer = Layer.effect(
 
     // goes backwards through parts until there are PRUNE_PROTECT tokens worth of tool
     // calls, then erases output of older tool calls to free context space
-    // nocowboy_change start - preserve normal opt-in pruning, but allow payload/compaction cleanup by default
     const prune = Effect.fn("SessionCompaction.prune")(function* (input: {
       sessionID: SessionID
       reason?: PruneReason
@@ -364,7 +356,6 @@ export const layer = Layer.effect(
         log.info("pruned", { reason, count: toPrune.length })
       }
     })
-    // nocowboy_change end
 
     const processCompaction = Effect.fn("SessionCompaction.process")(function* (input: {
       parentID: MessageID
@@ -387,7 +378,6 @@ export const layer = Layer.effect(
             parts: MessageV2.Part[]
           }
         | undefined
-      // nocowboy_change start - false is preflight replay; undefined disables replay
       if (input.overflow !== undefined) {
         const idx = input.messages.findIndex((m) => m.info.id === input.parentID)
         for (let i = idx - 1; i >= 0; i--) {
@@ -405,7 +395,6 @@ export const layer = Layer.effect(
           messages = input.messages
         }
       }
-      // nocowboy_change end
 
       const agent = yield* agents.get("compaction")
       const model = agent.model
@@ -434,7 +423,7 @@ export const layer = Layer.effect(
         stripMedia: true,
         toolOutputMaxChars: TOOL_OUTPUT_MAX_CHARS,
       })
-      const tokens = Token.estimate(JSON.stringify(modelMessages)) // nocowboy_change
+      const tokens = Token.estimate(JSON.stringify(modelMessages))
       const ctx = yield* InstanceState.context
       const msg: MessageV2.Assistant = {
         id: MessageID.ascending(),
@@ -468,7 +457,6 @@ export const layer = Layer.effect(
         sessionID: input.sessionID,
         model,
       })
-      // nocowboy_change start
       const result = KiloCompactionChunks.needed({ cfg, model, tokens, outputTokenMax: flags.outputTokenMax })
         ? "compact"
         : yield* KiloCompactionPayloadRecovery.process({
@@ -505,7 +493,6 @@ export const layer = Layer.effect(
           })
         : result
       if (fallback === "compact") {
-        // nocowboy_change end
         processor.message.error = new MessageV2.ContextOverflowError({
           message: replay
             ? "Conversation history too large to compact - exceeds model context limit"
@@ -524,9 +511,7 @@ export const layer = Layer.effect(
       }
 
       if (fallback === "continue" && input.auto) {
-        // nocowboy_change
         if (replay) {
-          // nocowboy_change start - compact oversized replay turns instead of looping into replay overflow
           replay = yield* KiloCompactionChunks.replay({
             processors,
             session,
@@ -543,7 +528,6 @@ export const layer = Layer.effect(
             updatePart: session.updatePart,
             replay,
           })
-          // nocowboy_change end
           const original = replay.info
           const replayMsg = yield* session.updateMessage({
             id: MessageID.ascending(),
@@ -556,10 +540,9 @@ export const layer = Layer.effect(
             tools: original.tools,
             system: original.system,
           })
-          NoCowboySessionPromptQueue.retarget(input.sessionID, replayMsg.id) // nocowboy_change - expose replay to scope()
+          NoCowboySessionPromptQueue.retarget(input.sessionID, replayMsg.id)
           for (const part of replay.parts) {
             if (part.type === "compaction") continue
-            // nocowboy_change start - preserve media for preflight replay but strip it after provider overflow
             const replayPart =
               input.overflow && part.type === "file" && MessageV2.isMedia(part.mime)
                 ? { type: "text" as const, text: `[Attached ${part.mime}: ${part.filename ?? "file"}]` }
@@ -570,7 +553,6 @@ export const layer = Layer.effect(
               messageID: replayMsg.id,
               sessionID: input.sessionID,
             })
-            // nocowboy_change end
           }
         }
 
@@ -604,7 +586,7 @@ export const layer = Layer.effect(
               agent: userMessage.agent,
               model: userMessage.model,
             })
-            NoCowboySessionPromptQueue.retarget(input.sessionID, continueMsg.id) // nocowboy_change - expose auto-continue to scope()
+            NoCowboySessionPromptQueue.retarget(input.sessionID, continueMsg.id)
             const text =
               (input.overflow
                 ? "The previous request exceeded the provider's size limit due to large media attachments. The conversation was compacted and media files were removed from context. If the user was asking about attached images or files, explain that the attachments were too large to process and suggest they try again with smaller or fewer files.\n\n"
@@ -630,7 +612,6 @@ export const layer = Layer.effect(
         }
       }
 
-      // nocowboy_change start - compaction already invalidates cache, so collapse stale tool outputs too
       if (processor.message.error) return "stop"
       if (fallback === "continue") {
         const summary = summaryText(
@@ -649,7 +630,6 @@ export const layer = Layer.effect(
             include: selected.tail_start_id,
           })
         }
-        // nocowboy_change start - export self-contained compaction capture
         const parent = NoCowboySession.resolveParent(input.sessionID)
         const found = NoCowboySession.resolveRoot(input.sessionID)
         const root = parent ? (found === input.sessionID ? parent : found) : input.sessionID
@@ -678,12 +658,10 @@ export const layer = Layer.effect(
             outputTokens: processor.message.tokens.output,
           },
         })
-        // nocowboy_change end
         yield* prune({ sessionID: input.sessionID, reason: "post-compaction" })
         yield* bus.publish(Event.Compacted, { sessionID: input.sessionID })
       }
       return fallback
-      // nocowboy_change end
     })
 
     const create = Effect.fn("SessionCompaction.create")(function* (input: {
@@ -709,9 +687,7 @@ export const layer = Layer.effect(
         auto: input.auto,
         overflow: input.overflow,
       })
-      // nocowboy_change start - keep auto-compaction markers visible during queued turns
       NoCowboySessionPromptQueue.retarget(input.sessionID, msg.id)
-      // nocowboy_change end
       if (flags.experimentalEventSystem) {
         yield* events.publish(SessionEvent.Compaction.Started, {
           sessionID: input.sessionID,
@@ -724,7 +700,7 @@ export const layer = Layer.effect(
     return Service.of({
       isOverflow,
       prune,
-      process: (input) => processCompaction(input).pipe(Effect.orDie), // nocowboy_change
+      process: (input) => processCompaction(input).pipe(Effect.orDie),
       create,
     })
   }),

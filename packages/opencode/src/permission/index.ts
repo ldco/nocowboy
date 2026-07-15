@@ -1,27 +1,25 @@
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { ConfigPermission } from "@/config/permission"
-import * as Config from "@/config/config" // nocowboy_change
+import * as Config from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { ProjectID } from "@/project/schema"
 import { MessageID, SessionID } from "@/session/schema"
 import { PermissionTable } from "@/session/session.sql"
 import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Wildcard } from "@/util/wildcard"
 import { Deferred, Effect, Layer, Schema, Context } from "effect"
 import os from "os"
-import z from "zod" // nocowboy_change
-import { zod } from "@opencode-ai/core/effect-zod" // nocowboy_change
+import z from "zod"
+import { zod } from "@nocowboy/core/effect-zod"
 import { evaluate as evalRule } from "./evaluate"
 import { PermissionID } from "./schema"
-// nocowboy_change start
 import { ConfigProtection } from "@/nocowboy/permission/config-paths"
 import { drainCovered } from "@/nocowboy/permission/drain"
 import { ReadPermission } from "@/nocowboy/permission/read"
 import { ExternalDirectoryPermission } from "@/nocowboy/permission/external-directory"
-// nocowboy_change end
 
 const log = Log.create({ service: "permission" })
 
@@ -109,7 +107,7 @@ export const AskInput = Schema.Struct({
   ...Request.fields,
   id: Schema.optional(PermissionID),
   ruleset: Ruleset,
-  hardRuleset: Schema.optional(Ruleset), // nocowboy_change
+  hardRuleset: Schema.optional(Ruleset),
 }).annotate({ identifier: "PermissionAskInput" })
 export type AskInput = Schema.Schema.Type<typeof AskInput>
 
@@ -119,7 +117,6 @@ export const ReplyInput = Schema.Struct({
 }).annotate({ identifier: "PermissionReplyInput" })
 export type ReplyInput = Schema.Schema.Type<typeof ReplyInput>
 
-// nocowboy_change start
 export const SaveAlwaysRulesInput = z.object({
   requestID: zod(PermissionID),
   approvedAlways: z.string().array().optional(),
@@ -131,40 +128,34 @@ export const AllowEverythingInput = z.object({
   requestID: zod(PermissionID).optional(),
   sessionID: zod(SessionID).optional(),
 })
-// nocowboy_change end
 
 export interface Interface {
   readonly ask: (input: AskInput) => Effect.Effect<void, Error>
-  readonly reply: (input: ReplyInput) => Effect.Effect<boolean> // nocowboy_change
+  readonly reply: (input: ReplyInput) => Effect.Effect<boolean>
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
-  // nocowboy_change start
   readonly saveAlwaysRules: (input: z.infer<typeof SaveAlwaysRulesInput>) => Effect.Effect<boolean>
   readonly allowEverything: (input: z.infer<typeof AllowEverythingInput>) => Effect.Effect<void>
   readonly pending: (id: string) => Effect.Effect<Request | undefined>
-  // nocowboy_change end
 }
 
 interface PendingEntry {
   info: Request
-  // nocowboy_change start
   ruleset: Ruleset
   hardRuleset?: Ruleset
   saved?: boolean
-  // nocowboy_change end
   deferred: Deferred.Deferred<void, RejectedError | CorrectedError>
 }
 
 interface State {
   pending: Map<PermissionID, PendingEntry>
   approved: Ruleset
-  session: Record<string, Ruleset> // nocowboy_change
+  session: Record<string, Ruleset>
 }
 
 export function evaluate(permission: string, pattern: string, ...rulesets: Ruleset[]): Rule {
   return evalRule(permission, pattern, ...rulesets)
 }
 
-// nocowboy_change start
 export function resolve(permission: string, pattern: string, ruleset: Ruleset, ...overrides: Ruleset[]): Rule {
   const evalFn = permission === "external_directory" ? ExternalDirectoryPermission.evaluate : evaluate
   const base = ReadPermission.harden(permission, pattern, evalFn(permission, pattern, ruleset))
@@ -195,15 +186,14 @@ function covered(entry: PendingEntry, approved: Ruleset, local: Ruleset) {
     return resolve(entry.info.permission, pattern, entry.ruleset, approved, local).action === "allow"
   })
 }
-// nocowboy_change end
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Permission") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Permission") {}
 
 export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const bus = yield* Bus.Service
-    const config = yield* Config.Service // nocowboy_change
+    const config = yield* Config.Service
     const state = yield* InstanceState.make<State>(
       Effect.fn("Permission.state")(function* (ctx) {
         const row = Database.use((db) =>
@@ -212,7 +202,7 @@ export const layer = Layer.effect(
         const state = {
           pending: new Map<PermissionID, PendingEntry>(),
           approved: row?.data ?? [],
-          session: {} as Record<string, Ruleset>, // nocowboy_change
+          session: {} as Record<string, Ruleset>,
         }
 
         yield* Effect.addFinalizer(() =>
@@ -230,40 +220,31 @@ export const layer = Layer.effect(
 
     const ask = Effect.fn("Permission.ask")(function* (input: AskInput) {
       const { approved, pending } = yield* InstanceState.get(state)
-      // nocowboy_change start
       const { ruleset, hardRuleset, ...request } = input
       const s = yield* InstanceState.get(state)
       const local = s.session[request.sessionID] ?? []
-      // nocowboy_change end
       let needsAsk = false
 
-      // nocowboy_change start — force "ask" for config file edits
       const isProtected = ConfigProtection.isRequest(request)
-      // nocowboy_change end
 
       for (const pattern of request.patterns) {
-        const rule = resolve(request.permission, pattern, ruleset, approved, local) // nocowboy_change — include session-scoped rules
+        const rule = resolve(request.permission, pattern, ruleset, approved, local)
         log.info("evaluated", { permission: request.permission, pattern, action: rule })
-        // nocowboy_change start — saved/session approvals cannot override hard Ask/Plan denials
         if (veto(request.permission, pattern, hardRuleset)) {
           return yield* new DeniedError({ ruleset: subset(request.permission, hardRuleset ?? []) })
         }
-        // nocowboy_change end
         if (rule.action === "deny") {
           return yield* new DeniedError({
-            ruleset: subset(request.permission, ruleset), // nocowboy_change
+            ruleset: subset(request.permission, ruleset),
           })
         }
-        // nocowboy_change start — override "allow" to "ask" for config paths
         if (rule.action === "allow" && !isProtected) continue
-        // nocowboy_change end
         needsAsk = true
       }
 
       if (!needsAsk) return
 
       const id = request.id ?? PermissionID.ascending()
-      // nocowboy_change start — inject disableAlways metadata for config paths
       const info = Schema.decodeUnknownSync(Request)({
         id,
         ...request,
@@ -272,13 +253,11 @@ export const layer = Layer.effect(
           ...(isProtected ? { [ConfigProtection.DISABLE_ALWAYS_KEY]: true } : {}),
         },
       })
-      // nocowboy_change end
       log.info("asking", { id, permission: info.permission, patterns: info.patterns })
 
       const deferred = yield* Deferred.make<void, RejectedError | CorrectedError>()
-      pending.set(id, { info, ruleset, hardRuleset, deferred }) // nocowboy_change
+      pending.set(id, { info, ruleset, hardRuleset, deferred })
       yield* bus.publish(Event.Asked, info)
-      // nocowboy_change start — permission timeout
       const cfg = yield* config.get()
       const timeoutMs = cfg.experimental?.permission_timeout
       const awaitPermission = Deferred.await(deferred)
@@ -295,13 +274,12 @@ export const layer = Layer.effect(
           pending.delete(id)
         }),
       )
-      // nocowboy_change end
     })
 
     const reply = Effect.fn("Permission.reply")(function* (input: ReplyInput) {
       const { approved, pending } = yield* InstanceState.get(state)
       const existing = pending.get(input.requestID)
-      if (!existing) return false // nocowboy_change
+      if (!existing) return false
 
       pending.delete(input.requestID)
       yield* bus.publish(Event.Replied, {
@@ -326,18 +304,15 @@ export const layer = Layer.effect(
           })
           yield* Deferred.fail(item.deferred, new RejectedError())
         }
-        return true // nocowboy_change
+        return true
       }
 
       yield* Deferred.succeed(existing.deferred, undefined)
-      if (input.reply === "once") return true // nocowboy_change
+      if (input.reply === "once") return true
 
-      // nocowboy_change start — downgrade "always" to "once" for config file edits
       if (ConfigProtection.isRequest(existing.info)) return true
-      // nocowboy_change end
 
       for (const pattern of existing.info.always) {
-        // nocowboy_change start — saveAlwaysRules may have already persisted selected always-rules
         if (!existing.saved) {
           approved.push({
             permission: existing.info.permission,
@@ -455,9 +430,8 @@ export const layer = Layer.effect(
       const s = yield* InstanceState.get(state)
       return s.pending.get(PermissionID.make(id))?.info
     })
-    // nocowboy_change end
 
-    return Service.of({ ask, reply, list, saveAlwaysRules, allowEverything, pending }) // nocowboy_change
+    return Service.of({ ask, reply, list, saveAlwaysRules, allowEverything, pending })
   }),
 )
 
@@ -476,9 +450,8 @@ export function fromConfig(permission: ConfigPermission.Info) {
       ruleset.push({ permission: key, action: value, pattern: "*" })
       continue
     }
-    if (value === null) continue // nocowboy_change — null is a delete sentinel
+    if (value === null) continue
     ruleset.push(
-      // nocowboy_change start — filter out null entries (delete sentinels)
       ...Object.entries(value)
         .filter(([, action]) => action !== null)
         .map(([pattern, action]) => ({
@@ -486,7 +459,6 @@ export function fromConfig(permission: ConfigPermission.Info) {
           pattern: expand(pattern),
           action: action as Action,
         })),
-      // nocowboy_change end
     )
   }
   return ruleset
@@ -509,9 +481,8 @@ export function disabled(tools: string[], ruleset: Ruleset): Set<string> {
   return result
 }
 
-export const defaultLayer = layer.pipe(Layer.provide(Bus.layer), Layer.provide(Config.defaultLayer)) // nocowboy_change
+export const defaultLayer = layer.pipe(Layer.provide(Bus.layer), Layer.provide(Config.defaultLayer))
 
-// nocowboy_change start — inverse of fromConfig: convert rules back to config format
 const SCALAR_ONLY_PERMISSIONS = new Set(["todowrite", "todoread", "question", "webfetch", "websearch", "doom_loop"])
 
 export function toConfig(rules: Ruleset): ConfigPermission.Info {
@@ -536,6 +507,5 @@ export function toConfig(rules: Ruleset): ConfigPermission.Info {
   }
   return result
 }
-// nocowboy_change end
 
 export * as Permission from "."

@@ -7,9 +7,9 @@ import PROMPT_DEFAULT from "./prompt/default.txt"
 import PROMPT_BEAST from "./prompt/beast.txt"
 import PROMPT_GEMINI from "./prompt/gemini.txt"
 import PROMPT_GPT from "./prompt/gpt.txt"
-import PROMPT_GPT55 from "./prompt/nocowboy-gpt-5.5.txt" // nocowboy_change
+import PROMPT_GPT55 from "./prompt/nocowboy-gpt-5.5.txt"
 import PROMPT_KIMI from "./prompt/kimi.txt"
-import PROMPT_LING from "./prompt/ling.txt" // nocowboy_change
+import PROMPT_LING from "./prompt/ling.txt"
 
 import PROMPT_CODEX from "./prompt/codex.txt"
 import PROMPT_TRINITY from "./prompt/trinity.txt"
@@ -18,7 +18,6 @@ import type { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
 import { Skill } from "@/skill"
 
-// nocowboy_change start
 import SOUL from "../nocowboy/soul.txt"
 import SOUL_RU from "../nocowboy/soul.ru.txt"
 import PROMPT_RU from "./prompt/nocowboy-ru.txt"
@@ -26,14 +25,11 @@ import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
 import { fetchContext, fetchCoherenceCheck, fetchHandoff, hasNutausik } from "../nocowboy/nutausik-client"
-// nocowboy_change end
 
-// nocowboy_change start
 export function instructions() {
   return PROMPT_CODEX.trim()
 }
 
-// nocowboy_change start — Russian Language Pack
 let _lang: string | undefined
 
 export function setLang(lang?: string) {
@@ -51,7 +47,6 @@ export function soul() {
 export function ruPrompt(): string | undefined {
   return isRU() ? PROMPT_RU.trim() : undefined
 }
-// nocowboy_change end
 
 export function identityAnchor() {
   return [
@@ -86,10 +81,8 @@ export function criticalRules() {
     "   This is how knowledge persists across sessions. MEMORY.md is dead. NUTAUSIK memory is the source of truth.",
   ].join("\n")
 }
-// nocowboy_change end
 
 export function provider(model: Provider.Model) {
-  // nocowboy_change start
   function prompt() {
     switch (model.prompt) {
       case "anthropic":
@@ -114,15 +107,12 @@ export function provider(model: Provider.Model) {
 
   const k = prompt()
   if (k) return k
-  // nocowboy_change end
 
-  // nocowboy_change start — Russian Language Pack
   // YandexGPT and GigaChat detection (lang=ru)
   const modelId = model.api.id.toLowerCase()
   if (isRU() && (modelId.includes("yandex") || modelId.includes("gigachat") || modelId.includes("yagpt"))) {
     return [PROMPT_RU]
   }
-  // nocowboy_change end
 
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
     return [PROMPT_BEAST]
@@ -136,19 +126,17 @@ export function provider(model: Provider.Model) {
   if (model.api.id.includes("claude")) return [PROMPT_ANTHROPIC]
   if (modelId.includes("trinity")) return [PROMPT_TRINITY]
   if (modelId.includes("kimi")) return [PROMPT_KIMI]
-  if (isLing(model.api.id)) return [PROMPT_LING] // nocowboy_change
-  // nocowboy_change start — default to Russian prompt when lang=ru
+  if (isLing(model.api.id)) return [PROMPT_LING]
   if (isRU()) return [PROMPT_RU]
-  // nocowboy_change end
   return [PROMPT_DEFAULT]
 }
 
 export interface Interface {
-  readonly environment: (model: Provider.Model, editorContext?: EditorContext) => Effect.Effect<string[]> // nocowboy_change
+  readonly environment: (model: Provider.Model, editorContext?: EditorContext) => Effect.Effect<string[]>
   readonly skills: (agent: Agent.Info) => Effect.Effect<string | undefined>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SystemPrompt") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SystemPrompt") {}
 
 export const layer = Layer.effect(
   Service,
@@ -156,7 +144,6 @@ export const layer = Layer.effect(
     const skill = yield* Skill.Service
 
     return Service.of({
-      // nocowboy_change start
       environment: Effect.fn("SystemPrompt.environment")(function* (
         model: Provider.Model,
         editorContext?: EditorContext,
@@ -179,7 +166,6 @@ export const layer = Layer.effect(
           if (handoffText) envLines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
-        // nocowboy_change — roadmap spec check: inject instruction for features without specs
         const roadmapSpecCheck = yield* Effect.promise(async () => {
           try {
             const { existsSync, readFileSync } = await import("fs")
@@ -200,7 +186,6 @@ export const layer = Layer.effect(
         if (roadmapSpecCheck) {
           envLines.push(["## ⚠️ Roadmap Spec Check", "", "These features have NO spec. You MUST process them before ANY user interaction:", "", roadmapSpecCheck].join("\n"))
         }
-        // nocowboy_change end
 
         return envLines
       }),

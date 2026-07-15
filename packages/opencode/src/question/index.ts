@@ -3,9 +3,9 @@ import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { InstanceState } from "@/effect/instance-state"
 import { SessionID, MessageID } from "@/session/schema"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { QuestionID } from "./schema"
-import { KiloQuestion } from "@/nocowboy/question" // nocowboy_change
+import { KiloQuestion } from "@/nocowboy/question"
 
 const log = Log.create({ service: "question" })
 
@@ -18,7 +18,6 @@ export class Option extends Schema.Class<Option>("QuestionOption")({
   description: Schema.String.annotate({
     description: "Explanation of choice",
   }),
-  // nocowboy_change start - optional i18n keys so clients can translate while still
   // replying with the canonical English label (backend matches on `label`).
   labelKey: Schema.optional(Schema.String).annotate({
     description: "Optional i18n key for the label; clients translate and still reply with `label`",
@@ -26,13 +25,10 @@ export class Option extends Schema.Class<Option>("QuestionOption")({
   descriptionKey: Schema.optional(Schema.String).annotate({
     description: "Optional i18n key for the description",
   }),
-  // nocowboy_change end
-  // nocowboy_change start - hint to UI clients to switch the active agent/mode picker
   // when this option is selected (before the reply is confirmed by the server).
   mode: Schema.optional(Schema.String).annotate({
     description: "Optional agent/mode name to pre-select in the UI when this option is picked",
   }),
-  // nocowboy_change end
 }) {}
 
 const base = {
@@ -48,14 +44,12 @@ const base = {
   multiple: Schema.optional(Schema.Boolean).annotate({
     description: "Allow selecting multiple choices",
   }),
-  // nocowboy_change start - optional i18n keys for question text and header
   questionKey: Schema.optional(Schema.String).annotate({
     description: "Optional i18n key for the question text; clients fall back to `question` when missing",
   }),
   headerKey: Schema.optional(Schema.String).annotate({
     description: "Optional i18n key for the header; clients fall back to `header` when missing",
   }),
-  // nocowboy_change end
 }
 
 export class Info extends Schema.Class<Info>("QuestionInfo")({
@@ -79,7 +73,6 @@ export class Request extends Schema.Class<Request>("QuestionRequest")({
     description: "Questions to ask",
   }),
   blocking: Schema.optional(Schema.Boolean).annotate({
-    // nocowboy_change
     description: "Whether this question blocks prompt input (default: true)",
   }),
   tool: Schema.optional(Tool),
@@ -136,7 +129,7 @@ export interface Interface {
   readonly ask: (input: {
     sessionID: SessionID
     questions: ReadonlyArray<Info>
-    blocking?: boolean // nocowboy_change
+    blocking?: boolean
     tool?: Tool
   }) => Effect.Effect<ReadonlyArray<Answer>, RejectedError>
   readonly reply: (input: {
@@ -145,10 +138,10 @@ export interface Interface {
   }) => Effect.Effect<void, NotFoundError>
   readonly reject: (requestID: QuestionID) => Effect.Effect<void, NotFoundError>
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
-  readonly dismissAll: (sessionID: SessionID) => Effect.Effect<void> // nocowboy_change
+  readonly dismissAll: (sessionID: SessionID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Question") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Question") {}
 
 export const layer = Layer.effect(
   Service,
@@ -176,7 +169,7 @@ export const layer = Layer.effect(
     const ask = Effect.fn("Question.ask")(function* (input: {
       sessionID: SessionID
       questions: ReadonlyArray<Info>
-      blocking?: boolean // nocowboy_change
+      blocking?: boolean
       tool?: Tool
     }) {
       const pending = (yield* InstanceState.get(state)).pending
@@ -188,13 +181,11 @@ export const layer = Layer.effect(
         id,
         sessionID: input.sessionID,
         questions: input.questions,
-        blocking: input.blocking, // nocowboy_change
+        blocking: input.blocking,
         tool: input.tool,
       })
 
-      // nocowboy_change start
       yield* KiloQuestion.guardFollowup(input.sessionID, () => new RejectedError())
-      // nocowboy_change end
 
       pending.set(id, { info, deferred })
       yield* bus.publish(Event.Asked, info)
@@ -248,16 +239,14 @@ export const layer = Layer.effect(
       return Array.from(pending.values(), (x) => x.info)
     })
 
-    // nocowboy_change start - body lives in @/nocowboy/question/KiloQuestion.makeDismissAll
     const dismissAll = KiloQuestion.makeDismissAll({
       state,
       publishRejected: (entry) =>
         bus.publish(Event.Rejected, { sessionID: entry.info.sessionID, requestID: entry.info.id }),
       makeError: () => new RejectedError(),
     })
-    // nocowboy_change end
 
-    return Service.of({ ask, reply, reject, list, dismissAll }) // nocowboy_change
+    return Service.of({ ask, reply, reject, list, dismissAll })
   }),
 )
 

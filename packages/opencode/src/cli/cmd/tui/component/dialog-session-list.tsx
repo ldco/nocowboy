@@ -8,7 +8,7 @@ import { useProject } from "@tui/context/project"
 import { useTheme } from "../context/theme"
 import { useSDK } from "../context/sdk"
 import { useLocal } from "../context/local"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { DialogSessionRename } from "./dialog-session-rename"
 import { createDebouncedSignal } from "../util/signal"
 import { useToast } from "../ui/toast"
@@ -30,17 +30,16 @@ export function DialogSessionList() {
   const toast = useToast()
   const [toDelete, setToDelete] = createSignal<string>()
   const [search, setSearch] = createDebouncedSignal("", 150)
-  const [global, setGlobal] = createSignal(false) // nocowboy_change - show current worktree by default
+  const [global, setGlobal] = createSignal(false)
   const deleteHint = useCommandShortcut("session.delete")
   const quickSwitch1 = useCommandShortcut("session.quick_switch.1")
   const quickSwitch9 = useCommandShortcut("session.quick_switch.9")
 
-  // nocowboy_change start - always fetch from experimental endpoint (returns GlobalSession with worktree info)
   // TODO: extend /experimental/session to accept `scope`/`path` so this dialog can respect the
   // upstream `session_directory_filter_enabled` KV toggle (via sync.session.query()) while
   // keeping worktree grouping.
   const [searchResults, searchActions] = createResource(
-    () => ({ query: search(), global: global(), directory: project.instance.directory() }), // nocowboy_change
+    () => ({ query: search(), global: global(), directory: project.instance.directory() }),
     async (input) => {
       const result = await sdk.client.experimental.session.list(
         {
@@ -56,11 +55,10 @@ export function DialogSessionList() {
       return result.data ?? []
     },
   )
-  // nocowboy_change end
 
   const currentSessionID = createMemo(() => (route.data.type === "session" ? route.data.sessionID : undefined))
 
-  const sessions = createMemo(() => searchResults() ?? []) // nocowboy_change - endpoint applies worktree scope
+  const sessions = createMemo(() => searchResults() ?? [])
 
   function recover(session: NonNullable<ReturnType<typeof sessions>[number]>) {
     const workspace = project.workspace.get(session.workspaceID!)
@@ -116,7 +114,7 @@ export function DialogSessionList() {
           }
           await project.workspace.sync()
           await sync.session.refresh()
-          if (search()) await searchActions.refetch() // nocowboy_change - use createResource actions
+          if (search()) await searchActions.refetch()
           if (info?.workspaceID === session.workspaceID) {
             route.navigate({ type: "home" })
           }
@@ -139,7 +137,6 @@ export function DialogSessionList() {
     ))
   }
 
-  // nocowboy_change - support local and global sessions
   function orderByRecency(sessionsList: { id: string; parentID?: string; time: { updated: number } }[]) {
     return sessionsList
       .filter((x) => x.parentID === undefined)
@@ -160,14 +157,14 @@ export function DialogSessionList() {
 
   const options = createMemo(() => {
     const today = new Date().toDateString()
-    const all = global() // nocowboy_change
+    const all = global()
     const sessionMap = new Map(
       sessions()
         .filter((x) => x.parentID === undefined)
         .map((x) => [x.id, x]),
     )
 
-    const displayOrder = orderByRecency(sessions()) // nocowboy_change - respect current scope
+    const displayOrder = orderByRecency(sessions())
 
     const pinned = local.session.pinned().filter((id) => sessionMap.has(id))
     const pinnedSet = new Set(pinned)
@@ -206,7 +203,7 @@ export function DialogSessionList() {
           : undefined
       return {
         title: isDeleting ? `Press ${deleteHint()} again to confirm` : x.title,
-        description: all && x.worktreeName ? `(${x.worktreeName})` : undefined, // nocowboy_change - worktree label
+        description: all && x.worktreeName ? `(${x.worktreeName})` : undefined,
         bg: isDeleting ? theme.error : undefined,
         value: x.id,
         category,
@@ -234,7 +231,7 @@ export function DialogSessionList() {
 
   return (
     <DialogSelect
-      title={global() ? "Sessions (all worktrees)" : "Sessions (current worktree)"} // nocowboy_change
+      title={global() ? "Sessions (all worktrees)" : "Sessions (current worktree)"}
       options={options()}
       skipFilter={true}
       current={currentSessionID()}
@@ -298,7 +295,7 @@ export function DialogSessionList() {
               if (status && status !== "connected") {
                 await sync.session.refresh()
               }
-              void searchActions.refetch() // nocowboy_change
+              void searchActions.refetch()
               setToDelete(undefined)
               return
             }
@@ -308,7 +305,6 @@ export function DialogSessionList() {
         {
           command: "session.rename",
           title: "rename",
-          // nocowboy_change start
           onTrigger: async (option) => {
             const item = sessions().find((x) => x.id === option.value)
             dialog.replace(() => (
@@ -331,11 +327,8 @@ export function DialogSessionList() {
             setGlobal((v) => !v)
           },
         },
-        // nocowboy_change end
       ]}
-      // nocowboy_change start - preserve Ctrl+A worktree scope toggle with the upstream keymap engine
       bindings={[{ key: "ctrl+a", cmd: "session.scope.toggle" }]}
-      // nocowboy_change end
       footerHints={quickSwitchFooterHints()}
     />
   )

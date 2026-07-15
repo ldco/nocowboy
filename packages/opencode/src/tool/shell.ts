@@ -3,13 +3,13 @@ import os from "os"
 import { createWriteStream } from "node:fs"
 import * as Tool from "./tool"
 import path from "path"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { containsPath, type InstanceContext } from "../project/instance-context"
 import { InstanceState } from "@/effect/instance-state"
 import { lazy } from "@/util/lazy"
 import { Language, type Node } from "web-tree-sitter"
 
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { fileURLToPath } from "url"
 import { Config } from "@/config/config"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -18,8 +18,8 @@ import { ShellID } from "./shell/id"
 
 import * as Truncate from "./truncate"
 import { Plugin } from "@/plugin"
-import { normalizeUrls } from "@/nocowboy/util/url" // nocowboy_change
-import { CommandTimeout } from "@/nocowboy/command-timeout" // nocowboy_change
+import { normalizeUrls } from "@/nocowboy/util/url"
+import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ShellPrompt, type Parameters } from "./shell/prompt"
@@ -51,9 +51,7 @@ const FILES = new Set([
   "new-item",
   "rename-item",
 ])
-// nocowboy_change start
 const READ = new Set(["cat", "get-content"])
-// nocowboy_change end
 const CMD_FILES = new Set([
   "copy",
   "del",
@@ -76,15 +74,13 @@ type Part = {
   text: string
 }
 
-// nocowboy_change start
 type Access = "read" | "unknown"
-// nocowboy_change end
 
 type Scan = {
   dirs: Set<string>
   patterns: Set<string>
   always: Set<string>
-  access: Access // nocowboy_change
+  access: Access
 }
 
 type Chunk = {
@@ -133,13 +129,11 @@ function source(node: Node) {
   return (node.parent?.type === "redirected_statement" ? node.parent.text : node.text).trim()
 }
 
-// nocowboy_change start
 function access(cmd: string, node: Node): Access {
   if (!READ.has(cmd)) return "unknown"
   if (node.parent?.type === "redirected_statement") return "unknown"
   return "read"
 }
-// nocowboy_change end
 
 function commands(node: Node) {
   return node.descendantsOfType("command").filter((child): child is Node => Boolean(child))
@@ -285,9 +279,8 @@ const ask = Effect.fn("ShellTool.ask")(function* (
   ctx: Tool.Context,
   scan: Scan,
   command: string,
-  description?: string, // nocowboy_change
+  description?: string,
 ) {
-  // nocowboy_change
   if (scan.dirs.size > 0) {
     const globs = Array.from(scan.dirs).map((dir) => {
       if (process.platform === "win32") return AppFileSystem.normalizePathPattern(path.join(dir, "*"))
@@ -297,7 +290,7 @@ const ask = Effect.fn("ShellTool.ask")(function* (
       permission: "external_directory",
       patterns: globs,
       always: globs,
-      metadata: scan.access === "read" ? { command, access: "read", ...(description ? { description } : {}) } : {}, // nocowboy_change
+      metadata: scan.access === "read" ? { command, access: "read", ...(description ? { description } : {}) } : {},
     })
   }
 
@@ -306,14 +299,13 @@ const ask = Effect.fn("ShellTool.ask")(function* (
     permission: ShellID.ToolID,
     patterns: Array.from(scan.patterns),
     always: Array.from(scan.always),
-    metadata: { command: normalizeUrls(command), ...(description ? { description } : {}) }, // nocowboy_change
+    metadata: { command: normalizeUrls(command), ...(description ? { description } : {}) },
   })
 })
 
 function cmd(shell: string, command: string, cwd: string, env: NodeJS.ProcessEnv) {
   if (process.platform === "win32" && Shell.ps(shell)) {
     return ChildProcess.make(shell, Shell.args(shell, command, cwd), {
-      // nocowboy_change - encoded PowerShell args
       cwd,
       env,
       stdin: "ignore",
@@ -407,33 +399,30 @@ export const ShellTool = Tool.define(
         dirs: new Set<string>(),
         patterns: new Set<string>(),
         always: new Set<string>(),
-        access: "read", // nocowboy_change
+        access: "read",
       }
       const shellKind = ShellID.toKind(Shell.name(shell))
 
-      const nodes = commands(root) // nocowboy_change
-      if (root.descendantsOfType("file_redirect").length > 0) scan.access = "unknown" // nocowboy_change
-      // nocowboy_change start
+      const nodes = commands(root)
+      if (root.descendantsOfType("file_redirect").length > 0) scan.access = "unknown"
       if (nodes.some((node) => !READ.has((ps ? parts(node)[0]?.text.toLowerCase() : parts(node)[0]?.text) ?? ""))) {
         scan.access = "unknown"
       }
-      // nocowboy_change end
 
       for (const node of nodes) {
-        // nocowboy_change
         const command = parts(node)
         const tokens = command.map((item) => item.text)
         const cmd = ps || shellKind === "cmd" ? tokens[0]?.toLowerCase() : tokens[0]
 
         if (cmd && (FILES.has(cmd) || (shellKind === "cmd" && CMD_FILES.has(cmd)))) {
-          const kind = access(cmd, node) // nocowboy_change
+          const kind = access(cmd, node)
           for (const arg of pathArgs(command, ps, shellKind === "cmd")) {
             const resolved = yield* argPath(arg, cwd, ps, shell)
             log.info("resolved path", { arg, resolved })
             if (!resolved || containsPath(resolved, instance)) continue
             const dir = (yield* fs.isDir(resolved)) ? resolved : path.dirname(resolved)
             scan.dirs.add(dir)
-            if (kind !== "read") scan.access = "unknown" // nocowboy_change
+            if (kind !== "read") scan.access = "unknown"
           }
         }
 
@@ -574,7 +563,7 @@ export const ShellTool = Tool.define(
             return Effect.sync(() => ctx.abort.removeEventListener("abort", handler))
           })
 
-          const timeout = Effect.sleep(`${CommandTimeout.duration(input.timeout)} millis`) // nocowboy_change
+          const timeout = Effect.sleep(`${CommandTimeout.duration(input.timeout)} millis`)
 
           const exit = yield* Effect.raceAll([
             handle.exitCode.pipe(Effect.map((code) => ({ kind: "exit" as const, code }))),
@@ -597,12 +586,10 @@ export const ShellTool = Tool.define(
 
       const meta: string[] = []
       if (expired) {
-        // nocowboy_change start
         meta.push(
           CommandTimeout.message(input.timeout, "shell tool terminated command") ??
             `shell tool terminated command after exceeding timeout ${input.timeout} ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.`,
         )
-        // nocowboy_change end
       }
       if (aborted) meta.push("User aborted the command")
       const raw = list.map((item) => item.text).join("")
@@ -656,7 +643,7 @@ export const ShellTool = Tool.define(
               if (params.timeout !== undefined && params.timeout < 0) {
                 throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
               }
-              const timeout = CommandTimeout.clamp(params.timeout ?? defaultTimeout).timeout // nocowboy_change
+              const timeout = CommandTimeout.clamp(params.timeout ?? defaultTimeout).timeout
               const ps = Shell.ps(shell)
               yield* Effect.scoped(
                 Effect.gen(function* () {
@@ -664,13 +651,11 @@ export const ShellTool = Tool.define(
                     Effect.sync(() => tree.delete()),
                   )
                   const scan = yield* collect(tree.rootNode, cwd, ps, shell, instanceCtx)
-                  // nocowboy_change start
                   if (!containsPath(cwd, instanceCtx)) {
                     scan.dirs.add(cwd)
                     scan.access = "unknown"
                   }
-                  // nocowboy_change end
-                  yield* ask(ctx, scan, params.command, params.description) // nocowboy_change
+                  yield* ask(ctx, scan, params.command, params.description)
                 }),
               )
 
@@ -681,7 +666,7 @@ export const ShellTool = Tool.define(
                   cwd,
                   env: yield* shellEnv(ctx, cwd),
                   timeout,
-                  description: params.description ?? params.command, // nocowboy_change
+                  description: params.description ?? params.command,
                 },
                 ctx,
               )

@@ -13,11 +13,11 @@ import { DialogModel } from "./dialog-model"
 import * as Clipboard from "@tui/util/clipboard"
 import { useToast } from "../ui/toast"
 import { isConsoleManagedProvider } from "@tui/util/provider-origin"
-import * as NocowboyProvider from "@/nocowboy/cli/cmd/tui/component/dialog-provider" // nocowboy_change
+import * as NocowboyProvider from "@/nocowboy/cli/cmd/tui/component/dialog-provider"
 import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
 
-const PROVIDER_PRIORITY: Record<string, number> = NocowboyProvider.PROVIDER_PRIORITY // nocowboy_change
+const PROVIDER_PRIORITY: Record<string, number> = NocowboyProvider.PROVIDER_PRIORITY
 
 const CUSTOM_PROVIDER_OPTION_VALUE = "__opencode_custom_provider__"
 const CUSTOM_PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
@@ -48,7 +48,7 @@ export function providerOptions(list: { id: string; name: string }[]): ProviderO
         title: provider.name,
         value: provider.id,
         providerID: provider.id,
-        description: NocowboyProvider.PROVIDER_DESCRIPTIONS[provider.id], // nocowboy_change
+        description: NocowboyProvider.PROVIDER_DESCRIPTIONS[provider.id],
         category: provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
       })),
     ),
@@ -81,8 +81,7 @@ export function createDialogProviderOptions() {
       placeholder: "Provider id",
       description: () => (
         <text fg={theme.textMuted}>
-          This only stores a credential. Configure the provider in kilo.json to use it.{/* nocowboy_change */}
-        </text>
+          This only stores a credential. Configure the provider in kilo.json to use it.</text>
       ),
     })
     if (value === null) return
@@ -119,20 +118,18 @@ export function createDialogProviderOptions() {
         const providerID = provider.providerID
         const consoleManaged = isConsoleManagedProvider(sync.data.console_state.consoleManagedProviders, providerID)
         const connected = sync.data.provider_next.connected.includes(providerID)
-        // nocowboy_change start
         const failed = sync.data.provider_next.failed ?? []
         const failedGutter = NocowboyProvider.renderGutter(providerID, failed, theme)
         const failedDesc = NocowboyProvider.failedDescription(providerID, failed)
         const baseDesc = NocowboyProvider.PROVIDER_DESCRIPTIONS[providerID]
-        // nocowboy_change end
 
         return {
-          title: NocowboyProvider.PROVIDER_TITLES[providerID] ?? provider.title, // nocowboy_change
+          title: NocowboyProvider.PROVIDER_TITLES[providerID] ?? provider.title,
           value: provider.value,
-          description: failedDesc ?? baseDesc ?? provider.description, // nocowboy_change
+          description: failedDesc ?? baseDesc ?? provider.description,
           footer: consoleManaged ? sync.data.console_state.activeOrgName : undefined,
           category: provider.category,
-          gutter: failedGutter ?? (connected && onboarded() ? () => <text fg={theme.success}>✓</text> : undefined), // nocowboy_change
+          gutter: failedGutter ?? (connected && onboarded() ? () => <text fg={theme.success}>✓</text> : undefined),
           async onSelect() {
             if (consoleManaged) return
 
@@ -192,12 +189,10 @@ export function createDialogProviderOptions() {
                 ))
               }
               if (result.data?.method === "auto") {
-                // nocowboy_change start
                 const ncProvider = NocowboyProvider.renderAutoMethod()
                 if (ncProvider) {
                   dialog.replace(ncProvider)
                 } else {
-                  // nocowboy_change end
                   dialog.replace(() => (
                     <AutoMethod
                       providerID={providerID}
@@ -206,7 +201,7 @@ export function createDialogProviderOptions() {
                       authorization={result.data!}
                     />
                   ))
-                } // nocowboy_change
+                }
               }
             }
             if (method.type === "api") {
@@ -356,21 +351,21 @@ function ApiMethod(props: ApiMethodProps) {
   const toast = useToast()
   const { theme } = useTheme()
 
-  const optionalApiKey = NocowboyProvider.isLocalOptionalApiKey(props.providerID) // nocowboy_change
+  const optionalApiKey = NocowboyProvider.isLocalOptionalApiKey(props.providerID)
 
   return (
     <DialogPrompt
       title={props.title}
-      placeholder={NocowboyProvider.apiKeyPlaceholder(props.providerID)} // nocowboy_change
-      description={NocowboyProvider.renderApiDescription(props.providerID, theme)} // nocowboy_change
+      placeholder={NocowboyProvider.apiKeyPlaceholder(props.providerID)}
+      description={NocowboyProvider.renderApiDescription(props.providerID, theme)}
       onConfirm={async (value) => {
-        const key = value.trim() || (optionalApiKey ? NocowboyProvider.LOCAL_API_KEY_PLACEHOLDER : "") // nocowboy_change
-        if (!key) return // nocowboy_change
+        const key = value.trim() || (optionalApiKey ? NocowboyProvider.LOCAL_API_KEY_PLACEHOLDER : "")
+        if (!key) return
         await sdk.client.auth.set({
           providerID: props.providerID,
           auth: {
             type: "api",
-            key, // nocowboy_change
+            key,
             ...(props.metadata ? { metadata: props.metadata } : {}),
           },
         })
@@ -379,7 +374,7 @@ function ApiMethod(props: ApiMethodProps) {
         if (props.custom && !sync.data.provider_next.all.some((provider) => provider.id === props.providerID)) {
           toast.show({
             variant: "info",
-            message: `Saved credential for ${props.providerID}. Configure it in kilo.json to use it.`, // nocowboy_change
+            message: `Saved credential for ${props.providerID}. Configure it in kilo.json to use it.`,
           })
           dialog.clear()
           return

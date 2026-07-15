@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import path from "path"
 import fs from "fs/promises"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Server } from "../../../src/server/server"
 import { GlobalBus, type GlobalEvent } from "../../../src/bus/global"
 import { resetDatabase } from "../../fixture/db"

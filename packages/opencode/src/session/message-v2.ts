@@ -1,6 +1,6 @@
 import { BusEvent } from "@/bus/bus-event"
 import { SessionID, MessageID, PartID } from "./schema"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { APICallError, convertToModelMessages, LoadAPIKeyError, type ModelMessage, type UIMessage } from "ai"
 import { LSP } from "@/lsp/lsp"
 import { Snapshot } from "@/snapshot"
@@ -21,12 +21,12 @@ import { isMedia } from "@/util/media"
 import type { SystemError } from "bun"
 import type { Provider } from "@/provider/provider"
 import { ModelID, ProviderID } from "@/provider/schema"
-import { SessionNetwork } from "./network" // nocowboy_change
-import { CodexAuthExpiredError } from "@/nocowboy/provider/codex-refresh" // nocowboy_change
-import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order" // nocowboy_change
+import { SessionNetwork } from "./network"
+import { CodexAuthExpiredError } from "@/nocowboy/provider/codex-refresh"
+import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order"
 import { Effect, Schema, Types } from "effect"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
-import * as EffectLogger from "@opencode-ai/core/effect/logger"
+import { NonNegativeInt } from "@nocowboy/core/schema"
+import * as EffectLogger from "@nocowboy/core/effect/logger"
 import { MessageError } from "./message-error"
 import { AuthError, OutputLengthError } from "./message-error"
 export { AuthError, OutputLengthError } from "./message-error"
@@ -327,7 +327,6 @@ const messageBase = {
   sessionID: SessionID,
 }
 
-// nocowboy_change start - shared editor context schema (used by MessageV2.User and SessionPrompt.PromptInput)
 export const EditorContext = Schema.Struct({
   visibleFiles: Schema.optional(Schema.Array(Schema.String)),
   openTabs: Schema.optional(Schema.Array(Schema.String)),
@@ -335,7 +334,6 @@ export const EditorContext = Schema.Struct({
   shell: Schema.optional(Schema.String),
 })
 export type EditorContext = Types.DeepMutable<Schema.Schema.Type<typeof EditorContext>>
-// nocowboy_change end
 
 export const User = Schema.Struct({
   ...messageBase,
@@ -359,9 +357,7 @@ export const User = Schema.Struct({
   }),
   system: Schema.optional(Schema.String),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
-  // nocowboy_change start
   editorContext: Schema.optional(EditorContext),
-  // nocowboy_change end
 }).annotate({ identifier: "UserMessage" })
 export type User = Types.DeepMutable<Schema.Schema.Type<typeof User>>
 
@@ -593,7 +589,6 @@ export const cursor = {
   },
 }
 
-// nocowboy_change start - strip bloated metadata fields from stored parts to prevent multi-MB payloads
 // This handles both legacy data that was stored with full file contents and keeps the API response lean.
 function stripPatch(value: unknown) {
   if (typeof value !== "string") return undefined
@@ -607,7 +602,6 @@ function withPatch(value: unknown) {
 }
 
 export function stripPartMetadata(part: Part): Part {
-  // nocowboy_change - exported for testing
   if (part.type !== "tool") return part
   const { state } = part
   if (state.status !== "completed" && state.status !== "running") return part
@@ -662,7 +656,6 @@ export function stripPartMetadata(part: Part): Part {
 }
 
 export function stripMessageMetadata(info: Info): Info {
-  // nocowboy_change - exported for testing
   // Strip oversized summary.diffs patches from user messages to limit SSE payload.
   // Small patches are preserved so the UI can render inline diffs.
   if (info.role !== "user") return info
@@ -678,9 +671,7 @@ export function stripMessageMetadata(info: Info): Info {
     },
   } as Info
 }
-// nocowboy_change end
 
-// nocowboy_change - apply stripping inside helpers so all read paths are covered
 const info = (row: typeof MessageTable.$inferSelect) =>
   stripMessageMetadata({
     ...row.data,
@@ -695,7 +686,6 @@ const part = (row: typeof PartTable.$inferSelect) =>
     sessionID: row.session_id,
     messageID: row.message_id,
   } as Part)
-// nocowboy_change end
 
 const older = (row: Cursor) =>
   or(lt(MessageTable.time_created, row.time), and(eq(MessageTable.time_created, row.time), lt(MessageTable.id, row.id)))
@@ -877,7 +867,6 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
         return part.metadata?.anthropic?.signature != null
       })
       for (const part of msg.parts) {
-        // nocowboy_change - !part.ignored keeps local UI warnings out of future prompts
         if (part.type === "text" && !part.ignored) {
           const text = part.text === "" && hasSignedReasoning ? " " : part.text
           assistantMessage.parts.push({
@@ -1092,14 +1081,12 @@ export function parts(message_id: MessageID) {
   )
   return rows.map(
     (row) =>
-      // nocowboy_change - apply stripping to parts fetched individually as well to cover all read paths
       stripPartMetadata({
         ...row.data,
         id: row.id,
         sessionID: row.session_id,
         messageID: row.message_id,
       } as Part),
-    // nocowboy_change end
   )
 }
 
@@ -1142,7 +1129,7 @@ export function filterCompacted(msgs: Iterable<WithParts>) {
       completed.add(msg.info.parentID)
   }
   result.reverse()
-  NoCowboySessionMessageOrder.annotate(result) // nocowboy_change - preserve chronology before retained-tail projection
+  NoCowboySessionMessageOrder.annotate(result)
   const compactionIndex = result.findLastIndex(
     (msg) =>
       msg.info.role === "user" &&
@@ -1223,18 +1210,18 @@ export function fromError(
         },
         { cause: e },
       ).toObject()
-    case e instanceof CodexAuthExpiredError: // nocowboy_change start
+    case e instanceof CodexAuthExpiredError:
       return new AuthError(
         {
           providerID: "openai",
           message: e.message,
         },
         { cause: e },
-      ).toObject() // nocowboy_change end
-    case SessionNetwork.disconnected(e): // nocowboy_change start
+      ).toObject()
+    case SessionNetwork.disconnected(e):
       return new APIError(
         {
-          message: SessionNetwork.message(e), // nocowboy_change end
+          message: SessionNetwork.message(e),
           isRetryable: true,
           metadata: {
             code: (e as SystemError).code ?? "",

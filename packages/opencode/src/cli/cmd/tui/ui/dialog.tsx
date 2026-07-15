@@ -4,7 +4,7 @@ import { useTheme } from "@tui/context/theme"
 import { MouseButton, Renderable, RGBA } from "@opentui/core"
 import { createStore } from "solid-js/store"
 import { useToast } from "./toast"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import * as Selection from "@tui/util/selection"
 import { useBindings } from "../keymap"
 
@@ -31,7 +31,7 @@ export function Dialog(
       width={dimensions().width}
       height={dimensions().height}
       alignItems="center"
-      justifyContent="center" // nocowboy_change
+      justifyContent="center"
       position="absolute"
       zIndex={3000}
       left={0}

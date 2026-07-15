@@ -1,6 +1,6 @@
 import { fetchNoCowboyEmbeddingModelCatalog as fetchEmbeddingModelCatalog, resolveNoCowboyGatewayBaseUrl as resolveGatewayBaseUrl } from "@nocowboy/gateway"
 import type { Config, IndexingConfig, KiloEmbeddingModelCatalog } from "@nocowboy/sdk/v2"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { createMemo, type Accessor } from "solid-js"
 
 export type IndexingScope = "global" | "project"

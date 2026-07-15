@@ -1,18 +1,18 @@
 import { Schema } from "effect"
-import { PROMPTS, AI_SDK_PROVIDERS } from "@nocowboy/gateway" // nocowboy_change
-import { PositiveInt } from "@opencode-ai/core/schema"
+import { PROMPTS, AI_SDK_PROVIDERS } from "@nocowboy/gateway"
+import { PositiveInt } from "@nocowboy/core/schema"
 import { ModelStatus } from "@/provider/model-status"
 
 export const Model = Schema.Struct({
   id: Schema.optional(Schema.String),
   name: Schema.optional(Schema.String),
   family: Schema.optional(Schema.String),
-  prompt: Schema.optional(Schema.Literals(PROMPTS)), // nocowboy_change
-  isFree: Schema.optional(Schema.Boolean), // nocowboy_change
-  ai_sdk_provider: Schema.optional(Schema.Literals(AI_SDK_PROVIDERS)), // nocowboy_change
+  prompt: Schema.optional(Schema.Literals(PROMPTS)),
+  isFree: Schema.optional(Schema.Boolean),
+  ai_sdk_provider: Schema.optional(Schema.Literals(AI_SDK_PROVIDERS)),
   release_date: Schema.optional(Schema.String),
   attachment: Schema.optional(Schema.Boolean),
-  reasoning: Schema.optional(Schema.NullOr(Schema.Boolean)), // nocowboy_change - allow null so reasoning can be removed via stripNulls on save
+  reasoning: Schema.optional(Schema.NullOr(Schema.Boolean)),
   temperature: Schema.optional(Schema.Boolean),
   tool_call: Schema.optional(Schema.Boolean),
   interleaved: Schema.optional(
@@ -63,7 +63,6 @@ export const Model = Schema.Struct({
     Schema.Record(
       Schema.String,
       Schema.NullOr(
-        // nocowboy_change - allow null values so removed variants can be deleted via stripNulls on save
         Schema.StructWithRest(
           Schema.Struct({
             disabled: Schema.optional(Schema.Boolean).annotate({ description: "Disable this variant for the model" }),
@@ -111,7 +110,7 @@ export const Info = Schema.Struct({
       [Schema.Record(Schema.String, Schema.Any)],
     ),
   ),
-  models: Schema.optional(Schema.Record(Schema.String, Schema.NullOr(Model))), // nocowboy_change - allow null values so removed models can be deleted via stripNulls on save
+  models: Schema.optional(Schema.Record(Schema.String, Schema.NullOr(Model))),
 }).annotate({ identifier: "ProviderConfig" })
 export type Info = Schema.Schema.Type<typeof Info>
 

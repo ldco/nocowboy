@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { BusEvent } from "@/bus/bus-event"
 import { SessionID } from "@/session/schema"
 import { Schema } from "effect"

@@ -1,10 +1,10 @@
 import { Effect, Option, Schema, Scope } from "effect"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
+import { NonNegativeInt } from "@nocowboy/core/schema"
 import * as path from "path"
-import { Readable } from "stream" // nocowboy_change
+import { Readable } from "stream"
 import { createInterface } from "readline"
 import * as Tool from "./tool"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { LSP } from "@/lsp/lsp"
 import DESCRIPTION from "./read.txt"
 import { InstanceState } from "@/effect/instance-state"
@@ -12,10 +12,8 @@ import { assertExternalDirectoryEffect } from "./external-directory"
 import { Instruction } from "../session/instruction"
 import { isPdfAttachment, sniffAttachmentMime } from "@/util/media"
 import { Reference } from "@/reference/reference"
-// nocowboy_change start
 import * as Encoding from "../nocowboy/encoding"
 import * as Extract from "../nocowboy/tool/read-extract"
-// nocowboy_change end
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_LINE_LENGTH = 2000
@@ -23,7 +21,7 @@ const MAX_LINE_SUFFIX = `... (line truncated to ${MAX_LINE_LENGTH} chars)`
 const MAX_BYTES = 50 * 1024
 const MAX_BYTES_LABEL = `${MAX_BYTES / 1024} KB`
 const SAMPLE_BYTES = 4096
-const DIRECTORY_CONCURRENCY = 8 // nocowboy_change
+const DIRECTORY_CONCURRENCY = 8
 const SUPPORTED_IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"])
 
 // `offset` and `limit` were originally `z.coerce.number()` — the runtime
@@ -111,7 +109,6 @@ export const ReadTool = Tool.define(
     })
 
     const lines = Effect.fn("ReadTool.lines")((filepath: string, opts: { limit: number; offset: number }) =>
-      // nocowboy_change - extracted formats still need their native readers; ordinary text stays on AppFileSystem
       Effect.tryPromise({
         try: () => Extract.open(filepath),
         catch: (err) => (err instanceof Error ? err : new Error(String(err))),
@@ -171,10 +168,8 @@ export const ReadTool = Tool.define(
 
       if (bytes.length === 0) return false
 
-      // nocowboy_change start - UTF-16/32 BOM: NUL bytes are legitimate, skip the NUL/control-char heuristic
       const buf = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)
       if (Encoding.hasUtf16Bom(buf, bytes.length) || Encoding.hasUtf32Bom(buf, bytes.length)) return false
-      // nocowboy_change end
 
       let nonPrintableCount = 0
       for (let i = 0; i < bytes.length; i++) {
@@ -187,7 +182,6 @@ export const ReadTool = Tool.define(
       return nonPrintableCount / bytes.length > 0.3
     }
 
-    // nocowboy_change start
     type DirectoryFile = {
       filepath: string
       content: string
@@ -224,7 +218,6 @@ export const ReadTool = Tool.define(
       )
       return files.filter((item): item is DirectoryFile => item !== undefined)
     })
-    // nocowboy_change end
 
     const run = Effect.fn("ReadTool.execute")(function* (
       params: Schema.Schema.Type<typeof Parameters>,
@@ -269,11 +262,9 @@ export const ReadTool = Tool.define(
         const start = offset - 1
         const sliced = items.slice(start, start + limit)
         const truncated = start + sliced.length < items.length
-        // nocowboy_change start
         const expand = Boolean(ctx.extra?.["includeDirectoryFiles"])
         const loaded = expand ? yield* readDirectoryFiles(filepath, sliced, instance.directory) : []
         const content = loaded.map((item) => item.content).join("\n\n")
-        // nocowboy_change end
 
         return {
           title,
@@ -286,16 +277,12 @@ export const ReadTool = Tool.define(
               ? `\n(Showing ${sliced.length} of ${items.length} entries. Use 'offset' parameter to read beyond entry ${offset + sliced.length})`
               : `\n(${items.length} entries)`,
             `</entries>`,
-            // nocowboy_change start
             ...(content ? [`\n${content}`] : []),
-            // nocowboy_change end
           ].join("\n"),
           metadata: {
             preview: sliced.slice(0, 20).join("\n"),
             truncated,
-            // nocowboy_change start
             loaded: loaded.map((item) => item.filepath),
-            // nocowboy_change end
           },
         }
       }
@@ -327,7 +314,6 @@ export const ReadTool = Tool.define(
         }
       }
 
-      // nocowboy_change start - route extractable binary documents through lines()
       if (!Extract.binary(filepath) && isBinaryFile(filepath, sample)) {
         return yield* Effect.fail(new Error(`Cannot read binary file: ${filepath}`))
       }
@@ -338,7 +324,6 @@ export const ReadTool = Tool.define(
           new Error(`Offset ${file.offset} is out of range for this file (${file.count} lines)`),
         )
       }
-      // nocowboy_change end
 
       let output = [`<path>${filepath}</path>`, `<type>file</type>`, "<content>\n"].join("\n")
       output += file.raw.map((line, i) => `${i + file.offset}: ${line}`).join("\n")
@@ -381,9 +366,7 @@ export const ReadTool = Tool.define(
   }),
 )
 
-// nocowboy_change start - extracted formats use native readers; ordinary text is supplied by AppFileSystem above
 async function collect(stream: Readable, opts: { limit: number; offset: number }) {
-  // nocowboy_change end
   const rl = createInterface({ input: stream, crlfDelay: Infinity })
   const start = opts.offset - 1
   const raw: string[] = []

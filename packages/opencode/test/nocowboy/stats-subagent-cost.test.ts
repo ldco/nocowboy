@@ -3,7 +3,7 @@
 // tool propagates each child session's total cost up to the parent's
 // tool-wrapper assistant message (#6321).
 
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
 import { Database } from "../../src/storage/db"
@@ -12,7 +12,7 @@ import { MessageV2 } from "../../src/session/message-v2"
 import { ProviderID, ModelID } from "../../src/provider/schema"
 import { Session } from "../../src/session/session"
 import { MessageID, PartID, SessionID } from "../../src/session/schema"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { testEffect } from "../lib/effect"
 
 // Isolate from other tests: use in-memory DB and initialize projectors.

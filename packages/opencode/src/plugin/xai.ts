@@ -1,9 +1,8 @@
-// nocowboy_change - new file
-import type { Hooks, PluginInput } from "@nocowboy/plugin" // nocowboy_change
-import * as Log from "@opencode-ai/core/util/log"
+import type { Hooks, PluginInput } from "@nocowboy/plugin"
+import * as Log from "@nocowboy/core/util/log"
 import { OAUTH_DUMMY_KEY } from "../auth"
 import { createServer } from "http"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 
 const log = Log.create({ service: "plugin.xai" })
 

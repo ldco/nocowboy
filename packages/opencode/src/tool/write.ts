@@ -9,13 +9,13 @@ import { Bus } from "../bus"
 import { File } from "../file"
 import { FileWatcher } from "../file/watcher"
 import { Format } from "../format"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { InstanceState } from "@/effect/instance-state"
-import { trimDiff, buildFileDiff } from "./edit" // nocowboy_change
+import { trimDiff, buildFileDiff } from "./edit"
 import { assertExternalDirectoryEffect } from "./external-directory"
-import { filterDiagnostics } from "./diagnostics" // nocowboy_change
-import { ConfigValidation } from "../nocowboy/config-validation" // nocowboy_change
-import * as EncodedIO from "../nocowboy/tool/encoded-io" // nocowboy_change
+import { filterDiagnostics } from "./diagnostics"
+import { ConfigValidation } from "../nocowboy/config-validation"
+import * as EncodedIO from "../nocowboy/tool/encoded-io"
 import * as Bom from "@/util/bom"
 
 const MAX_PROJECT_DIAGNOSTICS_FILES = 5
@@ -47,18 +47,16 @@ export const WriteTool = Tool.define(
           yield* assertExternalDirectoryEffect(ctx, filepath)
 
           const exists = yield* fs.existsSafe(filepath)
-          // nocowboy_change start - encoding-aware read; Encoding.read strips UTF-8 BOMs so
           // derive the BOM flag from the detected encoding label instead of the decoded text.
           const pre = exists ? yield* EncodedIO.read(filepath) : { text: "", encoding: "utf-8" }
           const source = { bom: pre.encoding === "utf-8-bom", text: pre.text, encoding: pre.encoding }
-          // nocowboy_change end
           const next = Bom.split(params.content)
           const desiredBom = source.bom || next.bom
           const contentOld = source.text
           const contentNew = next.text
 
           const diff = trimDiff(createTwoFilesPatch(filepath, filepath, contentOld, contentNew))
-          const filediff = buildFileDiff(filepath, contentOld, contentNew) // nocowboy_change
+          const filediff = buildFileDiff(filepath, contentOld, contentNew)
           yield* ctx.ask({
             permission: "edit",
             patterns: [path.relative(instance.worktree, filepath)],
@@ -66,11 +64,11 @@ export const WriteTool = Tool.define(
             metadata: {
               filepath,
               diff,
-              filediff, // nocowboy_change
+              filediff,
             },
           })
 
-          yield* EncodedIO.write(filepath, Bom.join(contentNew, desiredBom), source.encoding) // nocowboy_change - encoding-aware write (mkdirs) replaces fs.writeWithDirs
+          yield* EncodedIO.write(filepath, Bom.join(contentNew, desiredBom), source.encoding)
           if (yield* format.file(filepath)) {
             yield* Bom.syncFile(fs, filepath, desiredBom)
           }
@@ -97,16 +95,16 @@ export const WriteTool = Tool.define(
             projectDiagnosticsCount++
             output += `\n\nLSP errors detected in other files:\n${block}`
           }
-          output += yield* Effect.promise(() => ConfigValidation.check(filepath)) // nocowboy_change
+          output += yield* Effect.promise(() => ConfigValidation.check(filepath))
 
           return {
             title: path.relative(instance.worktree, filepath),
             metadata: {
-              diagnostics: filterDiagnostics(diagnostics, [normalizedFilepath]), // nocowboy_change
+              diagnostics: filterDiagnostics(diagnostics, [normalizedFilepath]),
               filepath,
               exists: exists,
-              diff, // nocowboy_change
-              filediff, // nocowboy_change
+              diff,
+              filediff,
             },
             output,
           }

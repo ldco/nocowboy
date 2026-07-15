@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import path from "path"
 import { type ParseError, parse, printParseErrorCode } from "jsonc-parser"
 import { Schema } from "effect"

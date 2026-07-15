@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { Bus } from "@/bus"
 import { AgentManagerEvent } from "@/nocowboy/agent-manager/event"
 import { Tool } from "@/tool/tool"

@@ -1,4 +1,4 @@
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { errorFormat } from "@/util/error"
 import { isRecord } from "@/util/record"
 
@@ -47,7 +47,7 @@ export function FormatError(input: unknown): string | undefined {
   // MCPFailed: { name: string }
   if (NamedError.hasName(input, "MCPFailed")) {
     const data = isRecord(input) && isRecord(input.data) ? stringField(input.data, "name") : undefined
-    return `MCP server "${data}" failed.` // nocowboy_change
+    return `MCP server "${data}" failed.`
   }
 
   // AccountServiceError, AccountTransportError: TaggedErrorClass
@@ -55,7 +55,7 @@ export function FormatError(input: unknown): string | undefined {
     return stringField(input, "message") ?? ""
   }
 
-  // ProviderModelNotFoundError: { providerID: string, modelID: string, suggestions?: string[], modelsEmpty?: boolean } // nocowboy_change
+  // ProviderModelNotFoundError: { providerID: string, modelID: string, suggestions?: string[], modelsEmpty?: boolean }
   const providerModelNotFound = configData(input, "ProviderModelNotFoundError")
   if (providerModelNotFound) {
     const suggestions = Array.isArray(providerModelNotFound.suggestions)
@@ -64,9 +64,9 @@ export function FormatError(input: unknown): string | undefined {
     return [
       `Model not found: ${stringField(providerModelNotFound, "providerID")}/${stringField(providerModelNotFound, "modelID")}`,
       ...(suggestions.length ? ["Did you mean: " + suggestions.join(", ")] : []),
-      ...(providerModelNotFound.modelsEmpty === true ? ["No models are currently available."] : []), // nocowboy_change
-      `Try: \`nocowboy models\` to list available models`, // nocowboy_change
-      `Or check your nocowboy.json provider/model names`, // nocowboy_change
+      ...(providerModelNotFound.modelsEmpty === true ? ["No models are currently available."] : []),
+      `Try: \`nocowboy models\` to list available models`,
+      `Or check your nocowboy.json provider/model names`,
     ].join("\n")
   }
 

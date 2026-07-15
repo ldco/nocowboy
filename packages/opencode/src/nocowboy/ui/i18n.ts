@@ -1,4 +1,3 @@
-// nocowboy_change — UI localization system
 // Provides Russian translations for TUI labels, sidebar, dialogs, errors.
 // Uses `lang` from config to select language.
 

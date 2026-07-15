@@ -1,4 +1,4 @@
-import { Npm } from "@opencode-ai/core/npm"
+import { Npm } from "@nocowboy/core/npm"
 
 export namespace LanceDBRuntime {
   export const env = "NOCOWBOY_LANCEDB_PATH"

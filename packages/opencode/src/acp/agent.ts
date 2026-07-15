@@ -33,10 +33,10 @@ import {
   type Usage,
 } from "@agentclientprotocol/sdk"
 
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { pathToFileURL } from "url"
 import { Filesystem } from "@/util/filesystem"
-import { Hash } from "@opencode-ai/core/util/hash"
+import { Hash } from "@nocowboy/core/util/hash"
 import { ACPSessionManager } from "./session"
 import type { ACPConfig } from "./types"
 import { ACPRuntime } from "./runtime"
@@ -59,9 +59,8 @@ import type {
   ToolPart,
 } from "@nocowboy/sdk/v2"
 import { applyPatch } from "diff"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 
-// nocowboy_change - gateway removed
 const fetchDefaultModel = async () => null
 import { ShellID } from "@/tool/shell/id"
 
@@ -531,19 +530,17 @@ export class Agent implements ACPAgent {
   async initialize(params: InitializeRequest): Promise<InitializeResponse> {
     log.info("initialize", { protocolVersion: params.protocolVersion })
 
-    // nocowboy_change start
     const authMethod: AuthMethod = {
       description: "Run `nocowboy auth login` in the terminal",
       name: "Login with NoCowboy",
       id: "nocowboy-login",
     }
-    // nocowboy_change end
 
     // If client supports terminal-auth capability, use that instead.
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: "opencode",
+          command: "nocowboy",
           args: ["auth", "login"],
           label: "NoCowboy Login",
         },
@@ -1720,7 +1717,6 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
 
   if (specified && !providers.length) return specified
 
-  // nocowboy_change start
   const lastUsed = await lastUsedModel(sdk, directory, providers)
   if (lastUsed) return lastUsed
 
@@ -1734,7 +1730,6 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
       }
     }
   }
-  // nocowboy_change end
 
   const models = providers.flatMap((p) => Object.values(p.models))
   const [best] = Provider.sort(models)
@@ -1747,8 +1742,7 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
 
   if (specified) return specified
 
-  // nocowboy_change start - prefer kilo free-tier default before erroring.
-  // Only fall back to the Kilo provider if it was present in the available
+  // Only fall back to the NoCowboy provider if it was present in the available
   // providers list. When teams configure enabled_providers to use only their
   // own models, this prevents silently routing requests to an external API.
   // Note: LiteLLM / custom provider users won't reach here — the function
@@ -1757,7 +1751,6 @@ async function defaultModel(config: ACPConfig, cwd?: string): Promise<{ provider
     const freeModel = await fetchDefaultModel()
     if (freeModel) return { providerID: ProviderID.nocowboy, modelID: ModelID.make(freeModel) }
   }
-  // nocowboy_change end
   throw new Error("No models available")
 }
 

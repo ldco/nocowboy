@@ -1,5 +1,3 @@
-// nocowboy_change - new file
-// nocowboy_change - gateway removed, stubs inlined
 const fetchKiloModels = async (_opts?: KiloOptions): Promise<KiloModelsResult> => ({ models: {} })
 type KiloModelsResult = { models: Record<string, any>; error?: any }
 type KiloOptions = { sessionID?: string; apiKey?: string; baseURL?: string; kilocodeToken?: string; kilocodeOrganizationId?: string }
@@ -7,8 +5,8 @@ import { Context, Duration, Effect, Layer, Schema } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
 import { Config } from "../config/config"
 import { Auth } from "../auth"
-import type { Provider } from "@opencode-ai/core/models"
-import * as Log from "@opencode-ai/core/util/log"
+import type { Provider } from "@nocowboy/core/models"
+import * as Log from "@nocowboy/core/util/log"
 
 type Models = Provider["models"]
 type Options = { apiKey?: string; baseURL?: string; kilocodeToken?: string; kilocodeOrganizationId?: string }

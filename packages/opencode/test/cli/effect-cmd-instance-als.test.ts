@@ -1,5 +1,5 @@
 import { afterEach, expect } from "bun:test"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Effect } from "effect"
 import { effectCmd } from "../../src/cli/effect-cmd"
 import { EffectBridge } from "../../src/effect/bridge"

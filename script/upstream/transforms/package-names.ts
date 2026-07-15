@@ -4,9 +4,9 @@
  *
  * This script transforms:
  * - opencode-ai -> @kilocode/cli
- * - @opencode-ai/cli -> @kilocode/cli
- * - @opencode-ai/sdk -> @kilocode/sdk
- * - @opencode-ai/plugin -> @kilocode/plugin
+ * - @nocowboy/cli -> @kilocode/cli
+ * - @nocowboy/sdk -> @kilocode/sdk
+ * - @nocowboy/plugin -> @kilocode/plugin
  * - OPENCODE_* -> KILO_* (env variables, excluding OPENCODE_API_KEY)
  * - x-opencode-* -> x-kilo-* (HTTP headers)
  * - opencode.db -> kilo.db (database filename)
@@ -40,19 +40,19 @@ const PACKAGE_PATTERNS = [
   { pattern: /"@opencode-ai\/plugin":\s*"/g, replacement: '"@kilocode/plugin": "' },
 
   // In any string context (mock.module, dynamic references, etc.)
-  // Only cli, sdk, and plugin are renamed — other @opencode-ai/* packages
-  // (e.g. @opencode-ai/ui, @opencode-ai/util) keep their upstream names.
+  // Only cli, sdk, and plugin are renamed — other @nocowboy/* packages
+  // (e.g. @nocowboy/ui, @nocowboy/util) keep their upstream names.
   { pattern: /@opencode-ai\/cli(?=\/|"|'|`|$)/g, replacement: "@kilocode/cli" },
   { pattern: /@opencode-ai\/sdk(?=\/|"|'|`|$)/g, replacement: "@kilocode/sdk" },
   { pattern: /@opencode-ai\/plugin(?=\/|"|'|`|$)/g, replacement: "@kilocode/plugin" },
 
-  // In import statements (supports subpaths like @opencode-ai/sdk/v2)
+  // In import statements (supports subpaths like @nocowboy/sdk/v2)
   { pattern: /from\s+["']opencode-ai["']/g, replacement: 'from "@kilocode/cli"' },
   { pattern: /from\s+["']@opencode-ai\/cli(\/[^"']*)?["']/g, replacement: 'from "@kilocode/cli$1"' },
   { pattern: /from\s+["']@opencode-ai\/sdk(\/[^"']*)?["']/g, replacement: 'from "@kilocode/sdk$1"' },
   { pattern: /from\s+["']@opencode-ai\/plugin(\/[^"']*)?["']/g, replacement: 'from "@kilocode/plugin$1"' },
 
-  // In require statements (supports subpaths like @opencode-ai/sdk/v2)
+  // In require statements (supports subpaths like @nocowboy/sdk/v2)
   { pattern: /require\(["']opencode-ai["']\)/g, replacement: 'require("@kilocode/cli")' },
   { pattern: /require\(["']@opencode-ai\/cli(\/[^"']*)?["']\)/g, replacement: 'require("@kilocode/cli$1")' },
   { pattern: /require\(["']@opencode-ai\/sdk(\/[^"']*)?["']\)/g, replacement: 'require("@kilocode/sdk$1")' },

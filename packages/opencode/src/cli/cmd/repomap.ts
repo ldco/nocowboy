@@ -1,5 +1,5 @@
 import { cmd } from "./cmd"
-import { RepoMap } from "@/nocowboy/repomap" // nocowboy_change
+import { RepoMap } from "@/nocowboy/repomap"
 
 export const RepoMapCommand = cmd({
   command: "repomap",

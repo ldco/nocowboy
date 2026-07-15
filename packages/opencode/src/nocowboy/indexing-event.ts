@@ -1,7 +1,7 @@
 import { Schema } from "effect"
 import { INDEXING_STATUS_STATES } from "@nocowboy/indexing/status"
 import { BusEvent } from "@/bus/bus-event"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
+import { NonNegativeInt } from "@nocowboy/core/schema"
 import { INDEXING_WARNING_CODES } from "./indexing-warning"
 
 export const IndexingStatusState = Schema.Literals(INDEXING_STATUS_STATES).annotate({

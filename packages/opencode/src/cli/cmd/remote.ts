@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { cmd } from "./cmd"
 import { bootstrap } from "../bootstrap"
 import { Sessions } from "@/nocowboy-sessions/sessions"

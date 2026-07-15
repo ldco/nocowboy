@@ -8,19 +8,18 @@ import { DialogMcp } from "../../component/dialog-mcp"
 import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/solid"
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
-import { DialogProvider } from "../../component/dialog-provider" // nocowboy_change
-import { DialogIndexing } from "@/nocowboy/components/dialog-indexing" // nocowboy_change
-import * as Clipboard from "../../util/clipboard" // nocowboy_change
-import { useToast } from "../../ui/toast" // nocowboy_change
-import { slashDisplay } from "@/nocowboy/cli/cmd/command-display" // nocowboy_change
-// nocowboy_change - module-level ref survives SolidJS remount
+import { DialogProvider } from "../../component/dialog-provider"
+import { DialogIndexing } from "@/nocowboy/components/dialog-indexing"
+import * as Clipboard from "../../util/clipboard"
+import { useToast } from "../../ui/toast"
+import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
 let _historyScrollbox: any = undefined
 
 // DEBUG — remove after stable
@@ -203,7 +202,6 @@ function SettingsTab() {
   )
 }
 
-// nocowboy_change start — Commands Tab (agentic commands from sync.data.command)
 function CommandsTab() {
   const { theme } = useTheme()
   const sync = useSync()
@@ -343,7 +341,6 @@ function CommandsTab() {
     </box>
   )
 }
-// nocowboy_change end
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const project = useProject()
@@ -352,7 +349,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const tuiConfig = useTuiConfig()
   const route = useRoute()
   const sdk = useSDK()
-  const toast = useToast() // nocowboy_change
+  const toast = useToast()
   log(`sidebar.mount sessionID=${props.sessionID} overlay=${props.overlay}`) // debug
   const session = createMemo(() => sync.session.get(props.sessionID))
   const workspace = () => {
@@ -363,7 +360,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
   const [tab, setTab] = createSignal<SidebarTab>("info")
   const [selectedIdx, setSelectedIdx] = createSignal(0)
-  const [navigating, setNavigating] = createSignal(false) // nocowboy_change - context-aware return
+  const [navigating, setNavigating] = createSignal(false)
 
   const [sessions] = createResource(async () => {
     const result = await sdk.client.experimental.session.list(
@@ -385,7 +382,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     route.data.type === "session" ? route.data.sessionID : undefined,
   )
 
-  const shareSession = async (sessionID: string) => { // nocowboy_change start
+  const shareSession = async (sessionID: string) => {
     log(`shareSession.start ${sessionID}`)
     const sess = sync.session.get(sessionID)
     const existingUrl = sess?.share?.url
@@ -410,7 +407,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       log(`shareSession.error ${e?.message ?? e}`)
       toast.show({ message: e?.message ?? "Failed to share session", variant: "error" })
     }
-  } // nocowboy_change end
+  }
 
   const tabKeys = ["info", "history", "commands", "settings"] as const
 
@@ -448,7 +445,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Previous session",
         group: "Sidebar",
         cmd: () => {
-          setNavigating(true) // nocowboy_change
+          setNavigating(true)
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
           log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
           setSelectedIdx(next)
@@ -460,7 +457,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         desc: "Next session",
         group: "Sidebar",
         cmd: () => {
-          setNavigating(true) // nocowboy_change
+          setNavigating(true)
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
           log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
@@ -471,7 +468,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     ],
   }))
 
-  // nocowboy_change - return only active while navigating history via ↑↓
   useBindings(() => ({
     enabled: tab() === "history" && navigating(),
     bindings: [
@@ -527,8 +523,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           </scrollbox>
         </Show>
       </Show>
-      {/* nocowboy_change end */}
-
       {/* Commands Tab — nocowboy_change start */}
       <Show when={tab() === "commands"}>
         <CommandsTab />

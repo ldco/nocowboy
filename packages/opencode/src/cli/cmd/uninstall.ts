@@ -2,13 +2,13 @@ import type { Argv } from "yargs"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import fs from "fs/promises"
 import path from "path"
 import os from "os"
 import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
-import { Brew as KiloBrew } from "@/nocowboy/installation" // nocowboy_change
+import { Brew as KiloBrew } from "@/nocowboy/installation"
 
 interface UninstallArgs {
   keepConfig: boolean
@@ -25,7 +25,7 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe: "uninstall kilo and remove all related files", // nocowboy_change
+  describe: "uninstall kilo and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {
@@ -56,7 +56,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall Kilo") // nocowboy_change
+    prompts.intro("Uninstall NoCowboy")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -130,13 +130,13 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g @kilocode/cli", // nocowboy_change
-      pnpm: "pnpm uninstall -g @kilocode/cli", // nocowboy_change
-      bun: "bun remove -g @kilocode/cli", // nocowboy_change
-      yarn: "yarn global remove @kilocode/cli", // nocowboy_change
-      brew: `brew uninstall ${KiloBrew.name}`, // nocowboy_change
-      choco: "choco uninstall kilo", // nocowboy_change
-      scoop: "scoop uninstall kilo", // nocowboy_change
+      npm: "npm uninstall -g @kilocode/cli",
+      pnpm: "pnpm uninstall -g @kilocode/cli",
+      bun: "bun remove -g @kilocode/cli",
+      yarn: "yarn global remove @kilocode/cli",
+      brew: `brew uninstall ${KiloBrew.name}`,
+      choco: "choco uninstall kilo",
+      scoop: "scoop uninstall kilo",
     }
     prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
   }
@@ -181,19 +181,19 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "@nocowboy/cli"], // nocowboy_change
-      pnpm: ["pnpm", "uninstall", "-g", "@nocowboy/cli"], // nocowboy_change
-      bun: ["bun", "remove", "-g", "@nocowboy/cli"], // nocowboy_change
-      yarn: ["yarn", "global", "remove", "@nocowboy/cli"], // nocowboy_change
-      brew: ["brew", "uninstall", KiloBrew.name], // nocowboy_change
-      choco: ["choco", "uninstall", "kilo"], // nocowboy_change
-      scoop: ["scoop", "uninstall", "kilo"], // nocowboy_change
+      npm: ["npm", "uninstall", "-g", "@nocowboy/cli"],
+      pnpm: ["pnpm", "uninstall", "-g", "@nocowboy/cli"],
+      bun: ["bun", "remove", "-g", "@nocowboy/cli"],
+      yarn: ["yarn", "global", "remove", "@nocowboy/cli"],
+      brew: ["brew", "uninstall", KiloBrew.name],
+      choco: ["choco", "uninstall", "kilo"],
+      scoop: ["scoop", "uninstall", "kilo"],
     }
 
     const cmd = cmds[method]
     if (cmd) {
       spinner.start(`Running ${cmd.join(" ")}...`)
-      const result = await Process.run(cmd, { nothrow: true }) // nocowboy_change - removed choco special case
+      const result = await Process.run(cmd, { nothrow: true })
       if (result.code !== 0) {
         spinner.stop(`Package manager uninstall failed: exit code ${result.code}`, 1)
         prompts.log.warn(`You may need to run manually: ${cmd.join(" ")}`)
@@ -210,7 +210,6 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
     const binDir = path.dirname(targets.binary)
     if (binDir.includes(".nocowboy") || binDir.includes(".nocowboy")) {
-      // nocowboy_change
       prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
     }
   }
@@ -224,7 +223,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using Kilo!") // nocowboy_change
+  prompts.log.success("Thank you for using NoCowboy!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {
@@ -261,16 +260,14 @@ async function getShellConfigFile(): Promise<string | null> {
     if (!exists) continue
 
     const content = await Filesystem.readText(file).catch(() => "")
-    // nocowboy_change start - detect both opencode and kilo markers
     if (
-      content.includes("# opencode") ||
-      content.includes(".opencode/bin") ||
+      content.includes("# nocowboy") ||
+      content.includes(".nocowboy/bin") ||
       content.includes("# nocowboy") ||
       content.includes(".nocowboy/bin")
     ) {
       return file
     }
-    // nocowboy_change end
   }
 
   return null
@@ -286,26 +283,24 @@ async function cleanShellConfig(file: string) {
   for (const line of lines) {
     const trimmed = line.trim()
 
-    // nocowboy_change start - clean both opencode and kilo markers
-    if (trimmed === "# opencode" || trimmed === "# nocowboy") {
+    if (trimmed === "# nocowboy" || trimmed === "# nocowboy") {
       skip = true
       continue
     }
 
     if (skip) {
       skip = false
-      if (trimmed.includes(".opencode/bin") || trimmed.includes(".nocowboy/bin") || trimmed.includes("fish_add_path")) {
+      if (trimmed.includes(".nocowboy/bin") || trimmed.includes(".nocowboy/bin") || trimmed.includes("fish_add_path")) {
         continue
       }
     }
 
     if (
-      (trimmed.startsWith("export PATH=") && (trimmed.includes(".opencode/bin") || trimmed.includes(".nocowboy/bin"))) ||
+      (trimmed.startsWith("export PATH=") && (trimmed.includes(".nocowboy/bin") || trimmed.includes(".nocowboy/bin"))) ||
       (trimmed.startsWith("fish_add_path") && (trimmed.includes(".nocowboy") || trimmed.includes(".nocowboy")))
     ) {
       continue
     }
-    // nocowboy_change end
 
     filtered.push(line)
   }

@@ -1,6 +1,6 @@
 import { describe, expect } from "bun:test"
 import { Cause, Effect, Exit, Fiber, Layer } from "effect"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { NoCowboySessionPromptQueue } from "../../src/nocowboy/session/prompt-queue"
 import { Question } from "../../src/question"
 import { MessageID, SessionID } from "../../src/session/schema"

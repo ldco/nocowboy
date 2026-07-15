@@ -2,14 +2,13 @@ import path from "path"
 import { Effect, Option, Schema } from "effect"
 import * as Stream from "effect/Stream"
 import { InstanceState } from "@/effect/instance-state"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Ripgrep } from "../file/ripgrep"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import DESCRIPTION from "./glob.txt"
 import * as Tool from "./tool"
 import { Reference } from "@/reference/reference"
 
-// nocowboy_change start — support absolute glob patterns (e.g. ~/.config/kilo/command/*.md)
 function normalize(p: string) {
   return p.replaceAll("\\", "/")
 }
@@ -25,7 +24,6 @@ function split(pattern: string) {
   const next = normalized.slice(cut + 1)
   return { dir, pattern: next || "*" }
 }
-// nocowboy_change end
 
 export const Parameters = Schema.Struct({
   pattern: Schema.String.annotate({ description: "The glob pattern to match files against" }),
@@ -47,7 +45,7 @@ export const GlobTool = Tool.define(
       execute: (params: { pattern: string; path?: string }, ctx: Tool.Context) =>
         Effect.gen(function* () {
           const ins = yield* InstanceState.context
-          const absolute = split(params.pattern) // nocowboy_change
+          const absolute = split(params.pattern)
           yield* ctx.ask({
             permission: "glob",
             patterns: [params.pattern],
@@ -58,10 +56,8 @@ export const GlobTool = Tool.define(
             },
           })
 
-          // nocowboy_change start
           const base = absolute?.dir ?? params.path ?? ins.directory
           const search = path.isAbsolute(base) ? base : path.resolve(ins.directory, base)
-          // nocowboy_change end
           yield* reference.ensure(search)
           const info = yield* fs.stat(search).pipe(Effect.catch(() => Effect.succeed(undefined)))
           if (info?.type === "File") {
@@ -74,7 +70,6 @@ export const GlobTool = Tool.define(
 
           const limit = 100
           let truncated = false
-          // nocowboy_change start
           const files = yield* rg
             .files({ cwd: search, glob: [absolute?.pattern ?? params.pattern], signal: ctx.abort })
             .pipe(
@@ -94,7 +89,6 @@ export const GlobTool = Tool.define(
               Stream.runCollect,
               Effect.map((chunk) => [...chunk]),
             )
-          // nocowboy_change end
 
           if (files.length > limit) {
             truncated = true

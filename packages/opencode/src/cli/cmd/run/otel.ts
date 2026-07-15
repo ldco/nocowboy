@@ -1,14 +1,14 @@
 import { INVALID_SPAN_CONTEXT, context, trace, SpanStatusCode, type Span } from "@opentelemetry/api"
 import { Effect, ManagedRuntime } from "effect"
-import { memoMap } from "@opencode-ai/core/effect/memo-map"
-import { Observability } from "@opencode-ai/core/effect/observability"
+import { memoMap } from "@nocowboy/core/effect/memo-map"
+import { Observability } from "@nocowboy/core/effect/observability"
 
 type AttributeValue = string | number | boolean | undefined
 
 export type RunSpanAttributes = Record<string, AttributeValue>
 
 const noop = trace.wrapSpanContext(INVALID_SPAN_CONTEXT)
-const tracer = trace.getTracer("opencode.run")
+const tracer = trace.getTracer("nocowboy.run")
 const runtime = ManagedRuntime.make(Observability.layer, { memoMap })
 let ready: Promise<void> | undefined
 

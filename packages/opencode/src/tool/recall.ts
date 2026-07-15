@@ -1,14 +1,13 @@
-// nocowboy_change - new file
 import { Effect, Schema } from "effect"
 import { EffectBridge } from "../effect/bridge"
 import * as Tool from "./tool"
 import { Git } from "../git"
 import { Instance } from "../nocowboy/instance"
 import { Locale } from "../util/locale"
-import { Filesystem } from "../util/filesystem" // nocowboy_change
-import { WorktreeFamily } from "../nocowboy/worktree-family" // nocowboy_change
-import { Session } from "../session/session" // nocowboy_change
-import { SessionID } from "../session/schema" // nocowboy_change
+import { Filesystem } from "../util/filesystem"
+import { WorktreeFamily } from "../nocowboy/worktree-family"
+import { Session } from "../session/session"
+import { SessionID } from "../session/schema"
 import DESCRIPTION from "./recall.txt"
 
 const Parameters = Schema.Struct({
@@ -30,7 +29,7 @@ export const RecallTool = Tool.define(
   "nocowboy_local_recall",
   Effect.gen(function* () {
     const git = yield* Git.Service
-    const sessions = yield* Session.Service // nocowboy_change
+    const sessions = yield* Session.Service
     return {
       description: DESCRIPTION,
       parameters: Parameters,
@@ -67,8 +66,8 @@ async function search(
   })
 
   const limit = Math.min(params.limit ?? 20, 50)
-  const dirs = await bridge.promise(WorktreeFamily.list().pipe(Effect.provideService(Git.Service, git))) // nocowboy_change
-  const { Session } = await import("../session/session") // nocowboy_change
+  const dirs = await bridge.promise(WorktreeFamily.list().pipe(Effect.provideService(Git.Service, git)))
+  const { Session } = await import("../session/session")
 
   const results: Array<{
     id: string
@@ -78,8 +77,8 @@ async function search(
   }> = []
 
   for (const session of Session.listGlobal({
-    projectID: Instance.project.id, // nocowboy_change
-    directories: dirs, // nocowboy_change
+    projectID: Instance.project.id,
+    directories: dirs,
     search: params.query,
     roots: true,
     limit,
@@ -123,15 +122,13 @@ async function read(
   const session = await bridge.promise(sessions.get(SessionID.make(params.sessionID))).catch(() => {
     throw new Error(`Session "${params.sessionID}" not found. Use search mode first to find valid session IDs.`)
   })
-  const dirs = await bridge.promise(WorktreeFamily.list().pipe(Effect.provideService(Git.Service, git))) // nocowboy_change
-  // nocowboy_change start
+  const dirs = await bridge.promise(WorktreeFamily.list().pipe(Effect.provideService(Git.Service, git)))
   const dir = Filesystem.resolve(session.directory)
   if (!dirs.some((root) => Filesystem.contains(root, dir))) {
     throw new Error(
       `Session "${params.sessionID}" belongs to a different workspace and cannot be read from this directory.`,
     )
   }
-  // nocowboy_change end
 
   const cross = session.projectID !== Instance.project.id
   if (cross) {

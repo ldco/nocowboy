@@ -1,11 +1,9 @@
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
-// nocowboy_change start
 import { SuggestTool } from "../nocowboy/suggestion/tool"
 import { Command } from "@/command"
 import { SearchReplaceTool } from "./search_replace"
-// nocowboy_change end
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
@@ -28,21 +26,21 @@ import { Plugin } from "../plugin"
 import { Provider } from "@/provider/provider"
 import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
-import { NocowboyToolRegistry } from "../nocowboy/tool/registry" // nocowboy_change
+import { NocowboyToolRegistry } from "../nocowboy/tool/registry"
 import { RepoCloneTool } from "./repo_clone"
 import { RepoOverviewTool } from "./repo_overview"
-import { Flag } from "@opencode-ai/core/flag/flag" // nocowboy_change
-import * as Log from "@opencode-ai/core/util/log"
+import { Flag } from "@nocowboy/core/flag/flag"
+import * as Log from "@nocowboy/core/util/log"
 import { LspTool } from "./lsp"
 import * as Truncate from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { Glob } from "@nocowboy/core/util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context } from "effect"
 import { FetchHttpClient, HttpClient } from "effect/unstable/http"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Ripgrep } from "../file/ripgrep"
 import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
@@ -50,13 +48,13 @@ import { Question } from "../question"
 import { Todo } from "../session/todo"
 import { LSP } from "@/lsp/lsp"
 import { Instruction } from "../session/instruction"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
 import { Git } from "@/git"
 import { Skill } from "../skill"
 import { Permission } from "@/permission"
-import { SessionStatus } from "@/session/status" // nocowboy_change
+import { SessionStatus } from "@/session/status"
 import { Reference } from "@/reference/reference"
 import { BackgroundJob } from "@/background/job"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -67,7 +65,7 @@ export function webSearchEnabled(
   providerID: ProviderID,
   flags = { exa: Flag.NOCOWBOY_ENABLE_EXA, parallel: Flag.NOCOWBOY_ENABLE_PARALLEL },
 ) {
-  return providerID === ProviderID.nocowboy || flags.exa || flags.parallel // nocowboy_change
+  return providerID === ProviderID.nocowboy || flags.exa || flags.parallel
 }
 
 type TaskDef = Tool.InferDef<typeof TaskTool>
@@ -87,7 +85,7 @@ export interface Interface {
   readonly tools: (model: { providerID: ProviderID; modelID: ModelID; agent: Agent.Info }) => Effect.Effect<Tool.Def[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ToolRegistry") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/ToolRegistry") {}
 
 export const layer: Layer.Layer<
   Service,
@@ -113,9 +111,7 @@ export const layer: Layer.Layer<
   | Ripgrep.Service
   | Format.Service
   | Truncate.Service
-  // nocowboy_change start
   | Command.Service
-  // nocowboy_change end
   | RuntimeFlags.Service
 > = Layer.effect(
   Service,
@@ -148,10 +144,8 @@ export const layer: Layer.Layer<
     const searchtool = yield* SearchReplaceTool
     const skilltool = yield* SkillTool
     const agent = yield* Agent.Service
-    // nocowboy_change start
     const suggesttool = yield* SuggestTool
     const nocowboyToolInfos = yield* NocowboyToolRegistry.infos()
-    // nocowboy_change end
 
     const state = yield* InstanceState.make<State>(
       Effect.fn("ToolRegistry.state")(function* (ctx) {
@@ -232,12 +226,10 @@ export const layer: Layer.Layer<
           }
         }
 
-        // nocowboy_change start
         const cfg = yield* config.get()
         const global = yield* config.getGlobal()
         const indexing = NocowboyToolRegistry.indexing(cfg, global)
-        // nocowboy_change end
-        const questionEnabled = ["app", "cli", "desktop", "vscode"].includes(flags.client) || flags.enableQuestionTool // nocowboy_change: add vscode client
+        const questionEnabled = ["app", "cli", "desktop", "vscode"].includes(flags.client) || flags.enableQuestionTool
 
         const tool = yield* Effect.all({
           invalid: Tool.init(invalid),
@@ -260,20 +252,17 @@ export const layer: Layer.Layer<
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
-          suggest: Tool.init(suggesttool), // nocowboy_change
+          suggest: Tool.init(suggesttool),
         })
 
-        // nocowboy_change start
         const nocowboy = yield* NocowboyToolRegistry.build(nocowboyToolInfos, {
           agent: agents,
           truncate,
           indexing: indexing ?? false,
         })
-        // nocowboy_change end
 
         return {
           custom,
-          // nocowboy_change start
           builtin: NocowboyToolRegistry.describe(
             [
               tool.invalid,
@@ -300,7 +289,6 @@ export const layer: Layer.Layer<
             ],
             nocowboy,
           ),
-          // nocowboy_change end
           task: tool.task,
           read: tool.read,
         }
@@ -357,12 +345,10 @@ export const layer: Layer.Layer<
         }
 
         const usePatch =
-          // nocowboy_change start
           !!process.env["NOCOWBOY_E2E_LLM_URL"] ||
           (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
-        // nocowboy_change end
         if (tool.id === ApplyPatchTool.id) return usePatch
-        if (tool.id === EditTool.id) return !usePatch // nocowboy_change
+        if (tool.id === EditTool.id) return !usePatch
 
         return true
       })
@@ -434,9 +420,7 @@ export const defaultLayer = Layer.suspend(
         Layer.provide(Ripgrep.defaultLayer),
         Layer.provide(Truncate.defaultLayer),
       )
-      // nocowboy_change start - provide Kilo-owned registry dependencies
       .pipe(Layer.provide(Command.defaultLayer), Layer.provide(RuntimeFlags.defaultLayer)),
-  // nocowboy_change end
 )
 
 function isZodType(value: unknown): value is z.ZodType {

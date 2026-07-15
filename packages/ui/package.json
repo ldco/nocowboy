@@ -1,5 +1,5 @@
 {
-  "name": "@opencode-ai/ui",
+  "name": "@nocowboy/ui",
   "version": "7.3.46",
   "type": "module",
   "license": "MIT",
@@ -69,7 +69,7 @@
     "strip-ansi": "7.1.2",
     "virtua": "catalog:",
     "@typescript/native-preview": "catalog:",
-    "@opencode-ai/core": "workspace:*"
+    "@nocowboy/core": "workspace:*"
   },
   "peerDependencies": {}
 }

@@ -3,10 +3,10 @@ import { mkdir, unlink } from "fs/promises"
 import path from "path"
 
 import { disposeAllInstances, tmpdir, withTestInstance } from "../fixture/fixture"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import type { InstanceContext } from "../../src/project/instance-context"
 import { Plugin } from "../../src/plugin/index"
-import { ModelsDev } from "@opencode-ai/core/models"
+import { ModelsDev } from "@nocowboy/core/models"
 import { Provider } from "@/provider/provider"
 import { ProviderID, ModelID } from "../../src/provider/schema"
 import { Filesystem } from "@/util/filesystem"
@@ -16,7 +16,7 @@ import { AppRuntime } from "../../src/effect/app-runtime"
 import { InstanceRef } from "../../src/effect/instance-ref"
 import { makeRuntime } from "../../src/effect/run-service"
 import { testEffect } from "../lib/effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Config } from "@/config/config"
 import { Auth } from "@/auth"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -105,7 +105,7 @@ async function markPluginDependenciesReady(dir: string) {
 }
 
 function paid(providers: Awaited<ReturnType<typeof list>>) {
-  const item = providers[ProviderID.make("opencode")]
+  const item = providers[ProviderID.make("nocowboy")]
   if (!item) return 0 // kilocode_change - Kilo drops opencode provider without apiKey/auth
   return Object.values(item.models).filter((model) => model.cost.input > 0).length
 }
@@ -1723,7 +1723,7 @@ test("ModelNotFoundError suggests catalog models for unloaded providers", async 
     fn: async (ctx) => {
       remove(ctx, "OPENCODE_API_KEY")
       try {
-        await getModel(ProviderID.opencode, ModelID.make("claude-haiku-fake-model"), ctx)
+        await getModel(ProviderID.nocowboy, ModelID.make("claude-haiku-fake-model"), ctx)
         throw new Error("expected model lookup to fail")
       } catch (e) {
         if (!Provider.ModelNotFoundError.isInstance(e)) throw e
@@ -2584,7 +2584,7 @@ test("cloudflare-ai-gateway forwards config metadata options", async () => {
           provider: {
             "cloudflare-ai-gateway": {
               options: {
-                metadata: { invoked_by: "test", project: "opencode" },
+                metadata: { invoked_by: "test", project: "nocowboy" },
               },
             },
           },
@@ -2602,7 +2602,7 @@ test("cloudflare-ai-gateway forwards config metadata options", async () => {
       expect(providers[ProviderID.make("cloudflare-ai-gateway")]).toBeDefined()
       expect(providers[ProviderID.make("cloudflare-ai-gateway")].options.metadata).toEqual({
         invoked_by: "test",
-        project: "opencode",
+        project: "nocowboy",
       })
     },
   })

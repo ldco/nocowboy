@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 /**
  * NoCowboy-specific overrides for the provider dialog.
  *

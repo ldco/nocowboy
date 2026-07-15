@@ -4,7 +4,7 @@ import { KiloLLM } from "@/nocowboy/session/llm"
 import { Agent } from "@/agent/agent"
 import { AppRuntime } from "@/effect/app-runtime"
 import { Effect } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import type { CommitMessageRequest, CommitMessageResponse, GitContext } from "./types"
 import { getGitContext } from "./git-context"
 

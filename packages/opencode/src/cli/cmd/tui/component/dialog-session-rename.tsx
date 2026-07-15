@@ -6,8 +6,8 @@ import { useSDK } from "../context/sdk"
 
 interface DialogSessionRenameProps {
   session: string
-  title?: string // nocowboy_change
-  onConfirm?: () => void // nocowboy_change
+  title?: string
+  onConfirm?: () => void
 }
 
 export function DialogSessionRename(props: DialogSessionRenameProps) {
@@ -19,14 +19,14 @@ export function DialogSessionRename(props: DialogSessionRenameProps) {
   return (
     <DialogPrompt
       title="Rename Session"
-      value={session()?.title ?? props.title} // nocowboy_change
+      value={session()?.title ?? props.title}
       onConfirm={(value) => {
         void sdk.client.session
           .update({
             sessionID: props.session,
             title: value,
           })
-          .then(() => props.onConfirm?.()) // nocowboy_change
+          .then(() => props.onConfirm?.())
         dialog.clear()
       }}
       onCancel={() => dialog.clear()}

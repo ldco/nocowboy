@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import path from "path"
 import fs from "fs/promises"
 import { StringDecoder } from "string_decoder"
@@ -9,7 +8,7 @@ import { Session } from "@/session/session"
 import { Agent } from "@/agent/agent"
 import { Instance } from "@/nocowboy/instance"
 import type { SessionStatus } from "@/session/status"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { PlanFollowup } from "@/nocowboy/plan-followup"
 import { PlanFile } from "@/nocowboy/plan-file"
 import { NoCowboySession } from "@/nocowboy/session"

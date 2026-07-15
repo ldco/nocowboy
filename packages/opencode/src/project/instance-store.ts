@@ -2,9 +2,9 @@ import { GlobalBus } from "@/bus/global"
 import { WorkspaceContext } from "@/control-plane/workspace-context"
 import { InstanceRef } from "@/effect/instance-ref"
 import { disposeInstance as runDisposers } from "@/effect/instance-registry"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Context, Deferred, Duration, Effect, Exit, Layer, Scope } from "effect"
-import { context as instanceContext, type InstanceContext } from "./instance-context" // nocowboy_change
+import { context as instanceContext, type InstanceContext } from "./instance-context"
 import { InstanceBootstrap } from "./bootstrap-service"
 import * as Project from "./project"
 
@@ -22,7 +22,7 @@ export interface Interface {
   readonly provide: <A, E, R>(input: LoadInput, effect: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/InstanceStore") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/InstanceStore") {}
 
 interface Entry {
   readonly deferred: Deferred.Deferred<InstanceContext>
@@ -52,11 +52,9 @@ export const layer: Layer.Layer<Service, never, Project.Service | InstanceBootst
                   project: result.project,
                 })),
               )
-        // nocowboy_change start - run bootstrap inside the Instance ALS so NocowboyBootstrap
         // (and anything it forks via Effect.forkDetach) sees Instance.directory.
         const ready = bootstrap.run.pipe(Effect.provideService(InstanceRef, ctx)) as Effect.Effect<void>
         yield* Effect.promise(() => instanceContext.provide(ctx, () => Effect.runPromise(ready)))
-        // nocowboy_change end
         return ctx
       }).pipe(Effect.withSpan("InstanceStore.boot"))
 
@@ -91,7 +89,7 @@ export const layer: Layer.Layer<Service, never, Project.Service | InstanceBootst
 
     const disposeContext = Effect.fn("InstanceStore.disposeContext")(function* (ctx: InstanceContext) {
       yield* Effect.logInfo("disposing instance").pipe(Effect.annotateLogs("directory", ctx.directory))
-      yield* Effect.promise(() => instanceContext.provide(ctx, () => runDisposers(ctx.directory))) // nocowboy_change
+      yield* Effect.promise(() => instanceContext.provide(ctx, () => runDisposers(ctx.directory)))
       yield* emitDisposed({ directory: ctx.directory, project: ctx.project.id })
     })
 
@@ -131,14 +129,12 @@ export const layer: Layer.Layer<Service, never, Project.Service | InstanceBootst
           yield* Effect.gen(function* () {
             yield* Effect.logInfo("reloading instance").pipe(Effect.annotateLogs("directory", directory))
             if (previous) {
-              // nocowboy_change start - dispose reloads under the previous instance context
               const exit = yield* Deferred.await(previous.deferred).pipe(Effect.exit)
               yield* Effect.promise(() =>
                 Exit.isSuccess(exit)
                   ? instanceContext.provide(exit.value, () => runDisposers(directory))
                   : runDisposers(directory),
               )
-              // nocowboy_change end
               yield* emitDisposed({ directory, project: input.project?.id })
             }
             yield* completeLoad(directory, input, entry)

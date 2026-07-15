@@ -1,6 +1,6 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Schema } from "effect"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 
 const SUPPORTED_IDES = [
   { name: "Windsurf" as const, cmd: "windsurf" },
@@ -39,10 +39,8 @@ export function alreadyInstalled() {
   return process.env["NOCOWBOY_CALLER"] === "vscode" || process.env["NOCOWBOY_CALLER"] === "vscode-insiders"
 }
 
-// nocowboy_change start - Kilo's VS Code extension bundles the CLI; auto-install from CLI is not applicable
 export async function install(_ide: (typeof SUPPORTED_IDES)[number]["name"]) {
   throw new AlreadyInstalledError({})
 }
-// nocowboy_change end
 
 export * as Ide from "."

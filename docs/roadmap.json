@@ -61,7 +61,7 @@
     },
     {
       "tag": "v0.11.0",
-      "description": "Quality & Infrastructure"
+      "description": "Quality & Infrastructure — verification loop как DEFAULT behavior"
     },
     {
       "tag": "v1.0.0-alpha",
@@ -74,6 +74,11 @@
     {
       "tag": "v1.0.0",
       "description": "Production release"
+    },
+    {
+      "tag": "v0.12.0",
+      "date": "2026-08-15",
+      "description": "UI/UX — Terminal User Interface improvements"
     }
   ],
   "features": [
@@ -1093,10 +1098,11 @@
     },
     {
       "id": "quality-enforcement",
-      "title": "Agent Quality Enforcement — coherence_check, agent_log, task-gate hook",
+      "title": "Verification Loop — LSP diagnostics check DEFAULT (✅ check tool + auto-verify + prompt enforcement)",
       "status": "planned",
       "notes": "coherence_check частично реализован.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)"
     },
     {
       "id": "self-being",
@@ -1355,10 +1361,50 @@
     },
     {
       "id": "task-verify-hook",
-      "title": "Task-verify hook — авто-запуск verify перед task_done",
-      "status": "planned",
+      "title": "Programmatic gate в task done — complete_task отклоняет если check не прошёл (✅ done)",
+      "status": "done",
       "notes": "В NUTAUSIK hooks есть, не портировано",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop (complete_task tool + LSP gate + Constitution)"
+    },
+    {
+      "id": "check-tool",
+      "title": "Tool `check` для агента — явный вызов LSP diagnostics (language-agnostic)",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/check-tool.md"
+        }
+      ]
+    },
+    {
+      "id": "auto-verify-after-edit",
+      "title": "Auto-verify после edit/write/apply_patch — если ошибки, блокировать продолжение",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-verify-after-edit.md"
+        }
+      ]
+    },
+    {
+      "id": "verify-prompt-enforcement",
+      "title": "Prompt enforcement — агент ОБЯЗАН вызвать check перед task_done (записано в code.ru.txt)",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/verify-prompt-enforcement.md"
+        }
+      ]
     },
     {
       "id": "secret-scan-hook",
@@ -1735,6 +1781,84 @@
       "verify": [
         {
           "type": "overseer"
+        }
+      ]
+    },
+    {
+      "id": "tui-inline-diff-permission",
+      "title": "Inline diff в permission dialog — показывать diff прямо в диалоге подтверждения",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-inline-diff-permission.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-smart-cost",
+      "title": "Smart cost display — цветной индикатор остатка запросов до лимита (🟢🟡🔴)",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-smart-cost.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-context-mention",
+      "title": "Context mention (@file, @folder) в prompt — автодополнение из repomap",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-context-mention.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-timeline-view",
+      "title": "Timeline view — /timeline — хронология изменений с diff по точкам",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-timeline-view.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-markdown-preview",
+      "title": "Markdown превью — таблицы, ссылки, подсветка кода в TUI",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-markdown-preview.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-collapse-tool-default",
+      "title": "Collapse tool output по умолчанию — сворачивать bash/edit результаты",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-collapse-tool-default.md"
         }
       ]
     }

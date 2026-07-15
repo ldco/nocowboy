@@ -1,8 +1,6 @@
 import { OpenApi } from "effect/unstable/httpapi"
-// nocowboy_change start
 import { matchLegacyKiloOpenApi } from "@/nocowboy/server/httpapi/public"
 import * as KiloServer from "@/nocowboy/server/server"
-// nocowboy_change end
 import { OpenCodeHttpApi } from "./api"
 import { QueryBooleanOpenApi } from "./groups/query"
 
@@ -64,11 +62,9 @@ const QueryParameterSchemas: Record<string, OpenApiSchema> = {
   "GET /experimental/session roots": QueryBooleanOpenApi,
   "GET /experimental/session archived": QueryBooleanOpenApi,
   "GET /find/file limit": { type: "integer", minimum: 1, maximum: 200 },
-  // nocowboy_change start
   "GET /experimental/session worktrees": { type: "boolean" },
   "GET /nocowboy/cloud-sessions cursor": { type: "string" },
   "GET /nocowboy/cloud-sessions limit": { type: "number" },
-  // nocowboy_change end
   "GET /experimental/session cursor": { type: "number" },
   "GET /experimental/session limit": { type: "number" },
   "GET /session start": { type: "number" },
@@ -81,7 +77,6 @@ const QueryParameterSchemas: Record<string, OpenApiSchema> = {
   "GET /api/session/{sessionID}/message limit": { type: "number" },
 }
 
-// nocowboy_change start
 const PathParameterSchemas: Record<string, OpenApiSchema> = {
   sessionID: { type: "string", pattern: "^ses.*" },
   messageID: { type: "string", pattern: "^msg.*" },
@@ -89,11 +84,10 @@ const PathParameterSchemas: Record<string, OpenApiSchema> = {
   permissionID: { type: "string", pattern: "^per.*" },
   ptyID: { type: "string", pattern: "^pty.*" },
 }
-// nocowboy_change end
 
 const LegacyComponentDescriptions: Record<string, string> = {
   LogLevel: "Log level",
-  ServerConfig: "Server configuration for the kilo serve command", // nocowboy_change
+  ServerConfig: "Server configuration for the kilo serve command",
   LayoutConfig: "@deprecated Always uses stretch layout.",
 }
 
@@ -190,7 +184,7 @@ function matchLegacyOpenApi(input: Record<string, unknown>) {
       for (const param of operation.parameters ?? []) normalizeParameter(param, route)
     }
   }
-  matchLegacyKiloOpenApi(input) // nocowboy_change
+  matchLegacyKiloOpenApi(input)
   return input
 }
 
@@ -287,11 +281,9 @@ function applyLegacySchemaOverrides(spec: OpenApiSpec) {
   const model = schemas.ProviderConfig?.properties?.models?.additionalProperties
   const variants = typeof model === "object" ? model.properties?.variants?.additionalProperties : undefined
   if (variants && typeof variants === "object") variants.additionalProperties = {}
-  // nocowboy_change start - preserve model reset sentinels in indexing config patches
   const indexing = schemas.IndexingConfig?.properties
   if (indexing?.model) indexing.model = nullable(indexing.model)
   if (indexing?.dimension) indexing.dimension = nullable(indexing.dimension)
-  // nocowboy_change end
   const syncInfo = schemas.SyncEventSessionUpdated?.properties?.data?.properties?.info
   if (syncInfo?.properties) makePropertiesNullable(syncInfo.properties)
 }
@@ -509,7 +501,7 @@ function flattenOptions(options: OpenApiSchema[] | undefined): OpenApiSchema[] |
 function normalizeParameter(param: OpenApiParameter, route: string) {
   if (!param.schema || typeof param.schema !== "object") return
   if (param.in === "path") {
-    param.schema = pathParameterSchema(route, param.name) ?? stripOptionalNull(param.schema) // nocowboy_change
+    param.schema = pathParameterSchema(route, param.name) ?? stripOptionalNull(param.schema)
     return
   }
   if (param.in === "query") {
@@ -522,7 +514,6 @@ function normalizeParameter(param: OpenApiParameter, route: string) {
   param.schema = stripOptionalNull(param.schema)
 }
 
-// nocowboy_change start
 function pathParameterSchema(route: string, name: string) {
   if (name in PathParameterSchemas) return PathParameterSchemas[name]
   if (name === "id" && route.startsWith("DELETE /experimental/workspace/")) return { type: "string", pattern: "^wrk.*" }
@@ -534,13 +525,12 @@ function pathParameterSchema(route: string, name: string) {
   if (name === "requestID" && route.startsWith("POST /network/")) return { type: "string", pattern: "^que.*" }
   return undefined
 }
-// nocowboy_change end
 
 export const PublicApi = OpenCodeHttpApi.annotateMerge(
   OpenApi.annotations({
-    title: KiloServer.DOC_TITLE, // nocowboy_change
+    title: KiloServer.DOC_TITLE,
     version: "1.0.0",
-    description: KiloServer.DOC_DESCRIPTION, // nocowboy_change
+    description: KiloServer.DOC_DESCRIPTION,
     transform: matchLegacyOpenApi,
   }),
 )

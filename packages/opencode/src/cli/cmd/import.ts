@@ -6,11 +6,11 @@ import { Database } from "@/storage/db"
 import { SessionTable, MessageTable, PartTable } from "../../session/session.sql"
 import { InstanceRef } from "@/effect/instance-ref"
 import { EOL } from "os"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Effect, Schema } from "effect"
-import * as Log from "@opencode-ai/core/util/log" // nocowboy_change
+import * as Log from "@nocowboy/core/util/log"
 
-const log = Log.create({ service: "import" }) // nocowboy_change
+const log = Log.create({ service: "import" })
 
 const decodeMessageInfo = Schema.decodeUnknownSync(MessageV2.Info)
 const decodePart = Schema.decodeUnknownSync(MessageV2.Part)
@@ -23,13 +23,11 @@ export type ShareData =
   | { type: "session_diff"; data: unknown }
   | { type: "model"; data: unknown }
 
-// nocowboy_change start
 /** Extract share ID from a Kilo share URL like https://app.nocowboy.dev/s/abc123 */
 export function parseShareUrl(url: string): string | null {
   const match = url.match(/^https?:\/\/app\.kilo\.ai\/s\/([a-zA-Z0-9_-]+)$/)
   return match ? match[1] : null
 }
-// nocowboy_change end
 
 export function shouldAttachShareAuthHeaders(shareUrl: string, accountBaseUrl: string): boolean {
   try {
@@ -79,7 +77,6 @@ export function transformShareData(shareData: ShareData[]): {
   }
 }
 
-// nocowboy_change start
 export function ingestBootstrapWarning(sessionId: string, error: unknown) {
   const details = error instanceof Error ? error.message : String(error)
   return `Warning: imported session ${sessionId} locally, but ingest bootstrap failed: ${details}`
@@ -115,7 +112,6 @@ export async function bootstrapImportedSessionIngest(
       warn(ingestBootstrapWarning(sessionId, error))
     })
 }
-// nocowboy_change end
 
 type ExportData = { info: SDKSession; messages: Array<{ info: Message; parts: Part[] }> }
 
@@ -143,7 +139,6 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, projectI
   const isUrl = file.startsWith("http://") || file.startsWith("https://")
 
   if (isUrl) {
-    // nocowboy_change start - Migrate to upstream ShareNext architecture #10281
     const slug = parseShareUrl(file)
     if (!slug) {
       process.stdout.write(`Invalid URL format. Expected: https://app.nocowboy.dev/s/<id>`)
@@ -178,7 +173,6 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, projectI
     }
 
     exportData = data
-    // nocowboy_change end
   } else {
     exportData = (yield* fs.readJson(file).pipe(Effect.orElseSucceed(() => undefined))) as
       | NonNullable<typeof exportData>
@@ -243,9 +237,7 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, projectI
     }
   }
 
-  // nocowboy_change start
   yield* Effect.promise(() => bootstrapImportedSessionIngest(exportData!.info.id))
-  // nocowboy_change end
 
   process.stdout.write(`Imported session: ${exportData.info.id}`)
   process.stdout.write(EOL)

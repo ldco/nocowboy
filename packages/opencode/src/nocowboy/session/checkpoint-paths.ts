@@ -12,6 +12,10 @@ export function checkpointPath(sessionID: string): string {
   return path.join(metaDir(sessionID), "checkpoint.md")
 }
 
+export function checkpointRoot(sessionID: string): string {
+  return metaDir(sessionID)
+}
+
 export function memoryPath(projectID: string): string {
   return path.join(DATA_DIR, "memory", "projects", projectID, "MEMORY.md")
 }

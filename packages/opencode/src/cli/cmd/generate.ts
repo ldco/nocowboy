@@ -8,19 +8,16 @@ export const GenerateCommand = {
   builder: (yargs) => yargs,
   handler: async () => {
     const specs = (await Server.openapi()) as {
-      info: { title: string; description: string } // nocowboy_change
+      info: { title: string; description: string }
       paths: Record<string, Record<string, any>>
     }
-    // nocowboy_change start
     specs.info.title = "nocowboy"
     specs.info.description = "nocowboy api"
-    // nocowboy_change end
     for (const item of Object.values(specs.paths)) {
       for (const method of ["get", "post", "put", "delete", "patch"] as const) {
         const operation = item[method]
         if (!operation?.operationId) continue
         operation["x-codeSamples"] = [
-          // nocowboy_change start
           {
             lang: "js",
             source: [
@@ -32,17 +29,14 @@ export const GenerateCommand = {
               `})`,
             ].join("\n"),
           },
-          // nocowboy_change end,
         ]
       }
     }
     const raw = JSON.stringify(specs, null, 2)
-      // nocowboy_change start - replace upstream product name in all descriptions
       .replaceAll("OpenCode", "NoCowboy")
       .replaceAll("opencode.local", "nocowboy.local")
       .replaceAll("opencode serve", "nocowboy serve")
       .replaceAll("https://nocowboy.dev/", "https://nocowboy.dev/")
-    // nocowboy_change end
 
     // Format through prettier so output is byte-identical to committed file
     // regardless of whether ./script/format.ts runs afterward.

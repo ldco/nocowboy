@@ -2,15 +2,15 @@ import { cmd } from "../cmd"
 import { UI } from "@/cli/ui"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
-import { createNocowboyClient } from "@nocowboy/sdk/v2" // nocowboy_change
-import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session" // nocowboy_change
+import { createNocowboyClient } from "@nocowboy/sdk/v2"
+import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session"
 import { errorMessage } from "@/util/error"
 import { validateSession } from "./validate-session"
 import { ServerAuth } from "@/server/auth"
 
 export const AttachCommand = cmd({
   command: "attach <url>",
-  describe: "attach to a running nocowboy server", // nocowboy_change
+  describe: "attach to a running nocowboy server",
   builder: (yargs) =>
     yargs
       .positional("url", {
@@ -48,7 +48,7 @@ export const AttachCommand = cmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to NOCOWBOY_SERVER_USERNAME or 'opencode')", // nocowboy_change
+        describe: "basic auth username (defaults to NOCOWBOY_SERVER_USERNAME or 'opencode')",
       }),
   handler: async (args) => {
     const unguard = win32InstallCtrlCGuard()
@@ -61,14 +61,12 @@ export const AttachCommand = cmd({
         return
       }
 
-      // nocowboy_change start
       const cloudForkError = validateCloudFork(args)
       if (cloudForkError) {
         UI.error(cloudForkError)
         process.exitCode = 1
         return
       }
-      // nocowboy_change end
 
       const directory = (() => {
         if (!args.dir) return undefined
@@ -81,7 +79,6 @@ export const AttachCommand = cmd({
         }
       })()
       const headers = ServerAuth.headers({ password: args.password, username: args.username })
-      // nocowboy_change start - import cloud session before TUI renders
       if (args.cloudFork && args.session) {
         UI.println("Importing session from cloud...")
         const sdk = createNocowboyClient({
@@ -98,7 +95,6 @@ export const AttachCommand = cmd({
         args.session = id
         args.cloudFork = false
       }
-      // nocowboy_change end
       const config = await TuiConfig.get()
       const { tui } = await import("./app")
 

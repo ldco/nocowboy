@@ -4,11 +4,10 @@ import { effectCmd, fail } from "../effect-cmd"
 import { Git } from "@/git"
 import { InstanceRef } from "@/effect/instance-ref"
 import { Process } from "@/util/process"
-import { existsSync } from "node:fs" // nocowboy_change
+import { existsSync } from "node:fs"
 
-const subcommand = "pr" // nocowboy_change
+const subcommand = "pr"
 
-// nocowboy_change start - resolve the currently running CLI instead of hardcoding opencode
 export function cliCommand(
   input = {
     execPath: process.execPath,
@@ -18,17 +17,16 @@ export function cliCommand(
 ) {
   const script = input.argv[1]
   if (!script) return [input.execPath]
-  if (script === subcommand) return [input.execPath] // nocowboy_change
+  if (script === subcommand) return [input.execPath]
   if (script.startsWith("/$bunfs/root/")) return [input.execPath]
   if (script.startsWith("B:/~BUN/root/")) return [input.execPath]
   if (input.exists(script)) return [input.execPath, script]
   return [input.execPath]
 }
-// nocowboy_change end
 
 export const PrCommand = effectCmd({
-  command: `${subcommand} <number>`, // nocowboy_change
-  describe: "fetch and checkout a GitHub PR branch, then run kilo", // nocowboy_change
+  command: `${subcommand} <number>`,
+  describe: "fetch and checkout a GitHub PR branch, then run kilo",
   builder: (yargs) =>
     yargs.positional("number", {
       type: "number",
@@ -47,7 +45,7 @@ export const PrCommand = effectCmd({
 
     const prNumber = args.number
     const localBranchName = `pr/${prNumber}`
-    const cli = cliCommand() // nocowboy_change
+    const cli = cliCommand()
     UI.println(`Fetching and checking out PR #${prNumber}...`)
 
     const checkout = yield* Effect.promise(() =>
@@ -95,17 +93,15 @@ export const PrCommand = effectCmd({
       }
 
       if (prInfo?.body) {
-        const sessionMatch = prInfo.body.match(/https:\/\/app\.kilo\.ai\/s\/([a-zA-Z0-9_-]+)/) // nocowboy_change
+        const sessionMatch = prInfo.body.match(/https:\/\/app\.kilo\.ai\/s\/([a-zA-Z0-9_-]+)/)
         if (sessionMatch) {
           const sessionUrl = sessionMatch[0]
-          // nocowboy_change start
           UI.println(`Found session: ${sessionUrl}`)
           UI.println(`Importing session...`)
 
           const importResult = yield* Effect.promise(() =>
             Process.text([...cli, "import", sessionUrl], { nothrow: true }),
           )
-          // nocowboy_change end
           if (importResult.code === 0) {
             const sessionIdMatch = importResult.text.trim().match(/Imported session: ([a-zA-Z0-9_-]+)/)
             if (sessionIdMatch) {
@@ -119,10 +115,10 @@ export const PrCommand = effectCmd({
 
     UI.println(`Successfully checked out PR #${prNumber} as branch '${localBranchName}'`)
     UI.println()
-    UI.println("Starting kilo...") // nocowboy_change
+    UI.println("Starting kilo...")
     UI.println()
 
-    const run = sessionId ? [...cli, "-s", sessionId] : cli // nocowboy_change
+    const run = sessionId ? [...cli, "-s", sessionId] : cli
     const code = yield* Effect.promise(
       () =>
         Process.spawn(run, {
@@ -134,6 +130,6 @@ export const PrCommand = effectCmd({
     )
     // Match legacy throw semantics — propagate as a defect so the top-level
     // index.ts catch handles it identically (exit 1, "Unexpected error" banner).
-    if (code !== 0) return yield* Effect.die(new Error(`kilo exited with code ${code}`)) // nocowboy_change
+    if (code !== 0) return yield* Effect.die(new Error(`kilo exited with code ${code}`))
   }),
 })

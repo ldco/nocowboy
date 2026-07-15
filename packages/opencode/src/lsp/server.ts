@@ -1,20 +1,20 @@
 import type { ChildProcessWithoutNullStreams } from "child_process"
 import path from "path"
 import os from "os"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
 import { text } from "node:stream/consumers"
 import fs from "fs/promises"
 import { Filesystem } from "@/util/filesystem"
 import type { InstanceContext } from "../project/instance-context"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { Archive } from "@/util/archive"
 import { Process } from "@/util/process"
 import { which } from "../util/which"
-import { Module } from "@opencode-ai/core/util/module"
+import { Module } from "@nocowboy/core/util/module"
 import { spawn } from "./launch"
-import { Npm } from "@opencode-ai/core/npm"
-import { TsCheck } from "../nocowboy/ts-check" // nocowboy_change
+import { Npm } from "@nocowboy/core/npm"
+import { TsCheck } from "../nocowboy/ts-check"
 import type { RuntimeFlags } from "@/effect/runtime-flags"
 
 const log = Log.create({ service: "lsp.server" })
@@ -93,7 +93,6 @@ export const Deno: Info = {
   },
 }
 
-// nocowboy_change start - tsgo native LSP or lightweight diagnostic client
 // When NOCOWBOY_EXPERIMENTAL_LSP_TOOL is enabled, spawn tsgo --lsp --stdio as a
 // persistent LSP server (full diagnostics, hover, go-to-definition, etc.).
 // Otherwise spawn() returns undefined and getClients() in index.ts falls
@@ -118,7 +117,6 @@ export const Typescript: Info = {
     }
   },
 }
-// nocowboy_change end
 
 export const Vue: Info = {
   id: "vue",
@@ -1015,12 +1013,10 @@ export const Clangd: Info = {
     } = await releaseResponse.json()
 
     const tag = release.tag_name
-    // nocowboy_change start - reject release metadata before it becomes an executable path
     if (!tag || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(tag)) {
       log.error("clangd release did not include a tag name")
       return
     }
-    // nocowboy_change end
     const platform = process.platform
     const tokens: Record<string, string> = {
       darwin: "mac",
@@ -1057,9 +1053,7 @@ export const Clangd: Info = {
       return
     }
 
-    // nocowboy_change start - do not use remote metadata as a local path
     const archive = path.join(Global.Path.bin, name.endsWith(".zip") ? "clangd.zip" : "clangd.tar.xz")
-    // nocowboy_change end
     const buf = await downloadResponse.arrayBuffer()
     if (buf.byteLength === 0) {
       log.error("Failed to write clangd archive")
@@ -1270,12 +1264,12 @@ export const JDTLS: Info = {
         }
       })(),
     )
-    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-jdtls-data"))
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "nocowboy-jdtls-data"))
     return {
       process: spawn(
         java,
         [
-          "-Djava.import.generatesMetadataFilesAtProjectRoot=false", // nocowboy_change
+          "-Djava.import.generatesMetadataFilesAtProjectRoot=false",
           "-jar",
           launcherJar,
           "-configuration",
@@ -1496,9 +1490,7 @@ export const LuaLS: Info = {
         return
       }
 
-      // nocowboy_change start - use a fixed local archive name
       const tempPath = path.join(Global.Path.bin, `lua-language-server.${ext}`)
-      // nocowboy_change end
       if (downloadResponse.body) await Filesystem.writeStream(tempPath, downloadResponse.body)
 
       // Unlike zls which is a single self-contained binary,

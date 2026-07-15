@@ -3,8 +3,8 @@ import { Server } from "../../server/server"
 import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { InstanceRuntime } from "../../project/instance-runtime" // nocowboy_change
+import { Flag } from "@nocowboy/core/flag/flag"
+import { InstanceRuntime } from "../../project/instance-runtime"
 import open from "open"
 import { networkInterfaces } from "os"
 
@@ -36,7 +36,7 @@ export const WebCommand = effectCmd({
   describe: "start nocowboy server and open web interface",
   // Server loads instances per-request via x-nocowboy-directory header — no
   // ambient project InstanceContext needed at startup.
-  instance: false, // nocowboy_change
+  instance: false,
   handler: Effect.fn("Cli.web")(function* (args) {
     if (!Flag.NOCOWBOY_SERVER_PASSWORD) {
       UI.println(UI.Style.TEXT_WARNING_BOLD + "!  NOCOWBOY_SERVER_PASSWORD is not set; server is unsecured.")
@@ -80,7 +80,6 @@ export const WebCommand = effectCmd({
       open(displayUrl).catch(() => {})
     }
 
-    // nocowboy_change start - graceful signal shutdown
     yield* Effect.promise(
       () =>
         new Promise<void>((resolve) => {
@@ -97,6 +96,5 @@ export const WebCommand = effectCmd({
           process.once("SIGHUP", shutdown)
         }),
     )
-    // nocowboy_change end
   }),
 })

@@ -5,7 +5,7 @@ import path from "path"
 import { text as streamText } from "node:stream/consumers"
 import { fileURLToPath } from "url"
 import { UI } from "@/cli/ui"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { errorMessage } from "@/util/error"
 import { withTimeout } from "@/util/timeout"
 import { withNetworkOptions, resolveNetworkOptionsNoConfig } from "@/cli/network"
@@ -13,17 +13,17 @@ import { Filesystem } from "@/util/filesystem"
 import type { GlobalEvent } from "@nocowboy/sdk/v2"
 import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
-import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session" // nocowboy_change
-import { createNocowboyClient } from "@nocowboy/sdk/v2" // nocowboy_change
+import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session"
+import { createNocowboyClient } from "@nocowboy/sdk/v2"
 import { writeHeapSnapshot } from "v8"
 import { TuiConfig } from "./config/tui"
-import { KiloTuiThreadDaemon } from "@/nocowboy/cli/cmd/tui/thread" // nocowboy_change
+import { KiloTuiThreadDaemon } from "@/nocowboy/cli/cmd/tui/thread"
 import {
   KILO_PROCESS_ROLE,
   KILO_RUN_ID,
   ensureRunID,
   sanitizedProcessEnv,
-} from "@opencode-ai/core/util/opencode-process"
+} from "@nocowboy/core/util/opencode-process"
 import { validateSession } from "./validate-session"
 
 declare global {
@@ -32,11 +32,9 @@ declare global {
 
 type RpcClient = ReturnType<typeof Rpc.client<typeof rpc>>
 
-// nocowboy_change start - lazy-load the TUI app after daemon attach in source mode
 type TuiInput = Parameters<typeof import("./app").tui>[0]
 
 async function start(input: TuiInput) {
-  // nocowboy_change start — auto-init roadmap.json on TUI start
   try {
     const { existsSync, mkdirSync, writeFileSync } = await import("fs")
     const { join } = await import("path")
@@ -78,12 +76,10 @@ async function start(input: TuiInput) {
   } catch {
     // Silent fail — auto-init is best-effort
   }
-  // nocowboy_change end
 
   const app = await import("./app")
   return await app.tui(input)
 }
-// nocowboy_change end
 
 function createWorkerFetch(client: RpcClient): typeof fetch {
   const fn = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -128,7 +124,6 @@ async function input(value?: string) {
 }
 
 export function resolveThreadDirectory(project?: string, envPWD = process.env.PWD, cwd = process.cwd()) {
-  // nocowboy_change start - ignore stale PWD from wrappers such as `bun --cwd`, except kilo-dev's caller cwd
   const dev = process.env.NOCOWBOY_DEV_CWD
   const real = Filesystem.resolve(cwd)
   const root = dev
@@ -136,19 +131,18 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
     : envPWD && Filesystem.resolve(envPWD) === real
       ? Filesystem.resolve(envPWD)
       : real
-  // nocowboy_change end
   if (project) return Filesystem.resolve(path.isAbsolute(project) ? project : path.join(root, project))
-  return dev ? root : real // nocowboy_change
+  return dev ? root : real
 }
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start nocowboy tui", // nocowboy_change
+  describe: "start nocowboy tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: "path to start nocowboy in", // nocowboy_change
+        describe: "path to start nocowboy in",
       })
       .option("model", {
         type: "string",
@@ -199,14 +193,12 @@ export const TuiThreadCommand = cmd({
         process.exitCode = 1
         return
       }
-      // nocowboy_change start
       const cloudForkError = validateCloudFork(args)
       if (cloudForkError) {
         UI.error(cloudForkError)
         process.exitCode = 1
         return
       }
-      // nocowboy_change end
 
       // Resolve relative --project paths from PWD, then use the real cwd after
       // chdir so the thread and worker share the same directory key.
@@ -219,13 +211,11 @@ export const TuiThreadCommand = cmd({
         return
       }
       const cwd = Filesystem.resolve(process.cwd())
-      // nocowboy_change start - default TUI sessions attach to the daemon unless explicitly disabled
       if (await KiloTuiThreadDaemon.attach({ args, cwd, input: () => input(args.prompt), start })) return
-      // nocowboy_change end
       const env = sanitizedProcessEnv({
         [KILO_PROCESS_ROLE]: "worker",
         [KILO_RUN_ID]: ensureRunID(),
-        NOCOWBOY_BACKGROUND_PROCESS_PORTS: "true", // nocowboy_change - TUI surfaces inferred background process ports
+        NOCOWBOY_BACKGROUND_PROCESS_PORTS: "true",
       })
 
       const worker = new Worker(file, {
@@ -270,7 +260,6 @@ export const TuiThreadCommand = cmd({
         })
         worker.terminate()
       }
-      // nocowboy_change start - graceful shutdown on external signals
       // The worker's postMessage for the RPC result may never be delivered
       // after shutdown because the worker's event loop drains. Send the
       // shutdown request without awaiting the response, wait for the worker
@@ -333,7 +322,6 @@ export const TuiThreadCommand = cmd({
         shutdownAndExit({ reason: "parent-exit", code: 0 })
       }, 1000)
       orphanWatch.unref()
-      // nocowboy_change end
 
       const prompt = await input(args.prompt)
       const config = await TuiConfig.get()
@@ -361,7 +349,7 @@ export const TuiThreadCommand = cmd({
 
       try {
         await validateSession({
-          url: transport.url, // nocowboy_change
+          url: transport.url,
           sessionID: args.session,
           directory: cwd,
           fetch: transport.fetch,
@@ -377,7 +365,6 @@ export const TuiThreadCommand = cmd({
       }, 1000).unref?.()
 
       try {
-        // nocowboy_change start - import cloud session before TUI renders
         if (args.cloudFork && args.session) {
           UI.println("Importing session from cloud...")
           const sdk = createNocowboyClient({
@@ -394,10 +381,8 @@ export const TuiThreadCommand = cmd({
           args.session = id
           args.cloudFork = false
         }
-        // nocowboy_change end
 
         await start({
-          // nocowboy_change - shared lazy loader also supports daemon attach
           url: transport.url,
           async onSnapshot() {
             const tui = writeHeapSnapshot("tui.heapsnapshot")

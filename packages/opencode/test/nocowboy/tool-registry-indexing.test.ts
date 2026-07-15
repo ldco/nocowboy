@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test"
 import { Effect, Layer, Schema } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Agent } from "../../src/agent/agent"
 import { KiloIndexing } from "../../src/nocowboy/indexing"
 import { NocowboyBootstrap } from "../../src/nocowboy/bootstrap"
@@ -11,7 +11,7 @@ import { NocowboyToolRegistry } from "../../src/nocowboy/tool/registry"
 import type * as Tool from "../../src/tool/tool"
 import { Instance } from "../../src/nocowboy/instance"
 import { disposeAllInstances, provideTmpdirInstance } from "../fixture/fixture"
-import * as CrossSpawnSpawner from "@opencode-ai/core/cross-spawn-spawner"
+import * as CrossSpawnSpawner from "@nocowboy/core/cross-spawn-spawner"
 import { testEffect } from "../lib/effect"
 
 const node = CrossSpawnSpawner.defaultLayer

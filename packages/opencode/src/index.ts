@@ -1,12 +1,12 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
-import { InitCommand } from "./cli/cmd/init" // nocowboy_change
-import { RepoMapCommand } from "./cli/cmd/repomap" // nocowboy_change
-import { RoadmapCommand } from "./cli/cmd/roadmap" // nocowboy_change
+import { InitCommand } from "./cli/cmd/init"
+import { RepoMapCommand } from "./cli/cmd/repomap"
+import { RoadmapCommand } from "./cli/cmd/roadmap"
 import { GenerateCommand } from "./cli/cmd/generate"
-import * as Log from "@opencode-ai/core/util/log"
-// import { ConsoleCommand } from "./cli/cmd/account" // nocowboy_change - reserve `kilo console` for local settings
+import * as Log from "@nocowboy/core/util/log"
+// import { ConsoleCommand } from "./cli/cmd/account"
 import { ProvidersCommand } from "./cli/cmd/providers"
 import { AgentCommand } from "./cli/cmd/agent"
 import { UpgradeCommand } from "./cli/cmd/upgrade"
@@ -14,8 +14,8 @@ import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
 import { UI } from "./cli/ui"
 import { Installation } from "./installation"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
+import { NamedError } from "@nocowboy/core/util/error"
 import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
 import { Filesystem } from "@/util/filesystem"
@@ -34,16 +34,16 @@ import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
-import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process"
+import { ensureProcessMetadata } from "@nocowboy/core/util/opencode-process"
 import { isRecord } from "@/util/record"
-import { NocowboyCli } from "@/nocowboy/cli/setup" // nocowboy_change
+import { NocowboyCli } from "@/nocowboy/cli/setup"
 
 const processMetadata = ensureProcessMetadata("main")
 
@@ -63,7 +63,7 @@ const args = hideBin(process.argv)
 
 function show(out: string) {
   const text = out.trimStart()
-  if (!text.startsWith("opencode ")) {
+  if (!text.startsWith("nocowboy ")) {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(text)
     return
@@ -71,9 +71,9 @@ function show(out: string) {
   process.stderr.write(out)
 }
 
-let cli = yargs(args) // nocowboy_change
+let cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("nocowboy") // nocowboy_change
+  .scriptName("nocowboy")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -113,14 +113,14 @@ let cli = yargs(args) // nocowboy_change
     process.env.OPENCODE = "1"
     process.env.NOCOWBOY_PID = String(process.pid)
 
-    Log.Default.info("opencode", {
+    Log.Default.info("nocowboy", {
       version: InstallationVersion,
       args: process.argv.slice(2),
       process_role: processMetadata.processRole,
       run_id: processMetadata.runID,
     })
 
-    await NocowboyCli.bootstrap() // nocowboy_change - env tagging, telemetry init, legacy auth migration
+    await NocowboyCli.bootstrap()
 
     const marker = path.join(Global.Path.data, "nocowboy.db")
     if (!(await Filesystem.exists(marker))) {
@@ -163,14 +163,13 @@ let cli = yargs(args) // nocowboy_change
   .completion("completion", "generate shell completion script")
   .command(AcpCommand)
   .command(McpCommand)
-  .command(RepoMapCommand) // nocowboy_change
-  .command(InitCommand) // nocowboy_change
+  .command(RepoMapCommand)
+  .command(InitCommand)
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)
   .command(GenerateCommand)
   .command(DebugCommand)
-  // nocowboy_change - upstream account console intentionally not registered; KiloConsole is added by NocowboyCli.register
   .command(ProvidersCommand)
   .command(AgentCommand)
   .command(UpgradeCommand)
@@ -187,12 +186,10 @@ let cli = yargs(args) // nocowboy_change
   .command(PluginCommand)
   .command(DbCommand)
 
-// nocowboy_change start - register Kilo-specific commands after the upstream chain
 cli = NocowboyCli.register(cli)
 cli = cli
-  .command(RoadmapCommand) // nocowboy_change
+  .command(RoadmapCommand)
 cli = cli
-  // nocowboy_change end
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
@@ -258,7 +255,7 @@ try {
   }
   process.exitCode = 1
 } finally {
-  await NocowboyCli.shutdown() // nocowboy_change - telemetry/session-export shutdown + instance disposal
+  await NocowboyCli.shutdown()
 
   // Some subprocesses don't react properly to SIGTERM and similar signals.
   // Most notably, some docker-container-based MCP servers don't handle such signals unless

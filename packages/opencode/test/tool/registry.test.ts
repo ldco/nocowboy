@@ -3,13 +3,13 @@ import path from "path"
 import fs from "fs/promises"
 import { fileURLToPath, pathToFileURL } from "url"
 import { Effect, Layer, Result, Schema } from "effect"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { ToolRegistry } from "@/tool/registry"
 import { Tool } from "@/tool/tool"
 import { disposeAllInstances, TestInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 import { TestConfig } from "../fixture/config"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Plugin } from "@/plugin"
 import { Question } from "@/question"
 import { Todo } from "@/session/todo"
@@ -125,7 +125,7 @@ describe("tool.registry", () => {
       const build = yield* agent.get("build")
       if (!build) throw new Error("build agent not found")
       const task = (yield* registry.tools({
-        providerID: ProviderID.opencode,
+        providerID: ProviderID.nocowboy,
         modelID: ModelID.make("test"),
         agent: build,
       })).find((tool) => tool.id === "task")
@@ -261,7 +261,7 @@ describe("tool.registry", () => {
 
       const agents = yield* Agent.Service
       const promptTools = yield* registry.tools({
-        providerID: ProviderID.opencode,
+        providerID: ProviderID.nocowboy,
         modelID: ModelID.make("test"),
         agent: yield* agents.defaultInfo(),
       })
@@ -432,7 +432,7 @@ describe("tool.registry", () => {
           JSON.stringify({
             name: "custom-tools",
             dependencies: {
-              "@opencode-ai/plugin": "^0.0.0",
+              "@nocowboy/plugin": "^0.0.0",
               cowsay: "^1.6.0",
             },
           }),
@@ -447,7 +447,7 @@ describe("tool.registry", () => {
             packages: {
               "": {
                 dependencies: {
-                  "@opencode-ai/plugin": "^0.0.0",
+                  "@nocowboy/plugin": "^0.0.0",
                   cowsay: "^1.6.0",
                 },
               },

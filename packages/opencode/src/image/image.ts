@@ -1,19 +1,18 @@
 import { Config } from "@/config/config"
 import type { MessageV2 } from "@/session/message-v2"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import photonWasm from "@silvia-odwyer/photon-node/photon_rs_bg.wasm" with { type: "file" }
 import { Context, Effect, Layer, Schema } from "effect"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-export const MAX_BASE64_BYTES = 5 * 1024 * 1024 // nocowboy_change - share user file pre-read limit
+export const MAX_BASE64_BYTES = 5 * 1024 * 1024
 const MAX_WIDTH = 2000
 const MAX_HEIGHT = 2000
 const AUTO_RESIZE = true
 const JPEG_QUALITIES = [80, 85, 70, 55, 40]
 const log = Log.create({ service: "image" })
 
-// nocowboy_change start - preserve valid in-limit images when Photon is unavailable
 function dimensions(mime: string, data: Buffer) {
   if (
     mime === "image/png" &&
@@ -96,7 +95,6 @@ export function fallback(
     })
   return input
 }
-// nocowboy_change end
 
 export class ResizerUnavailableError extends Schema.TaggedErrorClass<ResizerUnavailableError>()(
   "ImageResizerUnavailableError",
@@ -140,7 +138,7 @@ export interface Interface {
   readonly normalize: (input: MessageV2.FilePart) => Effect.Effect<MessageV2.FilePart, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Image") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Image") {}
 
 export const layer = Layer.effect(
   Service,

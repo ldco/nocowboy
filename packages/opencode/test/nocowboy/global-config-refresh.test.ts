@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Permission } from "../../src/permission"
 import { GlobalBus } from "../../src/bus/global"
 import { Server } from "../../src/server/server"
 import { registerDisposer } from "../../src/effect/instance-registry"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { resetDatabase } from "../fixture/db"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 

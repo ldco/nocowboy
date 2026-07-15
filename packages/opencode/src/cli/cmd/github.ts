@@ -19,7 +19,7 @@ import type {
 import { UI } from "../ui"
 import { cmd } from "./cmd"
 import { effectCmd } from "../effect-cmd"
-import { ModelsDev } from "@opencode-ai/core/models"
+import { ModelsDev } from "@nocowboy/core/models"
 import { InstanceRef } from "@/effect/instance-ref"
 import { SessionShare } from "@/share/session"
 import { Session } from "@/session/session"
@@ -34,7 +34,7 @@ import { setTimeout as sleep } from "node:timers/promises"
 import { Process } from "@/util/process"
 import { parseGitHubRemote } from "@/util/repository"
 import { Effect } from "effect"
-import { GitHubSecurity } from "@/nocowboy/security/github" // nocowboy_change
+import { GitHubSecurity } from "@/nocowboy/security/github"
 
 type GitHubAuthor = {
   login: string
@@ -139,9 +139,9 @@ type IssueQueryResponse = {
   }
 }
 
-const AGENT_USERNAME = "nocowboy[bot]" // nocowboy_change
+const AGENT_USERNAME = "nocowboy[bot]"
 const AGENT_REACTION = "eyes"
-const WORKFLOW_FILE = ".github/workflows/nocowboy.yml" // nocowboy_change
+const WORKFLOW_FILE = ".github/workflows/nocowboy.yml"
 
 // Event categories for routing
 // USER_EVENTS: triggered by user actions, have actor/issueId, support reactions/comments
@@ -238,7 +238,7 @@ export const GithubInstallCommand = effectCmd({
               `    1. Commit the \`${WORKFLOW_FILE}\` file and push`,
               step2,
               "",
-              "    3. Go to a GitHub issue and comment `/kilo summarize` to see the agent in action", // nocowboy_change
+              "    3. Go to a GitHub issue and comment `/kilo summarize` to see the agent in action",
             ].join("\n"),
           )
         }
@@ -264,7 +264,7 @@ export const GithubInstallCommand = effectCmd({
 
         async function promptProvider() {
           const priority: Record<string, number> = {
-            nocowboy: 0, // nocowboy_change
+            nocowboy: 0,
             anthropic: 1,
             openai: 2,
             google: 3,
@@ -322,7 +322,7 @@ export const GithubInstallCommand = effectCmd({
           if (installation) return s.stop("GitHub app already installed")
 
           // Open browser
-          const url = "https://github.com/apps/kiloconnect" // nocowboy_change
+          const url = "https://github.com/apps/kiloconnect"
           const command =
             process.platform === "darwin"
               ? `open "${url}"`
@@ -358,17 +358,13 @@ export const GithubInstallCommand = effectCmd({
           s.stop("Installed GitHub app")
 
           async function getInstallation() {
-            // nocowboy_change start - updated to new endpoint
-            // nocowboy_change - TODO: replace with own service, was: https://api.nocowboy.dev/api/integrations/github/check-installation
             return await fetch(``)
               .then((res) => res.json())
               .then((data) => data.installation)
-            // nocowboy_change end
           }
         }
 
         async function addWorkflowFiles() {
-          // nocowboy_change start - updated workflow template with Kilo branding and gateway secrets
           const providerEnvStr =
             provider === "amazon-bedrock"
               ? ""
@@ -415,7 +411,6 @@ jobs:
         with:
           model: ${provider}/${model}`,
           )
-          // nocowboy_change end
 
           prompts.log.success(`Added workflow file: "${WORKFLOW_FILE}"`)
         }
@@ -490,7 +485,7 @@ export const GithubRunCommand = effectCmd({
           ? (payload as IssueCommentEvent | IssuesEvent).issue.number
           : (payload as PullRequestEvent | PullRequestReviewCommentEvent).pull_request.number
       const runUrl = `/${owner}/${repo}/actions/runs/${runId}`
-      const shareBaseUrl = "" // nocowboy_change - TODO: replace with own service, was: isMock ? "https://dev.nocowboy.dev" : "https://nocowboy.dev"
+      const shareBaseUrl = ""
 
       let appToken: string
       let octoRest: Octokit
@@ -558,7 +553,7 @@ export const GithubRunCommand = effectCmd({
           await addReaction(commentType)
         }
 
-        // Setup kilo session // nocowboy_change
+        // Setup kilo session
         const repoData = await fetchRepo()
         session = await runLocalEffect(
           sessionSvc.create({
@@ -578,7 +573,7 @@ export const GithubRunCommand = effectCmd({
           await runLocalEffect(sessionShare.share(session.id))
           return session.id.slice(-8)
         })()
-        console.log("kilo session", session.id) // nocowboy_change
+        console.log("kilo session", session.id)
 
         // Handle event types:
         // REPO_EVENTS (schedule, workflow_dispatch): no issue/PR context, output to logs/PR only
@@ -751,7 +746,7 @@ export const GithubRunCommand = effectCmd({
 
       function normalizeOidcBaseUrl(): string {
         const value = process.env["OIDC_BASE_URL"]
-        if (!value) return "" // nocowboy_change - TODO: replace with own service, was: "https://api.nocowboy.dev"
+        if (!value) return ""
         return value.replace(/\/+$/, "")
       }
 
@@ -800,7 +795,7 @@ export const GithubRunCommand = effectCmd({
         }
 
         const reviewContext = getReviewCommentContext()
-        const mentions = (process.env["MENTIONS"] || "/kilo,/kc") // nocowboy_change
+        const mentions = (process.env["MENTIONS"] || "/kilo,/kc")
           .split(",")
           .map((m) => m.trim().toLowerCase())
           .filter(Boolean)
@@ -847,10 +842,8 @@ export const GithubRunCommand = effectCmd({
         let offset = 0
         for (const m of matches) {
           const tag = m[0]
-          // nocowboy_change start - only fetch canonical GitHub attachment routes
           const url = GitHubSecurity.attachment(m[1])
           if (!url) continue
-          // nocowboy_change end
           const start = m.index
           const filename = path.basename(url)
 
@@ -951,7 +944,7 @@ export const GithubRunCommand = effectCmd({
       }
 
       async function chat(message: string, files: PromptFiles = []) {
-        console.log("Sending message to kilo...") // nocowboy_change
+        console.log("Sending message to kilo...")
 
         return runLocalEffect(
           Effect.gen(function* () {
@@ -1039,7 +1032,7 @@ export const GithubRunCommand = effectCmd({
 
       async function getOidcToken() {
         try {
-          return await core.getIDToken("kilo-github-action") // nocowboy_change
+          return await core.getIDToken("kilo-github-action")
         } catch (error) {
           console.error("Failed to get OIDC token:", error instanceof Error ? error.message : error)
           throw new Error(
@@ -1050,7 +1043,6 @@ export const GithubRunCommand = effectCmd({
       }
 
       async function exchangeForAppToken(token: string) {
-        // nocowboy_change start - updated endpoint URLs per new API structure
         const response = token.startsWith("github_pat_")
           ? await fetch(`${oidcBaseUrl}/api/integrations/github/exchange-token-with-pat`, {
               method: "POST",
@@ -1066,7 +1058,6 @@ export const GithubRunCommand = effectCmd({
                 Authorization: `Bearer ${token}`,
               },
             })
-        // nocowboy_change end
 
         if (!response.ok) {
           const responseJson = (await response.json()) as { error?: string }
@@ -1145,9 +1136,9 @@ export const GithubRunCommand = effectCmd({
           .join("")
         if (type === "schedule" || type === "dispatch") {
           const hex = crypto.randomUUID().slice(0, 6)
-          return `kilo/${type}-${hex}-${timestamp}` // nocowboy_change
+          return `kilo/${type}-${hex}-${timestamp}`
         }
-        return `kilo/${type}${issueId}-${timestamp}` // nocowboy_change
+        return `kilo/${type}${issueId}-${timestamp}`
       }
 
       async function pushToNewBranch(summary: string, branch: string, commit: boolean, isSchedule: boolean) {
@@ -1412,10 +1403,8 @@ export const GithubRunCommand = effectCmd({
       }
 
       function footer(opts?: { image?: boolean }) {
-        // nocowboy_change start - simplified footer with text branding (no image backend yet)
         const share = shareId ? `[nocowboy session](${shareBaseUrl}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
-        return `\n\n---\n*Powered by [NoCowboy](https://nocowboy.dev)*&nbsp;&nbsp;|&nbsp;&nbsp;${share}[github run](${runUrl})` // nocowboy_change - TODO: replace with own service
-        // nocowboy_change end
+        return `\n\n---\n*Powered by [NoCowboy](https://nocowboy.dev)*&nbsp;&nbsp;|&nbsp;&nbsp;${share}[github run](${runUrl})`
       }
 
       async function fetchRepo() {
@@ -1475,7 +1464,7 @@ export const GithubRunCommand = effectCmd({
         return [
           "<github_action_context>",
           "You are running as a GitHub Action. Important:",
-          "- Git push and PR creation are handled AUTOMATICALLY by the kilo infrastructure after your response", // nocowboy_change
+          "- Git push and PR creation are handled AUTOMATICALLY by the kilo infrastructure after your response",
           "- Do NOT include warnings or disclaimers about GitHub tokens, workflow permissions, or PR creation capabilities",
           "- Do NOT suggest manual steps for creating PRs or pushing code - this happens automatically",
           "- Focus only on the code changes and your analysis/response",
@@ -1613,7 +1602,7 @@ export const GithubRunCommand = effectCmd({
         return [
           "<github_action_context>",
           "You are running as a GitHub Action. Important:",
-          "- Git push and PR creation are handled AUTOMATICALLY by the kilo infrastructure after your response", // nocowboy_change
+          "- Git push and PR creation are handled AUTOMATICALLY by the kilo infrastructure after your response",
           "- Do NOT include warnings or disclaimers about GitHub tokens, workflow permissions, or PR creation capabilities",
           "- Do NOT suggest manual steps for creating PRs or pushing code - this happens automatically",
           "- Focus only on the code changes and your analysis/response",

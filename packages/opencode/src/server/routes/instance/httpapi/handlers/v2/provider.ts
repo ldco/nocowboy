@@ -1,5 +1,5 @@
-import { Catalog } from "@opencode-ai/core/catalog"
-import { PluginBoot } from "@opencode-ai/core/plugin/boot"
+import { Catalog } from "@nocowboy/core/catalog"
+import { PluginBoot } from "@nocowboy/core/plugin/boot"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../../api"

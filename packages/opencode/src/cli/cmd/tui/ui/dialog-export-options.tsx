@@ -126,7 +126,6 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           backgroundColor={store.active === "thinking" ? theme.backgroundElement : undefined}
           onMouseUp={
             () => {
-              // nocowboy_change start
               setStore("active", "thinking")
               setStore("thinking", !store.thinking)
             } /* nocowboy_change end */
@@ -144,7 +143,6 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           backgroundColor={store.active === "toolDetails" ? theme.backgroundElement : undefined}
           onMouseUp={
             () => {
-              // nocowboy_change start
               setStore("active", "toolDetails")
               setStore("toolDetails", !store.toolDetails)
             } /* nocowboy_change end */
@@ -162,7 +160,6 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           backgroundColor={store.active === "assistantMetadata" ? theme.backgroundElement : undefined}
           onMouseUp={
             () => {
-              // nocowboy_change start
               setStore("active", "assistantMetadata")
               setStore("assistantMetadata", !store.assistantMetadata)
             } /* nocowboy_change end */
@@ -180,7 +177,6 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           backgroundColor={store.active === "openWithoutSaving" ? theme.backgroundElement : undefined}
           onMouseUp={
             () => {
-              // nocowboy_change start
               setStore("active", "openWithoutSaving")
               setStore("openWithoutSaving", !store.openWithoutSaving)
             } /* nocowboy_change end */

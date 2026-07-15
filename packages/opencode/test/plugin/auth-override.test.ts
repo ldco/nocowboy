@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { provideInstance, TestInstance, tmpdirScoped } from "../fixture/fixture"
 import { ProviderAuth } from "@/provider/auth"
 import { ProviderID } from "../../src/provider/schema"
@@ -13,7 +13,7 @@ import { ModelCache } from "@/provider/model-cache" // kilocode_change
 import { Bus } from "@/bus"
 import { TestConfig } from "../fixture/config"
 import { testEffect } from "../lib/effect"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 
 const it = testEffect(Layer.mergeAll(CrossSpawnSpawner.defaultLayer, AppFileSystem.defaultLayer))
 

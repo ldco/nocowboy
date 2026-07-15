@@ -2,7 +2,7 @@ import { BoxRenderable, MouseButton, MouseEvent, RGBA, TextAttributes } from "@o
 import { useRenderer } from "@opentui/solid"
 import { For, createMemo, createSignal, onCleanup, onMount, type JSX } from "solid-js"
 import { useTheme, tint } from "@tui/context/theme"
-import { Logo as NocowboyLogo } from "./nocowboy-logo" // nocowboy_change
+import { Logo as NocowboyLogo } from "./nocowboy-logo"
 import { go, logo } from "@/cli/logo"
 
 export type LogoShape = {
@@ -552,11 +552,9 @@ function buildIdleState(t: number, ctx: LogoContext): IdleState {
   return { cfg, reach, rings, active }
 }
 
-// nocowboy_change start
 export function Logo(_props: { shape?: LogoShape; ink?: RGBA; idle?: boolean } = {}) {
   return <NocowboyLogo />
 }
-// nocowboy_change end
 
 export function GoLogo() {
   const { theme } = useTheme()

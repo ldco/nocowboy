@@ -4,15 +4,15 @@ import { GlobalBus } from "@/bus/global"
 import { Session } from "@/session/session"
 import { SessionPrompt } from "@/session/prompt"
 import { Question } from "@/question"
-import { Suggestion } from "@/nocowboy/suggestion" // nocowboy_change
+import { Suggestion } from "@/nocowboy/suggestion"
 import { Permission } from "@/permission"
 import { PermissionID } from "@/permission/schema"
 import { SessionID } from "@/session/schema"
 import { QuestionID } from "@/question/schema"
 import { ModelID, ProviderID } from "@/provider/schema"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import z from "zod"
-import { zodObject } from "@opencode-ai/core/effect-zod"
+import { zodObject } from "@nocowboy/core/effect-zod"
 import { Effect } from "effect"
 
 type Provide = typeof import("@/nocowboy/instance").provide
@@ -38,7 +38,6 @@ const SuggestionData = z.object({
   index: z.number().int().nonnegative(),
 })
 
-// nocowboy_change start — lazy init to avoid circular dependency
 // (Server → RemoteRoutes → RemoteSender → SessionPrompt at module load time)
 let _remotePromptInput: z.ZodObject<any> | undefined
 function getRemotePromptInput() {
@@ -46,7 +45,6 @@ function getRemotePromptInput() {
     model: z.string().optional(),
   }))
 }
-// nocowboy_change end
 function normalizeModel(model: string | undefined) {
   if (!model) return undefined
   return {

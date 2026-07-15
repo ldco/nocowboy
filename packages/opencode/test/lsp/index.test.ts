@@ -8,11 +8,11 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LSP } from "@/lsp/lsp"
 import * as LSPServer from "@/lsp/server"
 import * as launch from "../../src/lsp/launch" // kilocode_change - spy on spawn
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { provideTestInstance, provideTmpdirInstance, tmpdir } from "../fixture/fixture"
 import { awaitWithTimeout, testEffect } from "../lib/effect"
 import { type InstanceContext } from "../../src/project/instance-context"
-import { Flag } from "@opencode-ai/core/flag/flag" // kilocode_change
+import { Flag } from "@nocowboy/core/flag/flag" // kilocode_change
 import { TsCheck } from "../../src/nocowboy/ts-check" // kilocode_change
 
 // kilocode_change - Typescript.spawn ignores ctx, so a cast is fine here.

@@ -1,4 +1,3 @@
-// nocowboy_change new file
 import { RGBA, TextAttributes } from "@opentui/core"
 
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)

@@ -8,13 +8,13 @@ import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { Git } from "@/git"
 import { lazy } from "@/util/lazy"
 import { Config } from "@/config/config"
 import { FileIgnore } from "./ignore"
 import { Protected } from "./protected"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 
 declare const NOCOWBOY_LIBC: string | undefined
 
@@ -62,7 +62,7 @@ export interface Interface {
   readonly init: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/FileWatcher") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/FileWatcher") {}
 
 export const layer = Layer.effect(
   Service,
@@ -123,7 +123,6 @@ export const layer = Layer.effect(
           const cfgIgnores = cfg.watcher?.ignore ?? []
 
           if (yield* Flag.NOCOWBOY_EXPERIMENTAL_FILEWATCHER) {
-            // nocowboy_change
             yield* Effect.forkScoped(
               subscribe(ctx.directory, [...FileIgnore.PATTERNS, ...cfgIgnores, ...protecteds(ctx.directory)]),
             )

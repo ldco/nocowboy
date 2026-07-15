@@ -1,5 +1,5 @@
-import { Image } from "@/image/image" // nocowboy_change - classify user image validation defects
-import { KiloSessionHttpApi } from "@/nocowboy/server/httpapi/session-fork" // nocowboy_change
+import { Image } from "@/image/image"
+import { KiloSessionHttpApi } from "@/nocowboy/server/httpapi/session-fork"
 import { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { Command } from "@/command"
@@ -16,7 +16,7 @@ import { SessionStatus } from "@/session/status"
 import { SessionSummary } from "@/session/summary"
 import { Todo } from "@/session/todo"
 import { MessageID, PartID, SessionID } from "@/session/schema"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { Cause, Effect, Option, Schema, Scope } from "effect"
 import * as Stream from "effect/Stream"
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
@@ -35,7 +35,7 @@ import {
   ShellPayload,
   SummarizePayload,
   UpdatePayload,
-  ViewedPayload, // nocowboy_change
+  ViewedPayload,
 } from "../groups/session"
 import * as SessionError from "./session-errors"
 
@@ -202,7 +202,7 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       )
     })
 
-    const forkRaw = KiloSessionHttpApi.forkRaw(fork) // nocowboy_change - carry upstream bodyless full-session fork support
+    const forkRaw = KiloSessionHttpApi.forkRaw(fork)
 
     const abort = Effect.fn("SessionHttpApi.abort")(function* (ctx: { params: { sessionID: SessionID } }) {
       yield* promptSvc.cancel(ctx.params.sessionID)
@@ -273,9 +273,8 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
     }) {
       yield* requireSession(ctx.params.sessionID)
       const message = yield* promptSvc
-        .prompt({ ...ctx.payload, sessionID: ctx.params.sessionID } as unknown as SessionPrompt.PromptInput) // nocowboy_change
+        .prompt({ ...ctx.payload, sessionID: ctx.params.sessionID } as unknown as SessionPrompt.PromptInput)
         .pipe(
-          // nocowboy_change start - reject only typed user image validation defects as request errors
           Effect.catchCause((cause) => {
             const error = Cause.squash(cause)
             if (
@@ -286,7 +285,6 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
               return Effect.fail(new HttpApiError.BadRequest({}))
             return Effect.die(error)
           }),
-          // nocowboy_change end
         )
       return HttpServerResponse.stream(Stream.make(JSON.stringify(message)).pipe(Stream.encodeText), {
         contentType: "application/json",
@@ -298,7 +296,6 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       payload: typeof PromptPayload.Type
     }) {
       yield* requireSession(ctx.params.sessionID)
-      // nocowboy_change start - cast to bridge schema-readonly to PromptInput mutable; matches legacy Hono session.ts
       yield* promptSvc
         .prompt({ ...ctx.payload, sessionID: ctx.params.sessionID } as unknown as SessionPrompt.PromptInput)
         .pipe(
@@ -315,7 +312,6 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
           ),
           Effect.forkIn(scope, { startImmediately: true }),
         )
-      // nocowboy_change end
       return HttpApiSchema.NoContent.make()
     })
 
@@ -392,13 +388,11 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       return yield* session.updatePart(payload)
     })
 
-    // nocowboy_change start
     const viewed = Effect.fn("SessionHttpApi.viewed")(function* (ctx: { payload: typeof ViewedPayload.Type }) {
       const { Sessions } = yield* Effect.promise(() => import("@/nocowboy-sessions/sessions"))
       Sessions.setViewedSessions({ focused: ctx.payload.focused ?? [], open: ctx.payload.open ?? [] })
       return true
     })
-    // nocowboy_change end
 
     return handlers
       .handle("list", list)
@@ -412,7 +406,7 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       .handleRaw("create", createRaw)
       .handle("remove", remove)
       .handle("update", update)
-      .handleRaw("fork", forkRaw) // nocowboy_change - carry upstream bodyless full-session fork support
+      .handleRaw("fork", forkRaw)
       .handle("abort", abort)
       .handle("init", init)
       .handle("share", share)
@@ -428,6 +422,6 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       .handle("deleteMessage", deleteMessage)
       .handle("deletePart", deletePart)
       .handle("updatePart", updatePart)
-      .handle("viewed", viewed) // nocowboy_change
+      .handle("viewed", viewed)
   }),
 )

@@ -3,7 +3,7 @@ import { Bus } from "../bus"
 import { Snapshot } from "../snapshot"
 import { Storage } from "@/storage/storage"
 import { SyncEvent } from "../sync"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import * as Session from "./session"
 import { MessageV2 } from "./message-v2"
 import { SessionID, MessageID, PartID } from "./schema"
@@ -25,7 +25,7 @@ export interface Interface {
   readonly cleanup: (session: Session.Info) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionRevert") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SessionRevert") {}
 
 export const layer = Layer.effect(
   Service,
@@ -73,24 +73,20 @@ export const layer = Layer.effect(
       rev.snapshot = session.revert?.snapshot ?? (yield* snap.track())
       if (session.revert?.snapshot) yield* snap.restore(session.revert.snapshot)
 
-      // nocowboy_change start - compute diffs BEFORE reverting files so the diff
       // reflects changes being undone (files on disk still have AI modifications)
       const range = all.filter((msg) => msg.info.id >= rev.messageID)
       const diffs = yield* summary.computeDiff({ messages: range })
-      // nocowboy_change end
 
       yield* snap.revert(patches)
       if (rev.snapshot) rev.diff = yield* snap.diff(rev.snapshot)
       yield* storage.write(["session_diff", input.sessionID], diffs).pipe(Effect.ignore)
       yield* bus.publish(Session.Event.Diff, { sessionID: input.sessionID, diff: diffs })
-      // nocowboy_change start
       const summaryDiffs: Snapshot.SummaryFileDiff[] = diffs.map((d) => ({
         file: d.file,
         additions: d.additions,
         deletions: d.deletions,
         status: d.status,
       }))
-      // nocowboy_change end
       yield* sessions.setRevert({
         sessionID: input.sessionID,
         revert: rev,
@@ -98,7 +94,7 @@ export const layer = Layer.effect(
           additions: diffs.reduce((sum, x) => sum + x.additions, 0),
           deletions: diffs.reduce((sum, x) => sum + x.deletions, 0),
           files: diffs.length,
-          diffs: summaryDiffs, // nocowboy_change
+          diffs: summaryDiffs,
         },
       })
       return yield* sessions.get(input.sessionID).pipe(Effect.orDie)

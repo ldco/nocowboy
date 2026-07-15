@@ -4,11 +4,11 @@ import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { Flag } from "@nocowboy/core/flag/flag"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { withTransientReadRetry } from "@/util/effect-http-client"
-import { Global } from "@opencode-ai/core/global"
-import { KilocodeInstruction } from "@/nocowboy/session/instruction" // nocowboy_change
+import { Global } from "@nocowboy/core/global"
+import { KilocodeInstruction } from "@/nocowboy/session/instruction"
 import type { MessageV2 } from "./message-v2"
 import type { MessageID } from "./schema"
 
@@ -47,7 +47,7 @@ export interface Interface {
   ) => Effect.Effect<{ filepath: string; content: string }[], AppFileSystem.Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Instruction") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Instruction") {}
 
 export const layer: Layer.Layer<
   Service,
@@ -62,9 +62,7 @@ export const layer: Layer.Layer<
     const flags = yield* RuntimeFlags.Service
     const http = HttpClient.filterStatusOk(withTransientReadRetry(yield* HttpClient.HttpClient))
     const globalFiles = [
-      // nocowboy_change start - prefer KILO_CONFIG_DIR profile when set
       ...(Flag.NOCOWBOY_CONFIG_DIR ? [path.join(Flag.NOCOWBOY_CONFIG_DIR, "AGENTS.md")] : []),
-      // nocowboy_change end
       path.join(global.config, "AGENTS.md"),
       ...(!flags.disableClaudeCodePrompt ? [path.join(global.home, ".claude", "CLAUDE.md")] : []),
     ]
@@ -86,14 +84,13 @@ export const layer: Layer.Layer<
           .globUp(instruction, ctx.directory, ctx.worktree)
           .pipe(Effect.catch(() => Effect.succeed([] as string[])))
       }
-      // nocowboy_change - prefer KILO_CONFIG_DIR profile when set, else fall back to global.config
       const root = Flag.NOCOWBOY_CONFIG_DIR ?? global.config
-      return yield* fs.globUp(instruction, root, root).pipe(Effect.catch(() => Effect.succeed([] as string[]))) // nocowboy_change
+      return yield* fs.globUp(instruction, root, root).pipe(Effect.catch(() => Effect.succeed([] as string[])))
     })
 
     const read = Effect.fnUntraced(function* (filepath: string) {
-      const content = yield* fs.readFileString(filepath).pipe(Effect.catch(() => Effect.succeed(""))) // nocowboy_change
-      return yield* Effect.promise(() => KilocodeInstruction.content(content, filepath)) // nocowboy_change
+      const content = yield* fs.readFileString(filepath).pipe(Effect.catch(() => Effect.succeed("")))
+      return yield* Effect.promise(() => KilocodeInstruction.content(content, filepath))
     })
 
     const fetch = Effect.fnUntraced(function* (url: string) {

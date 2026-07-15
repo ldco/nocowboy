@@ -1,8 +1,7 @@
-// nocowboy_change - new file
 import { Config } from "@/config/config"
 import { Auth } from "@/auth"
 import { ModelCache } from "./model-cache"
-import * as Core from "@opencode-ai/core/models"
+import * as Core from "@nocowboy/core/models"
 import { Context, Effect, Layer } from "effect"
 import { AI_SDK_PROVIDERS, NOCOWBOY_OPENROUTER_BASE, PROMPTS } from "@nocowboy/gateway"
 
@@ -15,7 +14,7 @@ export type CatalogModelStatus = Core.CatalogModelStatus
 
 export interface Interface extends Core.Interface {}
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ModelsDev") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/ModelsDev") {}
 
 function baseURL(url: string | undefined, org: string | undefined) {
   if (!url) return
@@ -42,7 +41,7 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
       const get = Effect.fn("ModelsDev.get")(function* () {
         const providers = { ...(yield* core.get()) }
         delete providers.nocowboy
-        delete providers.kilo // nocowboy_change - models.dev's Kilo entry; not ours
+        delete providers.kilo
 
         const cfg = yield* config.get()
         const disabled = new Set(cfg.disabled_providers ?? [])
@@ -81,7 +80,6 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
           ...(org ? { ncowboyOrganizationId: org } : {}),
         }
         const models = yield* cache.fetch("nocowboy", fetch).pipe(Effect.catch(() => Effect.succeed({})))
-        // nocowboy_change start - only add NoCowboy Gateway provider when it has models
         if (Object.keys(models).length > 0) {
           providers.nocowboy = {
             id: "nocowboy",
@@ -92,7 +90,6 @@ export const layer: Layer.Layer<Service, never, Core.Service | Config.Service | 
             models,
           }
         }
-        // nocowboy_change end
         if (Object.keys(models).length === 0) yield* cache.refresh("nocowboy", fetch).pipe(Effect.ignore, Effect.forkDetach)
         yield* addApertis()
         return providers

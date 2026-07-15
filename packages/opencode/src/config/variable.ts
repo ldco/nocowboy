@@ -19,7 +19,7 @@ type ParseSource =
 type SubstituteInput = ParseSource & {
   text: string
   missing?: "error" | "empty"
-  escapeJson?: boolean // nocowboy_change
+  escapeJson?: boolean
 }
 
 function source(input: ParseSource) {
@@ -33,7 +33,7 @@ function dir(input: ParseSource) {
 /** Apply {env:VAR} and {file:path} substitutions to config text. */
 export async function substitute(input: SubstituteInput) {
   const missing = input.missing ?? "error"
-  const escape = input.escapeJson ?? true // nocowboy_change
+  const escape = input.escapeJson ?? true
   let text = input.text.replace(/\{env:([^}]+)\}/g, (_, varName) => {
     return process.env[varName] || ""
   })
@@ -83,7 +83,7 @@ export async function substitute(input: SubstituteInput) {
       })
     ).trim()
 
-    out += escape ? JSON.stringify(fileContent).slice(1, -1) : fileContent // nocowboy_change
+    out += escape ? JSON.stringify(fileContent).slice(1, -1) : fileContent
     cursor = index + token.length
   }
 

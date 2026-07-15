@@ -1,6 +1,6 @@
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Filesystem } from "@/util/filesystem"
-import { Flock } from "@opencode-ai/core/util/flock"
+import { Flock } from "@nocowboy/core/util/flock"
 import { rename, rm, mkdir } from "fs/promises"
 import { createSignal, type Setter } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
@@ -28,11 +28,9 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
         })
     }
 
-    // nocowboy_change start — ensure state dir survives test teardown
     // tests may set KILO_TEST_HOME to a tmpdir that is cleaned up before
     // this async read completes
     mkdir(Global.Path.state, { recursive: true }).catch(() => {})
-    // nocowboy_change end
 
     // Read under the same lock used for writes because kv.json is shared across processes.
     Flock.withLock(lock, () => Filesystem.readJson<Record<string, any>>(filePath))
@@ -43,9 +41,7 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
         console.error("Failed to read KV state", { filePath, error })
       })
       .finally(() => {
-        // nocowboy_change start — guard against disposed renderer in test teardown
         try { setReady(true) } catch {}
-        // nocowboy_change end
       })
 
     const result = {

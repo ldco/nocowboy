@@ -38,7 +38,7 @@ function shouldSkipDir(name: string): boolean {
   return SKIP_DIRS.has(name) || name.startsWith(".")
 }
 
-function scanDir(root: string): FileEntry[] {
+export function scanDir(root: string): FileEntry[] {
   const entries: FileEntry[] = []
 
   function walk(dir: string) {
@@ -85,6 +85,30 @@ function scanDir(root: string): FileEntry[] {
 
   walk(root)
   return entries.sort((a, b) => b.lines - a.lines)
+}
+
+export function getFileList(root: string, query?: string): string[] {
+  const entries = scanDir(root)
+  const files = entries.map((e) => e.file)
+  if (query && query.trim()) {
+    return filterFiles(files, query)
+  }
+  return files
+}
+
+export function filterFiles(files: string[], query: string): string[] {
+  const matched = files.filter((f) => f.includes(query))
+  // Сортировка: сначала совпадения по началу пути, потом по глубине, потом алфавит
+  matched.sort((a, b) => {
+    const aStartsWith = a.startsWith(query)
+    const bStartsWith = b.startsWith(query)
+    if (aStartsWith !== bStartsWith) return aStartsWith ? -1 : 1
+    const aDepth = a.split("/").length
+    const bDepth = b.split("/").length
+    if (aDepth !== bDepth) return aDepth - bDepth
+    return a.localeCompare(b)
+  })
+  return matched
 }
 
 function groupByDirectory(entries: FileEntry[]): ModuleDescriptor[] {

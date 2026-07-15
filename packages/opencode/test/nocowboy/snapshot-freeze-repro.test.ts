@@ -20,7 +20,7 @@ import { Server } from "../../src/server/server"
 import { Session } from "../../src/session/session"
 import { Snapshot } from "../../src/snapshot"
 import { Filesystem } from "../../src/util/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 
 void Log.init({ print: false })

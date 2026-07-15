@@ -1,17 +1,17 @@
 // Temporary V2 bridge: core events are the publish path, but the rest of
-// opencode and the HTTP event stream still expect legacy bus/sync payloads.
+// nocowboy and the HTTP event stream still expect legacy bus/sync payloads.
 // This layer goes away once consumers subscribe to core EventV2 directly.
 import { Bus as ProjectBus } from "@/bus"
 import { GlobalBus } from "@/bus/global"
 import { InstanceRef, WorkspaceRef } from "@/effect/instance-ref"
 import { InstanceStore } from "@/project/instance-store"
-import * as EventWire from "@/nocowboy/event-wire" // nocowboy_change
+import * as EventWire from "@/nocowboy/event-wire"
 import { SyncEvent } from "@/sync"
-import { EventV2 } from "@opencode-ai/core/event"
-import "@opencode-ai/core/catalog"
-import "@opencode-ai/core/session-event"
+import { EventV2 } from "@nocowboy/core/event"
+import "@nocowboy/core/catalog"
+import "@nocowboy/core/session-event"
 import { Context, Effect, Layer, Option } from "effect"
-import { Schema } from "effect" // nocowboy_change - encode EventV2 data at legacy boundaries
+import { Schema } from "effect"
 
 export function toSyncDefinition<D extends EventV2.Definition>(definition: D) {
   const result = {
@@ -20,12 +20,12 @@ export function toSyncDefinition<D extends EventV2.Definition>(definition: D) {
     aggregate: definition.aggregate,
     schema: definition.data,
     properties: definition.data,
-    wire: true, // nocowboy_change
+    wire: true,
   }
   return result as SyncEvent.Definition<D["type"], D["data"], D["data"]>
 }
 
-export class Service extends Context.Service<Service, EventV2.Interface>()("@opencode/EventV2Bridge") {}
+export class Service extends Context.Service<Service, EventV2.Interface>()("@nocowboy/EventV2Bridge") {}
 
 export const layer = Layer.effect(
   Service,
@@ -34,7 +34,6 @@ export const layer = Layer.effect(
     const bus = yield* ProjectBus.Service
     const sync = yield* SyncEvent.Service
 
-    // nocowboy_change start - legacy bus and SSE consumers require the schema's encoded representation
     const publishGlobal = (event: EventV2.Payload, data: unknown) =>
       Effect.sync(() => {
         GlobalBus.emit("event", {
@@ -63,26 +62,23 @@ export const layer = Layer.effect(
         )
       })
     }
-    // nocowboy_change end
 
     const unsubscribe = yield* events.sync((event) => {
       const definition = EventV2.registry.get(event.type)
       if (!definition) return Effect.void
-      const data = EventWire.encode(definition.data, event.data) // nocowboy_change
+      const data = EventWire.encode(definition.data, event.data)
       const aggregateID = definition.aggregate
         ? (event.data as Record<string, unknown>)[definition.aggregate]
         : undefined
 
       if (definition.version !== undefined && typeof aggregateID === "string") {
-        return provideEventLocation(event, data, sync.run(toSyncDefinition(definition), event.data)) // nocowboy_change
+        return provideEventLocation(event, data, sync.run(toSyncDefinition(definition), event.data))
       }
 
       return provideEventLocation(
         event,
-        // nocowboy_change start
         data,
         bus.publish({ type: definition.type, properties: Schema.toEncoded(definition.data) }, data, { id: event.id }),
-        // nocowboy_change end
       )
     })
     yield* Effect.addFinalizer(() => unsubscribe)

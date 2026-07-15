@@ -3,11 +3,12 @@ import { useTheme } from "../../context/theme"
 import { useSync } from "../../context/sync"
 import { useDirectory } from "../../context/directory"
 import { useConnected } from "../../component/use-connected"
-import { useSDK } from "../../context/sdk" // nocowboy_change
+import { useSDK } from "../../context/sdk"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
-import { useEvent } from "../../context/event" // nocowboy_change
-import { RemoteIndicator } from "@/nocowboy/remote-tui" // nocowboy_change
+import { useEvent } from "../../context/event"
+import { RemoteIndicator } from "@/nocowboy/remote-tui"
+import { BalanceIndicator } from "@/nocowboy/components/balance-indicator"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -22,8 +23,8 @@ export function Footer() {
   })
   const directory = useDirectory()
   const connected = useConnected()
-  const sdk = useSDK() // nocowboy_change
-  const event = useEvent() // nocowboy_change
+  const sdk = useSDK()
+  const event = useEvent()
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -56,18 +57,14 @@ export function Footer() {
 
   return (
     <box flexDirection="row" justifyContent="space-between" gap={1} flexShrink={0}>
-      {/* nocowboy_change start */}
       {false && <text fg={theme.textMuted}>{directory()}</text>}
-      {/* nocowboy_change end */}
       <box gap={2} flexDirection="row" flexShrink={0}>
-        {/* nocowboy_change start */}
         <RemoteIndicator
           sdk={sdk}
           theme={theme}
           kilo={sync.data.provider_next.connected.includes("nocowboy")}
           event={event}
         />
-        {/* nocowboy_change end */}
         <Switch>
           <Match when={store.welcome}>
             <text fg={theme.text}>
@@ -84,7 +81,6 @@ export function Footer() {
             <text fg={theme.text}>
               <span style={{ fg: lsp().length > 0 ? theme.success : theme.textMuted }}>•</span> {lsp().length} LSP
             </text>
-            {/* nocowboy_change start */}
             <Show when={mcp()}>
               <text fg={theme.text}>
                 <Switch>
@@ -98,7 +94,7 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
-            {/* nocowboy_change end */}
+            <BalanceIndicator />
             <text fg={theme.textMuted}>/status</text>
           </Match>
         </Switch>

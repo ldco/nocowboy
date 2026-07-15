@@ -12,13 +12,13 @@ import { EventSequenceTable, EventTable } from "./event.sql"
 import type { WorkspaceID } from "@/control-plane/schema"
 import { EventID } from "./schema"
 import { Context, Effect, Layer, Schema as EffectSchema } from "effect"
-import type { DeepMutable } from "@opencode-ai/core/schema"
-import { EventV2 } from "@opencode-ai/core/event"
+import type { DeepMutable } from "@nocowboy/core/schema"
+import { EventV2 } from "@nocowboy/core/event"
 import { serviceUse } from "@/effect/service-use"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { attachWith } from "@/effect/run-service"
-import * as EventWire from "@/nocowboy/event-wire" // nocowboy_change
+import * as EventWire from "@/nocowboy/event-wire"
 
 // Keep `Event["data"]` mutable because projectors mutate the persisted shape
 // when writing to the database. Bus payloads (`Properties`) stay readonly —
@@ -37,7 +37,7 @@ export type Definition<
   // passed at definition time (see `session.updated`, whose projector
   // expands the persisted data to a `{ sessionID, info }` bus payload).
   properties: BusSchema
-  wire?: boolean // nocowboy_change - EventV2 rows cross persistence and bus boundaries as encoded data
+  wire?: boolean
 }
 
 export type Event<Def extends Definition = Definition> = {
@@ -49,12 +49,10 @@ export type Event<Def extends Definition = Definition> = {
 
 export type Properties<Def extends Definition = Definition> = EffectSchema.Schema.Type<Def["properties"]>
 
-// nocowboy_change start - serialized rows carry the schema's encoded representation
 export type SerializedEvent<Def extends Definition = Definition> = Omit<Event<Def>, "data"> & {
   type: string
   data: DeepMutable<Def["schema"]["Encoded"]>
 }
-// nocowboy_change end
 
 type ProjectorFunc = (db: Database.TxOrDb, data: unknown, event: Event) => void
 type ConvertEvent = (type: string, data: Event["data"]) => unknown | Promise<unknown>
@@ -78,7 +76,7 @@ export interface Interface {
   readonly claim: (aggregateID: string, ownerID: string) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SyncEvent") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SyncEvent") {}
 
 export const layer = Layer.effect(Service)(
   Effect.gen(function* () {
@@ -120,7 +118,6 @@ export const layer = Layer.effect(Service)(
             workspace: yield* InstanceState.workspaceID,
           }
         : undefined
-      // nocowboy_change start - decode only EventV2 rows
       const data = def.wire ? EventWire.decode(def.schema, event.data) : event.data
       process(
         def,
@@ -133,7 +130,6 @@ export const layer = Layer.effect(Service)(
           experimentalWorkspaces: flags.experimentalWorkspaces,
         },
       )
-      // nocowboy_change end
     })
 
     const replayAll: Interface["replayAll"] = Effect.fn("SyncEvent.replayAll")(function* (events, options) {
@@ -252,7 +248,7 @@ export function init(input: { projectors: Array<[Definition, ProjectorFunc]>; co
       aggregate: entry.aggregate,
       properties: entry.data,
       schema: entry.data,
-      wire: true, // nocowboy_change
+      wire: true,
     })
   }
 
@@ -341,7 +337,7 @@ function process<Def extends Definition>(
 
   Database.transaction((tx) => {
     projector(tx, event.data, event)
-    const data = def.wire ? EventWire.encode(def.schema, event.data) : event.data // nocowboy_change
+    const data = def.wire ? EventWire.encode(def.schema, event.data) : event.data
 
     if (options.experimentalWorkspaces) {
       tx.insert(EventSequenceTable)
@@ -361,7 +357,7 @@ function process<Def extends Definition>(
           seq: event.seq,
           aggregate_id: event.aggregateID,
           type: versionedType(def.type, def.version),
-          data: data as Record<string, unknown>, // nocowboy_change
+          data: data as Record<string, unknown>,
         })
         .run()
     }
@@ -373,7 +369,6 @@ function process<Def extends Definition>(
         }
 
         const result = convertEvent(def.type, event.data)
-        // nocowboy_change start - encode EventV2 properties before crossing the legacy boundary
         const publish = (value: unknown) => {
           const refs = {
             instance: options.context?.instance,
@@ -395,7 +390,6 @@ function process<Def extends Definition>(
             attachWith(options.bus.publish(def, value as Properties<Def>, { id: event.id }), refs),
           )
         }
-        // nocowboy_change end
         if (result instanceof Promise) {
           void result.then(publish)
         } else {
@@ -411,7 +405,7 @@ function process<Def extends Definition>(
             syncEvent: {
               type: versionedType(def.type, def.version),
               ...event,
-              data, // nocowboy_change
+              data,
             },
           },
         })

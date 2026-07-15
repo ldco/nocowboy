@@ -2,7 +2,7 @@ import * as fs from "fs/promises"
 import * as path from "path"
 import { Config } from "../config/config"
 import { ConfigMCP } from "../config/mcp"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Filesystem } from "../util/filesystem"
 import { NocowboyPaths } from "./paths"
 
@@ -146,7 +146,7 @@ export namespace McpMigrator {
   }
 
   /**
-   * Load Kilocode MCP servers and return them as an opencode config partial.
+   * Load Kilocode MCP servers and return them as a nocowboy config partial.
    * This function handles all logging internally, so callers just need to merge the result.
    */
   export async function loadMcpConfig(

@@ -3,7 +3,7 @@ import {
   createContext,
   createEffect,
   createMemo,
-  onCleanup, // nocowboy_change
+  onCleanup,
   createSignal,
   For,
   Match,
@@ -14,7 +14,7 @@ import {
   untrack,
   useContext,
 } from "solid-js"
-import { createStore } from "solid-js/store" // nocowboy_change
+import { createStore } from "solid-js/store"
 import { Dynamic } from "solid-js/web"
 import path from "path"
 import { useRoute, useRouteData } from "@tui/context/route"
@@ -22,19 +22,15 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { SplitBorder } from "@tui/component/border"
-import { MessageID, PartID } from "@/session/schema" // nocowboy_change
+import { MessageID, PartID } from "@/session/schema"
 import { Spinner } from "@tui/component/spinner"
 import { selectedForeground, useTheme } from "@tui/context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
-// nocowboy_change start
 import type { KeyEvent } from "@opentui/core"
 import type { CommandContext } from "@opentui/keymap"
-// nocowboy_change end
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-// nocowboy_change start
 import type { AssistantMessage, Part, Provider, ToolPart, UserMessage, TextPart, ReasoningPart } from "@nocowboy/sdk/v2"
-import * as Log from "@opencode-ai/core/util/log"
-// nocowboy_change end
+import * as Log from "@nocowboy/core/util/log"
 import { useLocal } from "@tui/context/local"
 import { Locale } from "@/util/locale"
 import type { Tool } from "@/tool/tool"
@@ -52,10 +48,8 @@ import { webSearchProviderLabel, type WebSearchTool } from "@/tool/websearch"
 import type { TaskTool } from "@/tool/task"
 import type { QuestionTool } from "@/tool/question"
 import type { SkillTool } from "@/tool/skill"
-// nocowboy_change start
 import type { BackgroundProcessTool } from "@/nocowboy/tool/background-process"
 import type { SemanticSearchTool } from "@/nocowboy/tool/semantic-search"
-// nocowboy_change end
 import { useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import { useSDK } from "@tui/context/sdk"
 import { useEditorContext } from "@tui/context/editor"
@@ -65,9 +59,10 @@ import { TodoItem } from "../../component/todo-item"
 import { DialogMessage } from "./dialog-message"
 import type { PromptInfo } from "../../component/prompt/history"
 import { DialogConfirm } from "@tui/ui/dialog-confirm"
-import { ErrorBlock } from "@/nocowboy/components/error-display" // nocowboy_change
-import { VoiceButton } from "@/nocowboy/components/voice-button" // nocowboy_change
-import { YoloButton } from "@/nocowboy/components/yolo-button" // nocowboy_change
+import { ErrorBlock } from "@/nocowboy/components/error-display"
+import { VoiceButton } from "@/nocowboy/components/voice-button"
+import { YoloButton } from "@/nocowboy/components/yolo-button"
+import { BalanceIndicator } from "@/nocowboy/components/balance-indicator"
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
@@ -86,24 +81,20 @@ import { useExit } from "../../context/exit"
 import { Filesystem } from "@/util/filesystem"
 import { PermissionPrompt } from "./permission"
 import { QuestionPrompt } from "./question"
-// nocowboy_change start
 import { Suggest } from "@/nocowboy/suggestion/tui/render"
 import { SuggestPrompt } from "@/nocowboy/suggestion/tui/prompt"
 import { NetworkPrompt } from "./network"
-// nocowboy_change end
 import { DialogExportOptions } from "../../ui/dialog-export-options"
 import * as Model from "../../util/model"
 import { formatTranscript } from "../../util/transcript"
 import { UI } from "@/cli/ui.ts"
 import { useTuiConfig } from "../../context/tui-config"
-// nocowboy_change start
 import { sidebarOpen as globalSidebarOpen } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 import { splitDiffHunks } from "@/nocowboy/tui/diff"
 import { session as banner } from "@/nocowboy/cli/logo"
 
-import { formatMarkdownTables } from "../../util/markdown"
+import { formatMarkdownTables, linkifyMarkdown } from "../../util/markdown"
 import { submitFeedback } from "@/nocowboy/cli/cmd/tui/feedback"
-// nocowboy_change end
 import { nextThinkingMode, reasoningTitle, useThinkingMode, type ThinkingMode } from "../../context/thinking"
 import { getScrollAcceleration } from "../../util/scroll"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
@@ -122,7 +113,7 @@ const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 const GO_UPSELL_ACCOUNT_RATE_LIMIT_LAST_SEEN_AT = "go_upsell_account_rate_limit_last_seen_at"
 const GO_UPSELL_ACCOUNT_RATE_LIMIT_DONT_SHOW = "go_upsell_account_rate_limit_dont_show"
 const GO_UPSELL_WINDOW = 86_400_000 // 24 hrs
-const GO_UPSELL_PROVIDERS = new Set(["opencode", "opencode-go"])
+const GO_UPSELL_PROVIDERS = new Set(["nocowboy", "nocowboy-go"])
 
 function goUpsellKeys(action: SessionRetry.Retryable["action"]) {
   if (!action) return
@@ -169,10 +160,8 @@ const sessionBindingCommands = [
   "session.message.next",
   "session.message.previous",
   "messages.copy",
-  // nocowboy_change start - message feedback
   "messages.feedback.up",
   "messages.feedback.down",
-  // nocowboy_change end
   "session.copy",
   "session.export",
   "session.child.first",
@@ -229,7 +218,6 @@ export function Session() {
     if (session()?.parentID) return []
     return children().flatMap((x) => sync.data.question[x.id] ?? [])
   })
-  // nocowboy_change start
   const suggestions = createMemo(() => {
     if (session()?.parentID) return []
     return children().flatMap((x) => sync.data.suggestion[x.id] ?? [])
@@ -266,7 +254,6 @@ export function Session() {
       blockingSuggestions().length > 0 ||
       network().length > 0,
   )
-  // nocowboy_change end
 
   const pending = createMemo(() => {
     return messages().findLast((x) => x.role === "assistant" && !('completed' in x.time && x.time.completed))?.id
@@ -276,7 +263,6 @@ export function Session() {
     return messages().findLast((x) => x.role === "assistant")
   })
 
-  // nocowboy_change start - collapse assistant messages, default expanded only last
   const [collapsed, setCollapsed] = createStore<Record<string, boolean>>({})
   const msgCount = createMemo(() => messages().length)
 
@@ -292,7 +278,6 @@ export function Session() {
       }
     }
   })
-  // nocowboy_change end
 
   const dimensions = useTerminalDimensions()
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "hide")
@@ -326,7 +311,6 @@ export function Session() {
   const sdk = useSDK()
   const editor = useEditorContext()
 
-  // nocowboy_change start - background processes are scoped to the visible session
   function processGroup(sessionID: string) {
     const info = sync.session.get(sessionID)
     return info?.parentID ?? info?.id ?? sessionID
@@ -362,7 +346,6 @@ export function Session() {
   onCleanup(() => {
     stopProcesses(processSessionID)
   })
-  // nocowboy_change end
 
   createEffect(() => {
     const sessionID = route.sessionID
@@ -414,7 +397,6 @@ export function Session() {
     if (part.id === lastSwitch) return
 
     if (part.tool === "plan_enter") {
-      // nocowboy_change
       local.agent.set("plan")
       lastSwitch = part.id
     }
@@ -456,7 +438,6 @@ export function Session() {
 
   const exit = useExit()
 
-  // nocowboy_change start
   createEffect(() => {
     const title = Locale.truncate(session()?.title ?? "", 50)
     return exit.message.set(banner(title, session()?.id ?? "", UI.Style.TEXT_DIM).join("\n"))
@@ -480,7 +461,6 @@ export function Session() {
       },
     ],
   }))
-  // nocowboy_change end
 
   // Helper: Find next visible message boundary in direction
   const findNextVisibleMessage = (direction: "next" | "prev"): string | null => {
@@ -986,11 +966,9 @@ export function Session() {
       title: "Copy last assistant message",
       value: "messages.copy",
       category: "Session",
-      // nocowboy_change start - /copy copies the latest assistant response
       slash: {
         name: "copy",
       },
-      // nocowboy_change end
       run: () => {
         const revertID = session()?.revert?.messageID
         const lastAssistantMessage = messages().findLast(
@@ -1029,7 +1007,6 @@ export function Session() {
         dialog.clear()
       },
     },
-    // nocowboy_change start - message feedback
     {
       title: "Rate last assistant message helpful",
       value: "messages.feedback.up",
@@ -1042,28 +1019,25 @@ export function Session() {
       category: "Session",
       run: () => submitFeedback("down", dialog, { toast, session, messages }),
     },
-    // nocowboy_change end
     {
       title: "Copy session transcript",
       value: "session.copy",
       category: "Session",
       slash: {
-        name: "copy-session", // nocowboy_change - transcript copy moved off /copy
+        name: "copy-session",
       },
       run: async () => {
         try {
           const sessionData = session()
           if (!sessionData) return
-          // nocowboy_change start - fetch all messages from server instead of truncated sync store
           const allMessages = await sdk.client.session.messages({ sessionID: sessionData.id }, { throwOnError: true })
           const sessionMessages = allMessages.data.map((msg) => ({
             info: msg.info,
             parts: msg.parts,
           }))
-          // nocowboy_change end
           const transcript = formatTranscript(
             sessionData,
-            sessionMessages, // nocowboy_change
+            sessionMessages,
             {
               thinking: showThinking(),
               toolDetails: showDetails(),
@@ -1104,17 +1078,15 @@ export function Session() {
 
           if (options === null) return
 
-          // nocowboy_change start - fetch all messages from server instead of truncated sync store
           const allMessages = await sdk.client.session.messages({ sessionID: sessionData.id }, { throwOnError: true })
           const sessionMessages = allMessages.data.map((msg) => ({
             info: msg.info,
             parts: msg.parts,
           }))
-          // nocowboy_change end
 
           const transcript = formatTranscript(
             sessionData,
-            sessionMessages, // nocowboy_change
+            sessionMessages,
             {
               thinking: options.thinking,
               toolDetails: options.toolDetails,
@@ -1286,13 +1258,11 @@ export function Session() {
                 scrollAcceleration={scrollAcceleration()}
               >
                 <box height={1} />
-                {/* nocowboy_change start */}
                 <Show when={session()?.parentID && messages().length === 0}>
                   <box paddingLeft={3}>
                     <text fg={theme.textMuted}>↳ Initializing...</text>
                   </box>
                 </Show>
-                {/* nocowboy_change end */}
                 <For each={messages()}>
                   {(message, index) => (
                     <Switch>
@@ -1363,7 +1333,6 @@ export function Session() {
                       <Match when={message.role === "user"}>
                         <UserMessage
                           index={index()}
-                          // nocowboy_change - collapse/expand all assistant messages in response group
                           onMouseUp={() => {
                             const msgs = messages()
                             const idx = msgs.indexOf(message)
@@ -1406,12 +1375,11 @@ export function Session() {
                             }
                             if (!hasAssistant) return undefined
                             return anyVisible ? false : true // false=expanded, true=collapsed
-                          })()} // nocowboy_change
+                          })()}
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
                           onForceSend={() => {
-                            // nocowboy_change start - interrupt + immediately resubmit queued message
                             const status = sync.data.session_status?.[route.sessionID]
                             if (status?.type !== "idle") void sdk.client.session.abort({ sessionID: route.sessionID })
                             const parts = sync.data.part[message.id]
@@ -1434,7 +1402,7 @@ export function Session() {
                                 }).catch(() => {})
                               }
                             }
-                          }} // nocowboy_change end
+                          }}
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
@@ -1444,8 +1412,7 @@ export function Session() {
                           message={message as AssistantMessage}
                           parts={sync.data.part[message.id] ?? []}
                         />
-                        </Show>{/* nocowboy_change */}
-                      </Match>
+                        </Show></Match>
                     </Switch>
                   )}
                 </For>
@@ -1454,7 +1421,6 @@ export function Session() {
                 <Show when={permissions().length > 0}>
                   <PermissionPrompt request={permissions()[0]} />
                 </Show>
-                {/* nocowboy_change start */}
                 <Show when={permissions().length === 0 && question()} keyed>
                   {(request) => (
                     <QuestionPrompt
@@ -1517,14 +1483,14 @@ export function Session() {
   const cur = prompt?.current?.input ?? ""
   prompt?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })
 }} />
+                            <BalanceIndicator />
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
                         }
                       />
                     </TuiPluginRuntime.Slot>
                 </Show>
-                {/* nocowboy_change end */}
-              </box>
+                </box>
             </Show>
             <Toast />
           </box>
@@ -1570,9 +1536,9 @@ function UserMessage(props: {
   onMouseUp: () => void
   index: number
   pending?: string
-  onAction?: () => void // nocowboy_change
-  collapsedNext?: boolean // nocowboy_change
-  onForceSend?: () => void // nocowboy_change
+  onAction?: () => void
+  collapsedNext?: boolean
+  onForceSend?: () => void
 }) {
   const ctx = use()
   const local = useLocal()
@@ -1593,8 +1559,8 @@ function UserMessage(props: {
   const queued = createMemo(() => props.pending && props.message.id > props.pending)
   const color = createMemo(() => {
     const agent = local.agent.color(props.message.agent)
-    if (props.collapsedNext === true) return theme.backgroundPanel // nocowboy_change - collapsed = muted
-    if (props.collapsedNext === false) return RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change - expanded = brand
+    if (props.collapsedNext === true) return theme.backgroundPanel
+    if (props.collapsedNext === false) return RGBA.fromInts(0xff, 0x68, 0x00)
     return agent
   })
   const queuedFg = createMemo(() => selectedForeground(theme, color()))
@@ -1619,22 +1585,20 @@ function UserMessage(props: {
             onMouseOut={() => {
               setHover(false)
             }}
-            flexDirection="row" // nocowboy_change
+            flexDirection="row"
             onMouseUp={props.onMouseUp}
             paddingTop={1}
             paddingBottom={1}
             paddingLeft={2}
             backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
             flexShrink={0}
-          >{/* nocowboy_change start */}
-            <text
+          ><text
               onMouseUp={() => props.onAction?.()}
               paddingRight={1}
               fg={theme.textMuted}
             >
               ⋮
-            </text>{/* nocowboy_change end */}
-            <text fg={theme.text}>{text()}</text>
+            </text><text fg={theme.text}>{text()}</text>
             <Show when={files().length}>
               <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
                 <For each={files()}>
@@ -1753,8 +1717,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
             </box>
           }
         />
-        {/* nocowboy_change end */}
-      </Show>
+        </Show>
       <Switch>
         <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
           <box paddingLeft={3}>
@@ -1872,9 +1835,13 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
 function TextPart(props: { last: boolean; part: TextPart; message: AssistantMessage }) {
   const ctx = use()
   const { theme, syntax } = useTheme()
-  // nocowboy_change start - format markdown tables with fixed-width columns
-  const content = createMemo(() => formatMarkdownTables(props.part.text.trim()))
-  // nocowboy_change end
+  const content = createMemo(() => {
+    const raw = props.part.text.trim()
+    // 1. Normalise table column widths for cleaner alignment
+    const withTables = formatMarkdownTables(raw)
+    // 2. Add OSC 8 hyperlink sequences so URLs are clickable in supported terminals
+    return linkifyMarkdown(withTables)
+  })
   return (
     <Show when={props.part.text.trim()}>
       <box id={"text-" + props.part.id} paddingLeft={3} marginTop={1} flexShrink={0}>
@@ -1882,7 +1849,7 @@ function TextPart(props: { last: boolean; part: TextPart; message: AssistantMess
           syntaxStyle={syntax()}
           streaming={true}
           internalBlockMode="top-level"
-          content={props.part.text.trim()}
+          content={content()}
           tableOptions={{ style: "grid" }}
           conceal={ctx.conceal()}
           fg={theme.markdownText}
@@ -1944,14 +1911,12 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
         <Match when={props.part.tool === "grep"}>
           <Grep {...toolprops} />
         </Match>
-        {/* nocowboy_change start */}
         <Match when={props.part.tool === "background_process"}>
           <BackgroundProcess {...toolprops} />
         </Match>
         <Match when={props.part.tool === "semantic_search"}>
           <SemanticSearch {...toolprops} />
         </Match>
-        {/* nocowboy_change end */}
         <Match when={props.part.tool === "webfetch"}>
           <WebFetch {...toolprops} />
         </Match>
@@ -1976,7 +1941,6 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
         <Match when={props.part.tool === "question"}>
           <Question {...toolprops} />
         </Match>
-        {/* nocowboy_change start */}
         <Match when={props.part.tool === "suggest"}>
           {(() => {
             const pending = createMemo(() => {
@@ -1991,7 +1955,6 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
             return <Suggest {...toolprops} InlineTool={InlineTool} BlockTool={BlockTool} pendingRequest={pending()} />
           })()}
         </Match>
-        {/* nocowboy_change end */}
         <Match when={props.part.tool === "skill"}>
           <Skill {...toolprops} />
         </Match>
@@ -2017,7 +1980,7 @@ function GenericTool(props: ToolProps<any>) {
   const output = createMemo(() => props.output?.trim() ?? "")
   const [expanded, setExpanded] = createSignal(false)
   const lines = createMemo(() => output().split("\n"))
-  const maxLines = 3
+  const maxLines = 1
   const overflow = createMemo(() => lines().length > maxLines)
   const limited = createMemo(() => {
     if (expanded() || !overflow()) return output()
@@ -2041,7 +2004,7 @@ function GenericTool(props: ToolProps<any>) {
         <box gap={1}>
           <text fg={theme.text}>{limited()}</text>
           <Show when={overflow()}>
-            <text fg={theme.textMuted}>{expanded() ? "Click to collapse" : "Click to expand"}</text>
+            <text fg={theme.textMuted}>{expanded() ? "△ collapse" : `${lines().length - 1} more line${lines().length - 1 !== 1 ? "s" : ""}`}</text>
           </Show>
         </box>
       </BlockTool>
@@ -2195,10 +2158,10 @@ function Shell(props: ToolProps<typeof ShellTool>) {
   const output = createMemo(() => stripAnsi(props.metadata.output?.trim() ?? ""))
   const [expanded, setExpanded] = createSignal(false)
   const lines = createMemo(() => output().split("\n"))
-  const overflow = createMemo(() => lines().length > 10)
+  const overflow = createMemo(() => lines().length > 1)
   const limited = createMemo(() => {
     if (expanded() || !overflow()) return output()
-    return [...lines().slice(0, 10), "…"].join("\n")
+    return [...lines().slice(0, 1), "…"].join("\n")
   })
 
   const workdirDisplay = createMemo(() => {
@@ -2230,7 +2193,7 @@ function Shell(props: ToolProps<typeof ShellTool>) {
               <text fg={theme.text}>{limited()}</text>
             </Show>
             <Show when={overflow()}>
-              <text fg={theme.textMuted}>{expanded() ? "Click to collapse" : "Click to expand"}</text>
+              <text fg={theme.textMuted}>{expanded() ? "△ collapse" : `${lines().length - 1} more line${lines().length - 1 !== 1 ? "s" : ""}`}</text>
             </Show>
           </box>
         </BlockTool>
@@ -2354,7 +2317,6 @@ function WebSearch(props: ToolProps<typeof WebSearchTool>) {
   )
 }
 
-// nocowboy_change start
 function BackgroundProcess(props: ToolProps<typeof BackgroundProcessTool>) {
   const sync = useSync()
   const pathFormatter = usePathFormatter()
@@ -2416,7 +2378,6 @@ function SemanticSearch(props: ToolProps<typeof SemanticSearchTool>) {
     </InlineTool>
   )
 }
-// nocowboy_change end
 
 function Task(props: ToolProps<typeof TaskTool>) {
   const { navigate } = useRoute()
@@ -2457,7 +2418,6 @@ function Task(props: ToolProps<typeof TaskTool>) {
       props.metadata.background === true ? `${props.input.description} (background)` : props.input.description
     let content = [`${Locale.titlecase(props.input.subagent_type ?? "General")} Task — ${description}`]
 
-    // nocowboy_change start
     if (isRunning()) {
       if (tools().length === 0) {
         content.push(`↳ Starting...`)
@@ -2469,7 +2429,6 @@ function Task(props: ToolProps<typeof TaskTool>) {
         content.push(`↳ ${tools().length} toolcalls`)
       }
     }
-    // nocowboy_change end
 
     if (props.part.state.status === "completed") {
       content.push(
@@ -2515,13 +2474,12 @@ function Edit(props: ToolProps<typeof EditTool>) {
   const ft = createMemo(() => filetype(props.input.filePath))
 
   const diffContent = createMemo(() => props.metadata.diff)
-  const hunks = createMemo(() => splitDiffHunks(diffContent() ?? "")) // nocowboy_change
+  const hunks = createMemo(() => splitDiffHunks(diffContent() ?? ""))
 
   return (
     <Switch>
       <Match when={props.metadata.diff !== undefined}>
         <BlockTool title={"← Edit " + pathFormatter.format(props.input.filePath)} part={props.part}>
-          {/* nocowboy_change start */}
           <box paddingLeft={1} flexDirection="column">
             <For each={hunks()}>
               {(hunk, i) => (
@@ -2554,7 +2512,6 @@ function Edit(props: ToolProps<typeof EditTool>) {
               )}
             </For>
           </box>
-          {/* nocowboy_change end */}
           <Diagnostics diagnostics={props.metadata.diagnostics} filePath={props.input.filePath ?? ""} />
         </BlockTool>
       </Match>
@@ -2581,7 +2538,6 @@ function ApplyPatch(props: ToolProps<typeof ApplyPatchTool>) {
   })
 
   function Diff(p: { diff: string; filePath: string }) {
-    // nocowboy_change start
     const hunks = createMemo(() => splitDiffHunks(p.diff))
     return (
       <box paddingLeft={1} flexDirection="column">
@@ -2617,7 +2573,6 @@ function ApplyPatch(props: ToolProps<typeof ApplyPatchTool>) {
         </For>
       </box>
     )
-    // nocowboy_change end
   }
 
   function title(file: { type: string; relativePath: string; filePath: string; deletions: number }) {

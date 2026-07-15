@@ -4,7 +4,7 @@ import { Schema } from "effect"
 import { isRecord } from "@/util/record"
 import { Filesystem } from "@/util/filesystem"
 import { TuiAttentionSoundNames, type TuiAttentionSoundName } from "@nocowboy/plugin/tui"
-import { TitleIcon } from "@/nocowboy/cli/cmd/tui/title-icon" // nocowboy_change
+import { TitleIcon } from "@/nocowboy/cli/cmd/tui/title-icon"
 
 export type TuiAttentionSoundPaths = Partial<Record<TuiAttentionSoundName, string>>
 
@@ -70,7 +70,7 @@ export const TuiInfo = Schema.Struct({
   plugin_enabled: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   leader_timeout: Schema.optional(KeymapLeaderTimeout),
   attention: Schema.optional(Attention),
-  title_icon: Schema.optional(TitleIcon.Value), // nocowboy_change
+  title_icon: Schema.optional(TitleIcon.Value),
   scroll_speed: Schema.optional(ScrollSpeed).annotate({
     description: "TUI scroll speed",
   }),

@@ -1,8 +1,8 @@
 import type { Hooks, PluginInput } from "@nocowboy/plugin"
 import type { Model } from "@nocowboy/sdk/v2"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { iife } from "@/util/iife"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { setTimeout as sleep } from "node:timers/promises"
 import { CopilotModels } from "./models"
 import { MessageV2 } from "@/session/message-v2"
@@ -70,7 +70,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
           base(auth.enterpriseUrl),
           {
             Authorization: `Bearer ${auth.refresh}`,
-            "User-Agent": `opencode/${InstallationVersion}`,
+            "User-Agent": `nocowboy/${InstallationVersion}`,
           },
           provider.models,
         ).catch((error) => {
@@ -150,7 +150,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             const headers: Record<string, string> = {
               "x-initiator": isAgent ? "agent" : "user",
               ...(init?.headers as Record<string, string>),
-              "User-Agent": `opencode/${InstallationVersion}`,
+              "User-Agent": `nocowboy/${InstallationVersion}`,
               Authorization: `Bearer ${info.refresh}`,
               "Openai-Intent": "conversation-edits",
             }
@@ -226,7 +226,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "User-Agent": `nocowboy/${InstallationVersion}`,
               },
               body: JSON.stringify({
                 client_id: CLIENT_ID,
@@ -256,7 +256,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                     headers: {
                       Accept: "application/json",
                       "Content-Type": "application/json",
-                      "User-Agent": `opencode/${InstallationVersion}`,
+                      "User-Agent": `nocowboy/${InstallationVersion}`,
                     },
                     body: JSON.stringify({
                       client_id: CLIENT_ID,

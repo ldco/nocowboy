@@ -62,7 +62,6 @@ function init() {
       const toastOptions = decodeToastOptions(options)
       setStore("currentToast", toastOptions)
       if (timeoutHandle) clearTimeout(timeoutHandle)
-      // nocowboy_change start
       timeoutHandle = null
       if (toastOptions.duration && toastOptions.duration > 0) {
         timeoutHandle = setTimeout(() => {
@@ -76,7 +75,6 @@ function init() {
       timeoutHandle = null
       setStore("currentToast", null)
     },
-    // nocowboy_change end
     error: (err: any) => {
       if (err instanceof Error)
         return toast.show({

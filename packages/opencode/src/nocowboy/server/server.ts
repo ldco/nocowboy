@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 // Kilo-specific overrides for the server control plane.
 // Imported by ../../server/server.ts with minimal nocowboy_change markers.
 

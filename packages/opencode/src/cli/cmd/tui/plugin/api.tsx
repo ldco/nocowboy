@@ -15,7 +15,7 @@ import { DialogSelect, type DialogSelectOption as SelectOption } from "../ui/dia
 import { Prompt } from "../component/prompt"
 import { Slot as HostSlot } from "./slots"
 import type { useToast } from "../ui/toast"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import * as Keymap from "../keymap"
 import { createCommandShim } from "./command-shim"
 
@@ -161,11 +161,9 @@ function stateApi(sync: ReturnType<typeof useSync>): TuiPluginApi["state"] {
       todo(sessionID) {
         return sync.data.todo[sessionID] ?? []
       },
-      // nocowboy_change start
       processes(sessionID) {
         return sync.data.background_process[sessionID] ?? []
       },
-      // nocowboy_change end
       messages(sessionID) {
         return sync.data.message[sessionID] ?? []
       },

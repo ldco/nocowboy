@@ -21,7 +21,7 @@ import { ApplyPatchTool } from "../../src/tool/apply_patch"
 import { Tool } from "../../src/tool/tool"
 import { Truncate } from "../../src/tool/truncate"
 import { provideInstance } from "../fixture/fixture"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 
 const layer = Layer.mergeAll(
   Agent.defaultLayer,

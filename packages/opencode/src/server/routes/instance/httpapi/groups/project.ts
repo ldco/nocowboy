@@ -25,7 +25,7 @@ export const ProjectApi = HttpApi.make("project")
           OpenApi.annotations({
             identifier: "project.list",
             summary: "List all projects",
-            description: "Get a list of projects that have been opened with Kilo.", // nocowboy_change
+            description: "Get a list of projects that have been opened with Kilo.",
           }),
         ),
         HttpApiEndpoint.get("current", `${root}/current`, {
@@ -35,7 +35,7 @@ export const ProjectApi = HttpApi.make("project")
           OpenApi.annotations({
             identifier: "project.current",
             summary: "Get current project",
-            description: "Retrieve the currently active project that Kilo is working with.", // nocowboy_change
+            description: "Retrieve the currently active project that Kilo is working with.",
           }),
         ),
         HttpApiEndpoint.post("initGit", `${root}/git/init`, {
@@ -74,7 +74,7 @@ export const ProjectApi = HttpApi.make("project")
   )
   .annotateMerge(
     OpenApi.annotations({
-      title: "opencode experimental HttpApi",
+      title: "nocowboy experimental HttpApi",
       version: "0.0.1",
       description: "Experimental HttpApi surface for selected instance routes.",
     }),

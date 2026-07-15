@@ -6,8 +6,8 @@ import { useSync } from "@tui/context/sync"
 import { useRoute } from "@tui/context/route"
 import type { AssistantMessage, Todo, McpStatus, LspStatus, Session, SnapshotFileDiff } from "@nocowboy/sdk/v2"
 import { TodoItem } from "@tui/component/todo-item"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
-import { Global } from "@opencode-ai/core/global"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
+import { Global } from "@nocowboy/core/global"
 import * as Model from "@tui/util/model"
 
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)

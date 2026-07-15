@@ -3,31 +3,30 @@ import fuzzysort from "fuzzysort"
 import { Config } from "@/config/config"
 import { mapValues, mergeDeep, omit, pickBy, sortBy } from "remeda"
 import { NoSuchModelError, type Provider as SDK } from "ai"
-import * as Log from "@opencode-ai/core/util/log"
-import { Npm } from "@opencode-ai/core/npm"
-import { Hash } from "@opencode-ai/core/util/hash"
+import * as Log from "@nocowboy/core/util/log"
+import { Npm } from "@nocowboy/core/npm"
+import { Hash } from "@nocowboy/core/util/hash"
 import { Plugin } from "../plugin"
 import { type LanguageModelV3 } from "@ai-sdk/provider"
-import * as ModelsDev from "./models" // nocowboy_change - assemble dynamic Kilo models around upstream core catalog
+import * as ModelsDev from "./models"
 import { Auth } from "../auth"
 import { Env } from "../env"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { iife } from "@/util/iife"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context, Schema, Types } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
 import { EffectPromise } from "@/effect/promise"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { isRecord } from "@/util/record"
-import { optionalOmitUndefined } from "@opencode-ai/core/schema"
+import { optionalOmitUndefined } from "@nocowboy/core/schema"
 import * as ProviderTransform from "./transform"
 import { ModelID, ProviderID } from "./schema"
 import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-// nocowboy_change start
 import {
   KILO_BUNDLED_PROVIDERS,
   ncowboyCustomLoaders,
@@ -40,7 +39,6 @@ import {
   REQUEST_TIMEOUT_MS,
 } from "@/nocowboy/provider/provider"
 import * as ModelsRefresh from "@/nocowboy/provider/models-refresh"
-// nocowboy_change end
 
 const log = Log.create({ service: "provider" })
 
@@ -126,9 +124,9 @@ const BUNDLED_PROVIDERS: Record<string, () => Promise<(opts: any) => BundledSDK>
   "@ai-sdk/alibaba": () => import("@ai-sdk/alibaba").then((m) => m.createAlibaba),
   "gitlab-ai-provider": () => import("gitlab-ai-provider").then((m) => m.createGitLab),
   "@ai-sdk/github-copilot": () =>
-    import("@opencode-ai/core/github-copilot/copilot-provider").then((m) => m.createOpenaiCompatible),
+    import("@nocowboy/core/github-copilot/copilot-provider").then((m) => m.createOpenaiCompatible),
   "venice-ai-sdk-provider": () => import("venice-ai-sdk-provider").then((m) => m.createVenice),
-  ...KILO_BUNDLED_PROVIDERS, // nocowboy_change
+  ...KILO_BUNDLED_PROVIDERS,
 }
 
 type CustomModelLoader = (sdk: any, modelID: string, options?: Record<string, any>) => Promise<any>
@@ -172,7 +170,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           },
         },
       }),
-    opencode: Effect.fnUntraced(function* (input: Info) {
+    nocowboy: Effect.fnUntraced(function* (input: Info) {
       const env = yield* dep.env()
       const hasKey = iife(() => {
         if (input.env.some((item) => env[item])) return true
@@ -181,7 +179,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       const ok =
         hasKey ||
         Boolean(yield* dep.auth(input.id)) ||
-        Boolean((yield* dep.config()).provider?.["opencode"]?.options?.apiKey)
+        Boolean((yield* dep.config()).provider?.["nocowboy"]?.options?.apiKey)
 
       if (!ok) {
         for (const [key, value] of Object.entries(input.models)) {
@@ -223,7 +221,6 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
     azure: Effect.fnUntraced(function* (provider: Info) {
       const env = yield* dep.env()
       const auth = yield* dep.auth(provider.id)
-      // nocowboy_change start - prefer explicit Azure endpoint over resource name to avoid conflicting SDK options
       const endpoint = iife(() => {
         return [
           provider.options?.baseURL,
@@ -241,15 +238,13 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
               env["AZURE_OPENAI_RESOURCE_NAME"],
             ].find((name) => typeof name === "string" && name.trim() !== "")
           })
-      // nocowboy_change end
 
       if (!resource && !endpoint) {
-        // nocowboy_change
         return {
           autoload: false,
           async getModel() {
             throw new Error(
-              "Azure resource name or endpoint is missing. Set AZURE_RESOURCE_NAME, AZURE_OPENAI_RESOURCE_NAME, AZURE_OPENAI_ENDPOINT, or reconnect the azure provider.", // nocowboy_change
+              "Azure resource name or endpoint is missing. Set AZURE_RESOURCE_NAME, AZURE_OPENAI_RESOURCE_NAME, AZURE_OPENAI_ENDPOINT, or reconnect the azure provider.",
             )
           },
         }
@@ -261,7 +256,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           return selectAzureLanguageModel(sdk, modelID, Boolean(options?.["useCompletionUrls"]))
         },
         options: {
-          ...(endpoint ? { baseURL: endpoint } : { resourceName: resource }), // nocowboy_change
+          ...(endpoint ? { baseURL: endpoint } : { resourceName: resource }),
         },
         vars(_options): Record<string, string> {
           if (resource) {
@@ -356,7 +351,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           }
 
           // Region resolution precedence (highest to lowest):
-          // 1. options.region from opencode.json provider config
+          // 1. options.region from nocowboy.json provider config
           // 2. defaultRegion from AWS_REGION environment variable
           // 3. Default "us-east-1" (baked into defaultRegion)
           const region = options?.region ?? defaultRegion
@@ -439,9 +434,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
-            "X-Source": "nocowboy", // nocowboy_change - TODO: replace with own service
+            "HTTP-Referer": "https://nocowboy.dev/",
+            "X-Title": "NoCowboy",
+            "X-Source": "nocowboy",
           },
         },
       }),
@@ -450,8 +445,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "HTTP-Referer": "https://nocowboy.dev/",
+            "X-Title": "NoCowboy",
           },
         },
       }),
@@ -460,9 +455,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
-            "X-BILLING-INVOKE-ORIGIN": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "HTTP-Referer": "https://nocowboy.dev/",
+            "X-Title": "NoCowboy",
+            "X-BILLING-INVOKE-ORIGIN": "NoCowboy",
           },
         },
       }),
@@ -471,8 +466,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "x-title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "http-referer": "https://nocowboy.dev/",
+            "x-title": "NoCowboy",
           },
         },
       }),
@@ -575,8 +570,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "HTTP-Referer": "https://nocowboy.dev/",
+            "X-Title": "NoCowboy",
           },
         },
       }),
@@ -601,7 +596,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       const directory = yield* InstanceState.directory
 
       const aiGatewayHeaders = {
-        "User-Agent": `kilo/${InstallationVersion} gitlab-ai-provider/${GITLAB_PROVIDER_VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`, // nocowboy_change
+        "User-Agent": `kilo/${InstallationVersion} gitlab-ai-provider/${GITLAB_PROVIDER_VERSION} (${os.platform()} ${os.release()}; ${os.arch()})`,
         "anthropic-beta": "context-1m-2025-08-07",
         ...providerConfig?.options?.aiGatewayHeaders,
       }
@@ -754,7 +749,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         options: {
           apiKey,
           headers: {
-            "User-Agent": `opencode/${InstallationVersion} cloudflare-workers-ai (${os.platform()} ${os.release()}; ${os.arch()})`,
+            "User-Agent": `nocowboy/${InstallationVersion} cloudflare-workers-ai (${os.platform()} ${os.release()}; ${os.arch()})`,
           },
         },
         async getModel(sdk: any, modelID: string) {
@@ -803,7 +798,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       if (!apiToken) {
         throw new Error(
           "CLOUDFLARE_API_TOKEN (or CF_AIG_TOKEN) is required for Cloudflare AI Gateway. " +
-            "Set it via environment variable or run `kilo auth cloudflare-ai-gateway`.", // nocowboy_change
+            "Set it via environment variable or run `kilo auth cloudflare-ai-gateway`.",
         )
       }
 
@@ -826,7 +821,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         skipCache: input.options?.skipCache,
         collectLog: input.options?.collectLog,
         headers: {
-          "User-Agent": `opencode/${InstallationVersion} cloudflare-ai-gateway (${os.platform()} ${os.release()}; ${os.arch()})`,
+          "User-Agent": `nocowboy/${InstallationVersion} cloudflare-ai-gateway (${os.platform()} ${os.release()}; ${os.arch()})`,
         },
       }
 
@@ -852,17 +847,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "X-Cerebras-3rd-Party-Integration": "NoCowboy", // nocowboy_change - TODO: replace with own service
-          },
-        },
-      }),
-    nocowboy: () =>
-      Effect.succeed({
-        autoload: false,
-        options: {
-          headers: {
-            "HTTP-Referer": "https://nocowboy.dev/", // nocowboy_change - TODO: replace with own service
-            "X-Title": "NoCowboy", // nocowboy_change - TODO: replace with own service
+            "X-Cerebras-3rd-Party-Integration": "NoCowboy",
           },
         },
       }),
@@ -935,13 +920,11 @@ const ProviderLimit = Schema.Struct({
   output: Schema.Finite,
 })
 
-// nocowboy_change start
 const ProviderMetadata = Schema.Struct({
   noteKey: optionalOmitUndefined(Schema.String),
   icon: optionalOmitUndefined(Schema.String),
   priority: optionalOmitUndefined(Schema.Int),
 })
-// nocowboy_change end
 
 export const Model = Schema.Struct({
   id: ModelID,
@@ -957,18 +940,18 @@ export const Model = Schema.Struct({
   headers: Schema.Record(Schema.String, Schema.String),
   release_date: Schema.String,
   variants: optionalOmitUndefined(Schema.Record(Schema.String, Schema.Record(Schema.String, Schema.Any))),
-  ...KILO_MODEL_SCHEMA_EXTENSIONS, // nocowboy_change
+  ...KILO_MODEL_SCHEMA_EXTENSIONS,
 }).annotate({ identifier: "Model" })
 export type Model = Types.DeepMutable<Schema.Schema.Type<typeof Model>>
 
 export const Info = Schema.Struct({
   id: ProviderID,
   name: Schema.String,
-  description: optionalOmitUndefined(Schema.String), // nocowboy_change
+  description: optionalOmitUndefined(Schema.String),
   source: Schema.Literals(["env", "config", "custom", "api"]),
   env: Schema.Array(Schema.String),
-  key: optionalOmitUndefined(Schema.String), // nocowboy_change
-  metadata: optionalOmitUndefined(ProviderMetadata), // nocowboy_change
+  key: optionalOmitUndefined(Schema.String),
+  metadata: optionalOmitUndefined(ProviderMetadata),
   options: Schema.Record(Schema.String, Schema.Any),
   models: Schema.Record(Schema.String, Model),
 }).annotate({ identifier: "Provider" })
@@ -980,7 +963,7 @@ export const ListResult = Schema.Struct({
   all: Schema.Array(Info),
   default: DefaultModelIDs,
   connected: Schema.Array(Schema.String),
-  failed: Schema.Array(Schema.String), // nocowboy_change
+  failed: Schema.Array(Schema.String),
 })
 export type ListResult = Types.DeepMutable<Schema.Schema.Type<typeof ListResult>>
 
@@ -1008,7 +991,7 @@ export class ModelNotFoundError extends Schema.TaggedErrorClass<ModelNotFoundErr
   providerID: ProviderID,
   modelID: ModelID,
   suggestions: Schema.optional(Schema.Array(Schema.String)),
-  modelsEmpty: Schema.optional(Schema.Boolean), // nocowboy_change
+  modelsEmpty: Schema.optional(Schema.Boolean),
   cause: Schema.optional(Schema.Defect),
 }) {
   static isInstance(input: unknown): input is ModelNotFoundError {
@@ -1049,7 +1032,7 @@ interface State {
   varsLoaders: Record<string, CustomVarsLoader>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Provider") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Provider") {}
 
 function cost(c: ModelsDev.Model["cost"]): Model["cost"] {
   const result: Model["cost"] = {
@@ -1128,7 +1111,7 @@ function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model
     release_date: model.release_date ?? "",
     variants: {},
   }
-  Object.assign(base, patchKiloModel(provider.id, model)) // nocowboy_change
+  Object.assign(base, patchKiloModel(provider.id, model))
 
   return {
     ...base,
@@ -1164,7 +1147,7 @@ export function fromModelsDevProvider(provider: ModelsDev.Provider): Info {
     id: ProviderID.make(provider.id),
     source: "custom",
     name: provider.name,
-    description: provider.description, // nocowboy_change
+    description: provider.description,
     env: [...(provider.env ?? [])],
     options: {},
     models,
@@ -1300,7 +1283,7 @@ export const layer = Layer.effect(
 
         // extend database from config
         for (const [providerID, provider] of configProviders) {
-          if (!provider) continue // nocowboy_change - null entries are transient delete sentinels
+          if (!provider) continue
           const existing = database[providerID]
           const parsed: Info = {
             id: ProviderID.make(providerID),
@@ -1312,7 +1295,7 @@ export const layer = Layer.effect(
           }
 
           for (const [modelID, model] of Object.entries(provider.models ?? {})) {
-            if (!model) continue // nocowboy_change - null entries are transient delete sentinels
+            if (!model) continue
             const existingModel = parsed.models[model.id ?? modelID]
             const apiID = model.id ?? existingModel?.api.id ?? modelID
             const apiNpm =
@@ -1382,12 +1365,12 @@ export const layer = Layer.effect(
               headers: mergeDeep(existingModel?.headers ?? {}, model.headers ?? {}),
               family: model.family ?? existingModel?.family ?? "",
               release_date: model.release_date ?? existingModel?.release_date ?? "",
-              // variants: {}, // nocowboy_change, moved into patchKiloConfigModel
-              ...patchKiloConfigModel(model, existingModel), // nocowboy_change
+              // variants: {},
+              ...patchKiloConfigModel(model, existingModel),
             }
             const merged = mergeDeep(ProviderTransform.variants(parsedModel), model.variants ?? {})
             parsedModel.variants = mapValues(
-              pickBy(merged, (v): v is NonNullable<typeof v> => !!v && !v.disabled), // nocowboy_change - drop null delete sentinels
+              pickBy(merged, (v): v is NonNullable<typeof v> => !!v && !v.disabled),
               (v) => omit(v, ["disabled"]),
             )
             parsed.models[modelID] = parsedModel
@@ -1395,14 +1378,12 @@ export const layer = Layer.effect(
           database[providerID] = parsed
         }
 
-        // nocowboy_change start - load auths before env so OAuth plugins can override inherited credentials
         const auths = yield* auth.all().pipe(Effect.orDie)
         // load env
         const envs = yield* env.all()
         for (const [id, provider] of Object.entries(database)) {
           const providerID = ProviderID.make(id)
           if (disabled.has(providerID)) continue
-          // nocowboy_change start - prefer explicit OAuth auth over inherited env credentials
           if (
             auths[providerID]?.type === "oauth" &&
             plugins.some((x) => x.auth?.provider === providerID && x.auth.loader)
@@ -1410,7 +1391,6 @@ export const layer = Layer.effect(
             continue
           }
           const apiKey = provider.env.map((item) => envs[item]).find(Boolean)
-          // nocowboy_change end
           if (!apiKey) continue
           mergeProvider(providerID, {
             source: "env",
@@ -1451,11 +1431,8 @@ export const layer = Layer.effect(
           mergeProvider(providerID, patch)
         }
 
-        // nocowboy_change start - resolve env once for patchCustomLoaderResult (azure env fallback)
         const ncowboyEnv = yield* env.all()
-        // nocowboy_change end
         for (const [id, fn] of Object.entries({ ...custom(dep), ...ncowboyCustomLoaders(dep) })) {
-          // nocowboy_change
           const providerID = ProviderID.make(id)
           if (disabled.has(providerID)) continue
           const data = database[providerID]
@@ -1464,7 +1441,7 @@ export const layer = Layer.effect(
             continue
           }
           const result = yield* fn(data)
-          if (result) patchCustomLoaderResult(id, result, ncowboyEnv) // nocowboy_change
+          if (result) patchCustomLoaderResult(id, result, ncowboyEnv)
           if (result && (result.autoload || providers[providerID])) {
             if (result.getModel) modelLoaders[providerID] = result.getModel
             if (result.vars) varsLoaders[providerID] = result.vars
@@ -1477,14 +1454,12 @@ export const layer = Layer.effect(
 
         // load config - re-apply with updated data
         for (const [id, provider] of configProviders) {
-          if (!provider) continue // nocowboy_change - null entries are transient delete sentinels
+          if (!provider) continue
           const providerID = ProviderID.make(id)
-          // nocowboy_change start - keep OAuth plugin source when config and Codex auth coexist
           const oauth =
             auths[providerID]?.type === "oauth" && plugins.some((x) => x.auth?.provider === providerID && x.auth.loader)
           const partial: Partial<Info> = oauth ? {} : { source: "config" }
           if (provider.env) partial.env = provider.env
-          // nocowboy_change end
           if (provider.name) partial.name = provider.name
           if (provider.options) partial.options = provider.options
           mergeProvider(providerID, partial)
@@ -1543,7 +1518,7 @@ export const layer = Layer.effect(
             if (configVariants && model.variants) {
               const merged = mergeDeep(model.variants, configVariants)
               model.variants = mapValues(
-                pickBy(merged, (v): v is NonNullable<typeof v> => !!v && !v.disabled), // nocowboy_change - drop null delete sentinels
+                pickBy(merged, (v): v is NonNullable<typeof v> => !!v && !v.disabled),
                 (v) => omit(v, ["disabled"]),
               )
             }
@@ -1567,7 +1542,7 @@ export const layer = Layer.effect(
         }
       }),
     )
-    yield* ModelsRefresh.watch(state) // nocowboy_change
+    yield* ModelsRefresh.watch(state)
 
     const list = Effect.fn("Provider.list")(() => InstanceState.use(state, (s) => s.providers))
 
@@ -1634,14 +1609,12 @@ export const layer = Layer.effect(
           const fetchFn = customFetch ?? fetch
           const opts = init ?? {}
           const chunkAbortCtl = typeof chunkTimeout === "number" && chunkTimeout > 0 ? new AbortController() : undefined
-          // nocowboy_change start - use cancellable timeout for connection phase
           const timeout = buildTimeoutSignal(options)
           const signals: AbortSignal[] = []
 
           if (opts.signal) signals.push(opts.signal)
           if (chunkAbortCtl) signals.push(chunkAbortCtl.signal)
           if (timeout.signal) signals.push(timeout.signal)
-          // nocowboy_change end
 
           const combined = signals.length === 0 ? null : signals.length === 1 ? signals[0] : AbortSignal.any(signals)
           if (combined) opts.signal = combined
@@ -1664,7 +1637,6 @@ export const layer = Layer.effect(
             }
           }
 
-          // nocowboy_change start - clear connection-phase timeout once headers arrive
           try {
             const res = await fetchFn(input, {
               ...opts,
@@ -1678,7 +1650,6 @@ export const layer = Layer.effect(
             timeout.clear()
             throw err
           }
-          // nocowboy_change end
         }
 
         const bundledLoader = BUNDLED_PROVIDERS[model.api.npm]
@@ -1737,8 +1708,8 @@ export const layer = Layer.effect(
           : fuzzysort
               .go(providerID, Object.keys({ ...s.catalog, ...s.providers }), { limit: 3, threshold: -10000 })
               .map((m) => m.target)
-        const empty = false // nocowboy_change
-        return yield* new ModelNotFoundError({ providerID, modelID, suggestions, modelsEmpty: empty }) // nocowboy_change
+        const empty = false
+        return yield* new ModelNotFoundError({ providerID, modelID, suggestions, modelsEmpty: empty })
       }
 
       const info = provider.models[modelID]
@@ -1747,8 +1718,8 @@ export const layer = Layer.effect(
         const suggestions = current.length
           ? current
           : modelSuggestions(s.catalog[providerID], modelID, runtimeFlags.enableExperimentalModels)
-        const empty = Object.keys(provider.models).length === 0 // nocowboy_change
-        return yield* new ModelNotFoundError({ providerID, modelID, suggestions, modelsEmpty: empty }) // nocowboy_change
+        const empty = Object.keys(provider.models).length === 0
+        return yield* new ModelNotFoundError({ providerID, modelID, suggestions, modelsEmpty: empty })
       }
       return info
     })
@@ -1814,16 +1785,14 @@ export const layer = Layer.effect(
         "gemini-2.5-flash",
         "gpt-5-nano",
       ]
-      if (providerID.startsWith("opencode")) {
+      if (providerID.startsWith("nocowboy")) {
         priority = ["gpt-5-nano"]
       }
       if (providerID.startsWith("github-copilot")) {
         priority = ["gpt-5-mini", "claude-haiku-4.5", ...priority]
       }
-      // nocowboy_change start
       const ncowboyPriority = ncowboySmallModelPriority(providerID)
       if (ncowboyPriority) priority = ncowboyPriority
-      // nocowboy_change end
       for (const item of priority) {
         if (providerID === ProviderID.amazonBedrock) {
           const crossRegionPrefixes = ["global.", "us.", "eu."]
@@ -1850,12 +1819,10 @@ export const layer = Layer.effect(
         }
       }
 
-      // nocowboy_change start - fall back to kilo's auto small model
       const kiloFallback = s.providers[ProviderID.make("nocowboy")]
       if (kiloFallback?.models["nocowboy-auto/small"]) {
         return yield* getModel(ProviderID.make("nocowboy"), ModelID.make("nocowboy-auto/small"))
       }
-      // nocowboy_change end
 
       return undefined
     })

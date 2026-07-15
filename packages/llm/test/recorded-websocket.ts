@@ -1,4 +1,4 @@
-import { HttpRecorder, makeWebSocketExecutor, type RecordReplayMode } from "@opencode-ai/http-recorder"
+import { HttpRecorder, makeWebSocketExecutor, type RecordReplayMode } from "@nocowboy/http-recorder"
 import { Effect, Layer } from "effect"
 import { WebSocketExecutor } from "../src/route"
 import type { Service as WebSocketExecutorService } from "../src/route/transport/websocket"

@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/tui"
 import { createMemo, createResource, Show } from "solid-js"
 import { Process } from "@/util/process"

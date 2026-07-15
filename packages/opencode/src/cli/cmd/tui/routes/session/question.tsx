@@ -10,13 +10,11 @@ import { useDialog } from "../../ui/dialog"
 import { useTuiConfig } from "../../context/tui-config"
 import { useBindings } from "../../keymap"
 
-// nocowboy_change start
 export function QuestionPrompt(props: {
   request: QuestionRequest
   nonBlocking?: boolean
   inputFocused?: () => boolean
 }) {
-  // nocowboy_change end
   const sdk = useSDK()
   const { theme } = useTheme()
   const renderer = useRenderer()
@@ -209,7 +207,6 @@ export function QuestionPrompt(props: {
     const max = Math.min(total, 9)
 
     return {
-      // nocowboy_change - avoid intrusive key capture for non-blocking review questions
       enabled: dialog.stack.length === 0 && !store.editing && !(props.nonBlocking && props.inputFocused?.()),
       commands: [
         {

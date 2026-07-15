@@ -2,8 +2,8 @@ import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import { InstanceState } from "@/effect/instance-state"
 import { SessionID } from "./schema"
-import { QuestionID } from "@/question/schema" // nocowboy_change
-import { NonNegativeInt } from "@opencode-ai/core/schema"
+import { QuestionID } from "@/question/schema"
+import { NonNegativeInt } from "@nocowboy/core/schema"
 import { Effect, Layer, Context, Schema } from "effect"
 
 export const Info = Schema.Union([
@@ -29,13 +29,11 @@ export const Info = Schema.Union([
   Schema.Struct({
     type: Schema.Literal("busy"),
   }),
-  // nocowboy_change start
   Schema.Struct({
     type: Schema.Literal("offline"),
     requestID: QuestionID,
     message: Schema.String,
   }),
-  // nocowboy_change end
 ]).annotate({ identifier: "SessionStatus" })
 export type Info = Schema.Schema.Type<typeof Info>
 
@@ -62,7 +60,7 @@ export interface Interface {
   readonly set: (sessionID: SessionID, status: Info) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionStatus") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SessionStatus") {}
 
 export const layer = Layer.effect(
   Service,

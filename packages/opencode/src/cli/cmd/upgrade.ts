@@ -2,11 +2,11 @@ import type { Argv } from "yargs"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 
 export const UpgradeCommand = {
   command: "upgrade [target]",
-  describe: "upgrade NoCowboy to the latest or a specific version", // nocowboy_change
+  describe: "upgrade NoCowboy to the latest or a specific version",
   builder: (yargs: Argv) => {
     return yargs
       .positional("target", {
@@ -17,7 +17,7 @@ export const UpgradeCommand = {
         alias: "m",
         describe: "installation method to use",
         type: "string",
-        choices: ["curl", "npm", "yarn", "pnpm", "bun", "brew", "choco", "scoop"], // nocowboy_change
+        choices: ["curl", "npm", "yarn", "pnpm", "bun", "brew", "choco", "scoop"],
       })
   },
   handler: async (args: { target?: string; method?: string }) => {
@@ -28,7 +28,7 @@ export const UpgradeCommand = {
     const detectedMethod = await Installation.method()
     const method = (args.method as Installation.Method) ?? detectedMethod
     if (method === "unknown") {
-      prompts.log.error(`NoCowboy is installed to ${process.execPath} and may be managed by a package manager`) // nocowboy_change
+      prompts.log.error(`NoCowboy is installed to ${process.execPath} and may be managed by a package manager`)
       const install = await prompts.select({
         message: "Install anyways?",
         options: [
@@ -43,10 +43,10 @@ export const UpgradeCommand = {
       }
     }
     prompts.log.info("Using method: " + method)
-    const target = args.target ? args.target.replace(/^v/, "") : await Installation.latest(method) // nocowboy_change
+    const target = args.target ? args.target.replace(/^v/, "") : await Installation.latest(method)
 
     if (InstallationVersion === target) {
-      prompts.log.warn(`NoCowboy upgrade skipped: ${target} is already installed`) // nocowboy_change
+      prompts.log.warn(`NoCowboy upgrade skipped: ${target} is already installed`)
       prompts.outro("Done")
       return
     }
@@ -58,7 +58,6 @@ export const UpgradeCommand = {
     if (err) {
       spinner.stop("Upgrade failed", 1)
       if (err instanceof Installation.UpgradeFailedError) {
-        // nocowboy_change start - removed choco special case
         prompts.log.error(err.stderr)
         // necessary because choco only allows install/upgrade in elevated terminals
         // if (method === "choco" && err.stderr.includes("not running from an elevated command shell")) {
@@ -66,7 +65,6 @@ export const UpgradeCommand = {
         // } else {
         //   prompts.log.error(err.stderr)
         // }
-        // nocowboy_change end
       } else if (err instanceof Error) prompts.log.error(err.message)
       prompts.outro("Done")
       return

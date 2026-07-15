@@ -1,5 +1,5 @@
-import { Flag } from "@opencode-ai/core/flag/flag"
-import * as PowerShell from "@/nocowboy/shell/shell" // nocowboy_change - encoded PowerShell args
+import { Flag } from "@nocowboy/core/flag/flag"
+import * as PowerShell from "@/nocowboy/shell/shell"
 import { lazy } from "@/util/lazy"
 import { Filesystem } from "@/util/filesystem"
 import { which } from "@/util/which"
@@ -170,7 +170,7 @@ export function args(file: string, command: string, cwd: string) {
         cd -- "$1"
         eval ${JSON.stringify(command)}
       `,
-      "kilo", // nocowboy_change
+      "kilo",
       cwd,
     ]
   }
@@ -184,12 +184,12 @@ export function args(file: string, command: string, cwd: string) {
         cd -- "$1"
         eval ${JSON.stringify(command)}
       `,
-      "kilo", // nocowboy_change
+      "kilo",
       cwd,
     ]
   }
   if (n === "cmd") return ["/c", command]
-  if (ps(file)) return PowerShell.args(command) // nocowboy_change - encoded PowerShell args
+  if (ps(file)) return PowerShell.args(command)
   return ["-c", command]
 }
 

@@ -12,7 +12,7 @@ import type { SessionID } from "@/session/schema"
 import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
 import { Config } from "@/config/config"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { SessionShareTable } from "./share.sql"
 
 const log = Log.create({ service: "share-next" })
@@ -74,7 +74,7 @@ export interface Interface {
   readonly remove: (sessionID: SessionID) => Effect.Effect<void, unknown>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ShareNext") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/ShareNext") {}
 
 const db = <T>(fn: (d: Parameters<typeof Database.use>[0] extends (trx: infer D) => any ? D : never) => T) =>
   Effect.sync(() => Database.use(fn))
@@ -88,7 +88,6 @@ function api(resource: string): Api {
   }
 }
 
-// nocowboy_change start - preserve the share transport contract when stored legacy summary diffs omit file details
 function transport(info: Session.Info): SDK.Session {
   return {
     ...info,
@@ -100,7 +99,6 @@ function transport(info: Session.Info): SDK.Session {
       : undefined,
   }
 }
-// nocowboy_change end
 
 const legacyApi = api("share")
 const consoleApi = api("shares")

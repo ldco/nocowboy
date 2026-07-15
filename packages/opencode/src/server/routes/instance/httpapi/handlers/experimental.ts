@@ -1,23 +1,23 @@
 import { Account } from "@/account/account"
 import { Agent } from "@/agent/agent"
 import { Config } from "@/config/config"
-import { EffectBridge } from "@/effect/bridge" // nocowboy_change
+import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
 import { MCP } from "@/mcp"
 import { Project } from "@/project/project"
 import { Session } from "@/session/session"
 import { ToolJsonSchema } from "@/tool/json-schema"
 import { ToolRegistry } from "@/tool/registry"
-import { Filesystem } from "@/util/filesystem" // nocowboy_change
-import { Review } from "@/nocowboy/review/review" // nocowboy_change
-import { WorktreeDiff } from "@/nocowboy/review/worktree-diff" // nocowboy_change
-import { WorktreeFamily } from "@/nocowboy/worktree-family" // nocowboy_change
+import { Filesystem } from "@/util/filesystem"
+import { Review } from "@/nocowboy/review/review"
+import { WorktreeDiff } from "@/nocowboy/review/worktree-diff"
+import { WorktreeFamily } from "@/nocowboy/worktree-family"
 import { Worktree } from "@/worktree"
 import { Effect, Option } from "effect"
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse"
 import { HttpApiBuilder, HttpApiError } from "effect/unstable/httpapi"
-import * as Log from "@opencode-ai/core/util/log" // nocowboy_change
-import path from "path" // nocowboy_change
+import * as Log from "@nocowboy/core/util/log"
+import path from "path"
 import { InstanceHttpApi } from "../api"
 import {
   ConsoleSwitchPayload,
@@ -112,7 +112,6 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
       return yield* registry.ids()
     })
 
-    // nocowboy_change start - discover Agent Manager and external git worktrees
     const worktree = Effect.fn("ExperimentalHttpApi.worktree")(function* () {
       const ctx = yield* InstanceState.context
       const managed = new Set((yield* project.sandboxes(ctx.project.id)).map((dir) => Filesystem.resolve(dir)))
@@ -125,7 +124,6 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
         ),
       )
     })
-    // nocowboy_change end
 
     const worktreeCreate = Effect.fn("ExperimentalHttpApi.worktreeCreate")(function* (ctx: {
       payload: Worktree.CreateInput | undefined
@@ -149,7 +147,6 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
       return true
     })
 
-    // nocowboy_change start - worktree diff endpoints for agent manager
     const base = Effect.fn("ExperimentalHttpApi.worktreeDiffBase")(function* (input: { base?: string }) {
       if (input.base) return input.base
       return yield* EffectBridge.fromPromise(() => Review.getBaseBranch())
@@ -195,25 +192,22 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
         Effect.map((item) => item ?? null),
       )
     })
-    // nocowboy_change end
 
     const session = Effect.fn("ExperimentalHttpApi.session")(function* (ctx: { query: typeof SessionListQuery.Type }) {
       const limit = ctx.query.limit ?? 100
-      // nocowboy_change start
       const state = yield* InstanceState.context
       const projectID = ctx.query.worktrees && !ctx.query.projectID ? state.project.id : ctx.query.projectID
       const roots = ctx.query.worktrees ? yield* WorktreeFamily.list() : undefined
       const directory = ctx.query.current ? ctx.query.directory : undefined
       const sorted = roots ? [...roots].sort((a, b) => b.length - a.length) : undefined
       const current = sorted && directory ? sorted.find((dir) => Filesystem.contains(dir, directory)) : undefined
-      // nocowboy_change end
-      if (roots && directory && !current) return HttpServerResponse.jsonUnsafe([]) // nocowboy_change
+      if (roots && directory && !current) return HttpServerResponse.jsonUnsafe([])
       const sessions = Array.from(
         Session.listGlobal({
-          projectID, // nocowboy_change
-          directory: ctx.query.worktrees ? undefined : ctx.query.directory, // nocowboy_change
-          directories: roots, // nocowboy_change
-          currentDirectory: directory, // nocowboy_change
+          projectID,
+          directory: ctx.query.worktrees ? undefined : ctx.query.directory,
+          directories: roots,
+          currentDirectory: directory,
           roots: ctx.query.roots,
           start: ctx.query.start,
           cursor: ctx.query.cursor,
@@ -222,7 +216,6 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
           archived: ctx.query.archived,
         }),
       )
-      // nocowboy_change start - resolve worktree folder name for each session
       const result = sorted
         ? sessions.map((session) => {
             const root = sorted.find((dir) => Filesystem.contains(dir, session.directory))
@@ -230,10 +223,9 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
           })
         : sessions
       const list = result.length > limit ? result.slice(0, limit) : result
-      // nocowboy_change end
       return HttpServerResponse.jsonUnsafe(list, {
         headers:
-          result.length > limit && list.length > 0 // nocowboy_change
+          result.length > limit && list.length > 0
             ? { "x-next-cursor": String(list[list.length - 1].time.updated) }
             : undefined,
       })
@@ -254,11 +246,9 @@ export const experimentalHandlers = HttpApiBuilder.group(InstanceHttpApi, "exper
         .handle("worktreeCreate", worktreeCreate)
         .handle("worktreeRemove", worktreeRemove)
         .handle("worktreeReset", worktreeReset)
-        // nocowboy_change start
         .handle("worktreeDiff", worktreeDiff)
         .handle("worktreeDiffSummary", worktreeDiffSummary)
         .handle("worktreeDiffFile", worktreeDiffFile)
-        // nocowboy_change end
         .handle("session", session)
         .handle("resource", resource)
     )

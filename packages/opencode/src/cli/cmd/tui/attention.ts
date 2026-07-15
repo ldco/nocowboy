@@ -13,13 +13,13 @@ import stripAnsi from "strip-ansi"
 import type { TuiConfig } from "./config/tui"
 import { isAttentionSoundName } from "./config/tui-schema"
 import * as TuiAudio from "@tui/util/audio"
-import defaultSoundPath from "@opencode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import questionSoundPath from "@opencode-ai/ui/audio/bip-bop-03.mp3" with { type: "file" }
-import permissionSoundPath from "@opencode-ai/ui/audio/staplebops-06.mp3" with { type: "file" }
-import errorSoundPath from "@opencode-ai/ui/audio/nope-03.mp3" with { type: "file" }
-import doneSoundPath from "@opencode-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import subagentDoneSoundPath from "@opencode-ai/ui/audio/yup-01.mp3" with { type: "file" }
-import * as Log from "@opencode-ai/core/util/log"
+import defaultSoundPath from "@nocowboy/ui/audio/bip-bop-01.mp3" with { type: "file" }
+import questionSoundPath from "@nocowboy/ui/audio/bip-bop-03.mp3" with { type: "file" }
+import permissionSoundPath from "@nocowboy/ui/audio/staplebops-06.mp3" with { type: "file" }
+import errorSoundPath from "@nocowboy/ui/audio/nope-03.mp3" with { type: "file" }
+import doneSoundPath from "@nocowboy/ui/audio/bip-bop-01.mp3" with { type: "file" }
+import subagentDoneSoundPath from "@nocowboy/ui/audio/yup-01.mp3" with { type: "file" }
+import * as Log from "@nocowboy/core/util/log"
 
 type FocusState = "unknown" | "focused" | "blurred"
 
@@ -40,14 +40,14 @@ type TuiAttentionHost = TuiAttention & {
 
 const log = Log.create({ service: "tui.attention" })
 
-const DEFAULT_TITLE = "NoCowboy" // nocowboy_change
-const DEFAULT_PACK_ID = "kilo.default" // nocowboy_change
+const DEFAULT_TITLE = "NoCowboy"
+const DEFAULT_PACK_ID = "kilo.default"
 const KV_SOUND_PACK = "attention_sound_pack"
 const TITLE_LIMIT = 80
 const MESSAGE_LIMIT = 240
 const BUILTIN_PACK: RegisteredSoundPack = {
   id: DEFAULT_PACK_ID,
-  name: "Kilo Default", // nocowboy_change
+  name: "Kilo Default",
   builtin: true,
   sounds: {
     default: defaultSoundPath,

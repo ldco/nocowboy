@@ -1,8 +1,8 @@
 import { Effect } from "effect"
 import path from "path"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
-import { Hash } from "@opencode-ai/core/util/hash"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import * as Log from "@nocowboy/core/util/log"
+import { Hash } from "@nocowboy/core/util/hash"
 
 export namespace SnapshotMaterialize {
   const log = Log.create({ service: "snapshot.materialize" })

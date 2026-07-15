@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { BashArity } from "@/permission/arity"
 
 /**

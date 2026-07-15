@@ -1,7 +1,7 @@
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Effect, Layer, Context, Option, Schema } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 
 export const Tokens = Schema.Struct({
   accessToken: Schema.mutableKey(Schema.String),
@@ -49,7 +49,7 @@ export interface Interface {
   readonly isTokenExpired: (mcpName: string) => Effect.Effect<boolean | null>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/McpAuth") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/McpAuth") {}
 
 export const layer = Layer.effect(
   Service,

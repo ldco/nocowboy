@@ -1,20 +1,19 @@
 import { and, desc, eq } from "@/storage/db"
 import type { Database } from "@/storage/db"
-import { SessionMessage } from "@opencode-ai/core/session-message"
-import { SessionMessageUpdater } from "@opencode-ai/core/session-message-updater"
-import { SessionEvent } from "@opencode-ai/core/session-event"
+import { SessionMessage } from "@nocowboy/core/session-message"
+import { SessionMessageUpdater } from "@nocowboy/core/session-message-updater"
+import { SessionEvent } from "@nocowboy/core/session-event"
 import * as DateTime from "effect/DateTime"
 import { SyncEvent } from "@/sync"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { SessionMessageTable, SessionTable } from "./session.sql"
 import type { SessionID } from "./schema"
 import { Schema } from "effect"
-import { Log } from "@opencode-ai/core/util/log" // nocowboy_change
+import { Log } from "@nocowboy/core/util/log"
 
 const decodeMessage = Schema.decodeUnknownSync(SessionMessage.Message)
 type SessionMessageData = NonNullable<(typeof SessionMessageTable.$inferInsert)["data"]>
 
-// nocowboy_change start - tolerate next-message writes that race deleted sessions
 const log = Log.create({ service: "session.projector.next" })
 
 // Duplicated from projectors.ts to minimize merge conflicts and avoid a circular dependency.
@@ -23,7 +22,6 @@ function foreign(err: unknown) {
   if ("code" in err && err.code === "SQLITE_CONSTRAINT_FOREIGNKEY") return true
   return "message" in err && typeof err.message === "string" && err.message.includes("FOREIGN KEY constraint failed")
 }
-// nocowboy_change end
 
 function encodeDateTimes(value: unknown): unknown {
   if (DateTime.isDateTime(value)) return DateTime.toEpochMillis(value)
@@ -128,14 +126,12 @@ function sqlite(db: Database.TxOrDb, sessionID: SessionID): SessionMessageUpdate
 }
 
 function update(db: Database.TxOrDb, event: SessionEvent.Event) {
-  // nocowboy_change start - tolerate next-message writes that race deleted sessions
   try {
     SessionMessageUpdater.update(sqlite(db, event.data.sessionID), event)
   } catch (err) {
     if (!foreign(err)) throw err
     log.warn("ignored late next-message update", { eventID: event.id, sessionID: event.data.sessionID })
   }
-  // nocowboy_change end
 }
 
 export default [

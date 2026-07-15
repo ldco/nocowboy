@@ -2,7 +2,6 @@ import type { Hooks, PluginInput } from "@nocowboy/plugin"
 
 export async function AzureAuthPlugin(_input: PluginInput): Promise<Hooks> {
   const prompts = []
-  // nocowboy_change start - allow configuring either Azure resource name or full endpoint URL from the UI
   const hasResource = process.env.AZURE_RESOURCE_NAME || process.env.AZURE_OPENAI_RESOURCE_NAME
   const hasEndpoint = process.env.AZURE_OPENAI_ENDPOINT
   if (!hasResource && !hasEndpoint) {
@@ -38,7 +37,6 @@ export async function AzureAuthPlugin(_input: PluginInput): Promise<Hooks> {
       when: { key: "endpointType", op: "eq" as const, value: "baseURL" },
     })
   }
-  // nocowboy_change end
 
   return {
     auth: {

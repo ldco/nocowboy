@@ -2,7 +2,7 @@ import type { Config } from "@/config/config"
 import type { Provider } from "@/provider/provider"
 import { ProviderTransform } from "@/provider/transform"
 import type { MessageV2 } from "./message-v2"
-import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow" // nocowboy_change
+import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 
 const COMPACTION_BUFFER = 20_000
 
@@ -27,9 +27,7 @@ export function isOverflow(input: {
   if (input.cfg.compaction?.auto === false) return false
   if (input.model.limit.context === 0) return false
 
-  const count = NoCowboySessionOverflow.count(input.tokens) // nocowboy_change
-  // nocowboy_change start
+  const count = NoCowboySessionOverflow.count(input.tokens)
   const cap = NoCowboySessionOverflow.limit({ cfg: input.cfg, model: input.model, usable: usable(input) })
   return count >= cap
-  // nocowboy_change end
 }

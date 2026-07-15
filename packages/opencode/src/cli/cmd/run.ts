@@ -1,4 +1,3 @@
-// nocowboy_change start - use Kilo CLI branding
 // CLI entry point for `nocowboy run`.
 //
 // Handles three modes:
@@ -8,7 +7,6 @@
 //      with an in-process server (no external HTTP).
 //   3. Interactive attach (`--interactive --attach`): connects to a running
 //      kilo server and runs interactive mode against it.
-// nocowboy_change end
 //
 // Also supports `--command` for slash-command execution, `--format json` for
 // raw event streaming, `--continue` / `--session` for session resumption,
@@ -20,7 +18,7 @@ import { Effect } from "effect"
 import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
 import { ServerAuth } from "@/server/auth"
-import { buildRunMessage } from "@/nocowboy/cli/cmd/run-message" // nocowboy_change
+import { buildRunMessage } from "@/nocowboy/cli/cmd/run-message"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
 import { createNocowboyClient, type KiloClient, type ToolPart } from "@nocowboy/sdk/v2"
@@ -31,9 +29,9 @@ import { InstanceRef } from "@/effect/instance-ref"
 import { FormatError, FormatUnknownError } from "../error"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
 import { event as normalizeEvent } from "./run/event"
-import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session" // nocowboy_change
-import { KiloRunAuto } from "@/nocowboy/cli/run-auto" // nocowboy_change
-import { KiloRunDaemon } from "@/nocowboy/cli/cmd/run" // nocowboy_change
+import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session"
+import { KiloRunAuto } from "@/nocowboy/cli/run-auto"
+import { KiloRunDaemon } from "@/nocowboy/cli/cmd/run"
 
 const runtimeTask = import("./run/runtime")
 type ModelInput = Parameters<KiloClient["session"]["prompt"]>[0]["model"]
@@ -133,7 +131,7 @@ async function toolError(part: ToolPart) {
 
 export const RunCommand = effectCmd({
   command: "run [message..]",
-  describe: "run kilo with a message", // nocowboy_change
+  describe: "run kilo with a message",
   // --attach connects to a remote server (no local instance needed); the
   // default path runs an in-process server and needs the project instance.
   instance: (args) => !args.attach,
@@ -166,12 +164,10 @@ export const RunCommand = effectCmd({
         describe: "fork the session before continuing (requires --continue or --session)",
         type: "boolean",
       })
-      // nocowboy_change start - support cloud fork in run command
       .option("cloud-fork", {
         type: "boolean",
         describe: "fetch session from cloud and continue locally (use with --session)",
       })
-      // nocowboy_change end
       .option("share", {
         type: "boolean",
         describe: "share the session",
@@ -213,7 +209,7 @@ export const RunCommand = effectCmd({
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to KILO_SERVER_USERNAME or 'kilo')", // nocowboy_change
+        describe: "basic auth username (defaults to KILO_SERVER_USERNAME or 'kilo')",
       })
       .option("dir", {
         type: "string",
@@ -242,19 +238,15 @@ export const RunCommand = effectCmd({
         describe: "auto-approve permissions that are not explicitly denied (dangerous!)",
         default: false,
       })
-      // nocowboy_change start - auto approve tracked task sessions
       .option("auto", {
         type: "boolean",
         describe: "auto-approve all permissions (for autonomous/pipeline usage)",
         default: false,
       })
-      // nocowboy_change end
-      // nocowboy_change start
       .option("branch", {
         type: "string",
         describe: "create and switch to a git branch before starting (branch-per-task). Auto-generates from prompt if no value given.",
       })
-      // nocowboy_change end
       .option("demo", {
         type: "boolean",
         default: false,
@@ -279,7 +271,7 @@ export const RunCommand = effectCmd({
         throw error
       }
 
-      let message = buildRunMessage(args.message, args["--"]) // nocowboy_change
+      let message = buildRunMessage(args.message, args["--"])
 
       if (args.interactive && args.command) {
         die("--interactive cannot be used with --command")
@@ -319,7 +311,6 @@ export const RunCommand = effectCmd({
         }
       })()
 
-      // nocowboy_change start — branch-per-task
       if (args.branch && !args.attach) {
         const branchName = typeof args.branch === "string" && args.branch.length > 0
           ? args.branch
@@ -338,7 +329,6 @@ export const RunCommand = effectCmd({
           UI.println(UI.Style.TEXT_WARNING + "⚠", UI.Style.TEXT_WARNING + ` Branch creation error: ${error}`)
         }
       }
-      // nocowboy_change end
       const attachHeaders = args.attach
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined
@@ -386,7 +376,6 @@ export const RunCommand = effectCmd({
         process.exit(1)
       }
 
-      // nocowboy_change start - validate cloud session imports before local lookup
       const cloudForkError = validateCloudFork({
         cloudFork: args["cloud-fork"],
         fork: args.fork,
@@ -397,7 +386,6 @@ export const RunCommand = effectCmd({
         UI.error(cloudForkError)
         process.exit(1)
       }
-      // nocowboy_change end
 
       const rules: Permission.Ruleset = args.interactive
         ? []
@@ -426,7 +414,6 @@ export const RunCommand = effectCmd({
       }
 
       async function session(sdk: KiloClient): Promise<SessionInfo | undefined> {
-        // nocowboy_change start - import cloud session before local lookup
         if (args.session && args["cloud-fork"]) {
           const id = await importCloudSession(sdk, args.session).catch(() => undefined)
           if (!id) {
@@ -451,7 +438,6 @@ export const RunCommand = effectCmd({
             directory: current.data.directory,
           }
         }
-        // nocowboy_change end
 
         if (args.session) {
           const current = await sdk.session
@@ -673,7 +659,7 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
         const sessionID = sess.id
-        const auto = KiloRunAuto.create(sessionID) // nocowboy_change
+        const auto = KiloRunAuto.create(sessionID)
 
         function emit(type: string, data: Record<string, unknown>) {
           if (args.format === "json") {
@@ -696,8 +682,8 @@ export const RunCommand = effectCmd({
         // created, and replies issued from inside the loop must use that client.
         async function loop(client: KiloClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
           const toggles = new Map<string, boolean>()
-          const MAX_RETRIES = 3 // nocowboy_change
-          let retries = 0 // nocowboy_change
+          const MAX_RETRIES = 3
+          let retries = 0
           let error: string | undefined
 
           for await (const payload of events.stream) {
@@ -719,9 +705,7 @@ export const RunCommand = effectCmd({
 
             if (event.type === "message.part.updated") {
               const part = event.properties.part
-              // nocowboy_change start - track Task child sessions for --auto permission replies
               if (args.auto) KiloRunAuto.track(auto, part)
-              // nocowboy_change end
               if (part.sessionID !== sessionID) continue
 
               if (part.type === "tool" && (part.state.status === "completed" || part.state.status === "error")) {
@@ -793,7 +777,6 @@ export const RunCommand = effectCmd({
               UI.error(err)
             }
 
-            // nocowboy_change start - reset retry budget only after resumed work becomes busy
             if (
               event.type === "session.status" &&
               event.properties.sessionID === sessionID &&
@@ -801,7 +784,6 @@ export const RunCommand = effectCmd({
             ) {
               retries = 0
             }
-            // nocowboy_change end
 
             if (
               event.type === "session.status" &&
@@ -813,7 +795,6 @@ export const RunCommand = effectCmd({
 
             if (event.type === "permission.asked") {
               const permission = event.properties
-              // nocowboy_change start - approve root and tracked Task child permissions in auto mode
               if (args.auto) {
                 if (!KiloRunAuto.allowed(auto, permission.sessionID)) continue
                 await client.permission.reply({
@@ -822,7 +803,6 @@ export const RunCommand = effectCmd({
                 })
                 continue
               }
-              // nocowboy_change end
 
               if (permission.sessionID !== sessionID) continue
 
@@ -844,7 +824,6 @@ export const RunCommand = effectCmd({
               }
             }
 
-            // nocowboy_change start - bounded network retry handling
             if (event.type === "session.network.asked") {
               const request = event.properties
               if (request.sessionID !== sessionID) continue
@@ -861,7 +840,6 @@ export const RunCommand = effectCmd({
               await new Promise((resolve) => setTimeout(resolve, delay))
               await client.network.reply({ requestID: request.id })
             }
-            // nocowboy_change end
           }
           return error
         }
@@ -970,7 +948,7 @@ export const RunCommand = effectCmd({
         return await execute(sdk)
       }
 
-      if (await KiloRunDaemon.attach({ directory, execute })) return // nocowboy_change
+      if (await KiloRunDaemon.attach({ directory, execute })) return
 
       const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
         const { Server } = await import("@/server/server")

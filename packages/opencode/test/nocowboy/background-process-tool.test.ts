@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { Result, Schema } from "effect"
 import { Params } from "@/nocowboy/tool/background-process"
-import { toJsonSchema } from "@opencode-ai/core/effect-zod"
+import { toJsonSchema } from "@nocowboy/core/effect-zod"
 
 const accepts = (input: unknown) => Result.isSuccess(Schema.decodeUnknownResult(Params)(input))
 

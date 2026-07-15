@@ -1,5 +1,4 @@
 /** @jsxImportSource @opentui/solid */
-// nocowboy_change - new file
 
 import type { SuggestionRequest } from "@nocowboy/sdk/v2"
 import { createMemo, createSignal, For } from "solid-js"

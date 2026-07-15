@@ -1,11 +1,11 @@
-import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid" // nocowboy_change
+import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { TopBar, BottomBar, ScreenProvider, useScreen } from "@/nocowboy/components/nocowboy-bars"
 // CommandsScreen removed
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import * as Clipboard from "@tui/util/clipboard"
 import * as Selection from "@tui/util/selection"
 import * as TuiAudio from "@tui/util/audio"
-import { createCliRenderer, MouseButton, TextAttributes, RGBA, type CliRendererConfig } from "@opentui/core" // nocowboy_change
+import { createCliRenderer, MouseButton, TextAttributes, RGBA, type CliRendererConfig } from "@opentui/core"
 import { RouteProvider, useRoute } from "@tui/context/route"
 import {
   Switch,
@@ -13,7 +13,7 @@ import {
   createSignal,
   Show,
   on,
-  untrack, // nocowboy_change
+  untrack,
   createEffect,
   createMemo,
   ErrorBoundary,
@@ -21,12 +21,12 @@ import {
   onCleanup,
   batch,
 } from "solid-js"
-import { win32DisableProcessedInput, win32FlushInputBuffer, win32InstallCtrlCGuard } from "./win32" // nocowboy_change
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { win32DisableProcessedInput, win32FlushInputBuffer, win32InstallCtrlCGuard } from "./win32"
+import { Flag } from "@nocowboy/core/flag/flag"
 import semver from "semver"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
 import { DialogProvider as DialogProviderList } from "@tui/component/dialog-provider"
-import { InstallationVersion } from "@opencode-ai/core/installation/version" // nocowboy_change
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { PluginRouteMissing } from "@tui/component/plugin-route-missing"
 import { ProjectProvider } from "@tui/context/project"
 import { EditorContextProvider } from "@tui/context/editor"
@@ -55,19 +55,17 @@ import { DialogAlert } from "./ui/dialog-alert"
 import { DialogConfirm } from "./ui/dialog-confirm"
 import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider, useExit } from "./context/exit"
-// nocowboy_change start
 import { DialogSelect } from "./ui/dialog-select"
 import { Link } from "./ui/link"
-// nocowboy_change end
-import { Sidebar } from "@tui/routes/session/sidebar" // nocowboy_change
+import { Sidebar } from "@tui/routes/session/sidebar"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
 import { Provider } from "@/provider/provider"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
 import open from "open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
-import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app" // nocowboy_change
-import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state" // nocowboy_change
+import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app"
+import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
@@ -75,8 +73,8 @@ import { createTuiApi } from "@/cli/cmd/tui/plugin/api"
 import type { RouteMap } from "@/cli/cmd/tui/plugin/api"
 import { createTuiAttention } from "@/cli/cmd/tui/attention"
 import { FormatError, FormatUnknownError } from "@/cli/error"
-import { kitty, resetTerminalState } from "@/nocowboy/cli/cmd/tui/util/terminal" // nocowboy_change
-import * as AppExit from "@/nocowboy/tui/app-exit" // nocowboy_change
+import { kitty, resetTerminalState } from "@/nocowboy/cli/cmd/tui/util/terminal"
+import * as AppExit from "@/nocowboy/tui/app-exit"
 import { CommandPaletteProvider, useCommandPalette } from "./context/command-palette"
 import { OpencodeKeymapProvider, registerOpencodeKeymap, useBindings, useOpencodeKeymap } from "./keymap"
 
@@ -130,14 +128,14 @@ const appBindingCommands = [
 
 function rendererConfig(_config: TuiConfig.Resolved): CliRendererConfig {
   const mouseEnabled = !Flag.NOCOWBOY_DISABLE_MOUSE && (_config.mouse ?? true)
-  const keyboard = kitty() // nocowboy_change
+  const keyboard = kitty()
 
   return {
     externalOutputMode: "passthrough",
     targetFps: 60,
     gatherStats: false,
     exitOnCtrlC: false,
-    ...(keyboard ? { useKittyKeyboard: {} } : {}), // nocowboy_change
+    ...(keyboard ? { useKittyKeyboard: {} } : {}),
     autoFocus: false,
     openConsoleOnError: false,
     useMouse: mouseEnabled,
@@ -199,7 +197,7 @@ export function tui(input: {
       TuiAudio.dispose()
     }
 
-    process.on("exit", resetTerminalState) // nocowboy_change
+    process.on("exit", resetTerminalState)
 
     const renderer = await createCliRenderer(rendererConfig(input.config))
     // Prewarm palette before ThemeProvider mounts so `system` theme avoids a first-paint fallback flash.
@@ -347,7 +345,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     attention.dispose()
   })
 
-  // nocowboy_change start — 152-ФЗ consent dialog on first launch
   onMount(async () => {
     await new Promise((r) => setTimeout(r, 500))
     if (kv.get("consent_152fz", false)) return
@@ -366,7 +363,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     )
     if (ok === true) kv.set("consent_152fz", true)
   })
-  // nocowboy_change end
 
   // Wire up console copy-to-clipboard via opentui's onCopySelection callback
   renderer.console.onCopySelection = async (text: string) => {
@@ -379,23 +375,20 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     renderer.clearSelection()
   }
   const [terminalTitleEnabled, setTerminalTitleEnabled] = createSignal(kv.get("terminal_title_enabled", true))
-  const [done, setDone] = createSignal<Record<string, true>>({}) // nocowboy_change
+  const [done, setDone] = createSignal<Record<string, true>>({})
   const [pasteSummaryEnabled, setPasteSummaryEnabled] = createSignal(
     kv.get("paste_summary_enabled", !sync.data.config.experimental?.disable_paste_summary),
   )
 
-  // nocowboy_change start
   NoCowboyApp.useSessionEffects({ route, sdk, sync })
   NoCowboyApp.useTuiConfigHotReload()
-  // nocowboy_change end
 
   // Update terminal window title based on current route and session
   createEffect(() => {
     if (!terminalTitleEnabled() || Flag.NOCOWBOY_DISABLE_TERMINAL_TITLE) return
 
-    const titleDefault = NoCowboyApp.APP_TITLE // nocowboy_change
+    const titleDefault = NoCowboyApp.APP_TITLE
 
-    // nocowboy_change start
     const kiloTitle = NoCowboyApp.getTerminalTitle({
       route,
       base: titleDefault,
@@ -411,7 +404,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       renderer.setTerminalTitle(kiloTitle.title)
       return
     }
-    // nocowboy_change end
   })
 
   const args = useArgs()
@@ -706,12 +698,12 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          open(NoCowboyApp.DOCS_URL).catch(() => {}) // nocowboy_change
+          open(NoCowboyApp.DOCS_URL).catch(() => {})
           dialog.clear()
         },
         category: "System",
       },
-      AppExit.command(exit), // nocowboy_change
+      AppExit.command(exit),
       {
         name: "app.debug",
         title: "Toggle debug panel",
@@ -851,11 +843,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   }))
 
   useBindings(() => ({
-    enabled: () => AppExit.enabled(command.matcher.get(), promptRef.current), // nocowboy_change
+    enabled: () => AppExit.enabled(command.matcher.get(), promptRef.current),
     bindings: tuiConfig.keybinds.gather("app_exit", ["app.exit"]),
   }))
 
-  NoCowboyApp.init() // nocowboy_change
+  NoCowboyApp.init()
 
   event.on(TuiEvent.CommandExecute.type, (evt) => {
     command.run(evt.properties.command)
@@ -890,7 +882,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   event.on("session.error", (evt) => {
     const error = evt.properties.error
     if (error && typeof error === "object" && error.name === "MessageAbortedError") return
-    if (NoCowboyApp.handleSessionError(error, toast)) return // nocowboy_change
+    if (NoCowboyApp.handleSessionError(error, toast)) return
 
     const message = errorMessage(error)
 
@@ -942,7 +934,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     await DialogAlert.show(
       dialog,
       "Update Complete",
-      `Successfully updated to ${NoCowboyApp.APP_NAME} v${result.data.version}. Please restart the application.`, // nocowboy_change
+      `Successfully updated to ${NoCowboyApp.APP_NAME} v${result.data.version}. Please restart the application.`,
     )
 
     void exit()
@@ -1036,7 +1028,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
   )
 }
 
-// nocowboy_change start — guard against missing renderer context in ErrorBoundary fallback
 function tryUseRenderer() {
   try {
     return useRenderer()
@@ -1109,7 +1100,7 @@ function ErrorComponent(props: {
     )
   }
 
-  issueURL.searchParams.set("opencode-version", InstallationVersion)
+  issueURL.searchParams.set("nocowboy-version", InstallationVersion)
 
   const copyIssueURL = () => {
     Clipboard.copy(issueURL.toString()).then(() => {
@@ -1146,4 +1137,3 @@ function ErrorComponent(props: {
     </box>
   )
 }
-// nocowboy_change end

@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 export namespace KiloRunAuto {
   export interface State {
     root: string

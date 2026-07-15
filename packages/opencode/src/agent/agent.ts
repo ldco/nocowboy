@@ -14,23 +14,23 @@ import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
-import { Global } from "@opencode-ai/core/global"
-import { NocowboyPaths } from "@/nocowboy/paths" // nocowboy_change
+import { Global } from "@nocowboy/core/global"
+import { NocowboyPaths } from "@/nocowboy/paths"
 import path from "path"
 import { Plugin } from "@/plugin"
 import { Skill } from "../skill"
 import { Effect, Context, Layer, Schema } from "effect"
 import { InstanceState } from "@/effect/instance-state"
-import { type DeepMutable } from "@opencode-ai/core/schema"
-import * as NocowboyAgent from "@/nocowboy/agent" // nocowboy_change
+import { type DeepMutable } from "@nocowboy/core/schema"
+import * as NocowboyAgent from "@/nocowboy/agent"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { Reference } from "@/reference/reference" // nocowboy_change
+import { Reference } from "@/reference/reference"
 
 export const Info = Schema.Struct({
   name: Schema.String,
-  displayName: Schema.optional(Schema.String), // nocowboy_change - human-readable name for org modes
+  displayName: Schema.optional(Schema.String),
   description: Schema.optional(Schema.String),
-  deprecated: Schema.optional(Schema.Boolean), // nocowboy_change
+  deprecated: Schema.optional(Schema.Boolean),
   mode: Schema.Literals(["subagent", "primary", "all"]),
   native: Schema.optional(Schema.Boolean),
   hidden: Schema.optional(Schema.Boolean),
@@ -48,9 +48,7 @@ export const Info = Schema.Struct({
   prompt: Schema.optional(Schema.String),
   options: Schema.Record(Schema.String, Schema.Unknown),
   steps: Schema.optional(Schema.Finite),
-  // nocowboy_change start — auto-router capabilities
   capabilities: Schema.optional(Schema.Array(Schema.String)),
-  // nocowboy_change end
 }).annotate({ identifier: "Agent" })
 export type Info = DeepMutable<Schema.Schema.Type<typeof Info>>
 
@@ -78,9 +76,9 @@ export interface Interface {
   >
 }
 
-type State = Omit<Interface, "generate"> & { version: string } // nocowboy_change
+type State = Omit<Interface, "generate"> & { version: string }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Agent") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Agent") {}
 
 export const layer = Layer.effect(
   Service,
@@ -96,7 +94,6 @@ export const layer = Layer.effect(
       Effect.fn("Agent.state")(function* (ctx) {
         const cfg = yield* config.get()
         const skillDirs = yield* skill.dirs()
-        // nocowboy_change start - include global config dirs so agents can read them without prompting
         const whitelistedDirs = [
           Truncate.GLOB,
           path.join(Global.Path.tmp, "*"),
@@ -104,21 +101,19 @@ export const layer = Layer.effect(
           path.join(Global.Path.config, "*"),
           ...NocowboyPaths.globalDirs().map((dir) => path.join(dir, "*")),
         ]
-        // nocowboy_change end
         const readonlyExternalDirectory = {
           "*": "ask",
           ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),
         } satisfies Record<string, "allow" | "ask" | "deny">
 
         const baseDefaults = Permission.fromConfig({
-          // nocowboy_change
           "*": "allow",
           doom_loop: "ask",
           external_directory: {
             "*": "ask",
             ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),
           },
-          suggest: "deny", // nocowboy_change
+          suggest: "deny",
           question: "deny",
           plan_enter: "deny",
           plan_exit: "deny",
@@ -133,10 +128,8 @@ export const layer = Layer.effect(
           },
         })
 
-        // nocowboy_change start - patch defaults with bash allowlist and recall permission
         const ncAgent = NocowboyAgent.prepare(cfg)
         const defaults = Permission.merge(baseDefaults, ncAgent.defaultsPatch)
-        // nocowboy_change end
 
         const user = Permission.fromConfig(cfg.permission ?? {})
 
@@ -149,7 +142,7 @@ export const layer = Layer.effect(
               defaults,
               Permission.fromConfig({
                 question: "allow",
-                suggest: "allow", // nocowboy_change
+                suggest: "allow",
                 plan_enter: "allow",
               }),
               user,
@@ -295,12 +288,10 @@ export const layer = Layer.effect(
           },
         }
 
-        // nocowboy_change start - rename build→code, remove general/explore/scout/plan, add overseer, rewrite nocowboy
         NocowboyAgent.patchAgents(agents, defaults, user, cfg, ncAgent, ctx.worktree, whitelistedDirs)
 
         const agentConfigs = NocowboyAgent.preprocessConfig(cfg.agent ?? {})
         for (const [key, value] of Object.entries(agentConfigs)) {
-          // nocowboy_change end
           if (value.disable) {
             delete agents[key]
             continue
@@ -327,7 +318,7 @@ export const layer = Layer.effect(
           item.steps = value.steps ?? item.steps
           item.options = mergeDeep(item.options, value.options ?? {})
           item.permission = Permission.merge(item.permission, Permission.fromConfig(value.permission ?? {}))
-          NocowboyAgent.processConfigItem(item) // nocowboy_change - populate displayName from options
+          NocowboyAgent.processConfigItem(item)
         }
 
         function referencePrompt(reference: Reference.Resolved) {
@@ -354,7 +345,7 @@ export const layer = Layer.effect(
             `Repository: ${reference.repository}`,
             ...(reference.branch ? [`Branch/ref: ${reference.branch}`] : []),
             `Cached directory: ${reference.path}`,
-            `Kilo materializes this configured repository before use. Do not call repo_clone for this reference.`, // nocowboy_change
+            `NoCowboy materializes this configured repository before use. Do not call repo_clone for this reference.`,
             `Inspect the cached directory as the primary reference source. Prefer repo_overview with path ${JSON.stringify(reference.path)} before broader searches, then use Glob, Grep, and Read inside that directory. Do not edit files.`,
             `Return exact absolute file paths for findings whenever possible.`,
           ].join("\n\n")
@@ -416,10 +407,10 @@ export const layer = Layer.effect(
           )
         }
 
-        NocowboyAgent.hardenSystemAgents(agents) // nocowboy_change - keep system utility agents deny-only after config merges
+        NocowboyAgent.hardenSystemAgents(agents)
 
         const get = Effect.fnUntraced(function* (agent: string) {
-          return agents[NocowboyAgent.resolveKey(agent)] // nocowboy_change - treat "build" as "code"
+          return agents[NocowboyAgent.resolveKey(agent)]
         })
 
         const list = Effect.fnUntraced(function* () {
@@ -428,7 +419,7 @@ export const layer = Layer.effect(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "auto"), "desc"], // nocowboy_change - Auto is default (configurable: nocowboy.json → default_agent)
+              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "auto"), "desc"],
               [(x) => x.name, "asc"],
             ),
           )
@@ -437,21 +428,17 @@ export const layer = Layer.effect(
         const defaultInfo = Effect.fnUntraced(function* () {
           const c = yield* config.get()
           if (c.default_agent) {
-            // nocowboy_change start
             const effective = NocowboyAgent.resolveKey(c.default_agent)
             const agent = agents[effective]
-            // nocowboy_change end
             if (!agent) throw new Error(`default agent "${c.default_agent}" not found`)
             if (agent.mode === "subagent") throw new Error(`default agent "${c.default_agent}" is a subagent`)
             if (agent.hidden === true) throw new Error(`default agent "${c.default_agent}" is hidden`)
             return agent
           }
-          // nocowboy_change start - prefer "nocowboy" as default agent, fallback to "code"
           const nc = agents.nocowboy
           if (nc && nc.mode !== "subagent" && nc.hidden !== true) return nc
           const code = agents.code
           if (code && code.mode !== "subagent" && code.hidden !== true) return code
-          // nocowboy_change end
           const visible = Object.values(agents).find((a) => a.mode !== "subagent" && a.hidden !== true)
           if (!visible) throw new Error("no primary visible agent found")
           return visible
@@ -462,7 +449,7 @@ export const layer = Layer.effect(
         })
 
         return {
-          version: NocowboyAgent.cacheKey(cfg), // nocowboy_change
+          version: NocowboyAgent.cacheKey(cfg),
           get,
           list,
           defaultInfo,
@@ -471,7 +458,6 @@ export const layer = Layer.effect(
       }),
     )
 
-    // nocowboy_change start - rebuild cached agents when permission-relevant config changes
     const current = Effect.fnUntraced(function* <A>(select: (s: State) => Effect.Effect<A>) {
       const cfg = yield* config.get()
       const s = yield* InstanceState.get(state)
@@ -479,20 +465,19 @@ export const layer = Layer.effect(
       yield* InstanceState.invalidate(state)
       return yield* select(yield* InstanceState.get(state))
     })
-    // nocowboy_change end
 
     return Service.of({
       get: Effect.fn("Agent.get")(function* (agent: string) {
-        return yield* current((s) => s.get(agent)) // nocowboy_change
+        return yield* current((s) => s.get(agent))
       }),
       list: Effect.fn("Agent.list")(function* () {
-        return yield* current((s) => s.list()) // nocowboy_change
+        return yield* current((s) => s.list())
       }),
       defaultInfo: Effect.fn("Agent.defaultInfo")(function* () {
-        return yield* current((s) => s.defaultInfo()) // nocowboy_change
+        return yield* current((s) => s.defaultInfo())
       }),
       defaultAgent: Effect.fn("Agent.defaultAgent")(function* () {
-        return yield* current((s) => s.defaultAgent()) // nocowboy_change
+        return yield* current((s) => s.defaultAgent())
       }),
       generate: Effect.fn("Agent.generate")(function* (input: {
         description: string
@@ -512,9 +497,7 @@ export const layer = Layer.effect(
         const isOpenaiOauth = model.providerID === "openai" && authInfo?.type === "oauth"
 
         const params = {
-          // nocowboy_change start - enable telemetry with custom PostHog tracer
           experimental_telemetry: NocowboyAgent.telemetryOptions(cfg),
-          // nocowboy_change end
           temperature: 0.3,
           messages: [
             ...(isOpenaiOauth

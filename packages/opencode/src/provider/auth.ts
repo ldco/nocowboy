@@ -1,15 +1,13 @@
 import type { AuthOAuthResult, Hooks } from "@nocowboy/plugin"
 import { Auth } from "@/auth"
 import { InstanceState } from "@/effect/instance-state"
-import { optionalOmitUndefined } from "@opencode-ai/core/schema"
+import { optionalOmitUndefined } from "@nocowboy/core/schema"
 import { Plugin } from "../plugin"
 import { ProviderID } from "./schema"
 import { Array as Arr, Effect, Layer, Record, Result, Context, Schema } from "effect"
 
-// nocowboy_change start
 import { Telemetry } from "@nocowboy/telemetry"
 import { ModelCache } from "./model-cache"
-// nocowboy_change end
 
 const When = Schema.Struct({
   key: Schema.String,
@@ -105,16 +103,14 @@ interface State {
   pending: Map<ProviderID, AuthOAuthResult>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ProviderAuth") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/ProviderAuth") {}
 
-// nocowboy_change start
 export const layer: Layer.Layer<Service, never, Auth.Service | Plugin.Service | ModelCache.Service> = Layer.effect(
   Service,
   Effect.gen(function* () {
     const auth = yield* Auth.Service
     const plugin = yield* Plugin.Service
     const cache = yield* ModelCache.Service
-    // nocowboy_change end
     const state = yield* InstanceState.make<State>(
       Effect.fn("ProviderAuth.state")(function* () {
         const plugins = yield* plugin.list()
@@ -221,7 +217,6 @@ export const layer: Layer.Layer<Service, never, Auth.Service | Plugin.Service | 
         })
       }
 
-      // nocowboy_change start - Update telemetry identity on Kilo auth
       if (input.providerID === "nocowboy") {
         const info = yield* auth.get(input.providerID)
         if (info) {
@@ -232,14 +227,12 @@ export const layer: Layer.Layer<Service, never, Auth.Service | Plugin.Service | 
       }
       Telemetry.trackAuthSuccess()
       yield* cache.clear(input.providerID)
-      // nocowboy_change end
     })
 
     return Service.of({ methods, authorize, callback })
   }),
 )
 
-// nocowboy_change start
 export const defaultLayer = Layer.suspend(() =>
   layer.pipe(
     Layer.provide(Auth.defaultLayer),
@@ -247,6 +240,5 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(ModelCache.defaultLayer),
   ),
 )
-// nocowboy_change end
 
 export * as ProviderAuth from "./auth"

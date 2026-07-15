@@ -5,7 +5,7 @@ import path from "path"
 import fs from "fs/promises"
 import { Effect } from "effect"
 import { ChildProcess } from "effect/unstable/process"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@nocowboy/core/process"
 import * as Filesystem from "../../../../util/filesystem"
 import * as Process from "../../../../util/process"
 
@@ -60,7 +60,7 @@ export async function read(): Promise<Content | undefined> {
   const os = platform()
 
   if (os === "darwin") {
-    const tmpfile = path.join(tmpdir(), "opencode-clipboard.png")
+    const tmpfile = path.join(tmpdir(), "nocowboy-clipboard.png")
     try {
       await Process.run(
         [

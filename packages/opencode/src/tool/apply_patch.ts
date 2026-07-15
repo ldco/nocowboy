@@ -9,12 +9,12 @@ import { createTwoFilesPatch, diffLines } from "diff"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { trimDiff } from "./edit"
 import { LSP } from "@/lsp/lsp"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import DESCRIPTION from "./apply_patch.txt"
 import { File } from "../file"
-import { filterDiagnostics } from "./diagnostics" // nocowboy_change
-import { ConfigValidation } from "../nocowboy/config-validation" // nocowboy_change
-import * as EncodedIO from "../nocowboy/tool/encoded-io" // nocowboy_change
+import { filterDiagnostics } from "./diagnostics"
+import { ConfigValidation } from "../nocowboy/config-validation"
+import * as EncodedIO from "../nocowboy/tool/encoded-io"
 import { Format } from "../format"
 import * as Bom from "@/util/bom"
 
@@ -68,7 +68,7 @@ export const ApplyPatchTool = Tool.define(
         additions: number
         deletions: number
         bom: boolean
-        encoding: string // nocowboy_change - preserved per-file encoding
+        encoding: string
       }> = []
 
       let totalDiff = ""
@@ -101,7 +101,7 @@ export const ApplyPatchTool = Tool.define(
               additions,
               deletions,
               bom: next.bom,
-              encoding: "utf-8", // nocowboy_change - new files default to utf-8
+              encoding: "utf-8",
             })
 
             totalDiff += diff + "\n"
@@ -117,7 +117,6 @@ export const ApplyPatchTool = Tool.define(
               )
             }
 
-            // nocowboy_change start - encoding-aware read so non-UTF-8 files decode without
             // mojibake; the resulting diff, additions/deletions counts, and permission-prompt
             // metadata shown to the user must reflect the real file contents.
             const read = yield* EncodedIO.read(filePath).pipe(
@@ -130,11 +129,10 @@ export const ApplyPatchTool = Tool.define(
               ),
             )
             const source = Bom.split(read.text)
-            // nocowboy_change end
             const oldContent = source.text
             let newContent = oldContent
             let bom = source.bom
-            let encoding = read.encoding // nocowboy_change - overwritten by deriveNewContentsFromChunks below
+            let encoding = read.encoding
 
             // Apply the update chunks to get new content
             try {
@@ -171,7 +169,7 @@ export const ApplyPatchTool = Tool.define(
               additions,
               deletions,
               bom,
-              encoding, // nocowboy_change
+              encoding,
             })
 
             totalDiff += diff + "\n"
@@ -179,7 +177,6 @@ export const ApplyPatchTool = Tool.define(
           }
 
           case "delete": {
-            // nocowboy_change start - encoding-aware read so non-UTF-8 files decode without corruption
             const deleteRead = yield* EncodedIO.read(filePath).pipe(
               Effect.catch((error) =>
                 Effect.fail(
@@ -191,7 +188,6 @@ export const ApplyPatchTool = Tool.define(
             )
             const contentToDelete = deleteRead.text
             const source = Bom.split(contentToDelete)
-            // nocowboy_change end
             const deleteDiff = trimDiff(createTwoFilesPatch(filePath, filePath, contentToDelete, ""))
 
             const deletions = contentToDelete.split("\n").length
@@ -205,7 +201,7 @@ export const ApplyPatchTool = Tool.define(
               additions: 0,
               deletions,
               bom: source.bom,
-              encoding: deleteRead.encoding, // nocowboy_change
+              encoding: deleteRead.encoding,
             })
 
             totalDiff += deleteDiff + "\n"
@@ -246,19 +242,19 @@ export const ApplyPatchTool = Tool.define(
         switch (change.type) {
           case "add":
             // Create parent directories (recursive: true is safe on existing/root dirs)
-            yield* EncodedIO.write(change.filePath, Bom.join(change.newContent, change.bom), change.encoding) // nocowboy_change - encoding-aware write (mkdirs) replaces afs.writeWithDirs
+            yield* EncodedIO.write(change.filePath, Bom.join(change.newContent, change.bom), change.encoding)
             updates.push({ file: change.filePath, event: "add" })
             break
 
           case "update":
-            yield* EncodedIO.write(change.filePath, Bom.join(change.newContent, change.bom), change.encoding) // nocowboy_change - encoding-aware write replaces afs.writeWithDirs
+            yield* EncodedIO.write(change.filePath, Bom.join(change.newContent, change.bom), change.encoding)
             updates.push({ file: change.filePath, event: "change" })
             break
 
           case "move":
             if (change.movePath) {
               // Create parent directories (recursive: true is safe on existing/root dirs)
-              yield* EncodedIO.write(change.movePath!, Bom.join(change.newContent, change.bom), change.encoding) // nocowboy_change - encoding-aware write (mkdirs) replaces afs.writeWithDirs
+              yield* EncodedIO.write(change.movePath!, Bom.join(change.newContent, change.bom), change.encoding)
               yield* afs.remove(change.filePath)
               updates.push({ file: change.filePath, event: "unlink" })
               updates.push({ file: change.movePath, event: "add" })
@@ -305,11 +301,9 @@ export const ApplyPatchTool = Tool.define(
       })
       let output = `Success. Updated the following files:\n${summaryLines.join("\n")}`
 
-      // nocowboy_change start
       const changedPaths = fileChanges
         .filter((c) => c.type !== "delete")
         .map((c) => AppFileSystem.normalizePath(c.movePath ?? c.filePath))
-      // nocowboy_change end
 
       for (const change of fileChanges) {
         if (change.type === "delete") continue
@@ -320,19 +314,17 @@ export const ApplyPatchTool = Tool.define(
         output += `\n\nLSP errors detected in ${rel}, please fix:\n${block}`
       }
 
-      // nocowboy_change start - append Kilo config validation warnings
       for (const changed of fileChanges) {
         if (changed.type === "delete") continue
         output += yield* Effect.promise(() => ConfigValidation.check(changed.movePath ?? changed.filePath))
       }
-      // nocowboy_change end
 
       return {
         title: output,
         metadata: {
           diff: totalDiff,
           files,
-          diagnostics: filterDiagnostics(diagnostics, changedPaths), // nocowboy_change
+          diagnostics: filterDiagnostics(diagnostics, changedPaths),
         },
         output,
       }

@@ -1,4 +1,4 @@
-import { createStore, reconcile, unwrap } from "solid-js/store" // nocowboy_change
+import { createStore, reconcile, unwrap } from "solid-js/store"
 import { createSimpleContext } from "./helper"
 import type { PromptInfo } from "../component/prompt/history"
 
@@ -13,11 +13,9 @@ export type SessionRoute = {
   prompt?: PromptInfo
 }
 
-// nocowboy_change start
 export type NoCowboyClawRoute = {
   type: "nocowboy-claw"
 }
-// nocowboy_change end
 
 export type PluginRoute = {
   type: "plugin"
@@ -25,7 +23,7 @@ export type PluginRoute = {
   data?: Record<string, unknown>
 }
 
-export type Route = HomeRoute | SessionRoute | PluginRoute | NoCowboyClawRoute // nocowboy_change
+export type Route = HomeRoute | SessionRoute | PluginRoute | NoCowboyClawRoute
 
 export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
   name: "Route",
@@ -39,26 +37,22 @@ export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
             }),
     )
 
-    // nocowboy_change start
     let previous: Route | undefined
-    // nocowboy_change end
 
     return {
       get data() {
         return store
       },
       navigate(route: Route) {
-        previous = structuredClone(unwrap(store)) // nocowboy_change
+        previous = structuredClone(unwrap(store))
         setStore(reconcile(route))
       },
-      // nocowboy_change start
       back() {
         const target = previous ?? ({ type: "home" } as const)
         previous = undefined
         console.log("navigate", target)
         setStore(target)
       },
-      // nocowboy_change end
     }
   },
 })

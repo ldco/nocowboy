@@ -2,8 +2,8 @@ import os from "os"
 import path from "path"
 import { unique } from "remeda"
 import z from "zod"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { Global } from "@opencode-ai/core/global"
+import { Flag } from "@nocowboy/core/flag/flag"
+import { Global } from "@nocowboy/core/global"
 import { Auth } from "@/auth"
 import { ConfigManaged } from "@/config/managed"
 import { Filesystem } from "@/util/filesystem"
@@ -120,7 +120,7 @@ export namespace NoCowboyConfigSources {
 
   async function projectSources(input: Input): Promise<Pending[]> {
     const nocowboy = await projectFiles("nocowboy", input)
-    const opencode = await projectFiles("opencode", input)
+    const opencode = await projectFiles("nocowboy", input)
     return Promise.all(
       [...nocowboy, ...opencode].map((file) =>
         fileSource({ kind: "project-file", scope: "project", label: "Project config", file }),

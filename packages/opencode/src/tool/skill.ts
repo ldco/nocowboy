@@ -36,7 +36,6 @@ export const SkillTool = Tool.define(
             metadata: {},
           })
 
-          // nocowboy_change start - built-in skills have no filesystem directory
           if (info.location === Skill.BUILTIN_LOCATION) {
             return {
               title: `Loaded skill: ${info.name}`,
@@ -53,7 +52,6 @@ export const SkillTool = Tool.define(
               },
             }
           }
-          // nocowboy_change end
 
           const dir = path.dirname(info.location)
           const base = pathToFileURL(dir).href

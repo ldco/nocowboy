@@ -19,7 +19,7 @@ export function isLocalWorkspaceRoute(method: string, path: string) {
 
 export function getWorkspaceRouteSessionID(url: URL) {
   if (url.pathname === "/session/status") return null
-  if (url.pathname === "/session/viewed") return null // nocowboy_change
+  if (url.pathname === "/session/viewed") return null
 
   const raw = url.pathname
   const decoded = raw.includes("%7B") ? decodeURIComponent(raw) : raw

@@ -13,15 +13,15 @@ import { Config } from "@/config/config"
 import { ConfigMCP } from "../../config/mcp"
 import { InstanceRef } from "@/effect/instance-ref"
 import { Installation } from "../../installation"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { modify, applyEdits } from "jsonc-parser"
-import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp" // nocowboy_change
-import { McpLifecycle } from "@/nocowboy/mcp/lifecycle" // nocowboy_change
-import { McpProxy } from "@/nocowboy/mcp/proxy" // nocowboy_change
-import { Launcher } from "@/nocowboy/mcp/launcher" // nocowboy_change
-import { spawn } from "node:child_process" // nocowboy_change
+import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp"
+import { McpLifecycle } from "@/nocowboy/mcp/lifecycle"
+import { McpProxy } from "@/nocowboy/mcp/proxy"
+import { Launcher } from "@/nocowboy/mcp/launcher"
+import { spawn } from "node:child_process"
 import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 
@@ -105,14 +105,14 @@ export const McpCommand = cmd({
       .command(McpListCommand)
       .command(McpAuthCommand)
       .command(McpLogoutCommand)
-      .command(McpInstallCommand) // nocowboy_change
+      .command(McpInstallCommand)
       .command(McpDebugCommand)
-      .command(McpStartCommand) // nocowboy_change
-      .command(McpStopCommand) // nocowboy_change
-      .command(McpStatusCommand) // nocowboy_change
-      .command(McpLogsCommand) // nocowboy_change
-      .command(McpProxyCommand) // nocowboy_change
-      .command(McpRemoveCommand) // nocowboy_change
+      .command(McpStartCommand)
+      .command(McpStopCommand)
+      .command(McpStatusCommand)
+      .command(McpLogsCommand)
+      .command(McpProxyCommand)
+      .command(McpRemoveCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -130,7 +130,7 @@ export const McpListCommand = effectCmd({
 
     if (servers.length === 0) {
       prompts.log.warn("No MCP servers configured")
-      prompts.outro("Add servers with: kilo mcp add") // nocowboy_change
+      prompts.outro("Add servers with: kilo mcp add")
       return
     }
 
@@ -198,7 +198,7 @@ export const McpAuthCommand = effectCmd({
 
     if (servers.length === 0) {
       prompts.log.warn("No OAuth-capable MCP servers configured")
-      prompts.log.info("Remote MCP servers support OAuth by default. Add a remote server in nocowboy.json:") // nocowboy_change
+      prompts.log.info("Remote MCP servers support OAuth by default. Add a remote server in nocowboy.json:")
       prompts.log.info(`
   "mcp": {
     "my-server": {
@@ -408,7 +408,6 @@ export const McpLogoutCommand = effectCmd({
 })
 
 async function resolveConfigPath(baseDir: string, global = false) {
-  // nocowboy_change start - prefer nocowboy.json/.kilo over opencode.json/.opencode
   // Check for existing config files (prefer .jsonc over .json, check .nocowboy/ and .opencode/ subdirectory too)
   const candidates = [
     path.join(baseDir, "nocowboy.json"),
@@ -436,7 +435,6 @@ async function resolveConfigPath(baseDir: string, global = false) {
 
   // Default to nocowboy.json if none exist
   return path.join(baseDir, "nocowboy.json")
-  // nocowboy_change end
 }
 
 async function addMcpToConfig(name: string, mcpConfig: ConfigMCP.Info, configPath: string) {
@@ -449,7 +447,7 @@ async function addMcpToConfig(name: string, mcpConfig: ConfigMCP.Info, configPat
   const edits = modify(text, ["mcp", name], mcpConfig, {
     formattingOptions: { tabSize: 2, insertSpaces: true },
   })
-  const result = KilocodeMcpConfig.format(configPath, applyEdits(text, edits)) // nocowboy_change
+  const result = KilocodeMcpConfig.format(configPath, applyEdits(text, edits))
 
   await Filesystem.write(configPath, result)
 
@@ -523,7 +521,7 @@ export const McpAddCommand = effectCmd({
       if (type === "local") {
         const command = await prompts.text({
           message: "Enter command to run",
-          placeholder: "e.g., kilo x @modelcontextprotocol/server-filesystem", // nocowboy_change
+          placeholder: "e.g., kilo x @modelcontextprotocol/server-filesystem",
           validate: (x) => (x && x.length > 0 ? undefined : "Required"),
         })
         if (prompts.isCancel(command)) throw new UI.CancelledError()
@@ -534,7 +532,7 @@ export const McpAddCommand = effectCmd({
         }
 
         await addMcpToConfig(name, mcpConfig, configPath)
-        await Launcher.save(name, command) // nocowboy_change
+        await Launcher.save(name, command)
         prompts.log.success(`MCP server "${name}" added to ${configPath}`)
         prompts.outro("MCP server added successfully")
         return
@@ -708,7 +706,7 @@ export const McpDebugCommand = effectCmd({
             params: {
               protocolVersion: "2024-11-05",
               capabilities: {},
-              clientInfo: { name: "kilo-debug", version: InstallationVersion }, // nocowboy_change
+              clientInfo: { name: "kilo-debug", version: InstallationVersion },
             },
             id: 1,
           }),
@@ -751,7 +749,7 @@ export const McpDebugCommand = effectCmd({
 
           try {
             const client = new Client({
-              name: "kilo-debug", // nocowboy_change
+              name: "kilo-debug",
               version: InstallationVersion,
             })
             await client.connect(transport)
@@ -800,7 +798,6 @@ export const McpDebugCommand = effectCmd({
   }),
 })
 
-// nocowboy_change start — MCP lifecycle subcommands
 interface McpProcInfo {
   name: string
   pid: number | null
@@ -981,7 +978,7 @@ export const McpRemoveCommand = effectCmd({
     const ctx = maybeCtx
     yield* Effect.promise(async () => {
       await McpLifecycle.stopOne(args.name).catch(() => {})
-      await Launcher.save(args.name, null).catch(() => {}) // nocowboy_change — clean launch entry
+      await Launcher.save(args.name, null).catch(() => {})
 
       const [projectConfigPath, globalConfigPath] = await Promise.all([
         resolveConfigPath(ctx.worktree),
@@ -1023,4 +1020,3 @@ export const McpProxyCommand = cmd({
     McpProxy.runForeground({ command: args.command, port: args.port })
   },
 })
-// nocowboy_change end

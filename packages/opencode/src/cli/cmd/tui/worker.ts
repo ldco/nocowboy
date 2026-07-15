@@ -1,6 +1,6 @@
 import { Installation } from "@/installation"
 import { Server } from "@/server/server"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { Rpc } from "@/util/rpc"
 import { upgrade } from "@/cli/upgrade"
@@ -10,7 +10,7 @@ import { ServerAuth } from "@/server/auth"
 import { writeHeapSnapshot } from "node:v8"
 import { Heap } from "@/cli/heap"
 import { AppRuntime } from "@/effect/app-runtime"
-import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process"
+import { ensureProcessMetadata } from "@nocowboy/core/util/opencode-process"
 import { Effect } from "effect"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
 
@@ -93,11 +93,9 @@ export const rpc = {
 
     await InstanceRuntime.disposeAllInstances()
     if (server) await server.stop(true)
-    // nocowboy_change start - Clear the Rpc message channel so the worker's event loop can drain and
     // exit naturally. Without this, the active onmessage handle keeps the
     // worker alive even after all async work is done.
     onmessage = null
-    // nocowboy_change end
   },
 }
 

@@ -1,6 +1,5 @@
 import { spawn } from "node:child_process"
 
-// nocowboy_change — Docker sandbox utility
 //
 // Provides Docker-wrapped shell execution for isolated command running.
 // The sandbox checks Docker availability and wraps bash commands in

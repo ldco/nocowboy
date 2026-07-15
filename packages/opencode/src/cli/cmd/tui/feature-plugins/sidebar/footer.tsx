@@ -1,7 +1,7 @@
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
 import { createMemo, Show } from "solid-js"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 
 const id = "internal:sidebar-footer"
 
@@ -9,7 +9,7 @@ function View(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
   const has = createMemo(() =>
     props.api.state.provider.some(
-      (item) => item.id !== "opencode" || Object.values(item.models).some((model) => model.cost?.input !== 0),
+      (item) => item.id !== "nocowboy" || Object.values(item.models).some((model) => model.cost?.input !== 0),
     ),
   )
   const done = createMemo(() => props.api.kv.get("dismissed_getting_started", false))
@@ -48,9 +48,7 @@ function View(props: { api: TuiPluginApi }) {
                 ✕
               </text>
             </box>
-            {/* nocowboy_change start */}
             <text fg={theme().textMuted}>NoCowboy includes free models so you can start immediately.</text>
-            {/* nocowboy_change end */}
             <text fg={theme().textMuted}>
               Connect from 75+ providers to use other models, including Claude, GPT, Gemini etc
             </text>
@@ -65,12 +63,10 @@ function View(props: { api: TuiPluginApi }) {
         <span style={{ fg: theme().textMuted }}>{path().parent}/</span>
         <span style={{ fg: theme().text }}>{path().name}</span>
       </text>
-      {/* nocowboy_change start */}
       <text fg={theme().textMuted}>
         <span style={{ fg: theme().success }}>•</span> <b>NoCowboy</b> <span>{props.api.app.version}</span>
       </text>
-      {/* nocowboy_change end */}
-    </box>
+      </box>
   )
 }
 

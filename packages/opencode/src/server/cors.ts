@@ -1,11 +1,11 @@
-import * as NocowboyServer from "@/nocowboy/server/server" // nocowboy_change
+import * as NocowboyServer from "@/nocowboy/server/server"
 import { Context } from "effect"
 
-const opencodeOrigin = /^https:\/\/([a-z0-9-]+\.)*opencode\.ai$/
+const nocowboyOrigin = /^https:\/\/([a-z0-9-]+\.)*nocowboy\.dev$/
 
 export type CorsOptions = { readonly cors?: ReadonlyArray<string> }
 
-export const CorsConfig = Context.Reference<CorsOptions | undefined>("@opencode/ServerCorsConfig", {
+export const CorsConfig = Context.Reference<CorsOptions | undefined>("@nocowboy/ServerCorsConfig", {
   defaultValue: () => undefined,
 })
 
@@ -16,10 +16,8 @@ export function isAllowedCorsOrigin(input: string | undefined, opts?: CorsOption
   if (input.startsWith("oc://renderer")) return true
   if (input === "tauri://localhost" || input === "http://tauri.localhost" || input === "https://tauri.localhost")
     return true
-  if (opencodeOrigin.test(input)) return true
-  // nocowboy_change start
+  if (nocowboyOrigin.test(input)) return true
   if (NocowboyServer.corsOrigin(input)) return true
-  // nocowboy_change end
   return opts?.cors?.includes(input) ?? false
 }
 

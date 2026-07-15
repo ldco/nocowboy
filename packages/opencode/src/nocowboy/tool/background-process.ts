@@ -1,6 +1,6 @@
 import { BackgroundProcess } from "@/nocowboy/background-process"
 import { Tool } from "@/tool/tool"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { containsPath } from "@/project/instance-context"
 import { InstanceState } from "@/effect/instance-state"
 import { Effect, Schema } from "effect"

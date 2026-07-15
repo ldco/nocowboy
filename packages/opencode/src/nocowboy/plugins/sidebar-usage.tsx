@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/tui"
 import { createMemo, Show } from "solid-js"
 import { useLocal } from "@tui/context/local"

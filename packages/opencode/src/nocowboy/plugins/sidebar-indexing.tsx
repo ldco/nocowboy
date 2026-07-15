@@ -1,7 +1,7 @@
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@nocowboy/plugin/tui"
 import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import type { IndexingStatus, IndexingStatusState } from "@nocowboy/indexing/status"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { useSync } from "@/cli/cmd/tui/context/sync"
 import { formatIndexingLabel } from "../indexing-label"
 

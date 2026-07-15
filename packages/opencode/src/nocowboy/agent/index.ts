@@ -1,13 +1,12 @@
-// nocowboy_change - new file
 import { Permission } from "@/permission"
-import { NamedError } from "@opencode-ai/core/util/error"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { NamedError } from "@nocowboy/core/util/error"
+import { Glob } from "@nocowboy/core/util/glob"
 import * as Truncate from "../../tool/truncate"
 import { Config } from "../../config/config"
 import type { Info as AgentInfo } from "../../agent/agent"
 import { Schema } from "effect"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 
 import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
 import PROMPT_DEBUG_RU from "../../agent/prompt/debug.ru.txt"
@@ -294,9 +293,9 @@ export function patchAgents(
     agents.code = {
       ...agents.build,
       name: "code",
-      description: "Primary coding agent — writes, refactors, tests, debugs", // nocowboy_change — short label
-      prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt, // nocowboy_change — code-specific engineering prompt + router
-      model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
+      description: "Primary coding agent — writes, refactors, tests, debugs",
+      prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt,
+      model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -315,9 +314,9 @@ export function patchAgents(
   // Add nocowboy — OpenClaw-style general-purpose automation agent
   agents.nocowboy = {
     name: "nocowboy",
-    description: "Browser, filesystem, shell — full system automation", // nocowboy_change — short label
+    description: "Browser, filesystem, shell — full system automation",
     prompt: (lang === "ru" ? PROMPT_NOCOWBOY_RU : PROMPT_NOCOWBOY) + routerPrompt,
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -327,9 +326,9 @@ export function patchAgents(
   // Add overseer — Traycer-like review/orchestration agent
   agents.overseer = {
     name: "overseer",
-    description: "Orchestrates code agent + cross-model review. Read-only.", // nocowboy_change — short label
+    description: "Orchestrates code agent + cross-model review. Read-only.",
     prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
-    model: { providerID: "opencode" as any, modelID: "kimi-k2-thinking" as any }, // nocowboy_change — different vendor (Moonshot), cross-model review
+    model: { providerID: "nocowboy" as any, modelID: "kimi-k2-thinking" as any },
     options: {},
     permission: Permission.merge(
       defaults,
@@ -350,9 +349,9 @@ export function patchAgents(
   // Add debug agent
   agents.debug = {
     name: "debug",
-    description: "Systematic bug diagnosis and root cause analysis", // nocowboy_change — short label
+    description: "Systematic bug diagnosis and root cause analysis",
     prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -362,9 +361,9 @@ export function patchAgents(
   // Add architect agent — planning and specification
   agents.architect = {
     name: "architect",
-    description: "Planning, specification, acceptance criteria — read-only", // nocowboy_change
+    description: "Planning, specification, acceptance criteria — read-only",
     prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT),
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any }, // nocowboy_change — strong model for planning
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any },
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -374,9 +373,9 @@ export function patchAgents(
   // Add Auto agent — orchestrator, default agent
   agents.auto = {
     name: "auto",
-    description: "Orchestrator — routes to architect → code → overseer automatically", // nocowboy_change
+    description: "Orchestrator — routes to architect → code → overseer automatically",
     prompt: (lang === "ru" ? PROMPT_AUTO_RU : PROMPT_AUTO),
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any }, // nocowboy_change — cheap model for orchestration
+    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",

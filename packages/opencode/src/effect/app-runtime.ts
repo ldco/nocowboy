@@ -1,8 +1,8 @@
 import { Layer, ManagedRuntime } from "effect"
 import { attach } from "./run-service"
-import * as Observability from "@opencode-ai/core/effect/observability"
+import * as Observability from "@nocowboy/core/effect/observability"
 
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "@/bus"
 import { Auth } from "@/auth"
 import { Account } from "@/account/account"
@@ -14,8 +14,8 @@ import { FileWatcher } from "@/file/watcher"
 import { Storage } from "@/storage/storage"
 import { Snapshot } from "@/snapshot"
 import { Plugin } from "@/plugin"
-import { ModelsDev } from "@opencode-ai/core/models"
-import { ModelCache } from "@/provider/model-cache" // nocowboy_change
+import { ModelsDev } from "@nocowboy/core/models"
+import { ModelCache } from "@/provider/model-cache"
 import { Provider } from "@/provider/provider"
 import { ProviderAuth } from "@/provider/auth"
 import { Agent } from "@/agent/agent"
@@ -53,8 +53,8 @@ import { Installation } from "@/installation"
 import { ShareNext } from "@/share/share-next"
 import { SessionShare } from "@/share/session"
 import { SyncEvent } from "@/sync"
-import { Npm } from "@opencode-ai/core/npm"
-import { memoMap } from "@opencode-ai/core/effect/memo-map"
+import { Npm } from "@nocowboy/core/npm"
+import { memoMap } from "@nocowboy/core/effect/memo-map"
 import { DataMigration } from "@/data-migration"
 import { BackgroundJob } from "@/background/job"
 import { EventV2Bridge } from "@/event-v2-bridge"
@@ -74,7 +74,7 @@ const CoreLayer = Layer.mergeAll(
   Storage.defaultLayer,
   Snapshot.defaultLayer,
   Plugin.defaultLayer,
-  ModelCache.defaultLayer, // nocowboy_change
+  ModelCache.defaultLayer,
   ModelsDev.defaultLayer,
   Provider.defaultLayer,
   ProviderAuth.defaultLayer,

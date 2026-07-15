@@ -6,7 +6,7 @@
  */
 
 import { createEffect, on } from "solid-js"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { useKeyboard } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 import * as Clipboard from "@tui/util/clipboard"

@@ -1,28 +1,27 @@
-import { useTerminalDimensions } from "@opentui/solid" // nocowboy_change
-import { createEffect, createMemo, createSignal, Show } from "solid-js" // nocowboy_change
+import { useTerminalDimensions } from "@opentui/solid"
+import { createEffect, createMemo, createSignal, Show } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { useSync } from "@tui/context/sync"
-import { map, pipe, flatMap, entries, filter, sortBy, take, groupBy } from "remeda" // nocowboy_change
+import { map, pipe, flatMap, entries, filter, sortBy, take, groupBy } from "remeda"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
 import { createDialogProviderOptions, DialogProvider } from "./dialog-provider"
 import { DialogVariant } from "./dialog-variant"
-import type { Model } from "@nocowboy/sdk/v2" // nocowboy_change
+import type { Model } from "@nocowboy/sdk/v2"
 import * as fuzzysort from "fuzzysort"
 import { useConnected } from "./use-connected"
-import { ModelInfoPanel } from "@/nocowboy/components/model-info-panel" // nocowboy_change
-import { FreeModelDisclosure } from "@/nocowboy/components/free-model-disclosure" // nocowboy_change
+import { ModelInfoPanel } from "@/nocowboy/components/model-info-panel"
+import { FreeModelDisclosure } from "@/nocowboy/components/free-model-disclosure"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
   const sync = useSync()
   const dialog = useDialog()
   const [query, setQuery] = createSignal("")
-  const dimensions = useTerminalDimensions() // nocowboy_change
+  const dimensions = useTerminalDimensions()
 
   const connected = useConnected()
   const providers = createDialogProviderOptions()
-  // nocowboy_change start
   // Memoize anything that iterates all Kilo models to avoid calculating it for
   // each Kilo model and tanking the UI at a couple hundred models
   const ncowboyRank = createMemo(() => {
@@ -30,11 +29,9 @@ export function DialogModel(props: { providerID?: string }) {
     const models = provider?.models ?? {}
     return new Map(Object.entries(models).map(([id, info]) => [id, info.recommendedIndex ?? Infinity] as const))
   })
-  // nocowboy_change end
 
   const showExtra = createMemo(() => connected() && !props.providerID)
 
-  // nocowboy_change start
   const wide = createMemo(() => dimensions().width >= 108)
   const [preview, setPreview] = createSignal<{
     model: Model
@@ -76,16 +73,14 @@ export function DialogModel(props: { providerID?: string }) {
     if (label) return label
     return undefined
   }
-  // nocowboy_change end
 
   const options = createMemo(() => {
     const needle = query().trim()
-    // nocowboy_change: removed showSections guard — sections are always built; empty ones are hidden naturally
     const favorites = connected() ? local.model.favorite() : []
     const recents = local.model.recent()
 
     function toOptions(items: typeof favorites, category: string) {
-      if (!showExtra()) return [] // nocowboy_change
+      if (!showExtra()) return []
       return items.flatMap((item) => {
         const provider = sync.data.provider.find((x) => x.id === item.providerID)
         if (!provider) return []
@@ -98,10 +93,10 @@ export function DialogModel(props: { providerID?: string }) {
             title: model.name ?? item.modelID,
             description: provider.name,
             category,
-            disabled: provider.id === "opencode" && model.id.includes("-nano"),
-            footer: footer(provider.id, model), // nocowboy_change
+            disabled: provider.id === "nocowboy" && model.id.includes("-nano"),
+            footer: footer(provider.id, model),
             onSelect: () => {
-              onSelect(provider.id, model.id) // nocowboy_change
+              onSelect(provider.id, model.id)
             },
           },
         ]
@@ -119,7 +114,7 @@ export function DialogModel(props: { providerID?: string }) {
     const providerOptions = pipe(
       sync.data.provider,
       sortBy(
-        (provider) => provider.id !== "opencode",
+        (provider) => provider.id !== "nocowboy",
         (provider) => provider.name,
       ),
       flatMap((provider) =>
@@ -134,39 +129,31 @@ export function DialogModel(props: { providerID?: string }) {
             description: favorites.some((item) => item.providerID === provider.id && item.modelID === model)
               ? "(Favorite)"
               : undefined,
-            // nocowboy_change start
             category: connected()
               ? provider.id === "nocowboy" && info.recommendedIndex !== undefined
                 ? "Recommended"
                 : provider.name
               : undefined,
-            // nocowboy_change end
-            disabled: provider.id === "opencode" && model.includes("-nano"),
-            footer: footer(provider.id, info), // nocowboy_change
+            disabled: provider.id === "nocowboy" && model.includes("-nano"),
+            footer: footer(provider.id, info),
             onSelect() {
-              onSelect(provider.id, model) // nocowboy_change
+              onSelect(provider.id, model)
             },
           })),
           filter((x) => {
-            // nocowboy_change start - only dedupe favorites/recents when those sections are visible
             if (showExtra()) {
               if (favorites.some((item) => item.providerID === x.value.providerID && item.modelID === x.value.modelID))
                 return false
               if (recents.some((item) => item.providerID === x.value.providerID && item.modelID === x.value.modelID))
                 return false
             }
-            // nocowboy_change end
             return true
           }),
           sortBy(
-            // nocowboy_change start - Sort within Recommended / Kilo Gateway
             (x) => (x.value.providerID === "nocowboy" ? (ncowboyRank().get(x.value.modelID) ?? Infinity) : 0),
-            // nocowboy_change end
-            // nocowboy_change start - free model footers include Kilo disclosure labels
             (x) => x.footer === undefined,
-            // nocowboy_change end
-            (x) => x.title, // nocowboy_change
-          ), // nocowboy_change
+            (x) => x.title,
+          ),
         ),
       ),
     )
@@ -182,7 +169,6 @@ export function DialogModel(props: { providerID?: string }) {
         )
       : []
 
-    // nocowboy_change start - Filter per-section to preserve group headers while typing
     if (needle) {
       const rank = <U extends { title: string; category?: string }>(items: U[]) =>
         fuzzysort.go(needle, items, { keys: ["title", "category"] }).map((x) => x.obj)
@@ -195,7 +181,6 @@ export function DialogModel(props: { providerID?: string }) {
       )
       return [...rank(favoriteOptions), ...rank(recentOptions), ...rankedProviders, ...rank(popularProviders)]
     }
-    // nocowboy_change end
 
     return [...favoriteOptions, ...recentOptions, ...providerOptions, ...popularProviders]
   })
@@ -225,7 +210,6 @@ export function DialogModel(props: { providerID?: string }) {
     dialog.clear()
   }
 
-  // nocowboy_change start
   return (
     <box flexDirection="row">
       <box flexGrow={1} flexShrink={1}>
@@ -258,7 +242,6 @@ export function DialogModel(props: { providerID?: string }) {
             if (!next) return
             setPreview(next)
           }}
-          // nocowboy_change: removed flat={true} to keep section headers visible while filtering
           skipFilter={true}
           title={title()}
           current={local.model.current()}
@@ -269,5 +252,4 @@ export function DialogModel(props: { providerID?: string }) {
       </Show>
     </box>
   )
-  // nocowboy_change end
 }

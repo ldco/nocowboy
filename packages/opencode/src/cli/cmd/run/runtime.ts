@@ -13,7 +13,7 @@
 //      local sessions,
 //   4. runs the prompt queue until the footer closes.
 import { createNocowboyClient } from "@nocowboy/sdk/v2"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { createRunDemo } from "./demo"
 import { resolveDiffStyle, resolveFooterKeybinds, resolveModelInfo, resolveSessionInfo } from "./runtime.boot"
 import { createRuntimeLifecycle } from "./runtime.lifecycle"
@@ -162,9 +162,9 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
   return withRunSpan(
     "RunInteractive.session",
     {
-      "opencode.mode": input.resolveSession ? "local" : "attach",
-      "opencode.initial_input": !!input.initialInput,
-      "opencode.demo": input.demo,
+      "nocowboy.mode": input.resolveSession ? "local" : "attach",
+      "nocowboy.initial_input": !!input.initialInput,
+      "nocowboy.demo": input.demo,
     },
     async (span) => {
       const start = performance.now()
@@ -202,12 +202,12 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         agent: ctx.agent,
       }
       setRunSpanAttributes(span, {
-        "opencode.directory": ctx.directory,
-        "opencode.resume": ctx.resume === true,
-        "opencode.agent.name": state.agent,
-        "opencode.model.provider": state.model?.providerID,
-        "opencode.model.id": state.model?.modelID,
-        "opencode.model.variant": state.activeVariant,
+        "nocowboy.directory": ctx.directory,
+        "nocowboy.resume": ctx.resume === true,
+        "nocowboy.agent.name": state.agent,
+        "nocowboy.model.provider": state.model?.providerID,
+        "nocowboy.model.id": state.model?.modelID,
+        "nocowboy.model.variant": state.activeVariant,
         "session.id": state.sessionID || undefined,
       })
       const ensureSession = () => {
@@ -224,7 +224,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
           state.sessionTitle = next.sessionTitle ?? state.sessionTitle
           state.agent = next.agent
           setRunSpanAttributes(span, {
-            "opencode.agent.name": state.agent,
+            "nocowboy.agent.name": state.agent,
             "session.id": state.sessionID,
           })
         })
@@ -282,7 +282,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
           state.activeVariant = cycleVariant(state.activeVariant, state.variants)
           saveVariant(state.model, state.activeVariant)
           setRunSpanAttributes(span, {
-            "opencode.model.variant": state.activeVariant,
+            "nocowboy.model.variant": state.activeVariant,
           })
           return {
             status: state.activeVariant ? `variant ${state.activeVariant}` : "variant default",
@@ -318,9 +318,9 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
           }
 
           setRunSpanAttributes(span, {
-            "opencode.model.provider": model.providerID,
-            "opencode.model.id": model.modelID,
-            "opencode.model.variant": state.activeVariant,
+            "nocowboy.model.provider": model.providerID,
+            "nocowboy.model.id": model.modelID,
+            "nocowboy.model.variant": state.activeVariant,
           })
           return {
             modelLabel: formatModelLabel(model, state.activeVariant, state.providers),
@@ -345,7 +345,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
           state.activeVariant = variant
           saveVariant(state.model, state.activeVariant)
           setRunSpanAttributes(span, {
-            "opencode.model.variant": state.activeVariant,
+            "nocowboy.model.variant": state.activeVariant,
           })
           return {
             status: state.activeVariant ? `variant ${state.activeVariant}` : "variant default",
@@ -446,7 +446,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
         if (next !== state.activeVariant) {
           state.activeVariant = next
           setRunSpanAttributes(span, {
-            "opencode.model.variant": state.activeVariant,
+            "nocowboy.model.variant": state.activeVariant,
           })
         }
 
@@ -556,10 +556,10 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
                       })
                     : undefined
                   setRunSpanAttributes(span, {
-                    "opencode.agent.name": state.agent,
-                    "opencode.model.provider": state.model?.providerID,
-                    "opencode.model.id": state.model?.modelID,
-                    "opencode.model.variant": state.activeVariant,
+                    "nocowboy.agent.name": state.agent,
+                    "nocowboy.model.provider": state.model?.providerID,
+                    "nocowboy.model.id": state.model?.modelID,
+                    "nocowboy.model.variant": state.activeVariant,
                     "session.id": state.sessionID,
                   })
                   log?.write("session.new", {
@@ -618,10 +618,10 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
             return withRunSpan(
               "RunInteractive.turn",
               {
-                "opencode.agent.name": state.agent,
-                "opencode.model.provider": state.model?.providerID,
-                "opencode.model.id": state.model?.modelID,
-                "opencode.model.variant": state.activeVariant,
+                "nocowboy.agent.name": state.agent,
+                "nocowboy.model.provider": state.model?.providerID,
+                "nocowboy.model.id": state.model?.modelID,
+                "nocowboy.model.variant": state.activeVariant,
                 "opencode.prompt.chars": prompt.text.length,
                 "opencode.prompt.parts": prompt.parts.length,
                 "opencode.prompt.include_files": includeFiles,
@@ -632,10 +632,10 @@ async function runInteractiveRuntime(input: RunRuntimeInput): Promise<void> {
                 try {
                   const next = await ensureStream()
                   setRunSpanAttributes(span, {
-                    "opencode.agent.name": state.agent,
-                    "opencode.model.provider": state.model?.providerID,
-                    "opencode.model.id": state.model?.modelID,
-                    "opencode.model.variant": state.activeVariant,
+                    "nocowboy.agent.name": state.agent,
+                    "nocowboy.model.provider": state.model?.providerID,
+                    "nocowboy.model.id": state.model?.modelID,
+                    "nocowboy.model.variant": state.activeVariant,
                     "session.id": state.sessionID || undefined,
                   })
                   await next.handle.runPromptTurn({
@@ -706,9 +706,9 @@ export async function runInteractiveLocalMode(input: RunLocalInput): Promise<voi
   return withRunSpan(
     "RunInteractive.localMode",
     {
-      "opencode.directory": input.directory,
-      "opencode.initial_input": !!input.initialInput,
-      "opencode.demo": input.demo,
+      "nocowboy.directory": input.directory,
+      "nocowboy.initial_input": !!input.initialInput,
+      "nocowboy.demo": input.demo,
     },
     async () => {
       const sdk = createNocowboyClient({
@@ -765,8 +765,8 @@ export async function runInteractiveMode(input: RunInput & { createSession?: Cre
   return withRunSpan(
     "RunInteractive.attachMode",
     {
-      "opencode.directory": input.directory,
-      "opencode.initial_input": !!input.initialInput,
+      "nocowboy.directory": input.directory,
+      "nocowboy.initial_input": !!input.initialInput,
       "session.id": input.sessionID,
     },
     async () =>

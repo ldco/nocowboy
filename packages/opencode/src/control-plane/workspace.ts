@@ -10,11 +10,11 @@ import { GlobalBus } from "@/bus/global"
 import { Auth } from "@/auth"
 import { SyncEvent } from "@/sync"
 import { EventSequenceTable, EventTable } from "@/sync/event.sql"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import * as Log from "@nocowboy/core/util/log"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProjectID } from "@/project/schema"
-import { Slug } from "@opencode-ai/core/util/slug"
+import { Slug } from "@nocowboy/core/util/slug"
 import { WorkspaceTable } from "./workspace.sql"
 import { getAdapter, registeredAdapters } from "./adapters"
 import { type Target, type WorkspaceInfo, WorkspaceInfo as WorkspaceInfoSchema } from "./types"
@@ -164,7 +164,7 @@ export interface Interface {
   readonly startWorkspaceSyncing: (projectID: ProjectID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Workspace") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Workspace") {}
 
 export const layer = Layer.effect(
   Service,

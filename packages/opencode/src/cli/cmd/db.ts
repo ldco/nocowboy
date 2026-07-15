@@ -49,7 +49,7 @@ const QueryCommand = cmd({
     }
     const child = spawn("sqlite3", [Database.getPath()], {
       stdio: "inherit",
-      windowsHide: true, // nocowboy_change - prevent CMD window flash on Windows
+      windowsHide: true,
     })
     await new Promise((resolve) => child.on("close", resolve))
   },

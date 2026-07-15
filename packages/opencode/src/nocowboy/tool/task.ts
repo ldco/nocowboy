@@ -1,10 +1,9 @@
-// nocowboy_change - new file
 import { Effect, Schema } from "effect"
 import path from "path"
 import { Permission } from "@/permission"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
+import { Flag } from "@nocowboy/core/flag/flag"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
 import { ModelID, ProviderID } from "@/provider/schema"
 import type { Session } from "../../session/session"
 import type { Agent } from "../../agent/agent"

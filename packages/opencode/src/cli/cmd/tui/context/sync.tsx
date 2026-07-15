@@ -9,8 +9,8 @@ import type {
   Command,
   PermissionRequest,
   QuestionRequest,
-  SuggestionRequest, // nocowboy_change
-  SessionNetworkWait, // nocowboy_change
+  SuggestionRequest,
+  SessionNetworkWait,
   LspStatus,
   McpStatus,
   McpResource,
@@ -19,23 +19,23 @@ import type {
   ProviderListResponse,
   ProviderAuthMethod,
   VcsInfo,
-  BackgroundProcessInfo, // nocowboy_change
+  BackgroundProcessInfo,
 } from "@nocowboy/sdk/v2"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useProject } from "@tui/context/project"
 import { useEvent } from "@tui/context/event"
 import { useSDK } from "@tui/context/sdk"
-import { Binary } from "@opencode-ai/core/util/binary"
+import { Binary } from "@nocowboy/core/util/binary"
 import { createSimpleContext } from "./helper"
 import type { Snapshot } from "@/snapshot"
 import { useExit } from "./exit"
 import { useArgs } from "./args"
-import { batch, createEffect, on, onMount } from "solid-js" // nocowboy_change - add createEffect/on for workspace re-bootstrap
-import { handleSuggestionEvent } from "@/nocowboy/suggestion/tui/sync" // nocowboy_change
-import { useToast } from "@tui/ui/toast" // nocowboy_change
-import * as Log from "@opencode-ai/core/util/log"
+import { batch, createEffect, on, onMount } from "solid-js"
+import { handleSuggestionEvent } from "@/nocowboy/suggestion/tui/sync"
+import { useToast } from "@tui/ui/toast"
+import * as Log from "@nocowboy/core/util/log"
 import { emptyConsoleState, type ConsoleState } from "@/config/console-state"
-import type { IndexingStatus } from "@nocowboy/indexing/status" // nocowboy_change
+import type { IndexingStatus } from "@nocowboy/indexing/status"
 import path from "path"
 import { useKV } from "./kv"
 import { aggregateFailures } from "./aggregate-failures"
@@ -58,31 +58,27 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       question: {
         [sessionID: string]: QuestionRequest[]
       }
-      // nocowboy_change start
       suggestion: {
         [sessionID: string]: SuggestionRequest[]
       }
       network: {
         [sessionID: string]: SessionNetworkWait[]
       }
-      // nocowboy_change end
       config: Config
-      globalConfig: Config // nocowboy_change
+      globalConfig: Config
       session: Session[]
       session_status: {
         [sessionID: string]: SessionStatus
       }
       session_diff: {
-        [sessionID: string]: Omit<Snapshot.FileDiff, "before" | "after">[] // nocowboy_change
+        [sessionID: string]: Omit<Snapshot.FileDiff, "before" | "after">[]
       }
       todo: {
         [sessionID: string]: Todo[]
       }
-      // nocowboy_change start
       background_process: {
         [sessionID: string]: BackgroundProcessInfo[]
       }
-      // nocowboy_change end
       message: {
         [sessionID: string]: Message[]
       }
@@ -98,26 +94,24 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       }
       formatter: FormatterStatus[]
       vcs: VcsInfo | undefined
-      indexing: IndexingStatus // nocowboy_change
+      indexing: IndexingStatus
     }>({
       provider_next: {
         all: [],
         default: {},
         connected: [],
-        failed: [], // nocowboy_change
+        failed: [],
       },
       console_state: emptyConsoleState,
       provider_auth: {},
       config: {},
-      globalConfig: {}, // nocowboy_change
+      globalConfig: {},
       status: "loading",
       agent: [],
       permission: {},
       question: {},
-      // nocowboy_change start
       suggestion: {},
       network: {},
-      // nocowboy_change end
       command: [],
       provider: [],
       provider_default: {},
@@ -125,7 +119,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       session_status: {},
       session_diff: {},
       todo: {},
-      background_process: {}, // nocowboy_change
+      background_process: {},
       message: {},
       part: {},
       lsp: [],
@@ -133,16 +127,15 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       mcp_resource: {},
       formatter: [],
       vcs: undefined,
-      indexing: { state: "Disabled", message: "Indexing disabled.", processedFiles: 0, totalFiles: 0, percent: 0 }, // nocowboy_change
+      indexing: { state: "Disabled", message: "Indexing disabled.", processedFiles: 0, totalFiles: 0, percent: 0 },
     })
 
     const event = useEvent()
     const project = useProject()
     const sdk = useSDK()
-    const toast = useToast() // nocowboy_change
+    const toast = useToast()
     const kv = useKV()
 
-    // nocowboy_change start
     function evict(sessionID: string) {
       // Collect child session IDs so we can evict them too.
       const children = store.session.filter((s) => s.parentID === sessionID).map((s) => s.id)
@@ -156,7 +149,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           delete draft.session_diff[sessionID]
           delete draft.session_status[sessionID]
           delete draft.todo[sessionID]
-          delete draft.background_process[sessionID] // nocowboy_change
+          delete draft.background_process[sessionID]
           delete draft.permission[sessionID]
           delete draft.question[sessionID]
           delete draft.suggestion[sessionID]
@@ -173,12 +166,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       if (msg.role !== "user" || !msg.summary?.diffs) return msg
       return { ...msg, summary: { ...msg.summary, diffs: [] } } as Message
     }
-    // nocowboy_change end
 
     const fullSyncedSessions = new Set<string>()
-    const deleted = new Set<string>() // nocowboy_change
+    const deleted = new Set<string>()
     let syncedWorkspace = project.workspace.current()
-    let vcsVersion = 0 // nocowboy_change
+    let vcsVersion = 0
 
     function sessionListQuery(): { scope?: "project"; path?: string } {
       if (!kv.get("session_directory_filter_enabled", true)) return { scope: "project" }
@@ -199,10 +191,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     event.subscribe((event, { workspace }) => {
       switch (event.type) {
         case "server.instance.disposed":
-          // nocowboy_change start
           deleted.clear()
           setStore("background_process", {})
-          // nocowboy_change end
           void bootstrap()
           break
         case "permission.replied": {
@@ -278,9 +268,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             }),
           )
           break
-        } // nocowboy_change
+        }
 
-        // nocowboy_change start
         case "session.network.replied":
         case "session.network.rejected": {
           const requests = store.network[event.properties.sessionID]
@@ -310,7 +299,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           const match = Binary.search(requests, event.properties.requestID, (r) => r.id)
           if (match.found) {
             setStore("network", event.properties.sessionID, match.index, "restored", true)
-            setStore("network", event.properties.sessionID, match.index, "time", "restored", event.properties.time) // nocowboy_change
+            setStore("network", event.properties.sessionID, match.index, "time", "restored", event.properties.time)
           }
           break
         }
@@ -336,7 +325,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           )
           break
         }
-        // nocowboy_change end
         case "todo.updated":
           setStore("todo", event.properties.sessionID, event.properties.todos)
           break
@@ -345,14 +333,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           setStore("session_diff", event.properties.sessionID, event.properties.diff)
           break
 
-        // nocowboy_change start
         case "session.status": {
           setStore("session_status", event.properties.sessionID, event.properties.status)
           break
         }
-        // nocowboy_change end
 
-        // nocowboy_change start
         case "background_process.updated": {
           const info = event.properties.info
           deleted.delete(info.id)
@@ -391,7 +376,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           )
           break
         }
-        // nocowboy_change end
 
         case "message.part.delta": {
           const parts = store.part[event.properties.messageID]
@@ -425,7 +409,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           break
         }
 
-        // nocowboy_change start
         case "global.config.updated": {
           sdk.client.global.config.get().then((x) => {
             if (x.data) setStore("globalConfig", reconcile(x.data))
@@ -439,7 +422,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           setStore("indexing", reconcile(event.properties.status))
           break
         }
-        // nocowboy_change end
       }
     })
 
@@ -585,15 +567,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       const workspace = project.workspace.current()
       if (workspace !== syncedWorkspace) {
         fullSyncedSessions.clear()
-        // nocowboy_change start
         deleted.clear()
         setStore("background_process", {})
-        // nocowboy_change end
         syncedWorkspace = workspace
       }
       const projectPromise = project.sync()
       const sessionListPromise = projectPromise.then(() => listSessions())
-      const version = vcsVersion // nocowboy_change
+      const version = vcsVersion
 
       // blocking - include session.list when continuing a session
       const providersPromise = sdk.client.config.providers({ workspace }, { throwOnError: true })
@@ -604,13 +584,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         .catch(() => emptyConsoleState)
       const agentsPromise = sdk.client.app.agents({ workspace }, { throwOnError: true })
       const configPromise = sdk.client.config.get({ workspace }, { throwOnError: true })
-      const globalConfigPromise = sdk.client.global.config.get({ throwOnError: true }) // nocowboy_change
+      const globalConfigPromise = sdk.client.global.config.get({ throwOnError: true })
       const blockingRequests: { name: string; promise: Promise<unknown> }[] = [
         { name: "config.providers", promise: providersPromise },
         { name: "provider.list", promise: providerListPromise },
         { name: "app.agents", promise: agentsPromise },
         { name: "config.get", promise: configPromise },
-        { name: "global.config", promise: globalConfigPromise }, // nocowboy_change
+        { name: "global.config", promise: globalConfigPromise },
         { name: "project.sync", promise: projectPromise },
         ...(args.continue ? [{ name: "session.list", promise: sessionListPromise }] : []),
       ]
@@ -629,7 +609,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           const consoleStateResponse = consoleStatePromise
           const agentsResponse = agentsPromise.then((x) => x.data ?? [])
           const configResponse = configPromise.then((x) => x.data!)
-          const globalConfigResponse = globalConfigPromise.then((x) => x.data!) // nocowboy_change
+          const globalConfigResponse = globalConfigPromise.then((x) => x.data!)
           const sessionListResponse = args.continue ? sessionListPromise : undefined
 
           return Promise.all([
@@ -646,10 +626,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             const consoleState = responses[2]
             const agents = responses[3]
             const config = responses[4]
-            const globalConfig = responses[5] // nocowboy_change
-            const sessions = responses[6] // nocowboy_change
+            const globalConfig = responses[5]
+            const sessions = responses[6]
 
-            // nocowboy_change start - rename Kilo Gateway provider
             const rawAll = rawProviderList?.all
             const providerList = rawAll && {
               ...rawProviderList,
@@ -657,7 +636,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
                 p.id === "kilo" ? { ...p, id: "nocowboy", name: "NoCowboy Gateway" as const } : p,
               ),
             }
-            // nocowboy_change end
 
             batch(() => {
               setStore("provider", reconcile(providers.providers))
@@ -666,7 +644,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               setStore("console_state", reconcile(consoleState))
               setStore("agent", reconcile(agents))
               setStore("config", reconcile(config))
-              setStore("globalConfig", reconcile(globalConfig)) // nocowboy_change
+              setStore("globalConfig", reconcile(globalConfig))
               if (sessions !== undefined) setStore("session", reconcile(sessions))
             })
           })
@@ -680,13 +658,10 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.command.list({ workspace }).then((x) => setStore("command", reconcile(x.data ?? []))),
             sdk.client.lsp.status({ workspace }).then((x) => setStore("lsp", reconcile(x.data ?? []))),
             sdk.client.mcp.status({ workspace }).then((x) => setStore("mcp", reconcile(x.data ?? {}))),
-            // nocowboy_change start
             sdk.client.experimental.resource
               .list({ workspace })
               .then((x) => setStore("mcp_resource", reconcile(x.data ?? {}))),
-            // nocowboy_change end
-            sdk.client.formatter.status({ workspace }).then((x) => setStore("formatter", reconcile(x.data!))), // nocowboy_change
-            // nocowboy_change start
+            sdk.client.formatter.status({ workspace }).then((x) => setStore("formatter", reconcile(x.data!))),
             sdk.client.network.list().then((x) => {
               const next: Record<string, SessionNetworkWait[]> = {}
               for (const item of x.data ?? []) {
@@ -719,7 +694,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
                 }),
               )
             }),
-            // nocowboy_change end
             sdk.client.session.status({ workspace }).then((x) => {
               setStore("session_status", reconcile(x.data ?? {}))
             }),
@@ -730,7 +704,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               }
             }),
             project.workspace.sync(),
-            // nocowboy_change start - show config warnings as persistent toast
             sdk.client.config
               .warnings()
               .then((x) => {
@@ -749,7 +722,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.indexing
               .status({ workspace })
               .then((x) => setStore("indexing", reconcile(x.data ?? store.indexing))),
-            // nocowboy_change end
           ]).then(() => {
             setStore("status", "complete")
           })
@@ -772,7 +744,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       void bootstrap()
     })
 
-    // nocowboy_change start - re-bootstrap when workspace changes (Agent Manager)
     createEffect(
       on(
         () => project.workspace.current(),
@@ -783,7 +754,6 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         { defer: true },
       ),
     )
-    // nocowboy_change end
 
     const result = {
       data: store,
@@ -792,7 +762,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         return store.status
       },
       get ready() {
-        // return true // nocowboy_change - upstream #23037 left this debug path enabled; keep it commented so future merges do not restore eager ready state.
+        // return true
         if (process.env.NOCOWBOY_FAST_BOOT) return true
         return store.status !== "loading"
       },
@@ -839,7 +809,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               draft.todo[sessionID] = todo.data ?? []
               const infos: (typeof draft.message)[string] = []
               for (const message of messages.data ?? []) {
-                infos.push(strip(message.info)) // nocowboy_change
+                infos.push(strip(message.info))
                 draft.part[message.info.id] = message.parts
               }
               draft.message[sessionID] = infos
@@ -848,7 +818,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           )
           fullSyncedSessions.add(sessionID)
         },
-        evict, // nocowboy_change
+        evict,
       },
       bootstrap,
     }

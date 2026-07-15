@@ -1,25 +1,23 @@
-import { Slug } from "@opencode-ai/core/util/slug"
+import { Slug } from "@nocowboy/core/util/slug"
 import path from "path"
 import { BackgroundJob } from "@/background/job"
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import { Decimal } from "decimal.js"
 import { type ProviderMetadata, type LanguageModelUsage } from "ai"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 
 import { Database } from "@/storage/db"
 import { NotFoundError } from "@/storage/storage"
-// nocowboy_change - drop unused inArray/lt (listGlobal delegated to NoCowboySession)
 import { eq, and, gte, isNull, desc, like, or } from "drizzle-orm"
 import { SyncEvent } from "../sync"
 import { PartTable, SessionTable } from "./session.sql"
-// nocowboy_change - ProjectTable removed (unused)
 import { Storage } from "@/storage/storage"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { MessageV2 } from "./message-v2"
 import type { InstanceContext } from "../project/instance-context"
 import { InstanceState } from "@/effect/instance-state"
-import { capture } from "@/nocowboy/instance" // nocowboy_change - children() scopes by current project when available
+import { capture } from "@/nocowboy/instance"
 import { Snapshot } from "@/snapshot"
 import { ProjectID } from "../project/schema"
 import { WorkspaceID } from "../control-plane/schema"
@@ -28,16 +26,14 @@ import { ModelID, ProviderID } from "@/provider/schema"
 
 import type { Provider } from "@/provider/provider"
 import { Permission } from "@/permission"
-import { Global } from "@opencode-ai/core/global"
-// nocowboy_change start - Kilo session behavior extensions
+import { Global } from "@nocowboy/core/global"
 import { BackgroundProcess } from "@/nocowboy/background-process"
 import { NoCowboySession, nocowboySessionFork } from "@/nocowboy/session"
 import { SessionExport } from "@/nocowboy/session-export"
-import { baseKey, cumulativeSessionDiff } from "@/nocowboy/session-portability/cumulative-diff" // nocowboy_change
-import { onSessionCreated, onSessionEnded } from "@/nocowboy/nutausik-auto-wire" // nocowboy_change - Phase 3 session auto-wiring
-// nocowboy_change end
+import { baseKey, cumulativeSessionDiff } from "@/nocowboy/session-portability/cumulative-diff"
+import { onSessionCreated, onSessionEnded } from "@/nocowboy/nutausik-auto-wire"
 import { Effect, Layer, Option, Context, Schema, Types } from "effect"
-import { NonNegativeInt, optionalOmitUndefined } from "@opencode-ai/core/schema"
+import { NonNegativeInt, optionalOmitUndefined } from "@nocowboy/core/schema"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
 const log = Log.create({ service: "session" })
@@ -161,7 +157,7 @@ const Summary = Schema.Struct({
   additions: Schema.Finite,
   deletions: Schema.Finite,
   files: Schema.Finite,
-  diffs: optionalOmitUndefined(Schema.Array(Snapshot.SummaryFileDiff)), // nocowboy_change - lightweight diff without patch
+  diffs: optionalOmitUndefined(Schema.Array(Snapshot.SummaryFileDiff)),
 })
 
 const Tokens = Schema.Struct({
@@ -236,7 +232,7 @@ export type ProjectInfo = Types.DeepMutable<Schema.Schema.Type<typeof ProjectInf
 export const GlobalInfo = Schema.Struct({
   ...Info.fields,
   project: Schema.NullOr(ProjectInfo),
-  worktreeName: Schema.optional(Schema.String), // nocowboy_change - basename of the specific worktree directory
+  worktreeName: Schema.optional(Schema.String),
 }).annotate({ identifier: "GlobalSession" })
 export type GlobalInfo = Types.DeepMutable<Schema.Schema.Type<typeof GlobalInfo>>
 
@@ -247,7 +243,7 @@ export const CreateInput = Schema.optional(
     agent: Schema.optional(Schema.String),
     model: Schema.optional(Model),
     permission: Schema.optional(Permission.Ruleset),
-    platform: Schema.optional(Schema.String), // nocowboy_change - per-session platform override for telemetry attribution
+    platform: Schema.optional(Schema.String),
     workspaceID: Schema.optional(WorkspaceID),
   }),
 )
@@ -367,15 +363,13 @@ export const Event = {
       error: MessageV2.Assistant.fields.error,
     }),
   ),
-  // nocowboy_change start
   TurnOpen: NoCowboySession.Event.TurnOpen,
   TurnClose: NoCowboySession.Event.TurnClose,
-  // nocowboy_change end
 }
 
 export function plan(input: { slug: string; time: { created: number } }, instance: InstanceContext) {
   const base = instance.project.vcs
-    ? path.join(instance.worktree, ".nocowboy", "plans") // nocowboy_change
+    ? path.join(instance.worktree, ".nocowboy", "plans")
     : path.join(Global.Path.data, "plans")
   return path.join(base, [input.time.created, input.slug].join("-") + ".md")
 }
@@ -384,7 +378,7 @@ export const getUsage = (input: {
   model: Provider.Model
   usage: LanguageModelUsage
   metadata?: ProviderMetadata
-  provider?: Provider.Info // nocowboy_change
+  provider?: Provider.Info
 }) => {
   const safe = (value: number) => {
     if (!Number.isFinite(value)) return 0
@@ -430,7 +424,6 @@ export const getUsage = (input: {
     },
   }
 
-  // nocowboy_change start - Use provider-reported cost when available for OpenRouter/Kilo
   const reported = NoCowboySession.providerCost({
     metadata: input.metadata,
     usage: input.usage,
@@ -438,7 +431,6 @@ export const getUsage = (input: {
     providerID: input.model.providerID,
   })
   if (reported !== undefined) return { cost: safe(reported), tokens }
-  // nocowboy_change end
 
   const contextTokens = inputTokens
   const costInfo =
@@ -478,7 +470,7 @@ export interface Interface {
     agent?: string
     model?: Schema.Schema.Type<typeof Model>
     permission?: Permission.Ruleset
-    platform?: string // nocowboy_change - per-session platform override for telemetry attribution
+    platform?: string
     workspaceID?: WorkspaceID
   }) => Effect.Effect<Info>
   readonly fork: (input: { sessionID: SessionID; messageID?: MessageID }) => Effect.Effect<Info, NotFound>
@@ -521,7 +513,7 @@ export interface Interface {
   ) => Effect.Effect<Option.Option<MessageV2.WithParts>, NotFound>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Session") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Session") {}
 
 export type Patch = Types.DeepMutable<SyncEvent.Event<typeof Event.Updated>["data"]["info"]>
 
@@ -551,7 +543,7 @@ export const layer: Layer.Layer<
       directory: string
       path?: string
       permission?: Permission.Ruleset
-      platform?: string // nocowboy_change - per-session platform override for telemetry attribution
+      platform?: string
     }) {
       const ctx = yield* InstanceState.context
       const result: Info = {
@@ -576,13 +568,9 @@ export const layer: Layer.Layer<
       }
       log.info("created", result)
 
-      // nocowboy_change start - register attribution before session.created subscribers run
       NoCowboySession.register({ id: result.id, parentID: result.parentID, platform: input.platform })
-      // nocowboy_change end
 
-      // nocowboy_change start - Phase 3: auto-create NUTAUSIK task + session
       onSessionCreated(result.id, result.title, result.directory)
-      // nocowboy_change end
 
       yield* sync.run(Event.Created, { sessionID: result.id, info: result })
 
@@ -611,7 +599,6 @@ export const layer: Layer.Layer<
       )
     })
 
-    // nocowboy_change start - scope by project_id when instance context is available
     const children = Effect.fn("Session.children")(function* (parentID: SessionID) {
       const ctx = capture()
       const conditions = [eq(SessionTable.parent_id, parentID)]
@@ -625,7 +612,6 @@ export const layer: Layer.Layer<
       )
       return rows.map(fromRow)
     })
-    // nocowboy_change end
 
     const remove: Interface["remove"] = Effect.fnUntraced(function* (sessionID: SessionID) {
       const session = yield* get(sessionID)
@@ -643,23 +629,18 @@ export const layer: Layer.Layer<
           yield* remove(child.id)
         }
 
-        // nocowboy_change start
         yield* Effect.promise(() => NoCowboySession.removeSession(sessionID)).pipe(Effect.ignore)
         NoCowboySession.clearPlatformOverride(sessionID)
-        // nocowboy_change start - Phase 3: auto-end NUTAUSIK session on NoCowboy session close
         onSessionEnded(sessionID, session.directory)
-        // nocowboy_change end
         if (hasInstance) {
           yield* Effect.promise(() => BackgroundProcess.stopSession(sessionID)).pipe(Effect.ignore)
           void Promise.all([import("@/effect/app-runtime"), import("./run-state")]).then(([app, run]) =>
             app.AppRuntime.runPromise(run.SessionRunState.Service.use((svc) => svc.cancel(sessionID))).catch(() => {}),
           )
         }
-        // nocowboy_change end
         yield* sync.run(Event.Deleted, { sessionID, info: session }, { publish: hasInstance })
-        // nocowboy_change - capture final session-export workspace delta on close/delete
-        const workspaceKey = hasInstance ? yield* InstanceState.directory : undefined // nocowboy_change
-        yield* Effect.promise(() => SessionExport.onSessionClose(sessionID, workspaceKey)) // nocowboy_change
+        const workspaceKey = hasInstance ? yield* InstanceState.directory : undefined
+        yield* Effect.promise(() => SessionExport.onSessionClose(sessionID, workspaceKey))
         yield* sync.remove(sessionID)
       } catch (e) {
         log.error(e)
@@ -668,19 +649,16 @@ export const layer: Layer.Layer<
 
     const updateMessage = <T extends MessageV2.Info>(msg: T): Effect.Effect<T> =>
       Effect.gen(function* () {
-        // nocowboy_change start - ignore FK errors when session was deleted while processor was still running
         yield* NoCowboySession.runSyncSafe(sync.run(MessageV2.Event.Updated, { sessionID: msg.sessionID, info: msg }), {
           type: "message update",
           id: msg.id,
           sessionID: msg.sessionID,
         })
-        // nocowboy_change end
         return msg
       }).pipe(Effect.withSpan("Session.updateMessage"))
 
     const updatePart = <T extends MessageV2.Part>(part: T): Effect.Effect<T> =>
       Effect.gen(function* () {
-        // nocowboy_change start - ignore FK errors when session was deleted while processor was still running
         yield* NoCowboySession.runSyncSafe(
           sync.run(MessageV2.Event.PartUpdated, {
             sessionID: part.sessionID,
@@ -689,7 +667,6 @@ export const layer: Layer.Layer<
           }),
           { type: "part update", id: part.id, sessionID: part.sessionID },
         )
-        // nocowboy_change end
         return part
       }).pipe(Effect.withSpan("Session.updatePart"))
 
@@ -722,7 +699,7 @@ export const layer: Layer.Layer<
       agent?: string
       model?: Schema.Schema.Type<typeof Model>
       permission?: Permission.Ruleset
-      platform?: string // nocowboy_change - per-session platform override for telemetry attribution
+      platform?: string
       workspaceID?: WorkspaceID
     }) {
       const ctx = yield* InstanceState.context
@@ -735,7 +712,7 @@ export const layer: Layer.Layer<
         agent: input?.agent,
         model: input?.model,
         permission: input?.permission,
-        platform: input?.platform, // nocowboy_change
+        platform: input?.platform,
         workspaceID: input?.workspaceID ?? workspace,
       })
       return session
@@ -753,7 +730,7 @@ export const layer: Layer.Layer<
       })
       const msgs = yield* messages({ sessionID: input.sessionID })
       const idMap = new Map<string, MessageID>()
-      const writer = NoCowboySession.writer(session.id, sync) // nocowboy_change - commit copied transcript in one transaction
+      const writer = NoCowboySession.writer(session.id, sync)
 
       for (const msg of msgs) {
         if (input.messageID && msg.info.id >= input.messageID) break
@@ -761,7 +738,6 @@ export const layer: Layer.Layer<
         idMap.set(msg.info.id, newID)
 
         const parentID = msg.info.role === "assistant" && msg.info.parentID ? idMap.get(msg.info.parentID) : undefined
-        // nocowboy_change start - queue copied messages for the atomic transcript commit
         const cloned = writer.message({
           ...msg.info,
           sessionID: session.id,
@@ -769,7 +745,6 @@ export const layer: Layer.Layer<
           ...(msg.info.role === "assistant" && { cost: 0 }), // count only spend incurred after the fork
           ...(parentID && { parentID }),
         })
-        // nocowboy_change end
 
         for (const part of msg.parts) {
           const p: MessageV2.Part = {
@@ -777,16 +752,15 @@ export const layer: Layer.Layer<
             id: PartID.ascending(),
             messageID: cloned.id,
             sessionID: session.id,
-            ...(part.type === "step-finish" && { cost: 0 }), // nocowboy_change - exclude pre-fork spend from model stats
+            ...(part.type === "step-finish" && { cost: 0 }),
           }
           if (p.type === "compaction" && p.tail_start_id) {
             p.tail_start_id = idMap.get(p.tail_start_id)
           }
-          writer.part(p) // nocowboy_change - queue copied parts for the atomic transcript commit
+          writer.part(p)
         }
       }
-      yield* writer.commit() // nocowboy_change - the caller hydrates after commit; copied-row events stay silent
-      // nocowboy_change start - preserve imported/cumulative diffs when forking sessions
+      yield* writer.commit()
       const local = yield* storage
         .read<Snapshot.FileDiff[]>(["session_diff", input.sessionID])
         .pipe(Effect.orElseSucceed((): Snapshot.FileDiff[] => []))
@@ -795,7 +769,6 @@ export const layer: Layer.Layer<
         yield* storage.write(baseKey(session.id), base).pipe(Effect.ignore)
         yield* storage.write(["session_diff", session.id], base).pipe(Effect.ignore)
       }
-      // nocowboy_change end
       return session
     })
 
@@ -975,14 +948,12 @@ function* listByProject(
     experimentalWorkspaces: boolean
   },
 ) {
-  // nocowboy_change start - NoCowboySession.filters keeps sessions visible across project_id changes
   // (see PR #8875). That directory-anchored filter conflicts with upstream's path-prefix filter,
   // so bypass it when input.path is provided and fall back to the plain project_id base.
   const conditions =
     input.path !== undefined
       ? [eq(SessionTable.project_id, input.projectID)]
       : NoCowboySession.filters({ projectID: input.projectID, directory: input.directory })
-  // nocowboy_change end
 
   if (input.workspaceID) {
     conditions.push(eq(SessionTable.workspace_id, input.workspaceID))
@@ -998,11 +969,9 @@ function* listByProject(
       )
     }
   } else if (input.scope !== "project" && !input.experimentalWorkspaces) {
-    // nocowboy_change start - directory filtering handled by NoCowboySession.filters above
     // if (input.directory) {
     //   conditions.push(eq(SessionTable.directory, input.directory))
     // }
-    // nocowboy_change end
   }
   if (input.roots) {
     conditions.push(isNull(SessionTable.parent_id))
@@ -1030,7 +999,6 @@ function* listByProject(
   }
 }
 
-// nocowboy_change start - delegate to NoCowboySession.listGlobal (adds projectID worktree family + directories[])
 export function* listGlobal(input?: {
   projectID?: string
   directory?: string
@@ -1045,9 +1013,7 @@ export function* listGlobal(input?: {
 }) {
   yield* NoCowboySession.listGlobal<GlobalInfo>({ ...input, fromRow })
 }
-// nocowboy_change end
 
-// nocowboy_change - delegate the exported Promise facade to the Kilo session runtime
 export const fork = nocowboySessionFork
 
 export * as Session from "./session"

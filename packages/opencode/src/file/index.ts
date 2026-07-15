@@ -1,21 +1,21 @@
 import { BusEvent } from "@/bus/bus-event"
 import { InstanceState } from "@/effect/instance-state"
 
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Git } from "@/git"
 import { Effect, Layer, Context, Schema, Scope } from "effect"
 import * as Stream from "effect/Stream"
 import { formatPatch, structuredPatch } from "diff"
-import { DiffFull } from "@/nocowboy/snapshot/diff-full" // nocowboy_change
+import { DiffFull } from "@/nocowboy/snapshot/diff-full"
 import fuzzysort from "fuzzysort"
 import ignore from "ignore"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { containsPath } from "../project/instance-context"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Protected } from "./protected"
 import { Ripgrep } from "./ripgrep"
-import { NonNegativeInt, type DeepMutable } from "@opencode-ai/core/schema"
+import { NonNegativeInt, type DeepMutable } from "@nocowboy/core/schema"
 
 export const Info = Schema.Struct({
   path: Schema.String,
@@ -325,7 +325,7 @@ export interface Interface {
   }) => Effect.Effect<string[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/File") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/File") {}
 
 export const layer = Layer.effect(
   Service,
@@ -552,13 +552,11 @@ export const layer = Layer.effect(
           diff = yield* gitText(["-c", "core.fsmonitor=false", "diff", "--staged", "--", file])
         }
         if (diff.trim()) {
-          // nocowboy_change start — patch via git (DiffFull.file) instead of the JS Myers
           // implementation. Upstream structuredPatch branch below is kept as dead code so
           // our diff from upstream stays minimal and future merges don't conflict.
           const got = yield* DiffFull.file(gitText, file)
           if (got) return { type: "text" as const, content, patch: got.patch, diff: got.text }
           return { type: "text" as const, content }
-          // nocowboy_change end
           const original = yield* git.show(ctx.directory, "HEAD", file)
           const patch = structuredPatch(file, file, original, content, "old", "new", {
             context: Infinity,

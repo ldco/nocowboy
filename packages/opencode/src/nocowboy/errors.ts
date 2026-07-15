@@ -1,4 +1,4 @@
-import type { NamedError } from "@opencode-ai/core/util/error"
+import type { NamedError } from "@nocowboy/core/util/error"
 import { isRecord } from "@/util/record"
 
 export const KILO_ERROR_CODES = {

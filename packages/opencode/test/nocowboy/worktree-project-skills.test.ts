@@ -1,6 +1,6 @@
 import { $ } from "bun"
 import { afterEach, describe, expect } from "bun:test"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Effect, Layer } from "effect"
 import path from "path"
 import { Skill } from "../../src/skill"

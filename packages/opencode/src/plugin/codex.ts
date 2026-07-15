@@ -1,11 +1,11 @@
 import type { Hooks, PluginInput } from "@nocowboy/plugin"
-import * as Log from "@opencode-ai/core/util/log"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import * as Log from "@nocowboy/core/util/log"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { OAUTH_DUMMY_KEY } from "../auth"
 import os from "os"
 import { setTimeout as sleep } from "node:timers/promises"
 import { createServer } from "http"
-import { refreshCodexAuth } from "@/nocowboy/provider/codex-refresh" // nocowboy_change
+import { refreshCodexAuth } from "@/nocowboy/provider/codex-refresh"
 
 const log = Log.create({ service: "plugin.codex" })
 
@@ -21,12 +21,10 @@ const ALLOWED_MODELS = new Set([
   "gpt-5.3-codex-spark",
   "gpt-5.4",
   "gpt-5.4-mini",
-  // nocowboy_change start - additional codex models supported by Kilo
   "gpt-5.1-codex",
   "gpt-5.1-codex-max",
   "gpt-5.1-codex-mini",
   "gpt-5.2-codex",
-  // nocowboy_change end
 ])
 
 interface PkceCodes {
@@ -112,7 +110,7 @@ function buildAuthorizeUrl(redirectUri: string, pkce: PkceCodes, state: string):
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     state,
-    originator: "kilo", // nocowboy_change
+    originator: "kilo",
   })
   return `${ISSUER}/oauth/authorize?${params.toString()}`
 }
@@ -142,13 +140,11 @@ async function exchangeCodeForTokens(code: string, redirectUri: string, pkce: Pk
   return response.json()
 }
 
-// nocowboy_change start
 async function refreshAccessToken(refreshToken: string, signal?: AbortSignal): Promise<TokenResponse> {
   const response = await fetch(`${ISSUER}/oauth/token`, {
     method: "POST",
     signal,
     headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": `nocowboy/${InstallationVersion}` },
-    // nocowboy_change end
     body: new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
@@ -164,9 +160,7 @@ async function refreshAccessToken(refreshToken: string, signal?: AbortSignal): P
 const HTML_SUCCESS = `<!doctype html>
 <html>
   <head>
-    <!-- nocowboy_change start -->
     <title>NoCowboy - Codex Authorization Successful</title>
-    <!-- nocowboy_change end -->
     <style>
       body {
         font-family:
@@ -197,10 +191,8 @@ const HTML_SUCCESS = `<!doctype html>
   <body>
     <div class="container">
       <h1>Authorization Successful</h1>
-      <!-- nocowboy_change start -->
       <p>You can close this window and return to NoCowboy.</p>
-      <!-- nocowboy_change end -->
-    </div>
+      </div>
     <script>
       setTimeout(() => window.close(), 2000)
     </script>
@@ -210,9 +202,7 @@ const HTML_SUCCESS = `<!doctype html>
 const HTML_ERROR = (error: string) => `<!doctype html>
 <html>
   <head>
-    <!-- nocowboy_change start -->
     <title>NoCowboy - Codex Authorization Failed</title>
-    <!-- nocowboy_change end -->
     <style>
       body {
         font-family:
@@ -445,7 +435,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
             // Check if token needs refresh
             if (!currentAuth.access || currentAuth.expires < Date.now()) {
               log.info("refreshing codex access token")
-              // nocowboy_change start
               await refreshCodexAuth({
                 input,
                 getAuth,
@@ -453,7 +442,6 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
                 refresh: refreshAccessToken,
                 account: extractAccountId,
               })
-              // nocowboy_change end
             }
 
             // Build headers
@@ -536,7 +524,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "User-Agent": `opencode/${InstallationVersion}`,
+                "User-Agent": `nocowboy/${InstallationVersion}`,
               },
               body: JSON.stringify({ client_id: CLIENT_ID }),
             })
@@ -560,7 +548,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
-                      "User-Agent": `opencode/${InstallationVersion}`,
+                      "User-Agent": `nocowboy/${InstallationVersion}`,
                     },
                     body: JSON.stringify({
                       device_auth_id: deviceData.device_auth_id,
@@ -619,8 +607,8 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
     },
     "chat.headers": async (input, output) => {
       if (input.model.providerID !== "openai") return
-      output.headers.originator = "opencode"
-      output.headers["User-Agent"] = `opencode/${InstallationVersion} (${os.platform()} ${os.release()}; ${os.arch()})`
+      output.headers.originator = "nocowboy"
+      output.headers["User-Agent"] = `nocowboy/${InstallationVersion} (${os.platform()} ${os.release()}; ${os.arch()})`
       output.headers.session_id = input.sessionID
     },
     "chat.params": async (input, output) => {

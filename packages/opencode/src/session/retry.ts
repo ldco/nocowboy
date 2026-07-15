@@ -1,14 +1,14 @@
-import type { NamedError } from "@opencode-ai/core/util/error"
+import type { NamedError } from "@nocowboy/core/util/error"
 import { Cause, Clock, Duration, Effect, Schedule } from "effect"
 import { MessageV2 } from "./message-v2"
-import { isNocowboyError } from "@/nocowboy/errors" // nocowboy_change
-import { SessionNetwork } from "./network" // nocowboy_change
+import { isNocowboyError } from "@/nocowboy/errors"
+import { SessionNetwork } from "./network"
 import { iife } from "@/util/iife"
 import { isRecord } from "@/util/record"
 
 export type Err = ReturnType<NamedError["toObject"]>
 
-export type RetryReason = string & {} // nocowboy_change - Kilo does not support OpenCode Go upsell reasons
+export type RetryReason = string & {}
 
 export type Retryable = {
   message: string
@@ -64,25 +64,20 @@ export function delay(attempt: number, error?: MessageV2.APIError) {
   return cap(Math.min(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), RETRY_MAX_DELAY_NO_HEADERS))
 }
 
-// nocowboy_change - Kilo does not emit OpenCode Go actions
 export function retryable(error: Err, _provider?: string): Retryable | undefined {
   // context overflow errors should not be retried
   if (MessageV2.ContextOverflowError.isInstance(error)) return undefined
   if (MessageV2.APIError.isInstance(error)) {
     const status = error.data.statusCode
-    // nocowboy_change start - Current Kilo errors require user action (login/signup), don't retry
     if (isNocowboyError(error)) return undefined
-    // nocowboy_change end
 
     // 5xx errors are transient server failures and should always be retried,
     // even when the provider SDK doesn't explicitly mark them as retryable.
     if (!error.data.isRetryable && !(status !== undefined && status >= 500)) return undefined
 
-    // nocowboy_change start - Kilo does not support OpenCode Go upsells. FreeUsageLimitError is not retryable: retrying
     // the same capped model is futile and the backoff loop cannot be broken by switching models in the chat selector
     // because the retry loop holds a stale model ref.
     if (error.data.responseBody?.includes("FreeUsageLimitError")) return undefined
-    // nocowboy_change end
     return { message: error.data.message.includes("Overloaded") ? "Provider is overloaded" : error.data.message }
   }
 
@@ -130,24 +125,19 @@ export function policy(opts: {
   provider: string
   parse: (error: unknown) => Err
   set: (input: { attempt: number; message: string; action?: Retryable["action"]; next: number }) => Effect.Effect<void>
-  // nocowboy_change start
   limit?: number
   offline?: (input: { error: unknown; message: string }) => Effect.Effect<"retry" | "blocked" | "aborted">
-  // nocowboy_change end
 }) {
   return Schedule.fromStepWithMetadata(
     Effect.succeed((meta: Schedule.InputMetadata<unknown>) => {
-      // nocowboy_change start — enforce retry limit
       if (opts.limit !== undefined && meta.attempt > opts.limit) {
         return Cause.done(meta.attempt)
       }
-      // nocowboy_change end
 
       const error = opts.parse(meta.input)
       const retry = retryable(error, opts.provider)
       if (!retry) return Cause.done(meta.attempt)
       return Effect.gen(function* () {
-        // nocowboy_change start — handle network disconnect via offline handler
         if (opts.offline && SessionNetwork.disconnected(meta.input)) {
           const result = yield* opts.offline({
             error: meta.input,
@@ -159,7 +149,6 @@ export function policy(opts: {
           yield* opts.set({ attempt: 0, message: "Reconnected", next: Date.now() })
           return [0, Duration.zero] as [number, Duration.Duration]
         }
-        // nocowboy_change end
 
         const wait = delay(meta.attempt, MessageV2.APIError.isInstance(error) ? error : undefined)
         const now = yield* Clock.currentTimeMillis

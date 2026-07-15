@@ -7,7 +7,6 @@ import { ConfigMCP } from "@/config/mcp"
 import { McpLifecycle } from "@/nocowboy/mcp/lifecycle"
 import { Launcher } from "@/nocowboy/mcp/launcher"
 
-// nocowboy_change — first-run global setup wizard
 const configDir = path.join(os.homedir(), ".config", "nocowboy")
 const configPath = path.join(configDir, "nocowboy.json")
 

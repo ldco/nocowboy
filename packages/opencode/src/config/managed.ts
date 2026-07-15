@@ -3,13 +3,13 @@ export * as ConfigManaged from "./managed"
 import { existsSync } from "fs"
 import os from "os"
 import path from "path"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Process } from "@/util/process"
 import { warn } from "console"
 
 const log = Log.create({ service: "config" })
 
-const MANAGED_PLIST_DOMAIN = "ai.opencode.managed"
+const MANAGED_PLIST_DOMAIN = "ai.nocowboy.managed"
 
 // Keys injected by macOS/MDM into the managed plist that are not OpenCode config
 const PLIST_META = new Set([
@@ -24,11 +24,11 @@ const PLIST_META = new Set([
 function systemManagedConfigDir(): string {
   switch (process.platform) {
     case "darwin":
-      return "/Library/Application Support/kilo" // nocowboy_change
+      return "/Library/Application Support/kilo"
     case "win32":
-      return path.join(process.env.ProgramData || "C:\\ProgramData", "kilo") // nocowboy_change
+      return path.join(process.env.ProgramData || "C:\\ProgramData", "kilo")
     default:
-      return "/etc/kilo" // nocowboy_change
+      return "/etc/kilo"
   }
 }
 

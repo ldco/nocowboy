@@ -14,11 +14,11 @@ import { Server } from "../../src/server/server"
 import { Session } from "../../src/session/session"
 import { MessageV2 } from "../../src/session/message-v2"
 import { MessageID, PartID, SessionID } from "../../src/session/schema"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 import { Database, eq } from "../../src/storage/db"
 import { EventSequenceTable, EventTable } from "../../src/sync/event.sql"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 
 Log.init({ print: false })
 

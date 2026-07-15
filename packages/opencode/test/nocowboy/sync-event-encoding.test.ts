@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
-import { SessionEvent } from "@opencode-ai/core/session-event"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
+import { SessionEvent } from "@nocowboy/core/session-event"
 import { DateTime, Effect, Layer, Schema } from "effect"
 import { Bus } from "../../src/bus"
 import { RuntimeFlags } from "../../src/effect/runtime-flags"

@@ -1,4 +1,4 @@
-// Per-tool display rules shared across `nocowboy run` output paths. // nocowboy_change
+// Per-tool display rules shared across `nocowboy run` output paths.
 //
 // Each known tool (bash, edit, write, task, etc.) has a ToolRule that controls
 // five display hooks:

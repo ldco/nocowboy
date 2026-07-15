@@ -1,5 +1,5 @@
 import { Provider } from "@/provider/provider"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Context, Effect, Layer, Record } from "effect"
 import * as Stream from "effect/Stream"
 import {
@@ -18,7 +18,7 @@ import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "./message-v2"
-import { usable } from "./overflow" // nocowboy_change
+import { usable } from "./overflow"
 import { Plugin } from "@/plugin"
 import { SystemPrompt } from "./system"
 import { Permission } from "@/permission"
@@ -27,10 +27,8 @@ import { Bus } from "@/bus"
 import { Wildcard } from "@/util/wildcard"
 import { SessionID } from "@/session/schema"
 import { Auth } from "@/auth"
-// nocowboy_change start
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
 import { getNoCowboyProjectId } from "@/nocowboy/project-id"
-// nocowboy_change - gateway removed
 const HEADER_FEATURE = "x-nocowboy-feature"
 const HEADER_PARENT_TASKID = "x-nocowboy-parent-taskid"
 const HEADER_PROJECTID = "x-nocowboy-projectid"
@@ -42,8 +40,7 @@ import { KiloLLM } from "@/nocowboy/session/llm"
 import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { SessionExport } from "@/nocowboy/session-export"
 import { getActiveOrg } from "@/nocowboy/session-export/eligibility"
-// nocowboy_change end
-import { USER_AGENT } from "@/installation" // nocowboy_change
+import { USER_AGENT } from "@/installation"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import * as Option from "effect/Option"
@@ -71,7 +68,7 @@ export type StreamInput = {
   tools: Record<string, Tool>
   retries?: number
   toolChoice?: "auto" | "required" | "none"
-  preflight?: boolean // nocowboy_change - enable proactive threshold compaction for normal session turns
+  preflight?: boolean
 }
 
 export type StreamRequest = StreamInput & {
@@ -84,7 +81,7 @@ export interface Interface {
   readonly stream: (input: StreamInput) => Stream.Stream<Event, unknown>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/LLM") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/LLM") {}
 
 const live: Layer.Layer<
   Service,
@@ -123,23 +120,17 @@ const live: Layer.Layer<
         ],
         { concurrency: "unbounded" },
       )
-      // nocowboy_change start - attribute Kilo gateway usage to the root product session
       const attr = NoCowboySession.attribution(input.sessionID)
-      // nocowboy_change end
 
       // TODO: move this to a proper hook
       const isOpenaiOauth = item.id === "openai" && info?.type === "oauth"
 
-      // nocowboy_change start — set lang for Russian Language Pack
       SystemPrompt.setLang((cfg as Record<string, unknown>)?.lang as string | undefined)
-      // nocowboy_change end
 
       const system: string[] = []
       system.push(
         [
-          // nocowboy_change start - soul defines core identity and personality
           ...(isOpenaiOauth ? [] : [SystemPrompt.soul()]),
-          // nocowboy_change end
           // use agent prompt otherwise provider prompt
           ...(input.agent.prompt ? [input.agent.prompt] : SystemPrompt.provider(input.model)),
           // any custom prompt passed into this call
@@ -150,14 +141,12 @@ const live: Layer.Layer<
           .filter((x) => x)
           .join("\n"),
       )
-      // nocowboy_change start - identity anchor at the END of system block
       // Models process context sequentially with recency bias — the last system
       // content before user messages has the strongest influence on output.
       // This anchor ensures NoCowboy identity survives 10k+ tokens of tools,
       // agent instructions, and environment data for ANY model and ANY agent.
       system.push(SystemPrompt.identityAnchor())
       system.push(SystemPrompt.criticalRules())
-      // nocowboy_change end
 
       const header = system[0]
       yield* plugin.trigger(
@@ -185,9 +174,7 @@ const live: Layer.Layer<
           })
       const options = mergeOptions(mergeOptions(mergeOptions(base, input.model.options), input.agent.options), variant)
       if (isOpenaiOauth) {
-        // nocowboy_change start - soul at beginning, anchor at end of instructions
         options.instructions = SystemPrompt.soul() + "\n" + system.join("\n") + "\n" + SystemPrompt.identityAnchor() + "\n" + SystemPrompt.criticalRules()
-        // nocowboy_change end
       }
 
       const isWorkflow = language instanceof GitLabWorkflowLanguageModel
@@ -220,14 +207,12 @@ const live: Layer.Layer<
             : undefined,
           topP: input.agent.topP ?? ProviderTransform.topP(input.model),
           topK: ProviderTransform.topK(input.model),
-          // nocowboy_change start - gpt-5 via @ai-sdk/openai-compatible proxies (e.g. LiteLLM)
           // rejects `max_tokens`; OpenAI requires `max_completion_tokens` and the compatible
           // SDK cannot rename the field, so drop the cap and let the upstream default apply.
           maxOutputTokens:
             input.model.api.npm === "@ai-sdk/openai-compatible" && input.model.api.id.toLowerCase().includes("gpt-5")
               ? undefined
               : ProviderTransform.maxOutputTokens(input.model, flags.outputTokenMax),
-          // nocowboy_change end
           options,
         },
       )
@@ -246,7 +231,6 @@ const live: Layer.Layer<
         },
       )
 
-      // nocowboy_change start - resolve project ID and machine ID for kilo provider
       const isNc = input.model.api.npm === "@nocowboy/gateway"
       const ncProjectId = yield* isNc
         ? Effect.promise(() => getNoCowboyProjectId().catch(() => undefined))
@@ -254,7 +238,6 @@ const live: Layer.Layer<
       const machineId = yield* isNc
         ? Effect.promise(() => Identity.getMachineId().catch(() => undefined))
         : Effect.succeed(undefined)
-      // nocowboy_change end
 
       const tools = resolveTools(input)
 
@@ -279,7 +262,6 @@ const live: Layer.Layer<
       }
       const sortedTools = Object.fromEntries(Object.entries(tools).toSorted(([a], [b]) => a.localeCompare(b)))
 
-      // nocowboy_change start - compact at the configured threshold before contacting the provider
       const estimated: ModelMessage[] =
         isOpenaiOauth || isWorkflow
           ? [
@@ -307,17 +289,16 @@ const live: Layer.Layer<
         NoCowboySessionOverflow.shouldCompact({
           cfg,
           model: input.model,
-          usable: usable({ cfg, model: input.model, outputTokenMax: flags.outputTokenMax }), // nocowboy_change
+          usable: usable({ cfg, model: input.model, outputTokenMax: flags.outputTokenMax }),
           tokens: usage.normalized,
           continuation: usage.continuation,
         })
       ) {
         return yield* Effect.fail(new NoCowboySessionOverflow.PreflightError())
       }
-      // nocowboy_change end
 
       // Wire up toolExecutor for DWS workflow models so that tool calls
-      // from the workflow service are executed via opencode's tool system
+      // from the workflow service are executed via nocowboy's tool system
       // and results sent back over the WebSocket.
       if (language instanceof GitLabWorkflowLanguageModel) {
         const workflowModel = language as GitLabWorkflowLanguageModel & {
@@ -420,9 +401,8 @@ const live: Layer.Layer<
         : undefined
 
       const instance = yield* InstanceState.context
-      const opencodeProjectID = input.model.providerID.startsWith("opencode") ? instance.project.id : undefined
+      const projectID = input.model.providerID.startsWith("nocowboy") ? instance.project.id : undefined
 
-      // nocowboy_change start - capture eligible session export request start
       const org = yield* isNc && input.model.isFree === true
         ? Effect.promise(() => getActiveOrg())
         : Effect.succeed({ type: "unknown" as const })
@@ -456,10 +436,8 @@ const live: Layer.Layer<
           },
         })
       }
-      // nocowboy_change end
 
       const result = streamText({
-        // nocowboy_change
         onError(error) {
           l.error("stream error", {
             error,
@@ -496,28 +474,26 @@ const live: Layer.Layer<
         maxOutputTokens: params.maxOutputTokens,
         abortSignal: input.abort,
         headers: {
-          ...(input.model.providerID.startsWith("kilo") // nocowboy_change
+          ...(input.model.providerID.startsWith("kilo")
             ? {
-                "x-nocowboy-project": opencodeProjectID,
+                "x-nocowboy-project": projectID,
                 "x-nocowboy-session": input.sessionID,
                 "x-nocowboy-request": input.user.id,
                 "x-nocowboy-client": flags.client,
-                "User-Agent": USER_AGENT, // nocowboy_change
+                "User-Agent": USER_AGENT,
               }
             : {
                 "x-session-affinity": input.sessionID,
                 ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-                "User-Agent": USER_AGENT, // nocowboy_change
-                ...(input.model.providerID !== "anthropic" ? DEFAULT_HEADERS : undefined), // nocowboy_change
+                "User-Agent": USER_AGENT,
+                ...(input.model.providerID !== "anthropic" ? DEFAULT_HEADERS : undefined),
               }),
-          // nocowboy_change start - headers for kilo provider
           ...(isNc && input.agent.name ? { "x-nocowboy-mode": input.agent.name.toLowerCase() } : {}),
           ...(isNc && ncProjectId ? { [HEADER_PROJECTID]: ncProjectId } : {}),
           ...(isNc && machineId ? { [HEADER_MACHINEID]: machineId } : {}),
           ...(isNc ? { [HEADER_TASKID]: input.sessionID } : {}),
           ...(isNc && parent ? { [HEADER_PARENT_TASKID]: parent } : {}),
           ...(isNc && attr.feature ? { [HEADER_FEATURE]: attr.feature } : {}),
-          // nocowboy_change end
           ...input.model.headers,
           ...headers,
         },
@@ -538,11 +514,8 @@ const live: Layer.Layer<
             },
           ],
         }),
-        // nocowboy_change start - disable AI SDK span recording (ai.* / gen_ai.*)
         experimental_telemetry: { isEnabled: false },
       })
-      // nocowboy_change end
-      // nocowboy_change start - capture eligible session export request completion off the stream path
       if (!exportable) return { fullStream: result.fullStream } satisfies StreamResult
       return {
         fullStream: observeFullStreamForExport(result.fullStream, {
@@ -555,7 +528,6 @@ const live: Layer.Layer<
           retries: input.retries ?? 0,
         }),
       } satisfies StreamResult
-      // nocowboy_change end
     })
 
     const stream: Interface["stream"] = (input) =>
@@ -590,7 +562,6 @@ export const defaultLayer = Layer.suspend(() =>
   ),
 )
 
-// nocowboy_change start - session export stream observer
 export function observeFullStreamForExport(
   stream: AsyncIterable<Event>,
   meta: {
@@ -705,7 +676,6 @@ export function normalizeUsageForExport(value: Partial<LanguageModelUsage>) {
   const cacheWriteTokens = value.inputTokenDetails?.cacheWriteTokens ?? undefined
   return { inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens }
 }
-// nocowboy_change end
 function resolveTools(input: Pick<StreamInput, "tools" | "agent" | "permission" | "user">) {
   const disabled = Permission.disabled(
     Object.keys(input.tools),

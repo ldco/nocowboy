@@ -2,10 +2,10 @@ import type { ModelMessage, ToolResultPart } from "ai"
 import { mergeDeep, unique } from "remeda"
 import type { JSONSchema7 } from "@ai-sdk/provider"
 import type * as Provider from "./provider"
-import type * as ModelsDev from "@opencode-ai/core/models"
+import type * as ModelsDev from "@nocowboy/core/models"
 import { iife } from "@/util/iife"
 import { ncowboyProviderOptions } from "@/nocowboy/provider-options"
-import { isLing } from "@/nocowboy/model-match" // nocowboy_change
+import { isLing } from "@/nocowboy/model-match"
 
 type Modality = NonNullable<ModelsDev.Model["modalities"]>["input"][number]
 
@@ -45,7 +45,7 @@ function sdkKey(npm: string): string | undefined {
       return "gateway"
     case "@openrouter/ai-sdk-provider":
       return "openrouter"
-    case "@nocowboy/gateway": // nocowboy_change
+    case "@nocowboy/gateway":
       return "openrouter"
     case "ai-gateway-provider":
       // ai-gateway-provider/unified wraps createOpenAICompatible({ name: "Unified" }),
@@ -156,10 +156,8 @@ function normalizeMessages(
   }
 
   // Bedrock specific transforms
-  // nocowboy_change start - only filter for Claude models on Bedrock, not all Bedrock models
   const claude = model.api.id.includes("anthropic") || model.api.id.includes("claude") || model.id.includes("claude")
   if (model.api.npm === "@ai-sdk/amazon-bedrock" && claude) {
-    // nocowboy_change end
     msgs = msgs
       .map((msg) => {
         if (typeof msg.content === "string") {
@@ -495,7 +493,7 @@ export function temperature(model: Provider.Model) {
     }
     return 0.6
   }
-  if (isLing(model.api.id)) return 0.3 // nocowboy_change
+  if (isLing(model.api.id)) return 0.3
   return undefined
 }
 
@@ -505,7 +503,7 @@ export function topP(model: Provider.Model) {
   if (["minimax-m2", "gemini", "kimi-k2.5", "kimi-k2p5", "kimi-k2-5"].some((s) => id.includes(s))) {
     return 0.95
   }
-  if (isLing(model.api.id)) return 0.95 // nocowboy_change
+  if (isLing(model.api.id)) return 0.95
   return undefined
 }
 
@@ -516,7 +514,7 @@ export function topK(model: Provider.Model) {
     return 20
   }
   if (id.includes("gemini")) return 64
-  if (isLing(model.api.id)) return 20 // nocowboy_change
+  if (isLing(model.api.id)) return 20
   return undefined
 }
 
@@ -602,11 +600,9 @@ function openaiCompatibleReasoningEfforts(id: string) {
 }
 
 function anthropicAdaptiveEfforts(apiId: string): string[] | null {
-  // nocowboy_change start - treat opus-4.8 like opus-4.7
   if (["opus-4-7", "opus-4.7", "opus-4-8", "opus-4.8"].some((v) => apiId.includes(v))) {
     return ["low", "medium", "high", "xhigh", "max"]
   }
-  // nocowboy_change end
   if (["opus-4-6", "opus-4.6", "sonnet-4-6", "sonnet-4.6"].some((v) => apiId.includes(v))) {
     return ["low", "medium", "high", "max"]
   }
@@ -629,7 +625,6 @@ function googleThinkingBudgetMax(apiId: string) {
 }
 
 export function variants(model: Provider.Model): Record<string, Record<string, any>> {
-  // nocowboy_change start
   if (
     ["@nocowboy/gateway", "@ai-sdk/openai-compatible"].includes(model.api.npm) &&
     model.variants &&
@@ -637,7 +632,6 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
   ) {
     return model.variants
   }
-  // nocowboy_change end
 
   if (!model.capabilities.reasoning) return {}
 
@@ -649,9 +643,9 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
     id.includes("deepseek-reasoner") ||
     id.includes("deepseek-r1") ||
     id.includes("deepseek-v3") ||
-    // id.includes("minimax") || // nocowboy_change
-    // id.includes("glm") || // nocowboy_change
-    // id.includes("kimi") || // nocowboy_change
+    // id.includes("minimax") ||
+    // id.includes("glm") ||
+    // id.includes("kimi") ||
     // TODO: Remove this after models.dev data is fixed to use "kimi-k2.5" instead of "k2p5"
     id.includes("k2p") ||
     id.includes("qwen") ||
@@ -662,7 +656,6 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
   // see: https://docs.x.ai/docs/guides/reasoning#control-how-hard-the-model-thinks
   if (id.includes("grok") && id.includes("grok-3-mini")) {
     if (model.api.npm === "@openrouter/ai-sdk-provider" || model.api.npm === "@nocowboy/gateway") {
-      // nocowboy_change - add Kilo Gateway support
       return {
         low: { reasoning: { effort: "low" } },
         high: { reasoning: { effort: "high" } },
@@ -676,25 +669,23 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
   if (id.includes("grok")) return {}
 
   switch (model.api.npm) {
-    case "@nocowboy/gateway": // nocowboy_change
+    case "@nocowboy/gateway":
     case "@openrouter/ai-sdk-provider":
-      // nocowboy_change start
       if (id.includes("glm") || id.includes("kimi") || id.includes("qwen") || id.includes("minimax")) {
         return {
           instant: { reasoning: { enabled: false } },
           thinking: { reasoning: { enabled: true } },
         }
       }
-      // nocowboy_change end
       if (
         !id.includes("gpt") &&
         !id.includes("gemini-3") &&
         !id.includes("claude") &&
-        !model.id.includes("mercury") // nocowboy_change
+        !model.id.includes("mercury")
       )
         return {}
       return Object.fromEntries(
-        (model.api.npm === "@nocowboy/gateway" || !id.includes("gpt") // nocowboy_change
+        (model.api.npm === "@nocowboy/gateway" || !id.includes("gpt")
           ? OPENAI_EFFORTS
           : openaiCompatibleReasoningEfforts(id)
         ).map((effort) => [effort, { reasoning: { effort } }]),
@@ -826,7 +817,7 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
           ? ["minimal", ...WIDELY_SUPPORTED_EFFORTS]
           : WIDELY_SUPPORTED_EFFORTS
         )
-          .concat(model.release_date >= OPENAI_XHIGH_EFFORT_RELEASE_DATE ? ["xhigh"] : []) // nocowboy_change
+          .concat(model.release_date >= OPENAI_XHIGH_EFFORT_RELEASE_DATE ? ["xhigh"] : [])
           .map((effort) => [
             effort,
             {
@@ -855,22 +846,18 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
     // https://v5.ai-sdk.dev/providers/ai-sdk-providers/anthropic
     case "@ai-sdk/google-vertex/anthropic":
       // https://v5.ai-sdk.dev/providers/ai-sdk-providers/google-vertex#anthropic-provider
-      // nocowboy_change start - MiniMax M-series toggles thinking on/off rather than exposing effort levels
       if (id.includes("minimax")) {
         return {
           instant: { thinking: { type: "disabled" } },
           thinking: { thinking: { type: "adaptive" } },
         }
       }
-      // nocowboy_change end
       if (adaptiveEfforts) {
         let efforts = [...adaptiveEfforts]
         if (model.providerID === "github-copilot") {
-          // nocowboy_change start - treat opus-4.8 like opus-4.7
           if (model.api.id.includes("opus-4.7") || model.api.id.includes("opus-4.8")) {
             efforts = ["medium"]
           }
-          // nocowboy_change end
           // Efforts currently supported are: low, medium, high
           efforts = efforts.filter((v) => v !== "max" && v !== "xhigh")
         }
@@ -880,11 +867,9 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
             {
               thinking: {
                 type: "adaptive",
-                // nocowboy_change start - treat opus-4.8 like opus-4.7
                 ...(["opus-4-7", "opus-4.7", "opus-4-8", "opus-4.8"].some((v) => model.api.id.includes(v))
                   ? { display: "summarized" }
                   : {}),
-                // nocowboy_change end
               },
               effort,
             },
@@ -921,11 +906,9 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
               reasoningConfig: {
                 type: "adaptive",
                 maxReasoningEffort: effort,
-                // nocowboy_change start - treat opus-4.8 like opus-4.7
                 ...(["opus-4-7", "opus-4.7", "opus-4-8", "opus-4.8"].some((v) => model.api.id.includes(v))
                   ? { display: "summarized" }
                   : {}),
-                // nocowboy_change end
               },
             },
           ]),
@@ -997,17 +980,15 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
 
     case "@ai-sdk/mistral":
       // https://v5.ai-sdk.dev/providers/ai-sdk-providers/mistral
-      // https://docs.mistral.ai/studio-api/conversations/reasoning // nocowboy_change
+      // https://docs.mistral.ai/studio-api/conversations/reasoning
       if (!model.capabilities.reasoning) return {}
       // Only Mistral Small 4 and Medium 3.5 support reasoning
       const MISTRAL_REASONING_IDS = [
         "mistral-small-2603",
         "mistral-small-latest",
         "mistral-medium-3.5",
-        // nocowboy_change start
         "mistral-medium-3-5",
         "mistral-medium-latest",
-        // nocowboy_change end
         "mistral-medium-2604",
       ]
       const mistralId = model.api.id.toLowerCase()
@@ -1121,7 +1102,7 @@ export function options(input: {
   if (
     input.model.api.npm === "@openrouter/ai-sdk-provider" ||
     input.model.api.npm === "@llmgateway/ai-sdk-provider" ||
-    input.model.api.npm === "@nocowboy/gateway" // nocowboy_change
+    input.model.api.npm === "@nocowboy/gateway"
   ) {
     result["usage"] = {
       include: true,
@@ -1133,7 +1114,7 @@ export function options(input: {
 
   if (
     input.model.providerID === "baseten" ||
-    (input.model.providerID === "opencode" && ["kimi-k2-thinking", "glm-4.6"].includes(input.model.api.id))
+    (input.model.providerID === "nocowboy" && ["kimi-k2-thinking", "glm-4.6"].includes(input.model.api.id))
   ) {
     result["chat_template_args"] = { enable_thinking: true }
   }
@@ -1200,22 +1181,20 @@ export function options(input: {
       if (
         input.model.api.npm === "@ai-sdk/openai" ||
         input.model.api.npm === "@ai-sdk/azure" ||
-        input.model.api.npm === "@ai-sdk/github-copilot" || // nocowboy_change
-        input.model.api.npm === "@openrouter/ai-sdk-provider" || // nocowboy_change
-        input.model.api.npm === "@nocowboy/gateway" // nocowboy_change
+        input.model.api.npm === "@ai-sdk/github-copilot" ||
+        input.model.api.npm === "@openrouter/ai-sdk-provider" ||
+        input.model.api.npm === "@nocowboy/gateway"
       ) {
         result["reasoningSummary"] = "auto"
       }
     }
 
     if (
-      // nocowboy_change start - gate textVerbosity to Responses-API providers
       (input.model.api.npm === "@ai-sdk/openai" ||
         input.model.api.npm === "@ai-sdk/azure" ||
         input.model.api.npm === "@ai-sdk/github-copilot" ||
         input.model.api.npm === "@openrouter/ai-sdk-provider" ||
         input.model.api.npm === "@nocowboy/gateway") &&
-      // nocowboy_change end
       input.model.api.id.includes("gpt-5.") &&
       !input.model.api.id.includes("codex") &&
       !input.model.api.id.includes("-chat") &&
@@ -1224,7 +1203,7 @@ export function options(input: {
       result["textVerbosity"] = "low"
     }
 
-    if (input.model.providerID.startsWith("opencode")) {
+    if (input.model.providerID.startsWith("nocowboy")) {
       result["promptCacheKey"] = input.sessionID
       result["include"] = ["reasoning.encrypted_content"]
       result["reasoningSummary"] = "auto"
@@ -1260,10 +1239,10 @@ export function smallOptions(model: Provider.Model) {
   if (
     model.providerID === "openrouter" ||
     model.providerID === "llmgateway" ||
-    model.api.npm === "@nocowboy/gateway" // nocowboy_change
+    model.api.npm === "@nocowboy/gateway"
   ) {
-    if (!model.capabilities.reasoning) return {} // nocowboy_change - omit unsupported reasoning options
-    return { reasoning: { enabled: true } } // nocowboy_change - use the model's supported default effort
+    if (!model.capabilities.reasoning) return {}
+    return { reasoning: { enabled: true } }
   }
 
   if (model.providerID === "venice") {
@@ -1311,11 +1290,9 @@ export function providerOptions(model: Provider.Model, options: { [x: string]: a
     return result
   }
 
-  // nocowboy_change start
   if (model.api.npm === "@nocowboy/gateway") {
     return ncowboyProviderOptions(options)
   }
-  // nocowboy_change end
 
   // AI SDK packages that resolve providerOptionsName by splitting the
   // provider name on "." (e.g. "wafer.ai" -> "wafer") need the same

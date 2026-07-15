@@ -9,19 +9,19 @@ import {
   HttpServerResponse,
 } from "effect/unstable/http"
 import * as Socket from "effect/unstable/socket/Socket"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Account } from "@/account/account"
 import { Agent } from "@/agent/agent"
 import { Auth } from "@/auth"
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { Command } from "@/command"
-import * as Observability from "@opencode-ai/core/effect/observability"
+import * as Observability from "@nocowboy/core/effect/observability"
 import { File } from "@/file"
 import { FileWatcher } from "@/file/watcher"
 import { Ripgrep } from "@/file/ripgrep"
 import { Format } from "@/format"
-import { Git } from "@/git" // nocowboy_change
+import { Git } from "@/git"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LSP } from "@/lsp/lsp"
 import { MCP } from "@/mcp"
@@ -31,8 +31,8 @@ import { InstanceLayer } from "@/project/instance-layer"
 import { Plugin } from "@/plugin"
 import { Project } from "@/project/project"
 import { ProviderAuth } from "@/provider/auth"
-import { ModelsDev } from "@opencode-ai/core/models"
-import { ModelCache } from "@/provider/model-cache" // nocowboy_change
+import { ModelsDev } from "@nocowboy/core/models"
+import { ModelCache } from "@/provider/model-cache"
 import { Provider } from "@/provider/provider"
 import { Pty } from "@/pty"
 import { PtyTicket } from "@/pty/ticket"
@@ -50,7 +50,7 @@ import { ShareNext } from "@/share/share-next"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Skill } from "@/skill"
 import { Snapshot } from "@/snapshot"
-import { Storage } from "@/storage/storage" // nocowboy_change
+import { Storage } from "@/storage/storage"
 import { SyncEvent } from "@/sync"
 import { ToolRegistry } from "@/tool/registry"
 import { lazy } from "@/util/lazy"
@@ -82,11 +82,11 @@ import { syncHandlers } from "./handlers/sync"
 import { tuiHandlers } from "./handlers/tui"
 import { v2Handlers } from "./handlers/v2"
 import { workspaceHandlers } from "./handlers/workspace"
-import { provide as provideKiloHttpApiHandlers } from "@/nocowboy/server/httpapi/server" // nocowboy_change
+import { provide as provideKiloHttpApiHandlers } from "@/nocowboy/server/httpapi/server"
 import { instanceContextLayer, instanceRouterMiddleware } from "./middleware/instance-context"
 import { workspaceRouterMiddleware, workspaceRoutingLayer } from "./middleware/workspace-routing"
 import { disposeMiddleware } from "./lifecycle"
-import { memoMap } from "@opencode-ai/core/effect/memo-map"
+import { memoMap } from "@nocowboy/core/effect/memo-map"
 import { compressionLayer } from "./middleware/compression"
 import { corsVaryFix } from "./middleware/cors-vary"
 import { errorLayer } from "./middleware/error"
@@ -142,7 +142,7 @@ const instanceApiRoutes = HttpApiBuilder.layer(InstanceHttpApi).pipe(
     tuiHandlers,
     workspaceHandlers,
   ]),
-  provideKiloHttpApiHandlers, // nocowboy_change
+  provideKiloHttpApiHandlers,
 )
 
 const rawInstanceRoutes = Layer.mergeAll(ptyConnectRoute).pipe(Layer.provide(instanceRouterLayer))
@@ -202,11 +202,11 @@ export function createRoutes(
       File.defaultLayer,
       FileWatcher.defaultLayer,
       Format.defaultLayer,
-      Git.defaultLayer, // nocowboy_change
+      Git.defaultLayer,
       LSP.defaultLayer,
       Installation.defaultLayer,
       MCP.defaultLayer,
-      ModelCache.defaultLayer, // nocowboy_change
+      ModelCache.defaultLayer,
       ModelsDev.defaultLayer,
       Permission.defaultLayer,
       Plugin.defaultLayer,
@@ -228,7 +228,7 @@ export function createRoutes(
       SessionSummary.defaultLayer,
       ShareNext.defaultLayer,
       Snapshot.defaultLayer,
-      Storage.defaultLayer, // nocowboy_change
+      Storage.defaultLayer,
       SyncEvent.defaultLayer,
       EventV2Bridge.defaultLayer,
       Skill.defaultLayer,

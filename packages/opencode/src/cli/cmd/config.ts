@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { EOL } from "os"
 import { Config } from "../../config/config"
 import { AppRuntime } from "../../effect/app-runtime"

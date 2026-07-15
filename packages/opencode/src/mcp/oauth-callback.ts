@@ -1,8 +1,8 @@
 import { createConnection } from "net"
 import { createServer } from "http"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { OAUTH_CALLBACK_PORT, OAUTH_CALLBACK_PATH, parseRedirectUri } from "./oauth-provider"
-import * as NocowboyOAuthCallback from "../nocowboy/mcp-oauth-callback" // nocowboy_change
+import * as NocowboyOAuthCallback from "../nocowboy/mcp-oauth-callback"
 
 const log = Log.create({ service: "mcp.oauth-callback" })
 
@@ -13,9 +13,7 @@ let currentPath = OAUTH_CALLBACK_PATH
 const HTML_SUCCESS = `<!DOCTYPE html>
 <html>
 <head>
-  <!-- nocowboy_change start -->
   <title>NoCowboy - Authorization Successful</title>
-  <!-- nocowboy_change end -->
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e; color: #eee; }
     .container { text-align: center; padding: 2rem; }
@@ -26,10 +24,8 @@ const HTML_SUCCESS = `<!DOCTYPE html>
 <body>
   <div class="container">
     <h1>Authorization Successful</h1>
-    <!-- nocowboy_change start -->
     <p>You can close this window and return to NoCowboy.</p>
-    <!-- nocowboy_change end -->
-  </div>
+    </div>
   <script>setTimeout(() => window.close(), 2000);</script>
 </body>
 </html>`
@@ -37,9 +33,7 @@ const HTML_SUCCESS = `<!DOCTYPE html>
 const HTML_ERROR = (error: string) => `<!DOCTYPE html>
 <html>
 <head>
-  <!-- nocowboy_change start -->
   <title>NoCowboy - Authorization Failed</title>
-  <!-- nocowboy_change end -->
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e; color: #eee; }
     .container { text-align: center; padding: 2rem; }
@@ -146,7 +140,6 @@ function handleRequest(req: import("http").IncomingMessage, res: import("http").
 }
 
 export async function ensureRunning(redirectUri?: string): Promise<void> {
-  // nocowboy_change start - delegate Kilo-specific callback binding from here because OAuth state lives in this module
   await NocowboyOAuthCallback.ensureRunning({
     redirectUri,
     parse: parseRedirectUri,
@@ -162,7 +155,6 @@ export async function ensureRunning(redirectUri?: string): Promise<void> {
     error: (msg, data) => log.error(msg, data),
   })
   return
-  // nocowboy_change end
 
   // Parse the redirect URI to get port and path (uses defaults if not provided)
   const { port, path } = parseRedirectUri(redirectUri)
@@ -186,7 +178,6 @@ export async function ensureRunning(redirectUri?: string): Promise<void> {
 
   server = createServer(handleRequest)
   await new Promise<void>((resolve, reject) => {
-    // nocowboy_change start - EADDRINUSE can still fire when another process
     // races us between isPortInUse() and listen() (notably across parallel
     // bun test subprocesses). Treat it as "another instance owns the port",
     // matching the isPortInUse() branch above instead of crashing.
@@ -201,9 +192,8 @@ export async function ensureRunning(redirectUri?: string): Promise<void> {
       reject(err)
     }
     server!.on("error", onError)
-    // nocowboy_change end
     server!.listen(currentPort, () => {
-      server!.off("error", onError) // nocowboy_change
+      server!.off("error", onError)
       log.info("oauth callback server started", { port: currentPort, path: currentPath })
       resolve()
     })

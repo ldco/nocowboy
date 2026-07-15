@@ -1,11 +1,11 @@
 import { Effect, ScopedCache, Scope } from "effect"
-import * as EffectLogger from "@opencode-ai/core/effect/logger"
-import { capture, type InstanceContext } from "@/nocowboy/instance" // nocowboy_change
+import * as EffectLogger from "@nocowboy/core/effect/logger"
+import { capture, type InstanceContext } from "@/nocowboy/instance"
 import { InstanceRef, WorkspaceRef } from "./instance-ref"
 import { registerDisposer } from "./instance-registry"
 import { WorkspaceContext } from "@/control-plane/workspace-context"
 
-const TypeId = "~opencode/InstanceState"
+const TypeId = "~nocowboy/InstanceState"
 
 export interface InstanceState<A, E = never, R = never> {
   readonly [TypeId]: typeof TypeId
@@ -13,7 +13,7 @@ export interface InstanceState<A, E = never, R = never> {
 }
 
 export const context = Effect.gen(function* () {
-  const ctx = (yield* InstanceRef) ?? capture() // nocowboy_change
+  const ctx = (yield* InstanceRef) ?? capture()
   if (!ctx) return yield* Effect.die(new Error("InstanceRef not provided"))
   return ctx
 })

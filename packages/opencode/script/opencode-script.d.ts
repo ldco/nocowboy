@@ -1,4 +1,4 @@
-declare module "@opencode-ai/script" {
+declare module "@nocowboy/script" {
   export const Script: {
     channel: string
     version: string

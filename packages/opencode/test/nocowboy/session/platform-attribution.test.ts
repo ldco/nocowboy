@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import path from "path"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Session as SessionNs } from "@/session/session"
 import { AppRuntime } from "../../../src/effect/app-runtime"
 import { Bus } from "../../../src/bus"

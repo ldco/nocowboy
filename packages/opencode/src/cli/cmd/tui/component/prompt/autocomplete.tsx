@@ -14,7 +14,7 @@ import { useTheme, selectedForeground } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { useCommandPalette } from "../../context/command-palette"
 import { useTerminalDimensions } from "@opentui/solid"
-import { slashDisplay } from "@/nocowboy/cli/cmd/command-display" // nocowboy_change
+import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
 import { Locale } from "@/util/locale"
 import type { PromptInfo } from "./history"
 import { useFrecency } from "./frecency"
@@ -22,6 +22,7 @@ import { useBindings } from "../../keymap"
 import { Reference } from "@/reference/reference"
 import type { Config } from "@/config/config"
 import { displayCharAt, mentionTriggerIndex } from "@/cli/cmd/prompt-display"
+import { getFileList } from "@/nocowboy/repomap"
 
 function removeLineRange(input: string) {
   const hashIndex = input.lastIndexOf("#")
@@ -57,10 +58,8 @@ function extractLineRange(input: string) {
 
 export type AutocompleteRef = {
   onInput: (value: string) => void
-  // nocowboy_change start - validate cursor moves and close overlays without mutating draft text
   onCursorChange: () => void
   dismiss: () => void
-  // nocowboy_change end
   visible: false | "@" | "/"
 }
 
@@ -384,43 +383,39 @@ export function Autocomplete(props: {
 
       const { lineRange, baseQuery } = extractLineRange(query ?? "")
 
-      // Get files from SDK
-      const result = await sdk.client.find.files({
-        query: baseQuery,
-      })
+      // Get files from local repomap (no HTTP roundtrip)
+      const root = sync.path.directory || process.cwd()
+      const fileList = getFileList(root, baseQuery || undefined)
 
       const options: AutocompleteOption[] = []
 
-      // Add file options
-      if (!result.error && result.data) {
-        const sortedFiles = result.data.sort((a, b) => {
-          const aScore = frecency.getFrecency(a)
-          const bScore = frecency.getFrecency(b)
-          if (aScore !== bScore) return bScore - aScore
-          const aDepth = a.split("/").length
-          const bDepth = b.split("/").length
-          if (aDepth !== bDepth) return aDepth - bDepth
-          return a.localeCompare(b)
-        })
+      const sortedFiles = fileList.sort((a, b) => {
+        const aScore = frecency.getFrecency(a)
+        const bScore = frecency.getFrecency(b)
+        if (aScore !== bScore) return bScore - aScore
+        const aDepth = a.split("/").length
+        const bDepth = b.split("/").length
+        if (aDepth !== bDepth) return aDepth - bDepth
+        return a.localeCompare(b)
+      })
 
-        const width = props.anchor().width - 4
-        options.push(
-          ...sortedFiles.map((item): AutocompleteOption => {
-            const { filename, url, part } = createFilePart(item, lineRange)
+      const width = props.anchor().width - 4
+      options.push(
+        ...sortedFiles.map((item): AutocompleteOption => {
+          const { filename, url, part } = createFilePart(item, lineRange)
 
-            const isDir = item.endsWith("/")
-            return {
-              display: Locale.truncateMiddle(filename, width),
-              value: filename,
-              isDirectory: isDir,
-              path: item,
-              onSelect: () => {
-                insertPart(filename, part)
-              },
-            }
-          }),
-        )
-      }
+          const isDir = item.endsWith("/")
+          return {
+            display: Locale.truncateMiddle(filename, width),
+            value: filename,
+            isDirectory: isDir,
+            path: item,
+            onSelect: () => {
+              insertPart(filename, part)
+            },
+          }
+        }),
+      )
 
       return options
     },
@@ -544,7 +539,6 @@ export function Autocomplete(props: {
     const results: AutocompleteOption[] = [...command.slashes()]
 
     for (const serverCommand of sync.data.command) {
-      // nocowboy_change start - preserve suffixes like :skill when inserting selected slash commands
       const display = slashDisplay(serverCommand)
       results.push({
         display,
@@ -557,7 +551,6 @@ export function Autocomplete(props: {
           props.input().cursorOffset = Bun.stringWidth(newText)
         },
       })
-      // nocowboy_change end
     }
 
     results.sort((a, b) => a.display.localeCompare(b.display))
@@ -731,7 +724,6 @@ export function Autocomplete(props: {
         "prompt.autocomplete.select",
         "prompt.autocomplete.complete",
       ]),
-      // nocowboy_change start - close stale suggestions while allowing normal cursor movement
       {
         key: "right",
         fallthrough: true,
@@ -739,7 +731,6 @@ export function Autocomplete(props: {
           if (props.input().cursorOffset <= store.index) dismiss()
         },
       },
-      // nocowboy_change end
     ],
   }))
 
@@ -751,7 +742,6 @@ export function Autocomplete(props: {
     })
   }
 
-  // nocowboy_change start - keep slash text intact when overlays hide the prompt,
   // but still allow normal autocomplete dismissal to clean it up.
   function dismiss() {
     if (!store.visible) return
@@ -771,7 +761,6 @@ export function Autocomplete(props: {
     }
     dismiss()
   }
-  // nocowboy_change end
 
   onMount(() => {
     const unsubscribeMention = editor.onMention((mention) => {
@@ -786,11 +775,9 @@ export function Autocomplete(props: {
       get visible() {
         return store.visible
       },
-      // nocowboy_change start
       dismiss() {
         dismiss()
       },
-      // nocowboy_change end
       onInput(value) {
         if (store.visible) {
           if (
@@ -824,7 +811,6 @@ export function Autocomplete(props: {
           setStore("index", idx)
         }
       },
-      // nocowboy_change start - dismiss stale popup after cursor leaves active filter region
       onCursorChange() {
         if (!store.visible) return
         const cursor = props.input().cursorOffset
@@ -837,7 +823,6 @@ export function Autocomplete(props: {
           hide()
         }
       },
-      // nocowboy_change end
     })
   })
 

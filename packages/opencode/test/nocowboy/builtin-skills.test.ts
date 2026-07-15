@@ -1,6 +1,6 @@
 import { expect } from "bun:test"
 import { Effect, Layer } from "effect"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import path from "path"
 import { Skill } from "../../src/skill"
 import * as KiloSkill from "../../src/nocowboy/skill-remove"

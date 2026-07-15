@@ -7,18 +7,21 @@ import type {
 } from "@nocowboy/plugin"
 import { Config } from "@/config/config"
 import { Bus } from "../bus"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { createNocowboyClient } from "@nocowboy/sdk"
 import { ServerAuth } from "@/server/auth"
 import { CodexAuthPlugin } from "./codex"
 import { Session } from "@/session/session"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
-import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
-import { PoeAuthPlugin } from "opencode-poe-auth"
+// Dynamic import — optional external plugins, may not be installed
+let GitlabAuthPlugin: any = undefined
+try { GitlabAuthPlugin = (await import("@opencode-ai/plugin-gitlab-auth")).gitlabAuthPlugin } catch {}
+let PoeAuthPlugin: any = undefined
+try { PoeAuthPlugin = (await import("@opencode-ai/plugin-poe-auth")).PoeAuthPlugin } catch {}
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
-import { XaiAuthPlugin } from "./xai" // nocowboy_change
+import { XaiAuthPlugin } from "./xai"
 import { DigitalOceanAuthPlugin } from "./digitalocean"
 import { Effect, Layer, Context, Stream } from "effect"
 import { EffectBridge } from "@/effect/bridge"
@@ -26,9 +29,8 @@ import { InstanceState } from "@/effect/instance-state"
 import { errorMessage } from "@/util/error"
 import { PluginLoader } from "./loader"
 import { parsePluginSpecifier, readPluginId, readV1Plugin, resolvePluginId } from "./shared"
-// nocowboy_change - gateway removed, stub inlined
 const AuthPlugin = async () => ({})
-// REMOVED: import { AtomicChatPlugin } from "@nocowboy/plugin-atomic-chat" // nocowboy_change
+// REMOVED: import { AtomicChatPlugin } from "@nocowboy/plugin-atomic-chat"
 import { registerAdapter } from "@/control-plane/adapters"
 import type { WorkspaceAdapter } from "@/control-plane/types"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -58,16 +60,14 @@ export interface Interface {
   readonly init: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Plugin") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Plugin") {}
 
 // Built-in plugins that are directly imported (not installed from npm)
-// nocowboy_change start
 const INTERNAL_PLUGINS: PluginInstance[] = [
   AuthPlugin,
   //AtomicChatPlugin,
   CodexAuthPlugin,
   CopilotAuthPlugin,
-  // nocowboy_change - external auth plugins ship against @opencode-ai/plugin; bridge to our @kilocode/plugin types
   GitlabAuthPlugin as unknown as PluginInstance,
   PoeAuthPlugin as unknown as PluginInstance,
   CloudflareWorkersAuthPlugin,
@@ -75,8 +75,7 @@ const INTERNAL_PLUGINS: PluginInstance[] = [
   AzureAuthPlugin,
   XaiAuthPlugin,
   DigitalOceanAuthPlugin,
-]
-// nocowboy_change end
+].filter((p): p is PluginInstance => p != null)
 
 function isServerPlugin(value: unknown): value is PluginInstance {
   return typeof value === "function"
@@ -97,8 +96,7 @@ function getLegacyPlugins(mod: Record<string, unknown>) {
     if (seen.has(entry)) continue
     seen.add(entry)
     const plugin = getServerPlugin(entry)
-    // nocowboy_change: skip named exports (e.g. constants from @kilocode/plugin-atomic-chat)
-    if (!plugin) continue // nocowboy_change
+    if (!plugin) continue
     result.push(plugin)
   }
 

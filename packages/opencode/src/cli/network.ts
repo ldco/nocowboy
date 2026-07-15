@@ -20,8 +20,8 @@ const options = {
   },
   "mdns-domain": {
     type: "string" as const,
-    describe: "custom domain name for mDNS service (default: kilo.local)", // nocowboy_change
-    default: "kilo.local", // nocowboy_change
+    describe: "custom domain name for mDNS service (default: kilo.local)",
+    default: "kilo.local",
   },
   cors: {
     type: "string" as const,
@@ -33,7 +33,6 @@ const options = {
 
 export type NetworkOptions = InferredOptionTypes<typeof options>
 
-// nocowboy_change start
 const flags = [
   ["port", "--port"],
   ["hostname", "--hostname"],
@@ -52,7 +51,6 @@ export function explicitNetworkOptions(argv = process.argv) {
       : [],
   )
 }
-// nocowboy_change end
 
 export function withNetworkOptions<T>(yargs: Argv<T>) {
   return yargs.options(options)
@@ -63,13 +61,11 @@ export const resolveNetworkOptions = Effect.fn("Cli.resolveNetworkOptions")(func
 })
 
 export function resolveNetworkOptionsNoConfig(args: NetworkOptions, config?: Config.Info) {
-  // nocowboy_change start
   const explicit = explicitNetworkOptions()
   const portExplicitlySet = explicit.includes("port")
   const hostnameExplicitlySet = explicit.includes("hostname")
   const mdnsExplicitlySet = explicit.includes("mdns")
   const mdnsDomainExplicitlySet = explicit.includes("mdnsDomain")
-  // nocowboy_change end
   const mdns = mdnsExplicitlySet ? args.mdns : (config?.server?.mdns ?? args.mdns)
   const mdnsDomain = mdnsDomainExplicitlySet ? args["mdns-domain"] : (config?.server?.mdnsDomain ?? args["mdns-domain"])
   const port = portExplicitlySet ? args.port : (config?.server?.port ?? args.port)

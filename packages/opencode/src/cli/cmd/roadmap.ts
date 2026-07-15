@@ -1,4 +1,3 @@
-// nocowboy_change — roadmap CLI commands
 // Replaces scripts/verify-roadmap.ts, scripts/generate-docs.ts, scripts/init-roadmap.sh
 
 import { EOL } from "os"
@@ -51,7 +50,7 @@ function loadRoadmap(): RoadmapData | null {
 }
 
 function resolvePath(ref: string): string {
-  if (ref.startsWith("src/")) return join(PROJECT_ROOT, "packages", "opencode", "src", ref.slice(4))
+  if (ref.startsWith("src/")) return join(PROJECT_ROOT, "packages", "nocowboy", "src", ref.slice(4))
   if (ref.startsWith("packages/") || ref.startsWith("scripts/") || ref.startsWith("docs/") || ref.startsWith(".nocowboy/")) return join(PROJECT_ROOT, ref)
   return join(PROJECT_ROOT, ref)
 }
@@ -253,14 +252,14 @@ function checkGrep(path: string, pattern: string): string | null {
 function checkTest(path: string): string | null {
   const resolved = resolvePath(path)
   if (!existsSync(resolved)) return `test not found: ${resolved}`
-  const pkgDir = join(PROJECT_ROOT, "packages", "opencode")
+  const pkgDir = join(PROJECT_ROOT, "packages", "nocowboy")
   const rel = resolved.startsWith(pkgDir) ? resolved.slice(pkgDir.length + 1) : resolved
   const result = runCmd(`bun test "${rel}" 2>&1 | tail -10`, pkgDir)
   return result.ok ? null : `test failed:\n${result.out}`
 }
 
 function checkTypecheck(): string | null {
-  const pkgDir = join(PROJECT_ROOT, "packages", "opencode")
+  const pkgDir = join(PROJECT_ROOT, "packages", "nocowboy")
   if (!existsSync(pkgDir)) return null // not a NoCowboy project
   const result = runCmd("bun run typecheck 2>&1 | tail -10", pkgDir)
   return result.ok ? null : result.out

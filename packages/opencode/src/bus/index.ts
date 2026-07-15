@@ -1,14 +1,14 @@
-import { Effect, Exit, Fiber, Layer, PubSub, Scope, Context, Stream, Schema } from "effect" // nocowboy_change
+import { Effect, Exit, Fiber, Layer, PubSub, Scope, Context, Stream, Schema } from "effect"
 import { EffectBridge } from "@/effect/bridge"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { BusEvent } from "./bus-event"
 import { GlobalBus } from "./global"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
 import { Identifier } from "@/id/id"
-import { context as instanceContext, type InstanceContext } from "@/project/instance-context" // nocowboy_change
+import { context as instanceContext, type InstanceContext } from "@/project/instance-context"
 import { InstanceRef } from "@/effect/instance-ref"
-import { LocalContext } from "@/util/local-context" // nocowboy_change
+import { LocalContext } from "@/util/local-context"
 
 const log = Log.create({ service: "bus" })
 
@@ -47,7 +47,7 @@ export interface Interface {
   readonly subscribeAllCallback: (callback: (event: any) => unknown) => Effect.Effect<() => void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Bus") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Bus") {}
 
 export const layer = Layer.effect(
   Service,
@@ -196,7 +196,6 @@ export async function publish<D extends BusEvent.Definition>(
   return runPromise((svc) => svc.publish(def, properties, options).pipe(Effect.provideService(InstanceRef, ctx)))
 }
 
-// nocowboy_change start - legacy callback facade inherits the active instance context
 function active() {
   const fiber = Fiber.getCurrent()
   const current = fiber ? Context.getReferenceUnsafe(fiber.context, InstanceRef) : undefined
@@ -227,6 +226,5 @@ export function subscribeAll(callback: (event: any) => unknown) {
       .pipe(Effect.provideService(InstanceRef, ctx)),
   )
 }
-// nocowboy_change end
 
 export * as Bus from "."

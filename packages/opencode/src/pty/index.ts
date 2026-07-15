@@ -3,16 +3,16 @@ import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { EffectBridge } from "@/effect/bridge"
-import { lazy } from "@opencode-ai/core/util/lazy"
+import { lazy } from "@nocowboy/core/util/lazy"
 import { Plugin } from "@/plugin"
 import { Shell } from "@/shell/shell"
-import { NocowboyPtySelfCommand } from "@/nocowboy/pty/self-command" // nocowboy_change
+import { NocowboyPtySelfCommand } from "@/nocowboy/pty/self-command"
 import type { Proc } from "#pty"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { PtyID } from "./schema"
 import { Effect, Layer, Context, Schema, Types } from "effect"
-import { NonNegativeInt, PositiveInt } from "@opencode-ai/core/schema"
-import { SessionID } from "@/session/schema" // nocowboy_change
+import { NonNegativeInt, PositiveInt } from "@nocowboy/core/schema"
+import { SessionID } from "@/session/schema"
 
 const log = Log.create({ service: "pty" })
 
@@ -63,7 +63,7 @@ export const Info = Schema.Struct({
   cwd: Schema.String,
   status: Schema.Literals(["running", "exited"]),
   pid: PositiveInt,
-  sessionID: Schema.optional(Schema.NullOr(SessionID)), // nocowboy_change
+  sessionID: Schema.optional(Schema.NullOr(SessionID)),
 }).annotate({ identifier: "Pty" })
 
 export type Info = Types.DeepMutable<Schema.Schema.Type<typeof Info>>
@@ -80,7 +80,7 @@ export type CreateInput = Types.DeepMutable<Schema.Schema.Type<typeof CreateInpu
 
 export const UpdateInput = Schema.Struct({
   title: Schema.optional(Schema.String),
-  sessionID: Schema.optional(Schema.NullOr(SessionID)), // nocowboy_change
+  sessionID: Schema.optional(Schema.NullOr(SessionID)),
   size: Schema.optional(
     Schema.Struct({
       rows: PositiveInt,
@@ -113,7 +113,7 @@ export interface Interface {
   ) => Effect.Effect<{ onMessage: (message: string | ArrayBuffer) => void; onClose: () => void } | undefined>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Pty") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Pty") {}
 
 export const layer = Layer.effect(
   Service,
@@ -179,14 +179,14 @@ export const layer = Layer.effect(
       const bridge = yield* EffectBridge.make()
       const cfg = yield* config.get()
       const id = PtyID.ascending()
-      const resolved = NocowboyPtySelfCommand.resolve(input) // nocowboy_change
-      const command = resolved.command || Shell.preferred(cfg.shell) // nocowboy_change
-      const args = resolved.args || [] // nocowboy_change
+      const resolved = NocowboyPtySelfCommand.resolve(input)
+      const command = resolved.command || Shell.preferred(cfg.shell)
+      const args = resolved.args || []
       if (Shell.login(command)) {
         args.push("-l")
       }
 
-      const cwd = resolved.cwd || s.dir // nocowboy_change
+      const cwd = resolved.cwd || s.dir
       const shell = yield* plugin.trigger("shell.env", { cwd }, { env: {} })
       const env = {
         ...process.env,
@@ -194,9 +194,8 @@ export const layer = Layer.effect(
         ...shell.env,
         TERM: "xterm-256color",
         KILO_TERMINAL: "1",
-        KILO_PTY_ID: id, // nocowboy_change
+        KILO_PTY_ID: id,
       } as Record<string, string>
-      // nocowboy_change start
       // Don't leak the nocowboy server.s auth credential into user shells.
       // Anything the shell forks (npm post-install scripts, `curl | bash`,
       // supply-chain-compromised tools) would otherwise see the password
@@ -205,7 +204,6 @@ export const layer = Layer.effect(
       // pass `--password` explicitly or re-export the env themselves.
       delete env.NOCOWBOY_SERVER_PASSWORD
       delete env.NOCOWBOY_SERVER_USERNAME
-      // nocowboy_change end
 
       if (process.platform === "win32") {
         env.LC_ALL = "C.UTF-8"
@@ -284,11 +282,9 @@ export const layer = Layer.effect(
       if (input.title) {
         session.info.title = input.title
       }
-      // nocowboy_change start
       if ("sessionID" in input) {
         session.info.sessionID = input.sessionID ?? undefined
       }
-      // nocowboy_change end
       if (input.size) {
         session.process.resize(input.size.cols, input.size.rows)
       }

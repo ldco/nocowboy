@@ -1,9 +1,9 @@
 import { Cause, Context, Effect, Layer } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { Sessions } from "@/nocowboy-sessions/sessions"
-import * as Log from "@opencode-ai/core/util/log"
-import { Global } from "@opencode-ai/core/global"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import * as Log from "@nocowboy/core/util/log"
+import { Global } from "@nocowboy/core/global"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import path from "node:path"
 import { Bus } from "@/bus"
 import { SessionExport } from "@/nocowboy/session-export"
@@ -27,7 +27,6 @@ export namespace NocowboyBootstrap {
 
       const init = Effect.fn("NocowboyBootstrap.init")(function* () {
         yield* sessions.init()
-        // nocowboy_change start - session export bootstrap
         yield* Effect.gen(function* () {
           const anon = yield* EffectBridge.fromPromise(() =>
             Identity.getMachineId().catch((err) => {
@@ -51,7 +50,6 @@ export namespace NocowboyBootstrap {
             Effect.sync(() => log.warn("session export bootstrap failed", { err: Cause.squash(cause) })),
           ),
         )
-        // nocowboy_change end
         yield* EffectBridge.fromPromise(() =>
           import("@/nocowboy/indexing").then((mod) => mod.KiloIndexing.init()),
         ).pipe(

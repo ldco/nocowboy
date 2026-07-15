@@ -539,7 +539,7 @@ export function RunModelSelectBody(props: {
             const current = props.current()?.providerID === provider.id && props.current()?.modelID === modelID
             const footer = current
               ? "current"
-              : model.cost?.input === 0 && provider.id === "opencode"
+              : model.cost?.input === 0 && provider.id === "nocowboy"
                 ? "Free"
                 : title !== modelID
                   ? modelID
@@ -557,7 +557,7 @@ export function RunModelSelectBody(props: {
           }),
       )
       .sort((a, b) => {
-        const provider = Number(a.providerID !== "opencode") - Number(b.providerID !== "opencode")
+        const provider = Number(a.providerID !== "nocowboy") - Number(b.providerID !== "nocowboy")
         if (provider !== 0) {
           return provider
         }

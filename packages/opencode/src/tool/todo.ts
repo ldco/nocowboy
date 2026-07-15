@@ -2,9 +2,7 @@ import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
 import DESCRIPTION_WRITE from "./todowrite.txt"
 import { Todo } from "../session/todo"
-// nocowboy_change start
 import { TodoView } from "../nocowboy/todo-view"
-// nocowboy_change end
 
 // Todo.Info is still a zod schema (session/todo.ts). Inline the field shape
 // here rather than referencing its `.shape` — the LLM-visible JSON Schema is
@@ -23,9 +21,7 @@ export const Parameters = Schema.Struct({
 
 type Metadata = {
   todos: Todo.Info[]
-  // nocowboy_change start
   view?: TodoView.Info
-  // nocowboy_change end
 }
 
 export const TodoWriteTool = Tool.define<typeof Parameters, Metadata, Todo.Service>(
@@ -45,10 +41,8 @@ export const TodoWriteTool = Tool.define<typeof Parameters, Metadata, Todo.Servi
             metadata: {},
           })
 
-          // nocowboy_change start
           const before = yield* todo.get(ctx.sessionID)
           const view = TodoView.calculate(before, params.todos)
-          // nocowboy_change end
 
           yield* todo.update({
             sessionID: ctx.sessionID,
@@ -60,9 +54,7 @@ export const TodoWriteTool = Tool.define<typeof Parameters, Metadata, Todo.Servi
             output: JSON.stringify(params.todos, null, 2),
             metadata: {
               todos: params.todos,
-              // nocowboy_change start
               view,
-              // nocowboy_change end
             },
           }
         }),

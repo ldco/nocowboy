@@ -1,4 +1,4 @@
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { InstanceLayer } from "@/project/instance-layer"
 import { InstanceStore } from "@/project/instance-store"
 import { Project } from "@/project/project"
@@ -6,8 +6,8 @@ import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
 import { ProjectTable } from "../project/project.sql"
 import type { ProjectID } from "../project/schema"
-import * as Log from "@opencode-ai/core/util/log"
-import { Slug } from "@opencode-ai/core/util/slug"
+import * as Log from "@nocowboy/core/util/log"
+import { Slug } from "@nocowboy/core/util/slug"
 import { errorMessage } from "../util/error"
 import { BusEvent } from "@/bus/bus-event"
 import { GlobalBus } from "@/bus/global"
@@ -15,11 +15,11 @@ import { Git } from "@/git"
 import { Effect, Layer, Path, Schema, Scope, Context } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 import { NodePath } from "@effect/platform-node"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { BootstrapRuntime } from "@/effect/bootstrap-runtime"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@nocowboy/core/process"
 import { InstanceState } from "@/effect/instance-state"
-import { WorktreeCleanup } from "@/nocowboy/worktree-cleanup" // nocowboy_change
+import { WorktreeCleanup } from "@/nocowboy/worktree-cleanup"
 
 const log = Log.create({ service: "worktree" })
 
@@ -144,7 +144,7 @@ export interface Interface {
   readonly reset: (input: ResetInput) => Effect.Effect<boolean, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Worktree") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Worktree") {}
 
 type GitResult = { code: number; text: string; stderr: string }
 
@@ -192,7 +192,7 @@ export const layer: Layer.Layer<
       const ctx = yield* InstanceState.context
       for (const attempt of Array.from({ length: MAX_NAME_ATTEMPTS }, (_, i) => i)) {
         const name = input.name ? (attempt === 0 ? input.name : `${input.name}-${Slug.create()}`) : Slug.create()
-        const branch = input.detached ? undefined : `opencode/${name}`
+        const branch = input.detached ? undefined : `nocowboy/${name}`
         const directory = pathSvc.join(input.root, name)
 
         if (yield* fs.exists(directory).pipe(Effect.orDie)) continue
@@ -377,7 +377,6 @@ export const layer: Layer.Layer<
       )
     }
 
-    // nocowboy_change start - use Kilo cleanup helper for slow Windows handle release
     function cleanDirectory(target: string) {
       return Effect.tryPromise({
         try: () => WorktreeCleanup.removeDirectory(target),
@@ -385,7 +384,6 @@ export const layer: Layer.Layer<
           new RemoveFailedError({ message: errorMessage(error) || "Failed to remove git worktree directory" }),
       })
     }
-    // nocowboy_change end
 
     const remove = Effect.fn("Worktree.remove")(function* (input: RemoveInput) {
       const ctx = yield* InstanceState.context
@@ -417,7 +415,7 @@ export const layer: Layer.Layer<
         target: entry.path,
         git,
         stop: stopFsmonitor,
-      }) // nocowboy_change
+      })
       if (removed.code !== 0) {
         const next = yield* git(["worktree", "list", "--porcelain"], { cwd: ctx.worktree })
         if (next.code !== 0) {

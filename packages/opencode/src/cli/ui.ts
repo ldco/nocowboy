@@ -1,11 +1,9 @@
 import { EOL } from "os"
 import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
-import { tui } from "../nocowboy/cli/logo" // nocowboy_change
+import { tui } from "../nocowboy/cli/logo"
 
-// nocowboy_change start
 const wordmark = [...tui()]
-// nocowboy_change end
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
 

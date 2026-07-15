@@ -1,4 +1,4 @@
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 
 export const DEFAULT_HEADERS = {
   "HTTP-Referer": "https://nocowboy.dev",

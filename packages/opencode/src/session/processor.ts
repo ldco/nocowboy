@@ -18,19 +18,17 @@ import { SessionStatus } from "./status"
 import { SessionSummary } from "./summary"
 import type { Provider } from "@/provider/provider"
 import { Question } from "@/question"
-// nocowboy_change start
 import { NoCowboySessionProcessor, type ReviewTelemetry } from "@/nocowboy/session/processor"
 import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { Suggestion } from "@/nocowboy/suggestion"
-// nocowboy_change end
 import { errorMessage } from "@/util/error"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { isRecord } from "@/util/record"
-import { EventV2 } from "@opencode-ai/core/event"
+import { EventV2 } from "@nocowboy/core/event"
 import { EventV2Bridge } from "@/event-v2-bridge"
-import { SessionEvent } from "@opencode-ai/core/session-event"
-import { ModelV2 } from "@opencode-ai/core/model"
-import { ProviderV2 } from "@opencode-ai/core/provider"
+import { SessionEvent } from "@nocowboy/core/session-event"
+import { ModelV2 } from "@nocowboy/core/model"
+import { ProviderV2 } from "@nocowboy/core/provider"
 import * as DateTime from "effect/DateTime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
@@ -57,17 +55,15 @@ export interface Handle {
     },
   ) => Effect.Effect<void>
   readonly process: (streamInput: LLM.StreamInput) => Effect.Effect<Result>
-  readonly compactError?: () => ReturnType<typeof MessageV2.ContextOverflowError.prototype.toObject> | undefined // nocowboy_change
+  readonly compactError?: () => ReturnType<typeof MessageV2.ContextOverflowError.prototype.toObject> | undefined
 }
 
 type Input = {
   assistantMessage: MessageV2.Assistant
   sessionID: SessionID
   model: Provider.Model
-  // nocowboy_change start
   telemetry?: ReviewTelemetry
   snapshotInitialization?: "wait"
-  // nocowboy_change end
 }
 
 export interface Interface {
@@ -87,18 +83,16 @@ interface ProcessorContext extends Input {
   snapshot: string | undefined
   blocked: boolean
   needsCompaction: boolean
-  compactionError: ReturnType<typeof MessageV2.ContextOverflowError.prototype.toObject> | undefined // nocowboy_change
+  compactionError: ReturnType<typeof MessageV2.ContextOverflowError.prototype.toObject> | undefined
   currentText: MessageV2.TextPart | undefined
   reasoningMap: Record<string, MessageV2.ReasoningPart>
-  // nocowboy_change start
   stepStart: number
   step: { reasoning: boolean; text: boolean; tool: boolean }
-  // nocowboy_change end
 }
 
 type StreamEvent = Event
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionProcessor") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SessionProcessor") {}
 
 export const layer = Layer.effect(
   Service,
@@ -122,13 +116,11 @@ export const layer = Layer.effect(
       // Pre-capture snapshot before the LLM stream starts. The AI SDK
       // may execute tools internally before emitting start-step events,
       // so capturing inside the event handler can be too late.
-      // nocowboy_change start - pass turn context for slow-snapshot UI/policy handling
       const initialSnapshot = yield* snapshot.track({
         sessionID: input.sessionID,
         messageID: input.assistantMessage.id,
         snapshotInitialization: input.snapshotInitialization,
       })
-      // nocowboy_change end
       const ctx: ProcessorContext = {
         assistantMessage: input.assistantMessage,
         sessionID: input.sessionID,
@@ -138,17 +130,15 @@ export const layer = Layer.effect(
         snapshot: initialSnapshot,
         blocked: false,
         needsCompaction: false,
-        compactionError: undefined, // nocowboy_change
+        compactionError: undefined,
         currentText: undefined,
         reasoningMap: {},
-        // nocowboy_change start
         telemetry: input.telemetry,
         stepStart: 0,
         step: { reasoning: false, text: false, tool: false },
-        // nocowboy_change end
       }
       let aborted = false
-      const ac = new AbortController() // nocowboy_change — abort controller for offline handler
+      const ac = new AbortController()
       const slog = log.clone().tag("session.id", input.sessionID).tag("messageID", input.assistantMessage.id)
 
       const parse = (e: unknown) =>
@@ -178,7 +168,6 @@ export const layer = Layer.effect(
         return { call, part }
       })
 
-      // nocowboy_change start - tolerate deleted sessions during subagent cost reconciliation (#6321)
       const reconcile = Effect.fn("SessionProcessor.reconcileCost")(function* () {
         const fresh = yield* MessageV2.get({
           sessionID: ctx.assistantMessage.sessionID,
@@ -188,7 +177,6 @@ export const layer = Layer.effect(
         if (fresh.info.cost <= ctx.assistantMessage.cost) return
         ctx.assistantMessage.cost = fresh.info.cost
       })
-      // nocowboy_change end
 
       const updateToolCall = Effect.fn("SessionProcessor.updateToolCall")(function* (
         toolCallID: string,
@@ -229,11 +217,9 @@ export const layer = Layer.effect(
             attachments: output.attachments,
           },
         })
-        // nocowboy_change start - accepted suggest review actions tag following LLM completion telemetry
         if (match.part.tool === "suggest") {
           ctx.telemetry = NoCowboySessionProcessor.suggestionReviewTelemetry(output.metadata) ?? ctx.telemetry
         }
-        // nocowboy_change end
         yield* settleToolCall(toolCallID)
       })
 
@@ -246,17 +232,15 @@ export const layer = Layer.effect(
             status: "error",
             input: match.part.state.input,
             error: errorMessage(error),
-            metadata: match.part.state.metadata, // nocowboy_change - preserve running tool metadata on failure
+            metadata: match.part.state.metadata,
             time: { start: match.part.state.time.start, end: Date.now() },
           },
         })
-        // nocowboy_change start
         if (
           error instanceof Permission.RejectedError ||
           error instanceof Question.RejectedError ||
           error instanceof Suggestion.DismissedError
         ) {
-          // nocowboy_change end
           ctx.blocked = ctx.shouldBreak
         }
         yield* settleToolCall(toolCallID)
@@ -271,7 +255,7 @@ export const layer = Layer.effect(
 
           case "reasoning-start":
             if (value.id in ctx.reasoningMap) return
-            ctx.step.reasoning = true // nocowboy_change
+            ctx.step.reasoning = true
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Reasoning.Started, {
@@ -328,7 +312,7 @@ export const layer = Layer.effect(
             if (ctx.assistantMessage.summary) {
               throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
             }
-            ctx.step.tool = true // nocowboy_change
+            ctx.step.tool = true
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
             if (flags.experimentalEventSystem) {
               yield* events.publish(SessionEvent.Tool.Input.Started, {
@@ -376,7 +360,6 @@ export const layer = Layer.effect(
             if (ctx.assistantMessage.summary) {
               throw new Error(`Tool call not allowed while generating summary: ${value.toolName}`)
             }
-            // nocowboy_change start
             ctx.step.tool = true
             if (!ctx.toolcalls[value.toolCallId]) {
               log.warn("tool-call without prior tool-input-start", {
@@ -399,7 +382,6 @@ export const layer = Layer.effect(
                 sessionID: part.sessionID,
               }
             }
-            // nocowboy_change end
             const toolCall = yield* readToolCall(value.toolCallId)
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
             if (flags.experimentalEventSystem) {
@@ -514,11 +496,9 @@ export const layer = Layer.effect(
               })
             }
             yield* completeToolCall(value.toolCallId, output)
-            // nocowboy_change start - dismissed suggestions stop the turn after persisting normalized output
             if (value.output.metadata?.dismissed === true) {
               ctx.blocked = ctx.shouldBreak
             }
-            // nocowboy_change end
             return
           }
 
@@ -547,7 +527,6 @@ export const layer = Layer.effect(
             throw value.error
 
           case "start-step":
-            // nocowboy_change start
             ctx.stepStart = performance.now()
             ctx.step = { reasoning: false, text: false, tool: false }
             if (!ctx.snapshot)
@@ -556,7 +535,6 @@ export const layer = Layer.effect(
                 messageID: ctx.assistantMessage.id,
                 snapshotInitialization: input.snapshotInitialization,
               })
-            // nocowboy_change end
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
               if (flags.experimentalEventSystem) {
@@ -583,19 +561,16 @@ export const layer = Layer.effect(
             return
 
           case "finish-step": {
-            // nocowboy_change start - pass turn context for slow-snapshot UI/policy handling
             const completedSnapshot = yield* snapshot.track({
               sessionID: ctx.sessionID,
               messageID: ctx.assistantMessage.id,
               snapshotInitialization: input.snapshotInitialization,
             })
-            // nocowboy_change end
             const usage = Session.getUsage({
               model: ctx.model,
               usage: value.usage,
               metadata: value.providerMetadata,
             })
-            // nocowboy_change start - guard against finish-step without start-step:
             // ctx.stepStart is 0 until `start-step` fires, which would feed a
             // huge bogus `elapsed` into telemetry. Fall back to now().
             NoCowboySessionProcessor.trackStep({
@@ -606,7 +581,6 @@ export const layer = Layer.effect(
               elapsed: Math.round(performance.now() - (ctx.stepStart || performance.now())),
               telemetry: ctx.telemetry,
             })
-            // nocowboy_change end
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
               if (flags.experimentalEventSystem) {
@@ -621,9 +595,7 @@ export const layer = Layer.effect(
               }
             }
             ctx.assistantMessage.finish = value.finishReason
-            // nocowboy_change start - capture any subagent cost propagated by tool calls during this step (#6321)
             yield* reconcile()
-            // nocowboy_change end
             ctx.assistantMessage.cost += usage.cost
             ctx.assistantMessage.tokens = usage.tokens
             yield* session.updatePart({
@@ -636,7 +608,6 @@ export const layer = Layer.effect(
               tokens: usage.tokens,
               cost: usage.cost,
             })
-            // nocowboy_change start - surface output limit stops, with a stronger message for reasoning-only stops
             const warn = NoCowboySessionProcessor.lengthWarning({ msg: ctx.assistantMessage, step: ctx.step })
             if (warn) {
               yield* session.updatePart({
@@ -656,7 +627,6 @@ export const layer = Layer.effect(
               })
               yield* status.set(ctx.sessionID, { type: "idle" })
             }
-            // nocowboy_change end
             yield* session.updateMessage(ctx.assistantMessage)
             if (ctx.snapshot) {
               const patch = yield* snapshot.patch(ctx.snapshot)
@@ -680,21 +650,17 @@ export const layer = Layer.effect(
               .pipe(Effect.ignore, Effect.forkIn(scope))
             if (
               !ctx.assistantMessage.summary &&
-              // nocowboy_change start
               isOverflow({
                 cfg: yield* config.get(),
                 tokens: usage.tokens,
                 model: ctx.model,
                 outputTokenMax: flags.outputTokenMax,
               })
-              // nocowboy_change end
             ) {
               ctx.needsCompaction = true
-              // nocowboy_change start
               ctx.compactionError = new MessageV2.ContextOverflowError({
                 message: "Input exceeds context window of this model",
               }).toObject()
-              // nocowboy_change end
             }
             return
           }
@@ -724,7 +690,7 @@ export const layer = Layer.effect(
           case "text-delta":
             if (!ctx.currentText) return
             ctx.currentText.text += value.text
-            if (value.text.trim()) ctx.step.text = true // nocowboy_change
+            if (value.text.trim()) ctx.step.text = true
             if (value.providerMetadata) ctx.currentText.metadata = value.providerMetadata
             yield* session.updatePartDelta({
               sessionID: ctx.currentText.sessionID,
@@ -748,7 +714,7 @@ export const layer = Layer.effect(
               },
               { text: ctx.currentText.text },
             )).text
-            if (ctx.currentText.text.trim()) ctx.step.text = true // nocowboy_change
+            if (ctx.currentText.text.trim()) ctx.step.text = true
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
               if (flags.experimentalEventSystem) {
@@ -833,26 +799,20 @@ export const layer = Layer.effect(
           })
         }
         ctx.toolcalls = {}
-        NoCowboySessionProcessor.guardEmptyToolCalls(ctx.assistantMessage, MessageV2.parts(ctx.assistantMessage.id)) // nocowboy_change
+        NoCowboySessionProcessor.guardEmptyToolCalls(ctx.assistantMessage, MessageV2.parts(ctx.assistantMessage.id))
         ctx.assistantMessage.time.completed = Date.now()
-        // nocowboy_change start - reconcile cost with any subagent propagation written during tool calls (#6321)
         yield* reconcile()
-        // nocowboy_change end
         yield* session.updateMessage(ctx.assistantMessage)
       })
 
       const halt = Effect.fn("SessionProcessor.halt")(function* (e: unknown) {
-        // nocowboy_change start - internal preflight signal, not a provider error
         if (e instanceof NoCowboySessionOverflow.PreflightError) {
           ctx.needsCompaction = true
           return
         }
-        // nocowboy_change end
         slog.error("process", { error: errorMessage(e), stack: e instanceof Error ? e.stack : undefined })
         const error = parse(e)
-        // nocowboy_change start
         ctx.compactionError = MessageV2.ContextOverflowError.isInstance(error) ? error : ctx.compactionError
-        // nocowboy_change end
         if (MessageV2.ContextOverflowError.isInstance(error)) {
           ctx.needsCompaction = true
           yield* bus.publish(Session.Event.Error, { sessionID: ctx.sessionID, error })
@@ -879,29 +839,25 @@ export const layer = Layer.effect(
         yield* status.set(ctx.sessionID, { type: "idle" })
       })
 
-      // nocowboy_change start
       const output = {
         compactError: () => ctx.compactionError,
       }
-      // nocowboy_change end
 
       const process = Effect.fn("SessionProcessor.process")(function* (streamInput: LLM.StreamInput) {
         slog.info("process")
         ctx.needsCompaction = false
-        ctx.compactionError = undefined // nocowboy_change
+        ctx.compactionError = undefined
         ctx.shouldBreak = (yield* config.get()).experimental?.continue_loop_on_deny !== true
 
         return yield* Effect.gen(function* () {
           yield* Effect.gen(function* () {
             ctx.currentText = undefined
             ctx.reasoningMap = {}
-            // nocowboy_change start
             ctx.step = { reasoning: false, text: false, tool: false }
             const stream = llm.stream({
               ...streamInput,
               preflight: !ctx.assistantMessage.summary,
             })
-            // nocowboy_change end
 
             yield* stream.pipe(
               Stream.tap((event) => handleEvent(event)),
@@ -912,7 +868,7 @@ export const layer = Layer.effect(
             Effect.onInterrupt(() =>
               Effect.gen(function* () {
                 aborted = true
-                ac.abort() // nocowboy_change — also abort offline handler
+                ac.abort()
                 if (!ctx.assistantMessage.error) {
                   yield* halt(new DOMException("Aborted", "AbortError"))
                 }
@@ -926,9 +882,7 @@ export const layer = Layer.effect(
               SessionRetry.policy({
                 provider: input.model.providerID,
                 parse,
-                // nocowboy_change start
                 ...NoCowboySessionProcessor.retryOpts({ sessionID: ctx.sessionID, abort: ac.signal, set: status.set }),
-                // nocowboy_change end
                 set: (info) => {
                   // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
                   const event = flags.experimentalEventSystem
@@ -972,7 +926,7 @@ export const layer = Layer.effect(
         },
         updateToolCall,
         completeToolCall,
-        ...output, // nocowboy_change
+        ...output,
         process,
       } satisfies Handle
     })

@@ -84,9 +84,7 @@ const getAllSessions = Effect.sync(() =>
   Database.use((db) => db.select().from(SessionTable).all()).map((row) => Session.fromRow(row)),
 )
 
-// nocowboy_change start - expose Effect stats aggregation for Kilo regression coverage
 export const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
-  // nocowboy_change end
   days?: number,
   projectFilter?: string,
   currentProject?: Project.Info,
@@ -184,11 +182,9 @@ export const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* 
 
         for (const message of messages) {
           if (message.info.role === "assistant") {
-            // nocowboy_change start - count propagated subagent cost once but keep child model stats (#6321)
             const parts = message.parts.filter((part) => part.type === "step-finish")
             const cost = parts.length ? parts.reduce((sum, part) => sum + part.cost, 0) : message.info.cost || 0
             if (!session.parentID) legacyCost += message.info.cost || 0
-            // nocowboy_change end
 
             const modelKey = `${message.info.providerID}/${message.info.modelID}`
             if (!sessionModelUsage[modelKey]) {
@@ -199,7 +195,7 @@ export const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* 
               }
             }
             sessionModelUsage[modelKey].messages++
-            sessionModelUsage[modelKey].cost += cost // nocowboy_change
+            sessionModelUsage[modelKey].cost += cost
 
             if (message.info.tokens) {
               if (!session.tokens) {

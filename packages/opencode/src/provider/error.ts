@@ -47,11 +47,9 @@ function isOverflow(message: string) {
 
 function message(providerID: ProviderID, e: APICallError) {
   return iife(() => {
-    // nocowboy_change start - surface a branded reauth hint for expired Copilot tokens
     if (providerID.includes("github-copilot") && e.statusCode === 403) {
       return "Please reauthenticate with the copilot provider to ensure your credentials work properly with NoCowboy."
     }
-    // nocowboy_change end
     const msg = e.message
     if (msg === "") {
       if (e.responseBody) return e.responseBody
@@ -79,7 +77,7 @@ function message(providerID: ProviderID, e: APICallError) {
     // provide a human-readable message instead of dumping raw markup
     if (/^\s*<!doctype|^\s*<html/i.test(e.responseBody)) {
       if (e.statusCode === 401) {
-        return "Unauthorized: request was blocked by a gateway or proxy. Your authentication token may be missing or expired — try running `kilo auth login <your provider URL>` to re-authenticate." // nocowboy_change
+        return "Unauthorized: request was blocked by a gateway or proxy. Your authentication token may be missing or expired — try running `kilo auth login <your provider URL>` to re-authenticate."
       }
       if (e.statusCode === 403) {
         return "Forbidden: request was blocked by a gateway or proxy. You may not have permission to access this resource — check your account and provider settings."
@@ -135,7 +133,6 @@ export function parseStreamError(input: unknown): ParsedStreamError | undefined 
         message: "Input exceeds context window of this model",
         responseBody,
       }
-    // nocowboy_change start - normalize empty provider rate-limit stream errors
     case "rate_limit_exceeded":
       return {
         type: "api_error",
@@ -146,7 +143,6 @@ export function parseStreamError(input: unknown): ParsedStreamError | undefined 
         isRetryable: true,
         responseBody,
       }
-    // nocowboy_change end
     case "insufficient_quota":
       return {
         type: "api_error",

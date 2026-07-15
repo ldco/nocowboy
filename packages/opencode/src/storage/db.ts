@@ -4,13 +4,13 @@ import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
 export * from "drizzle-orm"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LocalContext } from "@/util/local-context"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
+import { NamedError } from "@nocowboy/core/util/error"
 import path from "path"
 import { readFileSync, readdirSync, existsSync } from "fs"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { InstallationChannel } from "@opencode-ai/core/installation/version"
+import { Flag } from "@nocowboy/core/flag/flag"
+import { InstallationChannel } from "@nocowboy/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import { init } from "#db"
 import { Effect, Schema } from "effect"
@@ -30,12 +30,12 @@ const readRuntimeFlags = () =>
 
 export function getChannelPath(flags: Pick<DatabaseFlags, "disableChannelDb"> = readRuntimeFlags()) {
   if (["latest", "beta", "prod"].includes(InstallationChannel) || flags.disableChannelDb)
-    return path.join(Global.Path.data, "nocowboy.db") // nocowboy_change
+    return path.join(Global.Path.data, "nocowboy.db")
   const safe = InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")
-  const next = path.join(Global.Path.data, `nocowboy-${safe}.db`) // nocowboy_change
-  const prev = path.join(Global.Path.data, `opencode-${safe}.db`) // nocowboy_change
-  if (!existsSync(next) && existsSync(prev)) return prev // nocowboy_change
-  return next // nocowboy_change
+  const next = path.join(Global.Path.data, `nocowboy-${safe}.db`)
+  const prev = path.join(Global.Path.data, `nocowboy-${safe}.db`)
+  if (!existsSync(next) && existsSync(prev)) return prev
+  return next
 }
 
 export const getPath = (flags?: Pick<DatabaseFlags, "disableChannelDb">) => {

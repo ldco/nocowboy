@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 //
 // NoCowboy-specific provider logic extracted from packages/opencode/src/provider/provider.ts
 // to minimize merge conflicts with upstream opencode.
@@ -9,7 +8,7 @@
 import { createNoCowboy, type NoCowboyProvider, AI_SDK_PROVIDERS, PROMPTS } from "@nocowboy/gateway"
 import { DEFAULT_HEADERS } from "@/nocowboy/const"
 import { ProviderID, ModelID } from "@/provider/schema"
-import { optionalOmitUndefined } from "@opencode-ai/core/schema"
+import { optionalOmitUndefined } from "@nocowboy/core/schema"
 import { Effect, Schema } from "effect"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 
@@ -179,12 +178,7 @@ export function ncowboyCustomLoaders(dep: CustomDep): Record<string, CustomLoade
       }
     }) as CustomLoader,
 
-    // Override opencode to prevent auto-connecting without credentials
-    opencode: () =>
-      Effect.succeed({
-        autoload: false,
-        options: { headers: DEFAULT_HEADERS },
-      }),
+    // nocowboy provider — full implementation above
   }
 }
 

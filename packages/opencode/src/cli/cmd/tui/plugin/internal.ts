@@ -1,6 +1,5 @@
 import HomeFooter from "../feature-plugins/home/footer"
 import HomeTips from "../feature-plugins/home/tips"
-// nocowboy_change start
 import HomeOnboarding from "@/nocowboy/plugins/home-onboarding"
 import KiloAttention from "@/nocowboy/plugins/attention"
 import KiloSidebarFooter from "@/nocowboy/plugins/sidebar-footer"
@@ -8,7 +7,6 @@ import KiloSidebarBackgroundProcesses from "@/nocowboy/plugins/sidebar-backgroun
 import KiloSidebarIndexing from "@/nocowboy/plugins/sidebar-indexing"
 import KiloSidebarPr from "@/nocowboy/plugins/sidebar-pr"
 import KiloSidebarUsage from "@/nocowboy/plugins/sidebar-usage"
-// nocowboy_change end
 import SidebarContext from "../feature-plugins/sidebar/context"
 import SidebarMcp from "../feature-plugins/sidebar/mcp"
 import SidebarLsp from "../feature-plugins/sidebar/lsp"
@@ -30,13 +28,13 @@ export type InternalTuiPlugin = Omit<TuiPluginModule, "id"> & {
 
 export function internalTuiPlugins(flags: Pick<RuntimeFlags.Info, "experimentalEventSystem">): InternalTuiPlugin[] {
   return [
-    HomeOnboarding, // nocowboy_change
-    KiloAttention, // nocowboy_change
-    KiloSidebarFooter, // nocowboy_change
-    KiloSidebarBackgroundProcesses, // nocowboy_change
-    KiloSidebarIndexing, // nocowboy_change
-    KiloSidebarPr, // nocowboy_change
-    KiloSidebarUsage, // nocowboy_change
+    HomeOnboarding,
+    KiloAttention,
+    KiloSidebarFooter,
+    KiloSidebarBackgroundProcesses,
+    KiloSidebarIndexing,
+    KiloSidebarPr,
+    KiloSidebarUsage,
     HomeFooter,
     HomeTips,
     SidebarContext,

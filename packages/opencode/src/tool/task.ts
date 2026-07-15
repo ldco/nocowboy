@@ -11,12 +11,12 @@ import { deriveSubagentSessionPermission } from "../agent/subagent-permissions"
 import type { SessionPrompt } from "../session/prompt"
 import { SessionStatus } from "@/session/status"
 import { Config } from "@/config/config"
-import { Provider } from "@/provider/provider" // nocowboy_change
-import { KiloTask } from "../nocowboy/tool/task" // nocowboy_change
-import { KiloCostPropagation } from "../nocowboy/session/cost-propagation" // nocowboy_change
-import { NoCowboySessionProcessor } from "../nocowboy/session/processor" // nocowboy_change
-import { NoCowboySession } from "../nocowboy/session" // nocowboy_change
-import { errorMessage } from "@/util/error" // nocowboy_change
+import { Provider } from "@/provider/provider"
+import { KiloTask } from "../nocowboy/tool/task"
+import { KiloCostPropagation } from "../nocowboy/session/cost-propagation"
+import { NoCowboySessionProcessor } from "../nocowboy/session/processor"
+import { NoCowboySession } from "../nocowboy/session"
+import { errorMessage } from "@/util/error"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Cause, Effect, Exit, Option, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
@@ -114,7 +114,7 @@ export const TaskTool = Tool.define(
     const bus = yield* Bus.Service
     const config = yield* Config.Service
     const sessions = yield* Session.Service
-    const provider = yield* Provider.Service // nocowboy_change
+    const provider = yield* Provider.Service
     const scope = yield* Scope.Scope
     const status = yield* SessionStatus.Service
     const flags = yield* RuntimeFlags.Service
@@ -145,11 +145,9 @@ export const TaskTool = Tool.define(
       if (!next) {
         return yield* Effect.fail(new Error(`Unknown agent type: ${params.subagent_type} is not a valid agent type`))
       }
-      // nocowboy_change start — validate subagent type (no-op after P3 removal of subagent-only restriction)
       KiloTask.validate(next, params.subagent_type)
-      // nocowboy_change end
 
-      const canTask = KiloTask.nestedTask() // nocowboy_change - Kilo disallows subagents spawning subagents
+      const canTask = KiloTask.nestedTask()
       const canTodo = next.permission.some((rule) => rule.permission === "todowrite")
 
       const taskID = params.task_id
@@ -157,17 +155,14 @@ export const TaskTool = Tool.define(
         ? yield* sessions.get(SessionID.make(taskID)).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
         : undefined
       if (session && session.parentID !== ctx.sessionID) {
-        return yield* Effect.fail(new Error(`Cannot resume session ${taskID}: not a child of the current session`)) // nocowboy_change - prevent cross-session task resume
+        return yield* Effect.fail(new Error(`Cannot resume session ${taskID}: not a child of the current session`))
       }
       const parent = yield* sessions.get(ctx.sessionID)
       const parentAgent = parent.agent
         ? yield* agent.get(parent.agent).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
         : undefined
-      // nocowboy_change start — inherit edit/bash/MCP restrictions from calling agent
       const caller = yield* agent.get(ctx.agent)
       const rules = KiloTask.inherited({ caller, session: parent, mcp: cfg.mcp })
-      // nocowboy_change end
-      // nocowboy_change start - refresh current parent restrictions when resuming an existing task session
       if (session) {
         session.permission = KiloTask.merge(
           session.permission ?? [],
@@ -180,15 +175,13 @@ export const TaskTool = Tool.define(
         )
         yield* sessions.setPermission({ sessionID: session.id, permission: session.permission })
       }
-      // nocowboy_change end
-      const platform = NoCowboySession.resolvePlatform(ctx.sessionID) // nocowboy_change - preserve parent attribution across task creation/resume
+      const platform = NoCowboySession.resolvePlatform(ctx.sessionID)
       const nextSession =
         session ??
         (yield* sessions.create({
           parentID: ctx.sessionID,
           title: params.description + ` (@${next.name} subagent)`,
-          platform, // nocowboy_change
-          // nocowboy_change start - dedupe inherited restrictions before child prompt toggles persist
+          platform,
           permission: KiloTask.merge(
             deriveSubagentSessionPermission({
               parentSessionPermission: parent.permission ?? [],
@@ -202,16 +195,12 @@ export const TaskTool = Tool.define(
             })) ?? [],
             KiloTask.permissions(rules),
           ),
-          // nocowboy_change end
         }))
-      // nocowboy_change start - rebuild in-memory ancestry and attribution after process restart
       NoCowboySession.register({ id: nextSession.id, parentID: ctx.sessionID, platform })
-      // nocowboy_change end
 
       const msg = yield* MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID }).pipe(Effect.orDie)
       if (msg.info.role !== "assistant") return yield* Effect.fail(new Error("Not an assistant message"))
 
-      // nocowboy_change start — prefer valid subagent overrides, safely inheriting when overrides go stale
       const selected = yield* KiloTask.resolveModel({
         name: next.name,
         agent: next,
@@ -225,12 +214,11 @@ export const TaskTool = Tool.define(
       })
       const model = selected.model
       const variant = selected.variant
-      // nocowboy_change end
       const metadata = {
         parentSessionId: ctx.sessionID,
         sessionId: nextSession.id,
         model,
-        variant, // nocowboy_change
+        variant,
         ...(runInBackground ? { background: true } : {}),
       }
 
@@ -245,7 +233,7 @@ export const TaskTool = Tool.define(
 
       const runTask = Effect.fn("TaskTool.runTask")(function* () {
         const parts = yield* ops.resolvePromptParts(params.prompt)
-        NoCowboySessionProcessor.markReviewTelemetry(parts, params.command) // nocowboy_change - carry review command into child session telemetry
+        NoCowboySessionProcessor.markReviewTelemetry(parts, params.command)
         const result = yield* ops.prompt({
           messageID: MessageID.ascending(),
           sessionID: nextSession.id,
@@ -253,21 +241,19 @@ export const TaskTool = Tool.define(
             modelID: model.modelID,
             providerID: model.providerID,
           },
-          variant, // nocowboy_change
+          variant,
           agent: next.name,
           tools: {
-            question: false, // nocowboy_change - subagents cannot prompt the user directly
+            question: false,
             ...(canTodo ? {} : { todowrite: false }),
             ...(canTask ? {} : { task: false }),
             ...Object.fromEntries((cfg.experimental?.primary_tools ?? []).map((item) => [item, false])),
           },
           parts,
         })
-        // nocowboy_change start - expose terminal child assistant errors through the task tool boundary
         if (result.info.role === "assistant" && result.info.error) {
           return yield* Effect.fail(new Error(errorMessage(result.info.error)))
         }
-        // nocowboy_change end
         return result.parts.findLast((item) => item.type === "text")?.text ?? ""
       })
 
@@ -341,7 +327,6 @@ export const TaskTool = Tool.define(
           type: id,
           title: params.description,
           metadata,
-          // nocowboy_change start - background tasks propagate only cost accrued by this invocation
           run: Effect.acquireUseRelease(
             KiloCostPropagation.childCost(sessions, nextSession.id),
             () =>
@@ -360,7 +345,6 @@ export const TaskTool = Tool.define(
                 yield* KiloCostPropagation.propagate(sessions, ctx.sessionID, ctx.messageID, costAfter - costBefore)
               }),
           ),
-          // nocowboy_change end
         })
 
         return {
@@ -380,12 +364,10 @@ export const TaskTool = Tool.define(
       }
 
       return yield* Effect.acquireUseRelease(
-        // nocowboy_change start - snapshot child cost so we propagate only the delta on resume (#6321)
         Effect.gen(function* () {
           ctx.abort.addEventListener("abort", onAbort)
           return yield* KiloCostPropagation.childCost(sessions, nextSession.id)
         }),
-        // nocowboy_change end
         () =>
           Effect.gen(function* () {
             const text = yield* runTask()
@@ -395,7 +377,6 @@ export const TaskTool = Tool.define(
               output: output(nextSession.id, text),
             }
           }),
-        // nocowboy_change start - propagate subagent cost delta to parent on every exit path (#6321)
         (costBefore, exit) =>
           Effect.gen(function* () {
             if (Exit.hasInterrupts(exit)) yield* cancel
@@ -415,7 +396,6 @@ export const TaskTool = Tool.define(
               }),
             ),
           ),
-        // nocowboy_change end
       )
     })
 

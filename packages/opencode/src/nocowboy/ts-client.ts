@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 // Lightweight TypeScript diagnostic client that shells out to tsgo/tsc
 // instead of spawning a persistent typescript-language-server process.
 // This drops memory from ~500MB persistent to ~50MB peak (0 idle).
@@ -6,7 +5,7 @@
 import { LSPClient } from "../lsp/client"
 import { Bus } from "../bus"
 import { TsCheck } from "./ts-check"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { withTimeout } from "../util/timeout"
 import path from "path"
 import { Instance } from "./instance"

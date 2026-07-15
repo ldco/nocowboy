@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { Context, Effect, Layer, Schema, Types } from "effect"
 import { Bus } from "../bus"
 import { BusEvent } from "../bus/bus-event"
@@ -9,11 +8,11 @@ import { InstanceRef } from "@/effect/instance-ref"
 import { capture } from "@/nocowboy/instance"
 import type { InstanceContext } from "@/project/instance-context"
 import { makeRuntime } from "@/effect/run-service"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { fn } from "@/nocowboy/fn"
 import { MCP } from "../mcp"
-import { zod } from "@opencode-ai/core/effect-zod"
-import { withStatics } from "@opencode-ai/core/schema"
+import { zod } from "@nocowboy/core/effect-zod"
+import { withStatics } from "@nocowboy/core/schema"
 import z from "zod"
 
 export namespace SessionNetwork {
@@ -32,7 +31,7 @@ export namespace SessionNetwork {
     "UND_ERR_SOCKET",
     "ERR_SOCKET_CONNECTION_TIMEOUT",
   ])
-  const urls = ["https://nocowboy.dev", "https://example.com", "https://cloudflare.com/cdn-cgi/trace"] // nocowboy_change - TODO: replace with own service
+  const urls = ["https://nocowboy.dev", "https://example.com", "https://cloudflare.com/cdn-cgi/trace"]
   const POLL_MS = 3_000
   const PROBE_MS = 5_000
   const RESUME_MS = 10_000
@@ -155,7 +154,6 @@ export namespace SessionNetwork {
       const match = (item as { code?: unknown })?.code
       if (typeof match === "string" && codes.has(match)) return true
     }
-    // nocowboy_change - recognize AbortSignal.timeout() errors
     for (const item of chain(err)) {
       if (item instanceof DOMException && item.name === "TimeoutError") return true
     }
@@ -177,7 +175,6 @@ export namespace SessionNetwork {
   }
 
   export function message(err: unknown) {
-    // nocowboy_change - check for timeout first
     for (const item of chain(err)) {
       if (item instanceof DOMException && item.name === "TimeoutError") return "Request timed out"
     }
@@ -349,7 +346,6 @@ export namespace SessionNetwork {
         return
       }
       s.pending.delete(requestID)
-      // nocowboy_change start - reconnect failed remote MCP servers after network recovery
       void import("@/effect/app-runtime")
         .then(({ AppRuntime }) =>
           AppRuntime.runPromise(
@@ -376,7 +372,6 @@ export namespace SessionNetwork {
         .catch((err) => {
           log.error("failed to get MCP status for reconnect", { err })
         })
-      // nocowboy_change end
       await Bus.publish(s.context, Event.Replied, {
         sessionID: req.info.sessionID,
         requestID: req.info.id,

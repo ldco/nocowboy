@@ -1,7 +1,7 @@
 import type { TuiPluginApi } from "@nocowboy/plugin/tui"
 import { createMemo, For, type Accessor } from "solid-js"
 import { DEFAULT_THEMES, useTheme } from "@tui/context/theme"
-import { NOCOWBOY_TIPS } from "@/nocowboy/cli/cmd/tui/feature-plugins/home/tips" // nocowboy_change
+import { NOCOWBOY_TIPS } from "@/nocowboy/cli/cmd/tui/feature-plugins/home/tips"
 import { useCommandShortcut } from "../../keymap"
 
 const themeCount = Object.keys(DEFAULT_THEMES).length
@@ -135,7 +135,7 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
   }
   const tip = createMemo(() => {
     if (props.connected === false) return NO_MODELS_TIP
-    const tips = NOCOWBOY_TIPS.flatMap((item) => { // nocowboy_change
+    const tips = NOCOWBOY_TIPS.flatMap((item) => {
       const value = typeof item === "string" ? item : item(shortcuts)
       return value ? [value] : []
     })
@@ -163,7 +163,6 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
 }
 
 const TIPS: Tip[] = [
-  /* nocowboy_change hide the entire list for if it is accidentally used
   "Type {highlight}@{/highlight} followed by a filename to fuzzy search and attach files",
   "Start a message with {highlight}!{/highlight} to run shell commands directly (e.g., {highlight}!ls -la{/highlight})",
   (shortcuts) => press(shortcuts.agentCycle(), "to cycle between Build and Plan agents"),
@@ -287,5 +286,4 @@ const TIPS: Tip[] = [
     : ([
         (shortcuts) => press(shortcuts.terminalSuspend(), "to suspend the terminal and return to your shell"),
       ] satisfies Tip[])),
-  nocowboy_change hide the entire list for if it is accidentally used */
 ]

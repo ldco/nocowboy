@@ -11,7 +11,7 @@ import { useKeyboard } from "@opentui/solid"
 import fuzzysort from "fuzzysort"
 import path from "path"
 import { createEffect, createMemo, createResource, createSignal, onCleanup, onMount, type Accessor } from "solid-js"
-import { slashDisplay, slashMatches } from "@/nocowboy/cli/cmd/command-display" // nocowboy_change
+import { slashDisplay, slashMatches } from "@/nocowboy/cli/cmd/command-display"
 import * as Locale from "@/util/locale"
 import {
   createPromptHistory,
@@ -174,7 +174,6 @@ function parseSlashCommand(text: string, commands: RunCommand[] | undefined) {
   }
 
   if (!commands.some((item) => slashMatches(item, head.name))) {
-    // nocowboy_change
     return { type: "none" as const }
   }
 
@@ -380,13 +379,13 @@ export function createPromptState(input: PromptInput): PromptState {
     const hidden = new Set(builtins.map((item) => item.name))
     return [
       ...(input.commands() ?? [])
-        .filter((item) => !hidden.has(item.name)) // nocowboy_change - suggest skills as slash commands
+        .filter((item) => !hidden.has(item.name))
         .map(
           (item) =>
             ({
               kind: "slash",
               name: item.name,
-              display: slashDisplay(item), // nocowboy_change
+              display: slashDisplay(item),
               description: item.description,
             }) satisfies SlashOption,
         ),
@@ -762,7 +761,7 @@ export function createPromptState(input: PromptInput): PromptState {
     }
 
     if (next.kind === "slash") {
-      const text = `${next.display} ` // nocowboy_change
+      const text = `${next.display} `
       const cursor = area.cursorOffset
 
       area.cursorOffset = 0

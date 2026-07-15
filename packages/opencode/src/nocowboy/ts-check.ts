@@ -1,6 +1,5 @@
-// nocowboy_change - new file
 import type { Diagnostic } from "vscode-languageserver-types"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Filesystem } from "../util/filesystem"
 import path from "path"
 import fs from "fs/promises"

@@ -1,12 +1,10 @@
-import { chmod, mkdir, readFile, rename, stat as statFile, writeFile } from "fs/promises" // nocowboy_change
+import { chmod, mkdir, readFile, rename, stat as statFile, writeFile } from "fs/promises"
 import { createWriteStream, existsSync, statSync } from "fs"
 import { realpathSync } from "fs"
-// nocowboy_change start - harden containment checks
 import { dirname, isAbsolute, join, relative, resolve as pathResolve, sep, win32 } from "path"
-// nocowboy_change end
 import { Readable } from "stream"
 import { pipeline } from "stream/promises"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { Glob } from "@nocowboy/core/util/glob"
 import { fileURLToPath } from "url"
 
 // Fast sync version for metadata checks
@@ -60,7 +58,6 @@ function isEnoent(e: unknown): e is { code: "ENOENT" } {
 }
 
 export async function write(p: string, content: string | Buffer | Uint8Array, mode?: number): Promise<void> {
-  // nocowboy_change start - atomic write via temp-file + rename to avoid partial reads on concurrent saves
   // Include a random suffix so that concurrent writes to the same path never share a temp file,
   // even on platforms where Date.now() has low resolution (e.g. Windows ~100ms).
   const tmp = `${p}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`
@@ -82,7 +79,6 @@ export async function write(p: string, content: string | Buffer | Uint8Array, mo
     }
     throw e
   }
-  // nocowboy_change end
 }
 
 export async function writeJson(p: string, data: unknown, mode?: number): Promise<void> {
@@ -176,10 +172,8 @@ export function overlaps(a: string, b: string) {
 }
 
 export function contains(parent: string, child: string) {
-  // nocowboy_change start - reject cross-drive and escaped relative paths
   const rel = relative(parent, child)
   return rel === "" || (!isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${sep}`))
-  // nocowboy_change end
 }
 
 export async function findUp(

@@ -13,7 +13,7 @@ import { indexingWarningKey } from "../../src/nocowboy/indexing-warning"
 import { IndexingWorker } from "../../src/nocowboy/indexing-worker-client"
 import { provideTestInstance, withTestInstance } from "../fixture/fixture"
 import { Server } from "../../src/server/server"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 
 Log.init({ print: false })

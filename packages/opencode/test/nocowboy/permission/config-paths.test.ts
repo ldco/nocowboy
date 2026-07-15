@@ -2,7 +2,7 @@
 import path from "path"
 import { describe, expect, test } from "bun:test"
 import { ConfigProtection } from "../../../src/nocowboy/permission/config-paths"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { NocowboyPaths } from "../../../src/nocowboy/paths"
 
 describe("ConfigProtection.isRequest", () => {

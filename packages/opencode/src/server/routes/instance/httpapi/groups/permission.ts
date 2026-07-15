@@ -6,7 +6,7 @@ import { Authorization } from "../middleware/authorization"
 import { InstanceContextMiddleware } from "../middleware/instance-context"
 import { WorkspaceRoutingMiddleware, WorkspaceRoutingQuery } from "../middleware/workspace-routing"
 import { described } from "./metadata"
-import { ApiNotFoundError } from "../errors" // nocowboy_change
+import { ApiNotFoundError } from "../errors"
 
 const root = "/permission"
 const ReplyPayload = Schema.Struct({
@@ -14,7 +14,6 @@ const ReplyPayload = Schema.Struct({
   message: Schema.optional(Schema.String),
 })
 
-// nocowboy_change start
 export const SaveAlwaysRulesBody = Schema.Struct({
   approvedAlways: Schema.Array(Schema.String).pipe(Schema.optional),
   deniedAlways: Schema.Array(Schema.String).pipe(Schema.optional),
@@ -25,7 +24,6 @@ export const AllowEverythingBody = Schema.Struct({
   requestID: Schema.optional(Schema.String),
   sessionID: Schema.optional(Schema.String),
 })
-// nocowboy_change end
 
 export const PermissionApi = HttpApi.make("permission")
   .add(
@@ -46,7 +44,7 @@ export const PermissionApi = HttpApi.make("permission")
           query: WorkspaceRoutingQuery,
           payload: ReplyPayload,
           success: described(Schema.Boolean, "Permission processed successfully"),
-          error: [HttpApiError.BadRequest, ApiNotFoundError], // nocowboy_change
+          error: [HttpApiError.BadRequest, ApiNotFoundError],
         }).annotateMerge(
           OpenApi.annotations({
             identifier: "permission.reply",
@@ -54,7 +52,6 @@ export const PermissionApi = HttpApi.make("permission")
             description: "Approve or deny a permission request from the AI assistant.",
           }),
         ),
-        // nocowboy_change start
         HttpApiEndpoint.post("saveAlwaysRules", `${root}/:requestID/always-rules`, {
           params: { requestID: PermissionID },
           query: WorkspaceRoutingQuery,
@@ -80,7 +77,6 @@ export const PermissionApi = HttpApi.make("permission")
             description: "Enable or disable allowing all permissions without prompts.",
           }),
         ),
-        // nocowboy_change end
       )
       .annotateMerge(
         OpenApi.annotations({
@@ -94,7 +90,7 @@ export const PermissionApi = HttpApi.make("permission")
   )
   .annotateMerge(
     OpenApi.annotations({
-      title: "opencode experimental HttpApi",
+      title: "nocowboy experimental HttpApi",
       version: "0.0.1",
       description: "Experimental HttpApi surface for selected instance routes.",
     }),

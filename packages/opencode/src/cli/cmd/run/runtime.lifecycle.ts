@@ -159,8 +159,8 @@ export async function createRuntimeLifecycle(input: LifecycleInput): Promise<Lif
   return withRunSpan(
     "RunLifecycle.boot",
     {
-      "opencode.agent.name": input.agent,
-      "opencode.directory": input.directory,
+      "nocowboy.agent.name": input.agent,
+      "nocowboy.directory": input.directory,
       "opencode.first": input.first,
       "opencode.model.provider": input.model?.providerID,
       "opencode.model.id": input.model?.modelID,

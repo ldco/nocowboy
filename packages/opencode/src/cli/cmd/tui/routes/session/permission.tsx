@@ -4,7 +4,7 @@ import { Portal, useRenderer, useTerminalDimensions, type JSX } from "@opentui/s
 import type { TextareaRenderable } from "@opentui/core"
 import { RGBA } from "@opentui/core"
 
-const brand = RGBA.fromInts(0xff, 0x68, 0x00) // nocowboy_change
+const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 import { useTheme, selectedForeground } from "../../context/theme"
 import type { PermissionRequest } from "@nocowboy/sdk/v2"
 import { useSDK } from "../../context/sdk"
@@ -19,15 +19,12 @@ import { webSearchProviderLabel } from "@/tool/websearch"
 import { useDialog } from "../../ui/dialog"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useTuiConfig } from "../../context/tui-config"
-// nocowboy_change start
 import { ConfigProtection } from "@/nocowboy/permission/config-paths"
 import { splitDiffHunks } from "@/nocowboy/tui/diff"
 import { normalizeUrls } from "@/nocowboy/util/url"
-// nocowboy_change end
 import { useBindings, useCommandShortcut } from "../../keymap"
 import { usePathFormatter } from "../../context/path-format"
 
-// nocowboy_change — session-scoped approval memory
 const sessionApprovals = new Set<string>()
 function approvalKey(perm?: string, patterns?: string): string { return `${perm ?? "?"}:${patterns?.slice(0, 200) ?? "*"}` }
 
@@ -39,6 +36,29 @@ function filetype(input?: string) {
   const language = LANGUAGE_EXTENSIONS[ext]
   if (["typescriptreact", "javascriptreact", "javascript"].includes(language)) return "typescript"
   return language
+}
+
+function truncateDiff(diff: string, maxLines = 50, visibleLines = 30): string {
+  if (!diff) return diff
+  const lines = diff.split("\n")
+  let changedCount = 0
+  for (const line of lines) {
+    if ((line.startsWith("+") || line.startsWith("-")) && !line.startsWith("+++") && !line.startsWith("---")) {
+      changedCount++
+    }
+  }
+  if (changedCount <= maxLines) return diff
+  const result: string[] = []
+  let visibleCount = 0
+  for (const line of lines) {
+    const isChanged = (line.startsWith("+") || line.startsWith("-")) && !line.startsWith("+++") && !line.startsWith("---")
+    if (isChanged && visibleCount >= visibleLines) continue
+    if (isChanged) visibleCount++
+    result.push(line)
+  }
+  const remaining = changedCount - visibleLines
+  result.push(`… +${remaining} строк`)
+  return result.join("\n")
 }
 
 function EditBody(props: { request: PermissionRequest }) {
@@ -59,7 +79,7 @@ function EditBody(props: { request: PermissionRequest }) {
 
   const ft = createMemo(() => filetype(filepath()))
   const scrollAcceleration = createMemo(() => getScrollAcceleration(config))
-  const hunks = createMemo(() => splitDiffHunks(diff())) // nocowboy_change
+  const hunks = createMemo(() => splitDiffHunks(truncateDiff(diff())))
 
   return (
     <box flexDirection="column" gap={1}>
@@ -74,7 +94,6 @@ function EditBody(props: { request: PermissionRequest }) {
             },
           }}
         >
-          {/* nocowboy_change start */}
           <box flexDirection="column">
             <For each={hunks()}>
               {(hunk, i) => (
@@ -91,11 +110,11 @@ function EditBody(props: { request: PermissionRequest }) {
                     width="100%"
                     wrapMode="word"
                     fg={theme.text}
-                    addedBg={theme.diffAddedBg}
-                    removedBg={theme.diffRemovedBg}
+                    addedBg={theme.diffAddedBg ?? theme.success}
+                    removedBg={theme.diffRemovedBg ?? theme.error}
                     contextBg={theme.diffContextBg}
-                    addedSignColor={theme.diffHighlightAdded}
-                    removedSignColor={theme.diffHighlightRemoved}
+                    addedSignColor={theme.diffHighlightAdded ?? theme.success}
+                    removedSignColor={theme.diffHighlightRemoved ?? theme.error}
                     lineNumberFg={theme.diffLineNumber}
                     lineNumberBg={theme.diffContextBg}
                     addedLineNumberBg={theme.diffAddedLineNumberBg}
@@ -105,12 +124,11 @@ function EditBody(props: { request: PermissionRequest }) {
               )}
             </For>
           </box>
-          {/* nocowboy_change end */}
-        </scrollbox>
+          </scrollbox>
       </Show>
       <Show when={!diff()}>
         <box paddingLeft={1}>
-          <text fg={theme.textMuted}>No diff provided</text>
+          <text fg={theme.textMuted}>Изменений нет</text>
         </box>
       </Show>
     </box>
@@ -177,17 +195,15 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
     <Switch>
       <Match when={store.stage === "always"}>
         <Prompt
-          title="Always allow"
+          title="Всегда разрешать"
           body={
             <Switch>
               <Match when={props.request.always.length === 1 && props.request.always[0] === "*"}>
-                {/* nocowboy_change */}
-                <TextBody title={"This will allow " + props.request.permission + " permanently."} />
+                <TextBody title={"Это разрешит " + props.request.permission + " навсегда."} />
               </Match>
               <Match when={true}>
                 <box paddingLeft={1} gap={1}>
-                  {/* nocowboy_change */}
-                  <text fg={theme.textMuted}>This will allow the following patterns permanently</text>
+                  <text fg={theme.textMuted}>Это разрешит следующие паттерны навсегда</text>
                   <box>
                     <For each={props.request.always}>
                       {(pattern) => (
@@ -202,7 +218,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
               </Match>
             </Switch>
           }
-          options={{ confirm: "Confirm", cancel: "Cancel" }}
+          options={{ confirm: "Подтвердить", cancel: "Отмена" }}
           escapeKey="cancel"
           onSelect={(option) => {
             setStore("stage", "permission")
@@ -309,7 +325,6 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
             }
 
             if (permission === ShellID.ToolID) {
-              // nocowboy_change start
               const meta = props.request.metadata ?? {}
               const desc =
                 typeof data.description === "string" && data.description
@@ -322,7 +337,6 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
               const command = normalizeUrls(
                 typeof data.command === "string" ? data.command : typeof meta.command === "string" ? meta.command : "",
               )
-              // nocowboy_change end
               return {
                 icon: "#",
                 title,
@@ -353,7 +367,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
             }
 
             if (permission === "webfetch") {
-              const url = normalizeUrls(typeof data.url === "string" ? data.url : "") // nocowboy_change
+              const url = normalizeUrls(typeof data.url === "string" ? data.url : "")
               return {
                 icon: "%",
                 title: `WebFetch ${url}`,
@@ -439,7 +453,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
             <box flexDirection="column" gap={0}>
               <box flexDirection="row" gap={1} flexShrink={0}>
                 <text fg={brand}>{"△"}</text>
-                <text fg={theme.text}>Permission required</text>
+                <text fg={theme.text}>Требуется подтверждение</text>
               </box>
               <box flexDirection="row" gap={1} paddingLeft={2} flexShrink={0}>
                 <text fg={theme.textMuted} flexShrink={0}>
@@ -450,25 +464,22 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
               {/* nocowboy_change start - explain config file edits always require approval */}
               <Show when={props.request.metadata?.[ConfigProtection.DISABLE_ALWAYS_KEY]}>
                 <box paddingLeft={4} flexShrink={0}>
-                  <text fg={theme.textMuted}>Config file edits always require approval</text>
+                  <text fg={theme.textMuted}>Правки конфигов всегда требуют подтверждения</text>
                 </box>
               </Show>
-              {/* nocowboy_change end */}
-            </box>
+              </box>
           )
 
-          // nocowboy_change start — hide "Always allow" for config file edits
           const options: Record<string, string> = props.request.metadata?.[ConfigProtection.DISABLE_ALWAYS_KEY]
-            ? { once: "Allow once", reject: "Reject" }
-            : { once: "Allow once", always: "Allow always", reject: "Reject" }
-          // nocowboy_change end
+            ? { once: "Разрешить", reject: "Отклонить" }
+            : { once: "Разрешить", always: "Разрешить всегда", reject: "Отклонить" }
 
           const body = (
             <Prompt
-              title="Permission required"
+              title="Требуется подтверждение"
               header={header()}
               body={current.body}
-              /* nocowboy_change */ options={options}
+options={options}
               escapeKey="reject"
               fullscreen
               onSelect={(option) => {
@@ -546,10 +557,10 @@ function RejectPrompt(props: { onConfirm: (message: string) => void; onCancel: (
       <box gap={1} paddingLeft={1} paddingRight={3} paddingTop={1} paddingBottom={1}>
         <box flexDirection="row" gap={1} paddingLeft={1}>
           <text fg={theme.error}>{"△"}</text>
-          <text fg={theme.text}>Reject permission</text>
+          <text fg={theme.text}>Отклонить</text>
         </box>
         <box paddingLeft={1}>
-          <text fg={theme.textMuted}>Tell NoCowboy what to do differently</text>
+          <text fg={theme.textMuted}>Укажи, что нужно сделать иначе</text>
         </box>
       </box>
       <box
@@ -576,10 +587,10 @@ function RejectPrompt(props: { onConfirm: (message: string) => void; onCancel: (
         />
         <box flexDirection="row" gap={2} flexShrink={0}>
           <text fg={theme.text}>
-            enter <span style={{ fg: theme.textMuted }}>confirm</span>
+            enter <span style={{ fg: theme.textMuted }}>подтвердить</span>
           </text>
           <text fg={theme.text}>
-            esc <span style={{ fg: theme.textMuted }}>cancel</span>
+            esc <span style={{ fg: theme.textMuted }}>отмена</span>
           </text>
         </box>
       </box>
@@ -613,7 +624,7 @@ function Prompt<const T extends Record<string, string>>(props: {
     commands: [
       {
         name: "app.exit",
-        title: "Reject permission",
+        title: "Отклонить",
         category: "Permission",
         run() {
           if (!props.escapeKey) return
@@ -681,7 +692,7 @@ function Prompt<const T extends Record<string, string>>(props: {
         ? [
             {
               key: "escape",
-              desc: "Reject permission",
+              desc: "Отклонить",
               group: "Permission",
               cmd: () => props.onSelect(props.escapeKey!),
             },
@@ -692,7 +703,7 @@ function Prompt<const T extends Record<string, string>>(props: {
     ],
   }))
 
-  const hint = createMemo(() => (store.expanded ? "minimize" : "fullscreen"))
+  const hint = createMemo(() => (store.expanded ? "свернуть" : "на весь экран"))
   useRenderer()
 
   const content = () => (
@@ -767,10 +778,10 @@ function Prompt<const T extends Record<string, string>>(props: {
             </text>
           </Show>
           <text fg={theme.text}>
-            {"⇆"} <span style={{ fg: theme.textMuted }}>select</span>
+            {"⇆"} <span style={{ fg: theme.textMuted }}>выбор</span>
           </text>
           <text fg={theme.text}>
-            enter <span style={{ fg: theme.textMuted }}>confirm</span>
+            enter <span style={{ fg: theme.textMuted }}>подтвердить</span>
           </text>
         </box>
       </box>

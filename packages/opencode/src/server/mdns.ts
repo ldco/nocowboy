@@ -1,4 +1,4 @@
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Bonjour } from "bonjour-service"
 
 const log = Log.create({ service: "mdns" })
@@ -11,8 +11,8 @@ export function publish(port: number, domain?: string) {
   if (bonjour) unpublish()
 
   try {
-    const host = domain ?? "kilo.local" // nocowboy_change
-    const name = `kilo-${port}` // nocowboy_change
+    const host = domain ?? "kilo.local"
+    const name = `kilo-${port}`
     bonjour = new Bonjour()
     const service = bonjour.publish({
       name,

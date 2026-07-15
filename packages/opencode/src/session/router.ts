@@ -1,4 +1,3 @@
-// nocowboy_change — automatic agent router
 
 /**
  * Auto-router: intercepts #route: directives in assistant output

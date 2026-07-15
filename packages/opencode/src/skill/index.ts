@@ -1,28 +1,26 @@
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context, Schema } from "effect"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import type { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { InstanceState } from "@/effect/instance-state"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Permission } from "@/permission"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Config } from "@/config/config"
 import { ConfigMarkdown } from "@/config/markdown"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { Glob } from "@opencode-ai/core/util/glob"
-import * as Log from "@opencode-ai/core/util/log"
+import { Glob } from "@nocowboy/core/util/glob"
+import * as Log from "@nocowboy/core/util/log"
 import { Discovery } from "./discovery"
-import { BUILTIN_SKILLS } from "../nocowboy/skills/builtin" // nocowboy_change
+import { BUILTIN_SKILLS } from "../nocowboy/skills/builtin"
 import { isRecord } from "@/util/record"
 
 const log = Log.create({ service: "skill" })
 const CLAUDE_EXTERNAL_DIR = ".claude"
 const AGENTS_EXTERNAL_DIR = ".agents"
-// nocowboy_change start
 export const BUILTIN_LOCATION = "builtin"
-// nocowboy_change end
 const EXTERNAL_SKILL_PATTERN = "skills/**/SKILL.md"
 const NOCOWBOY_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
 const SKILL_PATTERN = "**/SKILL.md"
@@ -223,7 +221,6 @@ const discoverSkills = Effect.fnUntraced(function* (
 })
 
 const loadSkills = Effect.fnUntraced(function* (state: State, discovered: DiscoveryState, bus: Bus.Interface) {
-  // nocowboy_change start - seed built-in skills before discovery so user skills can override
   for (const skill of BUILTIN_SKILLS) {
     state.skills[skill.name] = {
       name: skill.name,
@@ -233,7 +230,6 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
       content: skill.content,
     }
   }
-  // nocowboy_change end
 
   yield* Effect.forEach(discovered.matches, (match) => add(state, match, bus), {
     concurrency: "unbounded",
@@ -243,7 +239,7 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
   log.info("init", { count: Object.keys(state.skills).length })
 })
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Skill") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Skill") {}
 
 export const layer = Layer.effect(
   Service,
@@ -264,7 +260,7 @@ export const layer = Layer.effect(
           flags.disableExternalSkills,
           flags.disableClaudeCodeSkills,
           ctx.directory,
-          ctx.project.worktree, // nocowboy_change
+          ctx.project.worktree,
         )
       }),
     )

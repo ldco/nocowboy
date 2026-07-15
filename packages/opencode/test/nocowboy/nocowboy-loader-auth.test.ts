@@ -2,9 +2,9 @@
 // Tests that unauthenticated Kilo models are assembled with paid models and autoloaded anonymously.
 
 import { expect } from "bun:test"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { ModelsDev } from "../../src/provider/models"
-import * as CoreModels from "@opencode-ai/core/models"
+import * as CoreModels from "@nocowboy/core/models"
 import { Effect, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
 import { ncowboyCustomLoaders as kiloCustomLoaders } from "../../src/nocowboy/provider/provider"

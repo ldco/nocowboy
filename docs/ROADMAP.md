@@ -41,7 +41,7 @@
   - ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates) ❓
   - ⬜ Auto-dream programmatic — программаторное сканирование сессий ❓
   - ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP ❓
-  - ⬜ UI для выбора модели каждого агента в Settings TUI ❓
+  - ⬜ UI для выбора модели каждого агента в Settings TUI 📐
   - 🔴 Turso — production SQLite для multi-machine sync ❓ — **Blocked:** drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md
 
 ## v1.0.0 — Production release

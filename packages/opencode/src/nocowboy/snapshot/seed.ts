@@ -1,7 +1,7 @@
 import { Effect } from "effect"
 import path from "path"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import * as Log from "@nocowboy/core/util/log"
 import { SnapshotMaterialize } from "./materialize"
 
 export namespace SnapshotSeed {

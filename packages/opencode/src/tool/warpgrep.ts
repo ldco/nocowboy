@@ -1,8 +1,8 @@
 import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
-import { WarpGrepClient } from "@morphllm/morphsdk/tools/warp-grep/client" // nocowboy_change
-import { Telemetry } from "@nocowboy/telemetry" // nocowboy_change
-import { Instance } from "../nocowboy/instance" // nocowboy_change
+import { WarpGrepClient } from "@morphllm/morphsdk/tools/warp-grep/client"
+import { Telemetry } from "@nocowboy/telemetry"
+import { Instance } from "../nocowboy/instance"
 import { Bus } from "../bus"
 import { TuiEvent } from "../cli/cmd/tui/event"
 import DESCRIPTION from "./warpgrep.txt"
@@ -10,12 +10,11 @@ import DESCRIPTION from "./warpgrep.txt"
 // FREE_PERIOD_TODO: Remove KILO_WARPGREP_PROXY_URL constant and the proxy
 // fallback below. After the free period ends, require MORPH_API_KEY and
 // return an error when it is missing.
-// nocowboy_change - TODO: replace with own service, was: const KILO_WARPGREP_PROXY_URL = "https://api.nocowboy.dev/api/gateway"
 const KILO_WARPGREP_PROXY_URL = ""
 
 const Parameters = Schema.Struct({
   query: Schema.String.annotate({
-    description: "Search query describing what code you are looking for. Be specific and descriptive for best results.", // nocowboy_change
+    description: "Search query describing what code you are looking for. Be specific and descriptive for best results.",
   }),
 })
 
@@ -33,7 +32,7 @@ export const CodebaseSearchTool = Tool.define(
             always: ["*"],
             metadata: { query: params.query },
           })
-          Telemetry.trackToolUsed() // nocowboy_change
+          Telemetry.trackToolUsed()
 
           const apiKey = process.env["MORPH_API_KEY"]
 
@@ -57,13 +56,12 @@ export const CodebaseSearchTool = Tool.define(
             // from the proxy (401/402/429) will surface here. The message below
             // tells the user exactly what to do.
             const isAuthOrRateLimit =
-              result.error && /401|402|429|rate.limit|free.period|unauthorized/i.test(result.error) // nocowboy_change
+              result.error && /401|402|429|rate.limit|free.period|unauthorized/i.test(result.error)
             const apiKeyMsg =
               "Codebase search unavailable: free period ended. Set MORPH_API_KEY to continue. Get your key at https://www.morphllm.com/"
             if (isAuthOrRateLimit) {
               yield* Effect.promise(() =>
                 Bus.publish(Instance.current, TuiEvent.ToastShow, {
-                  // nocowboy_change
                   title: "Codebase Search Unavailable",
                   message: "Free period has ended. Set MORPH_API_KEY to continue. Get your key at morphllm.com",
                   variant: "error",
@@ -79,7 +77,7 @@ export const CodebaseSearchTool = Tool.define(
           }
 
           const MAX_OUTPUT_CHARS = 45_000
-          const fullOutput = result.contexts.map((c) => `### ${c.file}\n\`\`\`\n${c.content}\n\`\`\``).join("\n\n") // nocowboy_change
+          const fullOutput = result.contexts.map((c) => `### ${c.file}\n\`\`\`\n${c.content}\n\`\`\``).join("\n\n")
 
           let output: string
           if (fullOutput.length > MAX_OUTPUT_CHARS) {

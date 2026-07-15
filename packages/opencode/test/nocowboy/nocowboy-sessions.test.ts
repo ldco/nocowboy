@@ -1,7 +1,7 @@
 // kilocode_change - new file
 import { expect, test } from "bun:test"
 import { Effect, Layer } from "effect"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Auth } from "../../src/auth"
 import { Bus } from "../../src/bus"
 import type { Config } from "../../src/config/config"

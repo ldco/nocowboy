@@ -15,7 +15,7 @@ export function DialogAgent() {
         value: item.name,
         title: item.displayName ?? item.name,
         description:
-          [item.deprecated && "deprecated"].filter(Boolean).join(", ") || (item.description ?? ""), // nocowboy_change — always show description, never hide behind "native"
+          [item.deprecated && "deprecated"].filter(Boolean).join(", ") || (item.description ?? ""),
       }
     }),
   )
@@ -23,7 +23,7 @@ export function DialogAgent() {
   return (
     <DialogSelect
       title="Select agent"
-      current={local.agent.current()?.name ?? ""} // nocowboy_change
+      current={local.agent.current()?.name ?? ""}
       options={options()}
       onSelect={(option: { value: string }) => {
         local.agent.set(option.value)

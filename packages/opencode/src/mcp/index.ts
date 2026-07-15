@@ -1,11 +1,9 @@
-// nocowboy_change start
 // The MCP SDK only sets windowsHide:true in Electron (checks `'type' in process`).
 // Bun's process object lacks `type`, so stdio transports flash a CMD window on
 // every MCP server start. We patch it before the SDK is imported.
 if (process.platform === "win32" && !("type" in process)) {
   Object.defineProperty(process, "type", { value: "nocowboy-bun", configurable: true })
 }
-// nocowboy_change end
 
 import { dynamicTool, type Tool, jsonSchema, type JSONSchema7 } from "ai"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
@@ -21,12 +19,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import { Config } from "@/config/config"
 import { ConfigMCP } from "../config/mcp"
-import * as Log from "@opencode-ai/core/util/log"
-import { NamedError } from "@opencode-ai/core/util/error"
+import * as Log from "@nocowboy/core/util/log"
+import { NamedError } from "@nocowboy/core/util/error"
 import { Installation } from "../installation"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { withTimeout } from "@/util/timeout"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { McpOAuthProvider } from "./oauth-provider"
 import { McpOAuthCallback } from "./oauth-callback"
 import { McpAuth } from "./auth"
@@ -38,12 +36,11 @@ import { Effect, Exit, Layer, Option, Context, Schema, Stream } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 
 const log = Log.create({ service: "mcp" })
 const DEFAULT_TIMEOUT = 30_000
 
-// nocowboy_change start - inject --rm for Docker containers to prevent stopped container accumulation
 export function ensureDockerRm(cmd: string, args: string[]): string[] {
   const isDocker = cmd === "docker" || cmd === "podman"
   if (!isDocker) return args
@@ -55,7 +52,6 @@ export function ensureDockerRm(cmd: string, args: string[]): string[] {
   result.splice(runIdx + 1, 0, "--rm")
   return result
 }
-// nocowboy_change end
 
 const TolerantListToolsResultSchema = ListToolsResultSchema.extend({
   tools: ToolSchema.omit({ outputSchema: true }).array(),
@@ -284,7 +280,7 @@ export interface Interface {
   readonly getAuthStatus: (mcpName: string) => Effect.Effect<AuthStatus>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/MCP") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/MCP") {}
 
 export const layer = Layer.effect(
   Service,
@@ -305,7 +301,7 @@ export const layer = Layer.effect(
         (t) =>
           Effect.tryPromise({
             try: () => {
-              const client = new Client({ name: "kilo", version: InstallationVersion }) // nocowboy_change
+              const client = new Client({ name: "kilo", version: InstallationVersion })
               return withTimeout(client.connect(t), timeout).then(() => client)
             },
             catch: (e) => (e instanceof Error ? e : new Error(String(e))),
@@ -392,7 +388,7 @@ export const layer = Layer.effect(
                 return bus
                   .publish(TuiEvent.ToastShow, {
                     title: "MCP Authentication Required",
-                    message: `Server "${key}" requires authentication. Run: kilo mcp auth ${key}`, // nocowboy_change
+                    message: `Server "${key}" requires authentication. Run: kilo mcp auth ${key}`,
                     variant: "warning",
                     duration: 8000,
                   })
@@ -429,16 +425,16 @@ export const layer = Layer.effect(
       mcp: ConfigMCP.Info & { type: "local" },
     ) {
       const [cmd, ...args] = mcp.command
-      const finalArgs = ensureDockerRm(cmd, args) // nocowboy_change
+      const finalArgs = ensureDockerRm(cmd, args)
       const cwd = yield* InstanceState.directory
       const transport = new StdioClientTransport({
         stderr: "pipe",
         command: cmd,
-        args: finalArgs, // nocowboy_change
+        args: finalArgs,
         cwd,
         env: {
           ...process.env,
-          ...(cmd === "opencode" ? { BUN_BE_BUN: "1" } : {}),
+          ...(cmd === "nocowboy" ? { BUN_BE_BUN: "1" } : {}),
           ...mcp.environment,
         },
       })
@@ -783,9 +779,7 @@ export const layer = Layer.effect(
       return mcpConfig
     })
 
-    // nocowboy_change start - `opts?: { callback?: boolean }` parameter is Kilo-specific
     const startAuth = Effect.fn("MCP.startAuth")(function* (mcpName: string, opts?: { callback?: boolean }) {
-      // nocowboy_change end
       const mcpConfig = yield* getMcpConfig(mcpName)
       if (!mcpConfig) throw new Error(`MCP server ${mcpName} not found or disabled`)
       if (mcpConfig.type !== "remote") throw new Error(`MCP server ${mcpName} is not a remote server`)
@@ -796,11 +790,9 @@ export const layer = Layer.effect(
       // OAuth config is optional - if not provided, we'll use auto-discovery
       const oauthConfig = typeof mcpConfig.oauth === "object" ? mcpConfig.oauth : undefined
 
-      // nocowboy_change start - authenticate() defers binding the callback port until a redirect is needed
       if (opts?.callback !== false) {
         yield* Effect.promise(() => McpOAuthCallback.ensureRunning(oauthConfig?.redirectUri))
       }
-      // nocowboy_change end
 
       const oauthState = Array.from(crypto.getRandomValues(new Uint8Array(32)))
         .map((b) => b.toString(16).padStart(2, "0"))
@@ -828,7 +820,7 @@ export const layer = Layer.effect(
 
       return yield* Effect.tryPromise({
         try: () => {
-          const client = new Client({ name: "kilo", version: InstallationVersion }) // nocowboy_change
+          const client = new Client({ name: "kilo", version: InstallationVersion })
           return client
             .connect(transport)
             .then(() => ({ authorizationUrl: "", oauthState, client }) satisfies AuthResult)
@@ -846,7 +838,7 @@ export const layer = Layer.effect(
     })
 
     const authenticate = Effect.fn("MCP.authenticate")(function* (mcpName: string) {
-      const result = yield* startAuth(mcpName, { callback: false }) // nocowboy_change
+      const result = yield* startAuth(mcpName, { callback: false })
       if (!result.authorizationUrl) {
         const client = "client" in result ? result.client : undefined
         const mcpConfig = yield* getMcpConfig(mcpName)
@@ -868,7 +860,6 @@ export const layer = Layer.effect(
 
       log.info("opening browser for oauth", { mcpName, url: result.authorizationUrl, state: result.oauthState })
 
-      // nocowboy_change start - bind only after redirect exists, and clean up if binding fails
       const mcpConfig = yield* getMcpConfig(mcpName)
       if (!mcpConfig) return { status: "failed", error: "MCP config not found after auth" } as Status
       if (mcpConfig.type !== "remote")
@@ -891,7 +882,6 @@ export const layer = Layer.effect(
         yield* Effect.tryPromise(() => transport?.close() ?? Promise.resolve()).pipe(Effect.ignore)
         return { status: "failed", error: err.message } as Status
       }
-      // nocowboy_change end
 
       const callbackPromise = McpOAuthCallback.waitForCallback(result.oauthState, mcpName)
 

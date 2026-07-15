@@ -1,4 +1,4 @@
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test"
 import { Database } from "../../src/storage/db"
 import { SessionImportService } from "../../src/nocowboy/session-import/service"

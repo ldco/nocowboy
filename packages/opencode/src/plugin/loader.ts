@@ -9,9 +9,9 @@ import {
   type PluginSource,
 } from "./shared"
 import { ConfigPlugin } from "@/config/plugin"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
-import { isIndexingPlugin } from "@nocowboy/indexing/detect" // nocowboy_change
-import { isAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature" // nocowboy_change
+import { InstallationVersion } from "@nocowboy/core/installation/version"
+import { isIndexingPlugin } from "@nocowboy/indexing/detect"
+import { isAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature"
 
 export namespace PluginLoader {
   // A normalized plugin declaration derived from config before any filesystem or npm work happens.
@@ -143,8 +143,8 @@ export namespace PluginLoader {
 
     // Deprecated plugin packages are silently ignored because they are now built in.
     if (plan.deprecated) return
-    if (isIndexingPlugin(candidate.plan.spec)) return // nocowboy_change
-    if (isAtomicChatPlugin(candidate.plan.spec)) return // nocowboy_change
+    if (isIndexingPlugin(candidate.plan.spec)) return
+    if (isAtomicChatPlugin(candidate.plan.spec)) return
     report?.start?.(candidate, retry)
 
     const resolved = await resolve(plan, kind)

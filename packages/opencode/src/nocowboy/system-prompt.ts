@@ -1,6 +1,5 @@
-// nocowboy_change - new file
 
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { staticEnvLines, type EditorContext } from "@/nocowboy/editor-context"
 import type { Provider } from "@/provider/provider"
 import type { InstanceContext } from "@/project/instance-context"

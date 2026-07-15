@@ -18,7 +18,6 @@ type EventMetadata = {
   workspace: string | undefined
 }
 
-// nocowboy_change start - normalize the runtime SyncEvent wire envelope to the generated SDK shape
 export function normalizeSyncEvent(payload: unknown): SyncEvent | undefined {
   if (!payload || typeof payload !== "object" || !("type" in payload) || payload.type !== "sync") return
   if ("name" in payload) return payload as SyncEvent
@@ -43,7 +42,6 @@ export function normalizeSyncEvent(payload: unknown): SyncEvent | undefined {
     data: event.data,
   } as SyncEvent
 }
-// nocowboy_change end
 
 export function useEvent() {
   const project = useProject()

@@ -5,7 +5,7 @@ import { Session } from "@/session/session"
 import { MessageV2 } from "@/session/message-v2"
 import { SessionID } from "@/session/schema"
 import { SessionStatus } from "@/session/status"
-import { PositiveInt } from "@opencode-ai/core/schema"
+import { PositiveInt } from "@nocowboy/core/schema"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Effect, Option, Schema } from "effect"
 
@@ -131,13 +131,11 @@ export const TaskStatusTool = Tool.define(
           }),
         }
       }
-      // nocowboy_change start - task status follows the same direct-child ownership boundary as task resume
       if (session.parentID !== ctx.sessionID) {
         return yield* Effect.fail(
           new Error(`Cannot inspect task ${params.task_id}: not a child of the current session`),
         )
       }
-      // nocowboy_change end
 
       const waited =
         params.wait === true

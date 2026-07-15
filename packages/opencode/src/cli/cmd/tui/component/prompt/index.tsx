@@ -49,10 +49,10 @@ import { useToast } from "../../ui/toast"
 import { useKV } from "../../context/kv"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
-import { DialogModel } from "../dialog-model" // nocowboy_change
-import { DialogAgent } from "../dialog-agent" // nocowboy_change
-import { DialogAgentModel } from "../dialog-agent-model" // nocowboy_change
-import { DialogVariant } from "../dialog-variant" // nocowboy_change
+import { DialogModel } from "../dialog-model"
+import { DialogAgent } from "../dialog-agent"
+import { DialogAgentModel } from "../dialog-agent-model"
+import { DialogVariant } from "../dialog-variant"
 import {
   confirmWorkspaceFileChanges,
   openWorkspaceSelect,
@@ -61,11 +61,9 @@ import {
 } from "../dialog-workspace-create"
 import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
-// nocowboy_change start
 import { KiloSessionTuiSync } from "@/nocowboy/session/tui-sync"
 import { slashMatches } from "@/nocowboy/cli/cmd/command-display"
-// nocowboy_change end
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { type WorkspaceStatus } from "../workspace-label"
 import { useCommandPalette } from "../../context/command-palette"
 import { useBindings, useCommandShortcut, useLeaderActive, useOpencodeKeymap } from "../../keymap"
@@ -364,7 +362,7 @@ export function Prompt(props: PromptProps) {
     mode: "normal" | "shell"
     extmarkToPartIndex: Map<number, number>
     interrupt: number
-    exitPress: number // nocowboy_change - track double ctrl+c to exit
+    exitPress: number
     placeholder: number
   }>({
     placeholder: randomIndex(list().length),
@@ -375,7 +373,7 @@ export function Prompt(props: PromptProps) {
     mode: "normal",
     extmarkToPartIndex: new Map(),
     interrupt: 0,
-    exitPress: 0, // nocowboy_change
+    exitPress: 0,
   })
 
   createEffect(
@@ -388,7 +386,6 @@ export function Prompt(props: PromptProps) {
     ),
   )
 
-  // nocowboy_change start - sync local agent/model whenever newest user message changes
   let syncedKey: string | undefined
   createEffect(() => {
     const sessionID = props.sessionID
@@ -413,7 +410,6 @@ export function Prompt(props: PromptProps) {
       }
     }
   })
-  // nocowboy_change end
 
   const promptCommands = createMemo(() =>
     [
@@ -704,13 +700,11 @@ export function Prompt(props: PromptProps) {
     props.ref?.(undefined)
   })
 
-  // nocowboy_change start - close autocomplete while blocking overlays hide the prompt
   createEffect(() => {
     if (props.visible === false || props.disabled) {
       auto()?.dismiss()
     }
   })
-  // nocowboy_change end
 
   createEffect(() => {
     if (!input || input.isDestroyed) return
@@ -893,7 +887,6 @@ export function Prompt(props: PromptProps) {
     }
   })
 
-  // nocowboy_change start - require a double Ctrl+C to exit from an empty focused prompt
   useBindings(() => ({
     target: inputTarget,
     enabled: inputTarget() !== undefined && !props.disabled && store.prompt.input === "",
@@ -912,7 +905,6 @@ export function Prompt(props: PromptProps) {
       },
     ],
   }))
-  // nocowboy_change end
 
   useBindings(() => {
     return {
@@ -1177,7 +1169,7 @@ export function Prompt(props: PromptProps) {
     if (store.mode === "shell") {
       void sdk.client.session.shell({
         sessionID,
-        agent: local.agent.current()?.name ?? "", // nocowboy_change
+        agent: local.agent.current()?.name ?? "",
         model: {
           providerID: selectedModel.providerID,
           modelID: selectedModel.modelID,
@@ -1190,7 +1182,7 @@ export function Prompt(props: PromptProps) {
       iife(() => {
         const firstLine = inputText.split("\n")[0]
         const command = firstLine.split(" ")[0].slice(1)
-        return sync.data.command.some((x) => slashMatches(x, command)) // nocowboy_change
+        return sync.data.command.some((x) => slashMatches(x, command))
       })
     ) {
       // Parse command from first line, preserve multi-line content in arguments
@@ -1204,7 +1196,7 @@ export function Prompt(props: PromptProps) {
         sessionID,
         command: command.slice(1),
         arguments: args,
-        agent: local.agent.current()?.name ?? "", // nocowboy_change
+        agent: local.agent.current()?.name ?? "",
         model: `${selectedModel.providerID}/${selectedModel.modelID}`,
         messageID,
         variant,
@@ -1221,7 +1213,7 @@ export function Prompt(props: PromptProps) {
           sessionID,
           ...selectedModel,
           messageID,
-          agent: local.agent.current()?.name ?? "", // nocowboy_change
+          agent: local.agent.current()?.name ?? "",
           model: selectedModel,
           variant,
           parts: [
@@ -1237,7 +1229,7 @@ export function Prompt(props: PromptProps) {
         .catch(() => {})
       if (editorParts.length > 0) editor.markSelectionSent()
     }
-    toast.dismiss() // nocowboy_change - dismiss persistent config warning on first submit
+    toast.dismiss()
     history.append({
       ...store.prompt,
       mode: currentMode,
@@ -1343,7 +1335,7 @@ export function Prompt(props: PromptProps) {
 
     const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
     if (
-      (lineCount >= 5 || pastedContent.length > 800) && // nocowboy_change #7252 delay paste summary
+      (lineCount >= 5 || pastedContent.length > 800) &&
       kv.get("paste_summary_enabled", !sync.data.config.experimental?.disable_paste_summary)
     ) {
       pasteText(pastedContent, `[Pasted ~${lineCount} lines]`)
@@ -1428,7 +1420,7 @@ export function Prompt(props: PromptProps) {
     if (store.mode === "shell") return theme.primary
     const agent = local.agent.current()
     if (!agent) return theme.border
-    return local.agent.color(agent.name ?? "") // nocowboy_change
+    return local.agent.color(agent.name ?? "")
   })
 
   const showVariant = createMemo(() => {
@@ -1492,7 +1484,7 @@ export function Prompt(props: PromptProps) {
 
   const spinnerDef = createMemo(() => {
     const agent = local.agent.current()
-    const color = agent ? local.agent.color(agent.name ?? "") : theme.border // nocowboy_change
+    const color = agent ? local.agent.color(agent.name ?? "") : theme.border
     return {
       frames: createFrames({
         color,
@@ -1516,7 +1508,7 @@ export function Prompt(props: PromptProps) {
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
           border={["left"]}
-          borderColor="#ff6800" // nocowboy_change - brand orange
+          borderColor="#ff6800"
           customBorderChars={{
             ...SplitBorder.customBorderChars,
             bottomLeft: "╹",
@@ -1544,7 +1536,7 @@ export function Prompt(props: PromptProps) {
                 syncExtmarksWithPromptParts()
                 setCursorVersion((value) => value + 1)
               }}
-              /* nocowboy_change */ onCursorChange={() => {
+onCursorChange={() => {
                 setCursorVersion((value) => value + 1)
                 if (store.mode === "normal") auto()?.onCursorChange()
               }}
@@ -1609,36 +1601,34 @@ export function Prompt(props: PromptProps) {
                     <>
                       <text
                         fg={fadeColor(highlight(), agentMetaAlpha())}
-                        onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgent />) }} // nocowboy_change
+                        onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgent />) }}
                       >
-                        {/* nocowboy_change start */}
                         {store.mode === "shell"
                           ? "Shell"
                           : (local.agent.current()?.displayName ??
                             Locale.titlecase(local.agent.current()?.name ?? ""))}{" "}
-                        {/* nocowboy_change end */}
-                      </text>
+                        </text>
                       <Show when={store.mode === "normal"}>
                         <box flexDirection="row" gap={1}>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
                           <text
                             flexShrink={0}
                             fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogModel />) }} // nocowboy_change
+                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogModel />) }}
                           >
                             {local.model.parsed().model}
                           </text>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
                           <text
                             fg={fadeColor(theme.textMuted, modelMetaAlpha())}
-                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgentModel />) }} // nocowboy_change
+                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgentModel />) }}
                           >
                             ⚙ agents
                           </text>
                           <Show when={showVariant()}>
                             <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
                             <text
-                              onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }} // nocowboy_change
+                              onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogVariant />) }}
                             >
                               <span style={{ fg: fadeColor(theme.accent, variantMetaAlpha()), bold: true }}>
                                 {local.model.variant.current()}
@@ -1661,9 +1651,9 @@ export function Prompt(props: PromptProps) {
         </box>
         <box
           height={1}
-          /* nocowboy_change */ flexShrink={0}
+flexShrink={0}
           border={["left"]}
-          borderColor="#ff6800" // nocowboy_change - brand orange
+          borderColor="#ff6800"
           customBorderChars={{
             ...EmptyBorder,
             vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
@@ -1771,7 +1761,7 @@ export function Prompt(props: PromptProps) {
                       setStore("interrupt", 0)
                     }
                     dialog.clear()
-                  }} // nocowboy_change
+                  }}
                 >
                   esc{" "}
                   <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
@@ -1825,7 +1815,6 @@ export function Prompt(props: PromptProps) {
                   ctrl+c <span style={{ fg: theme.primary }}>again to exit</span>
                 </text>
               </Show>
-              {/* nocowboy_change end */}
               <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
                 {(file) => (
                   <text fg={editorContextLabelState() === "pending" ? theme.secondary : theme.textMuted}>{file()}</text>

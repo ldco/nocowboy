@@ -88,7 +88,7 @@ process.env["NOCOWBOY_CLIENT"] = process.env.NOCOWBOY_CLIENT ?? "cli"
 // reverse mirrors here — fix the test instead.
 
 // Now safe to import from src/
-const { Log } = await import("@opencode-ai/core/util/log")
+const { Log } = await import("@nocowboy/core/util/log")
 const { initProjectors } = await import("../src/server/projectors")
 
 void Log.init({

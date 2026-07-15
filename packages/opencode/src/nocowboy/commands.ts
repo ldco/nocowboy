@@ -1,6 +1,6 @@
 // All CommandModules in one place so help.ts and generate-cli-docs.ts can
-import { RepoMapCommand } from "../cli/cmd/repomap" // nocowboy_change
-import { InitCommand } from "../cli/cmd/init" // nocowboy_change
+import { RepoMapCommand } from "../cli/cmd/repomap"
+import { InitCommand } from "../cli/cmd/init"
 // introspect them without importing index.ts (which has startup side effects).
 // When upstream adds a new command to index.ts, add it here too.
 import { AcpCommand } from "../cli/cmd/acp"
@@ -11,7 +11,7 @@ import { RunCommand } from "../cli/cmd/run"
 import { GenerateCommand } from "../cli/cmd/generate"
 import { DebugCommand } from "../cli/cmd/debug"
 import { ConsoleCommand } from "../cli/cmd/account"
-import { ProvidersCommand } from "../cli/cmd/providers" // nocowboy_change — upstream renamed auth → providers
+import { ProvidersCommand } from "../cli/cmd/providers"
 import { AgentCommand } from "../cli/cmd/agent"
 import { UpgradeCommand } from "../cli/cmd/upgrade"
 import { UninstallCommand } from "../cli/cmd/uninstall"
@@ -33,9 +33,9 @@ import { RollCallCommand } from "./cli/cmd/roll-call"
 import { ProfileCommand } from "./cli/cmd/profile"
 import { DaemonCommand } from "./cli/cmd/daemon"
 import { KiloConsoleCommand } from "./cli/cmd/console"
-import { RoadmapCommand } from "../cli/cmd/roadmap" // nocowboy_change
+import { RoadmapCommand } from "../cli/cmd/roadmap"
 import { HelpCommand } from "./help-command"
-import { InstallationBuildKind } from "@opencode-ai/core/installation/version"
+import { InstallationBuildKind } from "@nocowboy/core/installation/version"
 
 // Synthetic entry for the yargs built-in .completion() command so that
 // generateHelp --all and cli-reference.md include it automatically.
@@ -54,15 +54,15 @@ const dev = InstallationBuildKind === "release" ? [] : [DevSetupCommand, DevAlia
 export const commands = [
   AcpCommand,
   McpCommand,
-  RepoMapCommand, // nocowboy_change
-  InitCommand, // nocowboy_change
+  RepoMapCommand,
+  InitCommand,
   TuiThreadCommand,
   AttachCommand,
   RunCommand,
   GenerateCommand,
   DebugCommand,
   ConsoleCommand,
-  ProvidersCommand, // nocowboy_change — upstream renamed AuthCommand → ProvidersCommand
+  ProvidersCommand,
   AgentCommand,
   UpgradeCommand,
   UninstallCommand,
@@ -84,7 +84,7 @@ export const commands = [
   ConfigCLICommand,
   ...dev,
   PluginCommand,
-  RoadmapCommand, // nocowboy_change
+  RoadmapCommand,
   HelpCommand,
   CompletionCommand,
 ]

@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import type { Message } from "@nocowboy/sdk/v2"
 
 const fmt = new Intl.NumberFormat("en-US")

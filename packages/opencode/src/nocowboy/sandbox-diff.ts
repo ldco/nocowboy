@@ -1,4 +1,3 @@
-// nocowboy_change — Diff Sandbox (Plandex-style)
 // Изоляция AI-изменений в git branch до подтверждения пользователем.
 //
 // /sandbox-start  — создаёт git branch, сохраняет "до" состояние
@@ -6,7 +5,7 @@
 // /sandbox-abort — отбрасывает branch, возвращает к исходному состоянию
 
 import { Effect } from "effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Config } from "@/config/config"
 
 export namespace DiffSandbox {

@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import { Telemetry, type ReviewCommand } from "@nocowboy/telemetry"
 import { SessionNetwork } from "@/session/network"
 import type { SessionID } from "@/session/schema"
@@ -6,9 +5,9 @@ import type { SessionStatus } from "@/session/status"
 import { MessageV2 } from "@/session/message-v2"
 import { isRecord } from "@/util/record"
 import { isReviewCommand, parseReviewCommand } from "@/nocowboy/review/command"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Effect } from "effect"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { EffectBridge } from "@/effect/bridge"
 
 export type ReviewTelemetry = {

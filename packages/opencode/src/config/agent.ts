@@ -1,23 +1,21 @@
 export * as ConfigAgent from "./agent"
 
-import path from "path" // nocowboy_change
+import path from "path"
 import { Schema, SchemaGetter } from "effect"
-import { PositiveInt } from "@opencode-ai/core/schema"
-import * as Log from "@opencode-ai/core/util/log"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { PositiveInt } from "@nocowboy/core/schema"
+import * as Log from "@nocowboy/core/util/log"
+import { Glob } from "@nocowboy/core/util/glob"
 import { configEntryNameFromPath } from "./entry-name"
 import { ConfigError } from "./error"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigModelID } from "./model-id"
 import { ConfigParse } from "./parse"
 import { ConfigPermission } from "./permission"
-import { ConfigVariable } from "./variable" // nocowboy_change
-// nocowboy_change start
+import { ConfigVariable } from "./variable"
 import { Bus } from "@/bus"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { NoCowboyConfig } from "@/nocowboy/config/config"
 import type { Warning } from "./config"
-// nocowboy_change end
 
 const log = Log.create({ service: "config" })
 
@@ -28,24 +26,20 @@ const Color = Schema.Union([
 
 const AgentSchema = Schema.StructWithRest(
   Schema.Struct({
-    model: Schema.optional(Schema.NullOr(ConfigModelID)), // nocowboy_change - nullable for delete sentinel
-    // nocowboy_change start - nullable for delete sentinel
+    model: Schema.optional(Schema.NullOr(ConfigModelID)),
     variant: Schema.optional(Schema.NullOr(Schema.String)).annotate({
       description: "Default model variant for this agent (applies only when using the agent's configured model).",
     }),
-    // nocowboy_change end
-    temperature: Schema.optional(Schema.NullOr(Schema.Finite)), // nocowboy_change - nullable for delete sentinel
-    top_p: Schema.optional(Schema.NullOr(Schema.Finite)), // nocowboy_change - nullable for delete sentinel
-    prompt: Schema.optional(Schema.NullOr(Schema.String)), // nocowboy_change - nullable for delete sentinel
+    temperature: Schema.optional(Schema.NullOr(Schema.Finite)),
+    top_p: Schema.optional(Schema.NullOr(Schema.Finite)),
+    prompt: Schema.optional(Schema.NullOr(Schema.String)),
     tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)).annotate({
       description: "@deprecated Use 'permission' field instead",
     }),
     disable: Schema.optional(Schema.Boolean),
-    // nocowboy_change start - nullable for delete sentinel
     description: Schema.optional(Schema.NullOr(Schema.String)).annotate({
       description: "Description of when to use the agent",
     }),
-    // nocowboy_change end
     mode: Schema.optional(Schema.Literals(["subagent", "primary", "all"])),
     hidden: Schema.optional(Schema.Boolean).annotate({
       description: "Hide this subagent from the @ autocomplete menu (default: false, only applies to mode: subagent)",
@@ -54,20 +48,16 @@ const AgentSchema = Schema.StructWithRest(
     color: Schema.optional(Color).annotate({
       description: "Hex color code (e.g., #FF5733) or theme color (e.g., primary)",
     }),
-    // nocowboy_change start - nullable for delete sentinel
     steps: Schema.optional(Schema.NullOr(PositiveInt)).annotate({
       description: "Maximum number of agentic iterations before forcing text-only response",
     }),
-    // nocowboy_change end
     maxSteps: Schema.optional(PositiveInt).annotate({ description: "@deprecated Use 'steps' field instead." }),
     permission: Schema.optional(ConfigPermission.Info),
-    // nocowboy_change start - composable tool groups
     groups: Schema.optional(
       Schema.mutable(Schema.Array(Schema.String)),
     ).annotate({
       description: "Tool groups for this agent: read, edit, command, mcp. Resolved to baseline permissions.",
     }),
-    // nocowboy_change end
   }),
   [Schema.Record(Schema.String, Schema.Any)],
 )
@@ -115,7 +105,6 @@ const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema
   }
   globalThis.Object.assign(permission, agent.permission)
 
-  // nocowboy_change start - resolve groups to permissions + preserve null delete sentinel
   const steps = agent.steps !== undefined ? agent.steps : agent.maxSteps
 
   // Resolve tool groups to baseline permissions
@@ -134,7 +123,6 @@ const normalize = (agent: Schema.Schema.Type<typeof AgentSchema>): Schema.Schema
     Object.assign(permission, resolved, permission)
   }
   return { ...agent, options, permission, ...(steps !== undefined ? { steps } : {}) }
-  // nocowboy_change end
 }
 
 export const Info = AgentSchema.pipe(
@@ -145,9 +133,7 @@ export const Info = AgentSchema.pipe(
 ).annotate({ identifier: "AgentConfig" })
 export type Info = Schema.Schema.Type<typeof Info>
 
-// nocowboy_change start
 export async function load(dir: string, warnings?: Warning[]) {
-  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{agent,agents}/**/*.md", {
     cwd: dir,
@@ -159,7 +145,6 @@ export async function load(dir: string, warnings?: Warning[]) {
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse agent ${item}`
-      // nocowboy_change start
       if (warnings) warnings.push({ path: item, message })
       try {
         const { capture } = await import("@/nocowboy/instance")
@@ -171,27 +156,21 @@ export async function load(dir: string, warnings?: Warning[]) {
       } catch (error) {
         log.warn("could not publish session error", { message, err: error })
       }
-      // nocowboy_change end
       log.error("failed to load agent", { agent: item, err })
       return undefined
     })
     if (!md) continue
 
-    // nocowboy_change start
     const patterns = [
       "/.nocowboy/agent/",
       "/.nocowboy/agents/",
       "/.nocowboy/agent/",
       "/.nocowboy/agents/",
-      "/.opencode/agent/",
-      "/.opencode/agents/",
       "/agent/",
       "/agents/",
     ]
-    // nocowboy_change end
     const name = configEntryNameFromPath(item, patterns)
 
-    // nocowboy_change start - substitute agent prompt variables relative to the agent file
     const prompt = await ConfigVariable.substitute({
       text: md.content.trim(),
       type: "virtual",
@@ -205,8 +184,6 @@ export async function load(dir: string, warnings?: Warning[]) {
       ...md.data,
       prompt,
     }
-    // nocowboy_change end
-    // nocowboy_change start - use Effect schema (propertyOrder: original) + non-fatal handleInvalid
     try {
       result[config.name] = ConfigParse.schema(Info, config, item) as Info
     } catch (err) {
@@ -216,14 +193,11 @@ export async function load(dir: string, warnings?: Warning[]) {
       }
       throw err
     }
-    // nocowboy_change end
   }
   return result
 }
 
-// nocowboy_change start
 export async function loadMode(dir: string, warnings?: Warning[]) {
-  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{mode,modes}/*.md", {
     cwd: dir,
@@ -235,7 +209,6 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse mode ${item}`
-      // nocowboy_change start
       if (warnings) warnings.push({ path: item, message })
       try {
         const { capture } = await import("@/nocowboy/instance")
@@ -247,7 +220,6 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
       } catch (error) {
         log.warn("could not publish session error", { message, err: error })
       }
-      // nocowboy_change end
       log.error("failed to load mode", { mode: item, err })
       return undefined
     })
@@ -258,7 +230,6 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
       ...md.data,
       prompt: md.content.trim(),
     }
-    // nocowboy_change start - use Effect schema (propertyOrder: original) + non-fatal handleInvalid
     try {
       result[config.name] = {
         ...(ConfigParse.schema(Info, config, item) as Info),
@@ -271,7 +242,6 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
       }
       throw err
     }
-    // nocowboy_change end
   }
   return result
 }

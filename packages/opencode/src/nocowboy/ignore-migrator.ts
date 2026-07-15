@@ -1,6 +1,6 @@
 import * as path from "path"
 import os from "os"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import type { Config } from "../config/config"
 import type { ConfigPermission } from "../config/permission"
 

@@ -1,7 +1,7 @@
 import type { Hooks, PluginInput } from "@nocowboy/plugin"
 import type { Model } from "@nocowboy/sdk/v2"
-import * as Log from "@opencode-ai/core/util/log"
-import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import * as Log from "@nocowboy/core/util/log"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { createServer } from "http"
 
 const log = Log.create({ service: "plugin.digitalocean" })
@@ -14,7 +14,7 @@ const OAUTH_PORT = 1456
 const OAUTH_REDIRECT_PATH = "/auth/callback"
 const OAUTH_TOKEN_PATH = "/auth/token"
 const ROUTER_REFRESH_INTERVAL_MS = 5 * 60 * 1000
-const MAK_NAME_PREFIX = "kilo-oauth" // nocowboy_change
+const MAK_NAME_PREFIX = "kilo-oauth"
 
 interface ImplicitTokenPayload {
   access_token: string
@@ -65,7 +65,6 @@ function buildAuthorizeUrl(state: string): string {
   return `${DO_AUTHORIZE_URL}?${params.toString()}`
 }
 
-// nocowboy_change start - Kilo branding for the DigitalOcean OAuth callback page
 const HTML_CALLBACK = `<!doctype html>
 <html>
   <head>
@@ -119,7 +118,6 @@ const HTML_CALLBACK = `<!doctype html>
     </script>
   </body>
 </html>`
-// nocowboy_change end
 
 async function startOAuthServer(): Promise<void> {
   if (oauthServer) return
@@ -235,7 +233,7 @@ async function createModelAccessKey(bearer: string): Promise<ApiKeyInfo> {
     headers: {
       Authorization: `Bearer ${bearer}`,
       "Content-Type": "application/json",
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `nocowboy/${InstallationVersion}`,
     },
     body: JSON.stringify({ name }),
   })
@@ -255,7 +253,7 @@ async function listRouters(
     headers: {
       Authorization: `Bearer ${bearer}`,
       Accept: "application/json",
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `nocowboy/${InstallationVersion}`,
     },
     signal: AbortSignal.timeout(10_000),
   }).catch(() => undefined)
@@ -367,7 +365,7 @@ export async function DigitalOceanAuthPlugin(input: PluginInput): Promise<Hooks>
             return {
               url: buildAuthorizeUrl(state),
               instructions:
-                "Sign in to DigitalOcean in your browser. Kilo will create a Model Access Key named kilo-oauth-* and load your Inference Routers. Re-run /connect to refresh routers later.", // nocowboy_change
+                "Sign in to DigitalOcean in your browser. Kilo will create a Model Access Key named kilo-oauth-* and load your Inference Routers. Re-run /connect to refresh routers later.",
               method: "auto" as const,
               async callback() {
                 try {

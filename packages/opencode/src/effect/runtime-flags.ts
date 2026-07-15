@@ -11,7 +11,7 @@ const experimental = bool("NOCOWBOY_EXPERIMENTAL")
 const enabledByExperimental = (name: string) =>
   Config.all({ experimental, enabled: bool(name) }).pipe(Config.map((flags) => flags.experimental || flags.enabled))
 
-export class Service extends ConfigService.Service<Service>()("@opencode/RuntimeFlags", {
+export class Service extends ConfigService.Service<Service>()("@nocowboy/RuntimeFlags", {
   autoShare: bool("NOCOWBOY_AUTO_SHARE"),
   pure: bool("NOCOWBOY_PURE"),
   disableDefaultPlugins: bool("NOCOWBOY_DISABLE_DEFAULT_PLUGINS"),

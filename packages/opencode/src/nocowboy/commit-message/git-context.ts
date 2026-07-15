@@ -133,7 +133,7 @@ export function git(args: string[], cwd: string): string {
     cwd,
     stdout: "pipe",
     stderr: "pipe",
-    windowsHide: true, // nocowboy_change - prevent cmd.exe flash on Windows
+    windowsHide: true,
   })
   return result.stdout.toString().trimEnd()
 }

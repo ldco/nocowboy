@@ -267,7 +267,7 @@ function stamp(): string {
 export async function findRepoFrom(start: string): Promise<string | undefined> {
   let dir = start
   while (true) {
-    const candidate = path.join(dir, "packages", "opencode", "package.json")
+    const candidate = path.join(dir, "packages", "nocowboy", "package.json")
     if (await Bun.file(candidate).exists()) return dir
     const parent = path.dirname(dir)
     if (parent === dir) return undefined

@@ -3,15 +3,14 @@ import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } fr
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { errorMessage } from "@/util/error"
 import { ChildProcess } from "effect/unstable/process"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@nocowboy/core/process"
 import path from "path"
 import { BusEvent } from "@/bus/bus-event"
-import * as Log from "@opencode-ai/core/util/log"
-import { makeRuntime } from "@opencode-ai/core/effect/runtime"
+import * as Log from "@nocowboy/core/util/log"
+import { makeRuntime } from "@nocowboy/core/effect/runtime"
 import semver from "semver"
-import { InstallationChannel, InstallationVersion } from "@opencode-ai/core/installation/version"
-import { NpmConfig } from "@opencode-ai/core/npm-config"
-// nocowboy_change start
+import { InstallationChannel, InstallationVersion } from "@nocowboy/core/installation/version"
+import { NpmConfig } from "@nocowboy/core/npm-config"
 import {
   Brew as NocowboyBrew,
   Choco as NocowboyChoco,
@@ -19,7 +18,6 @@ import {
   Release as NocowboyRelease,
   Scoop as NocowboyScoop,
 } from "@/nocowboy/installation"
-// nocowboy_change end
 
 const log = Log.create({ service: "installation" })
 
@@ -60,7 +58,7 @@ export const Info = Schema.Struct({
 export type Info = Schema.Schema.Type<typeof Info>
 
 export function userAgent(client = "cli") {
-  return `kilo/${InstallationChannel}/${InstallationVersion}/${client}` // nocowboy_change
+  return `kilo/${InstallationChannel}/${InstallationVersion}/${client}`
 }
 
 export const USER_AGENT = userAgent()
@@ -96,7 +94,7 @@ export interface Interface {
   readonly upgrade: (method: Method, target: string) => Effect.Effect<void, UpgradeFailedError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Installation") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Installation") {}
 
 export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Service> = Layer.effect(
   Service,
@@ -138,15 +136,15 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
     )
 
     const getBrewFormula = Effect.fnUntraced(function* () {
-      const tapFormula = yield* text(["brew", "list", "--formula", NocowboyBrew.formula]) // nocowboy_change
-      if (tapFormula.includes(NocowboyBrew.name)) return NocowboyBrew.formula // nocowboy_change
-      const coreFormula = yield* text(["brew", "list", "--formula", NocowboyBrew.name]) // nocowboy_change
-      if (coreFormula.includes(NocowboyBrew.name)) return NocowboyBrew.name // nocowboy_change
-      return NocowboyBrew.formula // nocowboy_change
+      const tapFormula = yield* text(["brew", "list", "--formula", NocowboyBrew.formula])
+      if (tapFormula.includes(NocowboyBrew.name)) return NocowboyBrew.formula
+      const coreFormula = yield* text(["brew", "list", "--formula", NocowboyBrew.name])
+      if (coreFormula.includes(NocowboyBrew.name)) return NocowboyBrew.name
+      return NocowboyBrew.formula
     })
 
     const upgradeCurl = Effect.fnUntraced(function* (target: string) {
-      const response = yield* httpOk.execute(HttpClientRequest.get(NocowboyRelease.install)) // nocowboy_change
+      const response = yield* httpOk.execute(HttpClientRequest.get(NocowboyRelease.install))
       const body = yield* response.text
       const bodyBytes = new TextEncoder().encode(body)
       const result = yield* appProcess.run(
@@ -171,7 +169,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         }
       }),
       method: Effect.fn("Installation.method")(function* () {
-        if (process.execPath.includes(path.join(".nocowboy", "bin"))) return "curl" as Method // nocowboy_change
+        if (process.execPath.includes(path.join(".nocowboy", "bin"))) return "curl" as Method
         if (process.execPath.includes(path.join(".opencode", "bin"))) return "curl" as Method
         if (process.execPath.includes(path.join(".local", "bin"))) return "curl" as Method
         const exec = process.execPath.toLowerCase()
@@ -181,9 +179,9 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
           { name: "yarn", command: () => text(["yarn", "global", "list"]) },
           { name: "pnpm", command: () => text(["pnpm", "list", "-g", "--depth=0"]) },
           { name: "bun", command: () => text(["bun", "pm", "ls", "-g"]) },
-          { name: "brew", command: () => text(["brew", "list", "--formula", NocowboyBrew.formula]) }, // nocowboy_change
-          { name: "scoop", command: () => text(["scoop", "list", NocowboyScoop.name]) }, // nocowboy_change
-          { name: "choco", command: () => text(["choco", "list", "--limit-output", NocowboyChoco.name]) }, // nocowboy_change
+          { name: "brew", command: () => text(["brew", "list", "--formula", NocowboyBrew.formula]) },
+          { name: "scoop", command: () => text(["scoop", "list", NocowboyScoop.name]) },
+          { name: "choco", command: () => text(["choco", "list", "--limit-output", NocowboyChoco.name]) },
         ]
 
         checks.sort((a, b) => {
@@ -196,7 +194,6 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
 
         for (const check of checks) {
           const output = yield* check.command()
-          // nocowboy_change start
           const installedName =
             check.name === "brew"
               ? NocowboyBrew.name
@@ -205,7 +202,6 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
                 : check.name === "scoop"
                   ? NocowboyScoop.name
                   : NocowboyNpm.name
-          // nocowboy_change end
           if (output.includes(installedName)) {
             return check.name
           }
@@ -224,7 +220,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
             return info.formulae[0].versions.stable
           }
           const response = yield* httpOk.execute(
-            HttpClientRequest.get(NocowboyBrew.api).pipe(HttpClientRequest.acceptJson), // nocowboy_change
+            HttpClientRequest.get(NocowboyBrew.api).pipe(HttpClientRequest.acceptJson),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
           return data.versions.stable
@@ -236,10 +232,9 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
           detectedMethod === "bun" ||
           detectedMethod === "pnpm"
         ) {
-          // nocowboy_change
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              `${yield* NpmConfig.registry(process.cwd())}/${NocowboyNpm.path}/${InstallationChannel}`, // nocowboy_change
+              `${yield* NpmConfig.registry(process.cwd())}/${NocowboyNpm.path}/${InstallationChannel}`,
             ).pipe(HttpClientRequest.acceptJson),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
@@ -249,7 +244,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         if (detectedMethod === "choco") {
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              NocowboyChoco.api, // nocowboy_change
+              NocowboyChoco.api,
             ).pipe(HttpClientRequest.setHeaders({ Accept: "application/json;odata=verbose" })),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(ChocoPackage)(response)
@@ -259,7 +254,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         if (detectedMethod === "scoop") {
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              NocowboyScoop.manifest, // nocowboy_change
+              NocowboyScoop.manifest,
             ).pipe(HttpClientRequest.setHeaders({ Accept: "application/json" })),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(ScoopManifest)(response)
@@ -267,7 +262,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
         }
 
         const response = yield* httpOk.execute(
-          HttpClientRequest.get(NocowboyRelease.api).pipe(HttpClientRequest.acceptJson), // nocowboy_change
+          HttpClientRequest.get(NocowboyRelease.api).pipe(HttpClientRequest.acceptJson),
         )
         const data = yield* HttpClientResponse.schemaBodyJson(GitHubRelease)(response)
         return data.tag_name.replace(/^v/, "")
@@ -278,30 +273,28 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
           case "curl":
             upgradeResult = yield* upgradeCurl(target)
             break
-          // nocowboy_change start
           case "npm":
             upgradeResult = yield* run(["npm", "install", "-g", `${NocowboyNpm.name}@${target}`])
             break
           case "yarn":
             upgradeResult = yield* run(["yarn", "global", "add", `${NocowboyNpm.name}@${target}`])
             break
-          // nocowboy_change end
           case "pnpm":
-            upgradeResult = yield* run(["pnpm", "install", "-g", `${NocowboyNpm.name}@${target}`]) // nocowboy_change
+            upgradeResult = yield* run(["pnpm", "install", "-g", `${NocowboyNpm.name}@${target}`])
             break
           case "bun":
-            upgradeResult = yield* run(["bun", "install", "-g", `${NocowboyNpm.name}@${target}`]) // nocowboy_change
+            upgradeResult = yield* run(["bun", "install", "-g", `${NocowboyNpm.name}@${target}`])
             break
           case "brew": {
             const formula = yield* getBrewFormula()
             const env = { HOMEBREW_NO_AUTO_UPDATE: "1" }
             if (formula.includes("/")) {
-              const tap = yield* run(["brew", "tap", NocowboyBrew.tap], { env }) // nocowboy_change
+              const tap = yield* run(["brew", "tap", NocowboyBrew.tap], { env })
               if (tap.code !== 0) {
                 upgradeResult = tap
                 break
               }
-              const repo = yield* text(["brew", "--repo", NocowboyBrew.tap]) // nocowboy_change
+              const repo = yield* text(["brew", "--repo", NocowboyBrew.tap])
               const dir = repo.trim()
               if (dir) {
                 const pull = yield* run(["git", "pull", "--ff-only"], { cwd: dir, env })
@@ -315,10 +308,10 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProce
             break
           }
           case "choco":
-            upgradeResult = yield* run(["choco", "upgrade", NocowboyChoco.name, `--version=${target}`, "-y"]) // nocowboy_change
+            upgradeResult = yield* run(["choco", "upgrade", NocowboyChoco.name, `--version=${target}`, "-y"])
             break
           case "scoop":
-            upgradeResult = yield* run(["scoop", "install", `${NocowboyScoop.name}@${target}`]) // nocowboy_change
+            upgradeResult = yield* run(["scoop", "install", `${NocowboyScoop.name}@${target}`])
             break
           default:
             return yield* new UpgradeFailedError({ stderr: `Unknown method: ${m}` })

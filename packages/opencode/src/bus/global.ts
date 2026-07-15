@@ -20,4 +20,4 @@ class GlobalBusEmitter extends EventEmitter<{
 }
 
 export const GlobalBus = new GlobalBusEmitter()
-GlobalBus.setMaxListeners(50) // nocowboy_change — surface warning if SSE listeners accumulate
+GlobalBus.setMaxListeners(50)

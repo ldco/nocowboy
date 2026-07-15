@@ -1,9 +1,9 @@
 import path from "path"
 import { Effect } from "effect"
-import * as EffectLogger from "@opencode-ai/core/effect/logger"
+import * as EffectLogger from "@nocowboy/core/effect/logger"
 import { InstanceState } from "@/effect/instance-state"
 import type * as Tool from "./tool"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 
 type Kind = "file" | "directory"
 
@@ -12,7 +12,6 @@ type Options = {
   kind?: Kind
 }
 
-// nocowboy_change start - root boundaries must not auto-allow external_directory
 function root(dir: string) {
   return path.parse(dir).root === dir
 }
@@ -20,7 +19,6 @@ function root(dir: string) {
 function inside(dir: string, file: string) {
   return !root(dir) && AppFileSystem.contains(dir, file)
 }
-// nocowboy_change end
 
 export const assertExternalDirectoryEffect = Effect.fn("Tool.assertExternalDirectory")(function* (
   ctx: Tool.Context,
@@ -33,9 +31,7 @@ export const assertExternalDirectoryEffect = Effect.fn("Tool.assertExternalDirec
 
   const ins = yield* InstanceState.context
   const full = process.platform === "win32" ? AppFileSystem.normalizePath(target) : target
-  // nocowboy_change start - keep root-workspace behavior intact outside permission prompts
   if (inside(ins.directory, full) || inside(ins.worktree, full)) return
-  // nocowboy_change end
 
   const kind = options?.kind ?? "file"
   const dir = kind === "directory" ? full : path.dirname(full)

@@ -8,21 +8,21 @@ import { ConfigParse } from "@/config/parse"
 import * as ConfigPaths from "@/config/paths"
 import { migrateTuiConfig } from "./tui-migrate"
 import { KeymapLeaderTimeoutDefault, resolveAttentionSoundPaths, TuiInfo } from "./tui-schema"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { isRecord } from "@/util/record"
-import { Global } from "@opencode-ai/core/global"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { Global } from "@nocowboy/core/global"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { CurrentWorkingDirectory } from "./cwd"
 import { ConfigPlugin } from "@/config/plugin"
 import { TuiKeybind } from "./keybind"
-import { InstallationLocal, InstallationVersion } from "@opencode-ai/core/installation/version"
-import { makeRuntime } from "@opencode-ai/core/effect/runtime"
+import { InstallationLocal, InstallationVersion } from "@nocowboy/core/installation/version"
+import { makeRuntime } from "@nocowboy/core/effect/runtime"
 import { Filesystem } from "@/util/filesystem"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { ConfigVariable } from "@/config/variable"
-import { Npm } from "@opencode-ai/core/npm"
-import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins" // nocowboy_change
-import type { DeepMutable } from "@opencode-ai/core/schema"
+import { Npm } from "@nocowboy/core/npm"
+import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins"
+import type { DeepMutable } from "@nocowboy/core/schema"
 import type { TuiAttentionSoundName } from "@nocowboy/plugin/tui"
 import { FormatError, FormatUnknownError } from "@/cli/error"
 
@@ -57,7 +57,7 @@ export interface Interface {
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/TuiConfig") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/TuiConfig") {}
 
 function pluginScope(file: string, ctx: { directory: string }): ConfigPlugin.Scope {
   if (Filesystem.contains(ctx.directory, file)) return "local"
@@ -223,15 +223,13 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   // 4. `.opencode` directories (and KILO_CONFIG_DIR) discovered while
   // walking up the tree. Also returned below so callers can install plugin
   // dependencies from each location.
-  // nocowboy_change start - also load tui.json from .nocowboy/.kilocode
   const dirs = unique(directories).filter(
     (dir) =>
       dir.endsWith(".nocowboy") || dir.endsWith(".opencode") || dir === Flag.NOCOWBOY_CONFIG_DIR,
   )
-  // nocowboy_change end
 
   for (const dir of dirs) {
-    // if (!dir.endsWith(".opencode") && dir !== Flag.NOCOWBOY_CONFIG_DIR) continue // nocowboy_change
+    // if (!dir.endsWith(".opencode") && dir !== Flag.NOCOWBOY_CONFIG_DIR) continue
     for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
       yield* mergeFile(acc, file)
     }
@@ -253,7 +251,7 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       notifications: acc.result.attention?.notifications ?? true,
       sound: acc.result.attention?.sound ?? true,
       volume: acc.result.attention?.volume ?? 0.4,
-      sound_pack: acc.result.attention?.sound_pack ?? "nocowboy.default", // nocowboy_change
+      sound_pack: acc.result.attention?.sound_pack ?? "nocowboy.default",
       sounds: acc.result.attention?.sounds ?? {},
     },
     keybinds: createBindingLookup(TuiKeybind.toBindingConfig(parsedKeybinds), {
@@ -264,10 +262,8 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
     plugin_origins: acc.plugin_origins.length ? acc.plugin_origins : undefined,
   }
 
-  // nocowboy_change start - inject Kilo default plugins to keep TUI aligned with server config
   NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
   info.plugin = result.plugin
-  // nocowboy_change end
 
   return {
     config: result,

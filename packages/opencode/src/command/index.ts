@@ -7,7 +7,7 @@ import { Effect, Layer, Context, Schema } from "effect"
 import { Config } from "@/config/config"
 import { MCP } from "../mcp"
 import { Skill } from "../skill"
-import { localReviewCommand, localReviewUncommittedCommand } from "@/nocowboy/review/command" // nocowboy_change
+import { localReviewCommand, localReviewUncommittedCommand } from "@/nocowboy/review/command"
 import PROMPT_REVIEW from "./template/review.txt"
 
 type State = {
@@ -53,10 +53,8 @@ export function hints(template: string) {
 export const Default = {
   INIT: "init",
   REVIEW: "review",
-  // nocowboy_change start
   LOCAL_REVIEW: "local-review",
   LOCAL_REVIEW_UNCOMMITTED: "local-review-uncommitted",
-  // nocowboy_change end
 } as const
 
 export interface Interface {
@@ -64,7 +62,6 @@ export interface Interface {
   readonly list: () => Effect.Effect<Info[]>
 }
 
-// nocowboy_change start - skills can share names with slash commands
 function fromSkill(item: Skill.Info): Info {
   return {
     name: item.name,
@@ -84,9 +81,8 @@ function skillName(name: string) {
 function mcpName(name: string) {
   return name.endsWith(":mcp") ? name.slice(0, -4) : undefined
 }
-// nocowboy_change end
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Command") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Command") {}
 
 export const layer = Layer.effect(
   Service,
@@ -111,10 +107,8 @@ export const layer = Layer.effect(
         hints: hints(PROMPT_REVIEW),
       }
 
-      // nocowboy_change start
       commands[Default.LOCAL_REVIEW] = localReviewCommand()
       commands[Default.LOCAL_REVIEW_UNCOMMITTED] = localReviewUncommittedCommand()
-      // nocowboy_change end
 
       for (const [name, command] of Object.entries(cfg.command ?? {})) {
         commands[name] = {
@@ -162,7 +156,7 @@ export const layer = Layer.effect(
 
       for (const item of yield* skill.all()) {
         if (commands[item.name]) continue
-        commands[item.name] = fromSkill(item) // nocowboy_change
+        commands[item.name] = fromSkill(item)
       }
 
       return {
@@ -174,30 +168,23 @@ export const layer = Layer.effect(
 
     const get = Effect.fn("Command.get")(function* (name: string) {
       const s = yield* InstanceState.get(state)
-      // nocowboy_change start
       const exact = s.commands[name]
       if (exact) return exact
-      // nocowboy_change end
 
-      // nocowboy_change start
       const target = skillName(name)
       if (target) {
         const item = yield* skill.get(target)
         if (item) return fromSkill(item)
         return undefined
       }
-      // nocowboy_change end
-      // nocowboy_change start
       const prompt = mcpName(name)
       if (prompt) {
         const cmd = s.commands[prompt]
         return cmd?.source === "mcp" ? cmd : undefined
       }
-      // nocowboy_change end
-      return undefined // nocowboy_change
+      return undefined
     })
 
-    // nocowboy_change start
     const list = Effect.fn("Command.list")(function* () {
       const s = yield* InstanceState.get(state)
       const result = Object.values(s.commands)
@@ -208,7 +195,6 @@ export const layer = Layer.effect(
       }
       return result
     })
-    // nocowboy_change end
 
     return Service.of({ get, list })
   }),

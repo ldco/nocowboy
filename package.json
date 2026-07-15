@@ -12,7 +12,8 @@
     "typecheck": "bun turbo typecheck",
     "test": "echo 'do not run tests from root' && exit 1",
     "dev-setup": "bun run --cwd packages/opencode --conditions=browser src/index.ts dev-setup",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "bash scripts/fix-symlinks.sh"
   },
   "workspaces": {
     "packages": [
@@ -24,7 +25,8 @@
       "packages/sdk/js",
       "packages/nocowboy-gateway",
       "packages/nocowboy-indexing",
-      "packages/nocowboy-telemetry"
+      "packages/nocowboy-telemetry",
+      "packages/http-recorder"
     ],
     "catalog": {
       "@effect/opentelemetry": "4.0.0-beta.65",

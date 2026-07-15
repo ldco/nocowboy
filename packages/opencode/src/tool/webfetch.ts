@@ -4,8 +4,8 @@ import { Parser } from "htmlparser2"
 import * as Tool from "./tool"
 import TurndownService from "turndown"
 import DESCRIPTION from "./webfetch.txt"
-import { isIconMimeType, isImageAttachment } from "@/util/media" // nocowboy_change
-import { normalizeUrls } from "@/nocowboy/util/url" // nocowboy_change
+import { isIconMimeType, isImageAttachment } from "@/util/media"
+import { normalizeUrls } from "@/nocowboy/util/url"
 
 const MAX_RESPONSE_SIZE = 5 * 1024 * 1024 // 5MB
 const DEFAULT_TIMEOUT = 30 * 1000 // 30 seconds
@@ -37,14 +37,14 @@ export const WebFetchTool = Tool.define(
             throw new Error("URL must start with http:// or https://")
           }
 
-          const url = normalizeUrls(params.url) // nocowboy_change
+          const url = normalizeUrls(params.url)
 
           yield* ctx.ask({
             permission: "webfetch",
-            patterns: [url], // nocowboy_change
+            patterns: [url],
             always: ["*"],
             metadata: {
-              url, // nocowboy_change
+              url,
               format: params.format,
               timeout: params.timeout,
             },
@@ -76,7 +76,7 @@ export const WebFetchTool = Tool.define(
             "Accept-Language": "en-US,en;q=0.9",
           }
 
-          const request = HttpClientRequest.get(url).pipe(HttpClientRequest.setHeaders(headers)) // nocowboy_change
+          const request = HttpClientRequest.get(url).pipe(HttpClientRequest.setHeaders(headers))
 
           // Retry with honest UA if blocked by Cloudflare bot detection (TLS fingerprint mismatch)
           const response = yield* httpOk.execute(request).pipe(
@@ -88,8 +88,7 @@ export const WebFetchTool = Tool.define(
               () =>
                 httpOk.execute(
                   HttpClientRequest.get(url).pipe(
-                    // nocowboy_change
-                    HttpClientRequest.setHeaders({ ...headers, "User-Agent": "kilo" }), // nocowboy_change
+                    HttpClientRequest.setHeaders({ ...headers, "User-Agent": "kilo" }),
                   ),
                 ),
             ),
@@ -109,8 +108,8 @@ export const WebFetchTool = Tool.define(
 
           const contentType = response.headers["content-type"] || ""
           const mime = contentType.split(";")[0]?.trim().toLowerCase() || ""
-          const title = `${url} (${contentType})` // nocowboy_change
-          if (isIconMimeType(mime)) throw new Error(`Unsupported image format: ${mime}`) // nocowboy_change
+          const title = `${url} (${contentType})`
+          if (isIconMimeType(mime)) throw new Error(`Unsupported image format: ${mime}`)
           if (isImageAttachment(mime)) {
             const base64Content = Buffer.from(arrayBuffer).toString("base64")
             return {

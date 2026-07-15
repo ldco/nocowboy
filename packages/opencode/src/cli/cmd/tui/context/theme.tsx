@@ -2,7 +2,7 @@ import { CliRenderEvents, SyntaxStyle, RGBA, type TerminalColors } from "@opentu
 import path from "path"
 import { createEffect, createMemo, onCleanup, onMount } from "solid-js"
 import { createSimpleContext } from "./helper"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { Glob } from "@nocowboy/core/util/glob"
 import aura from "./theme/aura.json" with { type: "json" }
 import ayu from "./theme/ayu.json" with { type: "json" }
 import catppuccin from "./theme/catppuccin.json" with { type: "json" }
@@ -16,8 +16,8 @@ import flexoki from "./theme/flexoki.json" with { type: "json" }
 import github from "./theme/github.json" with { type: "json" }
 import gruvbox from "./theme/gruvbox.json" with { type: "json" }
 import kanagawa from "./theme/kanagawa.json" with { type: "json" }
-import kilo from "./theme/nocowboy.json" with { type: "json" } // nocowboy_change
-import kilo1 from "./theme/nocowboy-v1.json" with { type: "json" } // nocowboy_change
+import kilo from "./theme/nocowboy.json" with { type: "json" }
+import kilo1 from "./theme/nocowboy-v1.json" with { type: "json" }
 import material from "./theme/material.json" with { type: "json" }
 import matrix from "./theme/matrix.json" with { type: "json" }
 import mercury from "./theme/mercury.json" with { type: "json" }
@@ -38,11 +38,11 @@ import vercel from "./theme/vercel.json" with { type: "json" }
 import vesper from "./theme/vesper.json" with { type: "json" }
 import zenburn from "./theme/zenburn.json" with { type: "json" }
 import carbonfox from "./theme/carbonfox.json" with { type: "json" }
-import colorblind from "./theme/colorblind.json" with { type: "json" } // nocowboy_change
+import colorblind from "./theme/colorblind.json" with { type: "json" }
 import { useKV } from "./kv"
 import { useRenderer } from "@opentui/solid"
 import { createStore, produce } from "solid-js/store"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { useTuiConfig } from "./tui-config"
 import { isRecord } from "@/util/record"
@@ -102,8 +102,8 @@ export const DEFAULT_THEMES: Record<string, ThemeJson> = {
   github,
   gruvbox,
   kanagawa,
-  kilo, // nocowboy_change
-  ["kilo-v1"]: kilo1, // nocowboy_change
+  kilo,
+  ["kilo-v1"]: kilo1,
   material,
   matrix,
   mercury,
@@ -124,17 +124,15 @@ export const DEFAULT_THEMES: Record<string, ThemeJson> = {
   vercel,
   zenburn,
   carbonfox,
-  colorblind, // nocowboy_change
+  colorblind,
 }
 
-// nocowboy_change start
 function isValidTheme(t: unknown): t is ThemeJson {
   if (t == null || typeof t !== "object" || !("theme" in t)) return false
   const theme = (t as Record<string, unknown>).theme
   if (theme == null || typeof theme !== "object") return false
   return "background" in theme && "text" in theme && "primary" in theme
 }
-// nocowboy_change end
 
 type State = {
   themes: Record<string, ThemeJson>
@@ -170,7 +168,7 @@ const [store, setStore] = createStore<State>({
   themes: listThemes(),
   mode: "dark",
   lock: undefined,
-  active: "opencode",
+  active: "nocowboy",
   ready: false,
 })
 
@@ -335,8 +333,8 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         }
         draft.mode = mode
         draft.lock = lock
-        const active = config.theme ?? kv.get("theme", "kilo") // nocowboy_change
-        draft.active = typeof active === "string" ? active : "kilo" // nocowboy_change
+        const active = config.theme ?? kv.get("theme", "kilo")
+        draft.active = typeof active === "string" ? active : "kilo"
         draft.ready = false
       }),
     )
@@ -355,7 +353,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
             syncThemes()
           })
           .catch(() => {
-            setStore("active", "kilo") // nocowboy_change
+            setStore("active", "kilo")
           }),
       ]).finally(() => {
         setStore("ready", true)
@@ -374,7 +372,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
             systemTheme = undefined
             syncThemes()
             if (store.active === "system") {
-              setStore("active", "kilo") // nocowboy_change
+              setStore("active", "kilo")
             }
             return
           }
@@ -385,7 +383,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
           systemTheme = undefined
           syncThemes()
           if (store.active === "system") {
-            setStore("active", "opencode")
+            setStore("active", "nocowboy")
           }
         })
     }
@@ -429,7 +427,6 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       process.off("SIGUSR2", refresh)
     })
 
-    // nocowboy_change start - safe fallback to kilo import if store lookup fails
     const values = createMemo(() => {
       const active = store.themes[store.active]
       if (active) {
@@ -444,9 +441,8 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         }
       }
 
-      return resolveTheme(store.themes.kilo, store.mode) // nocowboy_change
+      return resolveTheme(store.themes.kilo, store.mode)
     })
-    // nocowboy_change end
 
     createEffect(() => {
       renderer.setBackgroundColor(values().background)
@@ -455,7 +451,6 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     const syntax = createMemo(() => generateSyntax(values()))
     const subtleSyntax = createMemo(() => generateSubtleSyntax(values()))
 
-    // nocowboy_change - use empty object as proxy target; all reads go through the getter
     return {
       theme: new Proxy({} as Theme, {
         get(_target, prop) {
@@ -507,7 +502,7 @@ async function getCustomThemes() {
     Global.Path.config,
     ...(await Array.fromAsync(
       Filesystem.up({
-        targets: [".nocowboy", ".opencode"], // nocowboy_change
+        targets: [".nocowboy", ".opencode"],
         start: process.cwd(),
       }),
     )),
@@ -522,12 +517,10 @@ async function getCustomThemes() {
       symlink: true,
     })) {
       const name = path.basename(item, ".json")
-      // nocowboy_change start - validate custom theme JSON and protect built-in keys
       if (name in DEFAULT_THEMES) continue
       const json = await Filesystem.readJson(item).catch(() => null)
       if (!isValidTheme(json)) continue
       result[name] = json
-      // nocowboy_change end
     }
   }
   return result
@@ -796,7 +789,7 @@ function getSyntaxRules(theme: Theme) {
       scope: ["extmark.paste"],
       style: {
         foreground: theme.background,
-        background: theme.accent, // nocowboy_change - brand orange, not warning yellow
+        background: theme.accent,
         bold: true,
       },
     },

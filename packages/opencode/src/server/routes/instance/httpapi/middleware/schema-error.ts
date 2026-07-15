@@ -1,7 +1,7 @@
 import { Effect } from "effect"
 import { HttpServerResponse } from "effect/unstable/http"
 import { HttpApiMiddleware } from "effect/unstable/httpapi"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 
 const log = Log.create({ service: "server" })
 
@@ -18,7 +18,7 @@ function truncateReason(reason: string) {
 // Default Respondable returns an empty 400 body. Match the NamedError shape
 // used by other 4xx/5xx so the SDK's `wrapClientError` extracts `.data.message`.
 export class SchemaErrorMiddleware extends HttpApiMiddleware.Service<SchemaErrorMiddleware>()(
-  "@opencode/HttpApiSchemaError",
+  "@nocowboy/HttpApiSchemaError",
 ) {}
 
 export const schemaErrorLayer = HttpApiMiddleware.layerSchemaErrorTransform(SchemaErrorMiddleware, (error) => {

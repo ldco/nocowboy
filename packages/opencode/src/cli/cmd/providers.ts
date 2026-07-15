@@ -3,13 +3,13 @@ import { cmd } from "./cmd"
 import { CliError, effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import * as Prompt from "../effect/prompt"
-import { ModelsDev } from "@opencode-ai/core/models"
+import { ModelsDev } from "@nocowboy/core/models"
 
 import { map, pipe, sortBy, values } from "remeda"
 import path from "path"
 import os from "os"
 import { Config } from "@/config/config"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { Plugin } from "../../plugin"
 import type { Hooks } from "@nocowboy/plugin"
 import { Process } from "@/util/process"
@@ -236,10 +236,8 @@ export function resolvePluginProviders(input: {
 }
 
 export const ProvidersCommand = cmd({
-  // nocowboy_change start - keep "auth" as primary command name
   command: "auth",
   aliases: ["providers"],
-  // nocowboy_change end
   describe: "manage AI providers and credentials",
   builder: (yargs) =>
     yargs.command(ProvidersListCommand).command(ProvidersLoginCommand).command(ProvidersLogoutCommand).demandCommand(),
@@ -303,7 +301,7 @@ export const ProvidersLoginCommand = effectCmd({
   builder: (yargs) =>
     yargs
       .positional("url", {
-        describe: "kilo auth provider", // nocowboy_change
+        describe: "kilo auth provider",
         type: "string",
       })
       .option("provider", {
@@ -367,7 +365,6 @@ export const ProvidersLoginCommand = effectCmd({
     }
     const hooks = yield* pluginSvc.list()
 
-    // nocowboy_change start
     const priority: Record<string, number> = {
       nocowboy: 0,
       anthropic: 2,
@@ -377,7 +374,6 @@ export const ProvidersLoginCommand = effectCmd({
       openrouter: 6,
       vercel: 7,
     }
-    // nocowboy_change end
     const pluginProviders = resolvePluginProviders({
       hooks,
       existingProviders: providers,
@@ -385,7 +381,7 @@ export const ProvidersLoginCommand = effectCmd({
       enabled,
       providerNames: Object.fromEntries(
         Object.entries(config.provider ?? {}).flatMap(([id, p]) => (p ? [[id, p.name]] : [])),
-      ), // nocowboy_change
+      ),
     })
     const options = [
       ...pipe(
@@ -399,8 +395,8 @@ export const ProvidersLoginCommand = effectCmd({
           label: x.name,
           value: x.id,
           hint: {
-            kilo: "recommended", // nocowboy_change
-            openai: "ChatGPT login or API key", // nocowboy_change
+            kilo: "recommended",
+            openai: "ChatGPT login or API key",
           }[x.id],
         })),
       ),
@@ -416,10 +412,8 @@ export const ProvidersLoginCommand = effectCmd({
       const input = args.provider
       const byID = options.find((x) => x.value === input)
       const byName = options.find((x) => x.label.toLowerCase() === input.toLowerCase())
-      // nocowboy_change start - accept codex as an alias for OpenAI ChatGPT auth
       const alias = input.toLowerCase() === "codex" ? options.find((x) => x.value === "openai") : undefined
       const match = byID ?? byName ?? alias
-      // nocowboy_change end
       if (!match) {
         return yield* fail(`Unknown provider "${input}"`)
       }
@@ -455,7 +449,7 @@ export const ProvidersLoginCommand = effectCmd({
       }
 
       yield* Prompt.log.warn(
-        `This only stores a credential for ${provider} - you will need configure in nocowboy.json, check the docs for examples.`, // nocowboy_change
+        `This only stores a credential for ${provider} - you will need configure in nocowboy.json, check the docs for examples.`,
       )
     }
 
@@ -464,7 +458,7 @@ export const ProvidersLoginCommand = effectCmd({
         "Amazon Bedrock authentication priority:\n" +
           "  1. Bearer token (AWS_BEARER_TOKEN_BEDROCK or /connect)\n" +
           "  2. AWS credential chain (profile, access keys, IAM roles, EKS IRSA)\n\n" +
-          "Configure via nocowboy.json options (profile, region, endpoint) or\n" + // nocowboy_change
+          "Configure via nocowboy.json options (profile, region, endpoint) or\n" +
           "AWS environment variables (AWS_PROFILE, AWS_REGION, AWS_ACCESS_KEY_ID, AWS_WEB_IDENTITY_TOKEN_FILE).",
       )
     }
@@ -475,7 +469,7 @@ export const ProvidersLoginCommand = effectCmd({
 
     if (["cloudflare", "cloudflare-ai-gateway"].includes(provider)) {
       yield* Prompt.log.info(
-        "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://nocowboy.dev/docs/ai-providers/cloudflare", // nocowboy_change - TODO: replace with own service
+        "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://nocowboy.dev/docs/ai-providers/cloudflare",
       )
     }
 

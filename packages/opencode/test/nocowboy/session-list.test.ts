@@ -6,7 +6,7 @@ import { ProjectID } from "../../src/project/schema"
 import { Session } from "../../src/session/session"
 import { SessionTable } from "../../src/session/session.sql"
 import { Database, eq } from "../../src/storage/db"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 
 Log.init({ print: false })

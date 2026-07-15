@@ -3,7 +3,7 @@ export * as TuiKeybind from "./keybind"
 import type { KeyEvent, Renderable } from "@opentui/core"
 import type { Binding } from "@opentui/keymap"
 import type { BindingCommandMap, BindingConfig, BindingDefaults } from "@opentui/keymap/extras"
-import type { DeepMutable } from "@opencode-ai/core/schema"
+import type { DeepMutable } from "@nocowboy/core/schema"
 import { Schema } from "effect"
 
 const KeyStroke = Schema.Struct({
@@ -128,10 +128,8 @@ export const Definitions = {
   messages_copy: keybind("<leader>y", "Copy message"),
   messages_undo: keybind("<leader>u", "Undo message"),
   messages_redo: keybind("<leader>r", "Redo message"),
-  // nocowboy_change start - message feedback
   messages_feedback_up: keybind("<leader>=", "Rate last assistant message helpful"),
   messages_feedback_down: keybind("<leader>-", "Rate last assistant message not helpful"),
-  // nocowboy_change end
   messages_toggle_conceal: keybind("<leader>h", "Toggle code block concealment in messages"),
   tool_details: keybind("none", "Toggle tool details visibility"),
   display_thinking: keybind("none", "Toggle thinking blocks visibility"),
@@ -205,7 +203,7 @@ export const Definitions = {
   terminal_suspend: keybind("ctrl+z", "Suspend terminal"),
   terminal_title_toggle: keybind("none", "Toggle terminal title"),
   tips_toggle: keybind("<leader>h", "Toggle tips on home screen"),
-  news_toggle: keybind("none", "Toggle news on home screen"), // nocowboy_change
+  news_toggle: keybind("none", "Toggle news on home screen"),
   plugin_manager: keybind("none", "Open plugin manager dialog"),
   plugin_install: keybind("none", "Install plugin"),
 
@@ -314,10 +312,8 @@ export const CommandMap = {
   messages_copy: "messages.copy",
   messages_undo: "session.undo",
   messages_redo: "session.redo",
-  // nocowboy_change start - message feedback
   messages_feedback_up: "messages.feedback.up",
   messages_feedback_down: "messages.feedback.down",
-  // nocowboy_change end
   messages_toggle_conceal: "session.toggle.conceal",
   tool_details: "session.toggle.actions",
   display_thinking: "session.toggle.thinking",
@@ -371,7 +367,7 @@ export const CommandMap = {
   terminal_suspend: "terminal.suspend",
   terminal_title_toggle: "terminal.title.toggle",
   tips_toggle: "tips.toggle",
-  news_toggle: "news.toggle", // nocowboy_change
+  news_toggle: "news.toggle",
   plugin_manager: "plugins.list",
   plugin_install: "plugins.install",
   which_key_toggle: "which-key.toggle",

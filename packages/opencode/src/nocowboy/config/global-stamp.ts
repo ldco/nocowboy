@@ -1,5 +1,5 @@
 import path from "path"
-import type { AppFileSystem } from "@opencode-ai/core/filesystem"
+import type { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Effect } from "effect"
 
 export namespace NoCowboyGlobalConfigStamp {

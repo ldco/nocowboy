@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 import type { LSPClient } from "@/lsp/client"
 
 /**

@@ -7,12 +7,12 @@ import { useRoute } from "@tui/context/route"
 import { useEvent } from "@tui/context/event"
 import { uniqueBy } from "remeda"
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { iife } from "@/util/iife"
 import { useToast } from "../ui/toast"
 import { useArgs } from "./args"
 import { useSDK } from "./sdk"
-import { useProject } from "./project" // nocowboy_change
+import { useProject } from "./project"
 import { RGBA } from "@opentui/core"
 import { Filesystem } from "@/util/filesystem"
 
@@ -29,7 +29,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   init: () => {
     const sync = useSync()
     const sdk = useSDK()
-    const project = useProject() // nocowboy_change
+    const project = useProject()
     const toast = useToast()
 
     function isModelValid(model: { providerID: string; modelID: string }) {
@@ -66,13 +66,11 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           return agents()
         },
         current() {
-          // nocowboy_change start - fall back to first agent when current is removed (e.g. org switch)
           const found = agents().find((x) => x.name === agentStore.current)
           if (found) return found
           const fallback = agents().at(0)
           if (fallback) setAgentStore("current", fallback.name)
           return fallback
-          // nocowboy_change end
         },
         set(name: string) {
           if (!agents().some((x) => x.name === name))
@@ -91,7 +89,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             if (next < 0) next = agents().length - 1
             if (next >= agents().length) next = 0
             const value = agents()[next]
-            if (!value) return // nocowboy_change - guard against empty agent list during org switch
+            if (!value) return
             setAgentStore("current", value.name)
           })
         },
@@ -114,7 +112,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     const model = iife(() => {
       const [modelStore, setModelStore] = createStore<{
         ready: boolean
-        // nocowboy_change start - persisted picks plus process-local overrides
         model: Record<
           string,
           | {
@@ -131,7 +128,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             }
           | undefined
         >
-        // nocowboy_change end
         recent: {
           providerID: string
           modelID: string
@@ -144,7 +140,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       }>({
         ready: false,
         model: {},
-        override: {}, // nocowboy_change
+        override: {},
         recent: [],
         favorite: [],
         variant: {},
@@ -153,10 +149,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       const filePath = path.join(Global.Path.state, "model.json")
       const state = {
         pending: false,
-        writer: Promise.resolve() as Promise<unknown>, // nocowboy_change - serialize writes
+        writer: Promise.resolve() as Promise<unknown>,
       }
 
-      // nocowboy_change start - keep configured-agent selections process-local
       const scope = createMemo(() => project.workspace.current() ?? project.instance.directory())
 
       function key(name: string) {
@@ -175,7 +170,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }
         clear(name)
       }
-      // nocowboy_change end
 
       function save() {
         if (!modelStore.ready) {
@@ -183,7 +177,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           return
         }
         state.pending = false
-        // nocowboy_change start - serialize writes so a slow first write cannot overwrite a later one
         const data = {
           model: modelStore.model,
           recent: modelStore.recent,
@@ -191,14 +184,13 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           variant: modelStore.variant,
         }
         state.writer = state.writer.then(() => Filesystem.writeJson(filePath, data)).catch(() => {})
-        // nocowboy_change end
       }
 
       Filesystem.readJson(filePath)
         .then((x: any) => {
           if (Array.isArray(x.recent)) setModelStore("recent", x.recent)
           if (Array.isArray(x.favorite)) setModelStore("favorite", x.favorite)
-          if (typeof x.model === "object" && x.model !== null) setModelStore("model", x.model) // nocowboy_change
+          if (typeof x.model === "object" && x.model !== null) setModelStore("model", x.model)
           if (typeof x.variant === "object" && x.variant !== null) setModelStore("variant", x.variant)
         })
         .catch(() => {})
@@ -249,8 +241,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
       const currentModel = createMemo(() => {
         const a = agent.current()
-        if (!a) return fallbackModel() // nocowboy_change - guard against empty agent list
-        // nocowboy_change start - configured models beat stale persisted picks
+        if (!a) return fallbackModel()
         return (
           getFirstValidModel(
             () => a && modelStore.override[key(a.name)],
@@ -259,7 +250,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             fallbackModel,
           ) ?? undefined
         )
-        // nocowboy_change end
       })
 
       return {
@@ -267,12 +257,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         get ready() {
           return modelStore.ready
         },
-        // nocowboy_change start - expose persisted per-agent pick separately from overrides
         saved(name: string) {
           return modelStore.model[name]
         },
-        // nocowboy_change end
-        // nocowboy_change start - resolve once all queued writes (atomic write+rename) have settled.
         // Used by tests to deterministically await the writer chain instead of sleeping for a fixed
         // duration, which is too slow on Windows CI where temp-file rename can exceed 50ms under AV.
         async flush() {
@@ -280,7 +267,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           while (state.pending && Date.now() < deadline) await new Promise((r) => setTimeout(r, 0))
           await state.writer
         },
-        // nocowboy_change end
         recent() {
           return modelStore.recent
         },
@@ -317,8 +303,8 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           if (!val) return
           const a = agent.current()
           if (!a) return
-          apply(a.name, val, !a.model) // nocowboy_change
-          save() // nocowboy_change
+          apply(a.name, val, !a.model)
+          save()
         },
         cycleFavorite(direction: 1 | -1) {
           const favorites = modelStore.favorite.filter((item) => isModelValid(item))
@@ -346,7 +332,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           if (!next) return
           const a = agent.current()
           if (!a) return
-          apply(a.name, next, !a.model) // nocowboy_change
+          apply(a.name, next, !a.model)
           const uniq = uniqueBy([next, ...modelStore.recent], (x) => `${x.providerID}/${x.modelID}`)
           if (uniq.length > 10) uniq.pop()
           setModelStore(
@@ -367,7 +353,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             }
             const a = agent.current()
             if (!a) return
-            apply(a.name, model, !a.model) // nocowboy_change
+            apply(a.name, model, !a.model)
             if (options?.recent) {
               const uniq = uniqueBy([model, ...modelStore.recent], (x) => `${x.providerID}/${x.modelID}`)
               if (uniq.length > 10) uniq.pop()
@@ -376,7 +362,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
                 uniq.map((x) => ({ providerID: x.providerID, modelID: x.modelID })),
               )
             }
-            save() // nocowboy_change
+            save()
           })
         },
         toggleFavorite(model: { providerID: string; modelID: string }) {
@@ -556,7 +542,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     }
 
     createEffect(() => {
-      // nocowboy_change start - configured models resolve directly without persistence
       if (!model.ready) return
       const value = agent.current()
       if (!value?.model) return
@@ -567,7 +552,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         duration: 3000,
       })
     })
-    // nocowboy_change end
 
     const result = {
       model,

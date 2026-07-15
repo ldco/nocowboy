@@ -3,10 +3,9 @@ import { useSync } from "@tui/context/sync"
 
 export function useConnected() {
   const sync = useSync()
-  // nocowboy_change - exclude "kilo" (anonymous autoload) alongside "opencode"
   return createMemo(() =>
     sync.data.provider.some(
-      (x) => (x.id !== "opencode" && x.id !== "nocowboy") || Object.values(x.models).some((y) => y.cost?.input !== 0),
+      (x) => (x.id !== "nocowboy" && x.id !== "nocowboy") || Object.values(x.models).some((y) => y.cost?.input !== 0),
     ),
   )
 }

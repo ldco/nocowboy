@@ -1,4 +1,3 @@
-// nocowboy_change - new file
 //
 // Patch generation. Runs `git diff --unified=INT_MAX` to produce
 // unified-diff text for a set of files, instead of the npm `diff` package's
@@ -13,7 +12,7 @@
 import { Effect } from "effect"
 import { parsePatch } from "diff"
 import type { StructuredPatch } from "diff"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 
 export namespace DiffFull {
   const log = Log.create({ service: "snapshot.diff-full" })

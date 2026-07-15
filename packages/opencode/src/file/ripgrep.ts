@@ -1,17 +1,17 @@
 import path from "path"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Cause, Context, Effect, Fiber, Layer, Queue, Schema, Stream } from "effect"
 import type { PlatformError } from "effect/PlatformError"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 
-import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
-import { sanitizedProcessEnv } from "@opencode-ai/core/util/opencode-process"
+import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
+import { sanitizedProcessEnv } from "@nocowboy/core/util/opencode-process"
 import { which } from "@/util/which"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
+import { NonNegativeInt } from "@nocowboy/core/schema"
 
 const log = Log.create({ service: "ripgrep" })
 const VERSION = "15.1.0"
@@ -139,7 +139,7 @@ export interface Interface {
   readonly search: (input: SearchInput) => Effect.Effect<SearchResult, PlatformError | Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Ripgrep") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Ripgrep") {}
 
 function env() {
   const env = sanitizedProcessEnv()
@@ -287,10 +287,8 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | ChildPro
 
       const filepath = yield* Effect.cached(
         Effect.gen(function* () {
-          // nocowboy_change start - Git for Windows can expose an MSYS rg.exe that fails when spawned natively
           const system = yield* Effect.sync(() => (process.platform === "win32" ? undefined : which("rg")))
           if (system && (yield* fs.isFile(system).pipe(Effect.orDie))) return system
-          // nocowboy_change end
 
           const target = path.join(Global.Path.bin, `rg${process.platform === "win32" ? ".exe" : ""}`)
           if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
@@ -438,7 +436,7 @@ export const layer: Layer.Layer<Service, never, AppFileSystem.Service | ChildPro
 
         const root: Node = { name: "", children: new Map() }
         for (const file of list) {
-          if (file.includes(".nocowboy") || file.includes(".opencode")) continue // nocowboy_change
+          if (file.includes(".nocowboy") || file.includes(".opencode")) continue
           const parts = file.split(path.sep)
           if (parts.length < 2) continue
           let node = root

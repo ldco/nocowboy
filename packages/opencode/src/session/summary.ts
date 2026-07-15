@@ -5,7 +5,7 @@ import { Storage } from "@/storage/storage"
 import * as Session from "./session"
 import { MessageV2 } from "./message-v2"
 import { SessionID, MessageID } from "./schema"
-import { appendSessionDiffs, readSessionDiffBase } from "@/nocowboy/session-portability/cumulative-diff" // nocowboy_change
+import { appendSessionDiffs, readSessionDiffBase } from "@/nocowboy/session-portability/cumulative-diff"
 
 function unquoteGitPath(input: string) {
   if (!input.startsWith('"')) return input
@@ -69,7 +69,7 @@ export interface Interface {
   readonly computeDiff: (input: { messages: MessageV2.WithParts[] }) => Effect.Effect<Snapshot.FileDiff[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionSummary") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/SessionSummary") {}
 
 export const layer = Layer.effect(
   Service,
@@ -106,7 +106,6 @@ export const layer = Layer.effect(
       const all = yield* sessions.messages({ sessionID: input.sessionID }).pipe(Effect.orDie)
       if (!all.length) return
 
-      // nocowboy_change start - preserve imported cumulative diffs when summarizing cloud-forked sessions
       const base = yield* readSessionDiffBase(storage, input.sessionID)
       const messages = all.filter(
         (m) => m.info.id === input.messageID || (m.info.role === "assistant" && m.info.parentID === input.messageID),
@@ -122,7 +121,6 @@ export const layer = Layer.effect(
               ),
             )
           : yield* computeDiff({ messages: all })
-      // nocowboy_change end
       yield* sessions.setSummary({
         sessionID: input.sessionID,
         summary: {
@@ -135,7 +133,7 @@ export const layer = Layer.effect(
       yield* bus.publish(Session.Event.Diff, { sessionID: input.sessionID, diff: diffs })
 
       if (!target || target.info.role !== "user") return
-      const msgDiffs = base.length > 0 ? local : yield* computeDiff({ messages }) // nocowboy_change
+      const msgDiffs = base.length > 0 ? local : yield* computeDiff({ messages })
       target.info.summary = { ...target.info.summary, diffs: msgDiffs }
       yield* sessions.updateMessage(target.info)
     })
@@ -148,7 +146,6 @@ export const layer = Layer.effect(
         if (item.file === undefined) return item
         const file = unquoteGitPath(item.file)
 
-        // nocowboy_change start — scrub oversized diffs from stored session_diff
         const oversized = item.patch !== undefined && Buffer.byteLength(item.patch) > Snapshot.MAX_DIFF_SIZE
         if (file === item.file && !oversized) return item
         return {
@@ -156,7 +153,6 @@ export const layer = Layer.effect(
           file,
           patch: oversized ? "" : item.patch,
         }
-        // nocowboy_change end
       })
       const changed = next.some((item, i) => item.file !== diffs[i]?.file)
       if (changed) yield* storage.write(["session_diff", input.sessionID], next).pipe(Effect.ignore)

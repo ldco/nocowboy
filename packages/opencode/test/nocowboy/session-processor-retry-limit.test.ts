@@ -31,8 +31,8 @@ import { SessionStatus } from "../../src/session/status"
 import { SessionSummary } from "../../src/session/summary"
 import { Snapshot } from "../../src/snapshot"
 import { SyncEvent } from "../../src/sync"
-import * as Log from "@opencode-ai/core/util/log"
-import * as CrossSpawnSpawner from "@opencode-ai/core/cross-spawn-spawner"
+import * as Log from "@nocowboy/core/util/log"
+import * as CrossSpawnSpawner from "@nocowboy/core/cross-spawn-spawner"
 import { provideTmpdirInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 
@@ -222,7 +222,7 @@ describe("session processor retry limit", () => {
 
   it.effect("only positive integers enable the limit", () =>
     Effect.promise(async () => {
-      const { Flag } = await import("@opencode-ai/core/flag/flag")
+      const { Flag } = await import("@nocowboy/core/flag/flag")
 
       delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
       expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
@@ -243,7 +243,7 @@ describe("session processor retry limit", () => {
 
   it.effect("reads env at access time (dynamic getter)", () =>
     Effect.promise(async () => {
-      const { Flag } = await import("@opencode-ai/core/flag/flag")
+      const { Flag } = await import("@nocowboy/core/flag/flag")
       delete process.env.NOCOWBOY_SESSION_RETRY_LIMIT
       expect(Flag.NOCOWBOY_SESSION_RETRY_LIMIT).toBeUndefined()
       process.env.NOCOWBOY_SESSION_RETRY_LIMIT = "5"

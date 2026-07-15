@@ -66,7 +66,7 @@ async function main() {
   process.env.XDG_STATE_HOME = path.join(msg.root, "state")
   process.env.KILO_TEST_HOME = path.join(msg.root, "home")
 
-  const { Path } = await import("@opencode-ai/core/global")
+  const { Path } = await import("@nocowboy/core/global")
   const { refreshCodexAuth } = await import("../../../src/nocowboy/provider/codex-refresh")
   const file = path.join(Path.data, "auth.json")
   const read = async () => {

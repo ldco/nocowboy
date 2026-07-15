@@ -1,5 +1,5 @@
 import { Cause, Deferred, Effect, Exit, Fiber, Latch, Schema, Scope, SynchronizedRef } from "effect"
-import { NocowboyRunner } from "@/nocowboy/effect/runner" // nocowboy_change
+import { NocowboyRunner } from "@/nocowboy/effect/runner"
 
 export interface Runner<A, E = never> {
   readonly state: State<A, E>
@@ -81,7 +81,6 @@ export const make = <A, E = never>(
         ] as const,
     ).pipe(Effect.flatten)
 
-  // nocowboy_change start - do not let work publish busy before the Running state is committed
   const startRun = (work: Effect.Effect<A, E>, done: Deferred.Deferred<A, E | Cancelled>) => {
     const id = next()
     return NocowboyRunner.start({
@@ -91,9 +90,7 @@ export const make = <A, E = never>(
       handle: (fiber) => ({ id, done, fiber }) satisfies RunHandle<A, E>,
     })
   }
-  // nocowboy_change end
 
-  // nocowboy_change start - open work only after the Running state is committed
   const finishShell = (id: number) =>
     SynchronizedRef.modifyEffect(
       ref,
@@ -107,7 +104,6 @@ export const make = <A, E = never>(
         return [Effect.void, st] as const
       }),
     ).pipe(Effect.flatten)
-  // nocowboy_change end
 
   const stopShell = (shell: ShellHandle<A, E>) =>
     Effect.gen(function* () {
@@ -116,7 +112,6 @@ export const make = <A, E = never>(
       yield* Fiber.interrupt(shell.fiber)
     })
 
-  // nocowboy_change start - open work only after the Running state is committed
   const ensureRunning = (work: Effect.Effect<A, E>) =>
     SynchronizedRef.modifyEffect(
       ref,
@@ -144,7 +139,6 @@ export const make = <A, E = never>(
   const startShell = (work: Effect.Effect<A, E>, ready?: Latch.Latch): Effect.Effect<A, E | Busy> =>
     SynchronizedRef.modifyEffect(
       ref,
-      // nocowboy_change end
       Effect.fnUntraced(function* (st) {
         if (st._tag !== "Idle") {
           const reject: Effect.Effect<A, E | Busy> = Effect.fail(new Busy())

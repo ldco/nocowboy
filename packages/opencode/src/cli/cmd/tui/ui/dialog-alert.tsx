@@ -2,7 +2,7 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "../context/theme"
 import { useDialog, type DialogContext } from "./dialog"
 import { useBindings } from "../keymap"
-import { For } from "solid-js" // nocowboy_change
+import { For } from "solid-js"
 
 export type DialogAlertProps = {
   title: string
@@ -43,7 +43,6 @@ export function DialogAlert(props: DialogAlertProps) {
           {(line) => <text fg={theme.textMuted}>{line}</text>}
         </For>
       </box>
-      {/* nocowboy_change end */}
       <box flexDirection="row" justifyContent="flex-end" paddingBottom={1}>
         <box
           paddingLeft={3}

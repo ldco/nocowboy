@@ -1,30 +1,28 @@
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import path from "path"
 import { pathToFileURL } from "url"
 import os from "os"
 import { mergeDeep } from "remeda"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import fsNode from "fs/promises"
-import { NamedError } from "@opencode-ai/core/util/error"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { NamedError } from "@nocowboy/core/util/error"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { Auth } from "../auth"
 import { Env } from "../env"
-import { applyEdits, findNodeAtLocation, modify, parseTree } from "jsonc-parser" // nocowboy_change - parseTree/findNodeAtLocation used in patchJsonc
-import { InstallationLocal, InstallationVersion } from "@opencode-ai/core/installation/version"
+import { applyEdits, findNodeAtLocation, modify, parseTree } from "jsonc-parser"
+import { InstallationLocal, InstallationVersion } from "@nocowboy/core/installation/version"
 import { existsSync } from "fs"
-// nocowboy_change start
 import { GlobalBus } from "@/bus/global"
 import { Event } from "../server/event"
-// nocowboy_change end
 import { Account } from "@/account/account"
 import { isRecord } from "@/util/record"
 import type { ConsoleState } from "./console-state"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
-import { EffectFlock } from "@opencode-ai/core/util/effect-flock"
+import { EffectFlock } from "@nocowboy/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
-import { NonNegativeInt, PositiveInt, type DeepMutable } from "@opencode-ai/core/schema"
+import { NonNegativeInt, PositiveInt, type DeepMutable } from "@nocowboy/core/schema"
 import { ConfigAgent } from "./agent"
 import { ConfigAttachment } from "./attachment"
 import { ConfigCommand } from "./command"
@@ -43,10 +41,9 @@ import { ConfigReference } from "./reference"
 import { ConfigServer } from "./server"
 import { ConfigSkills } from "./skills"
 import { ConfigVariable } from "./variable"
-import { Npm } from "@opencode-ai/core/npm"
-import z from "zod" // nocowboy_change - Kilo config compatibility schemas
-// nocowboy_change start
-import { ZodOverride } from "@opencode-ai/core/effect-zod"
+import { Npm } from "@nocowboy/core/npm"
+import z from "zod"
+import { ZodOverride } from "@nocowboy/core/effect-zod"
 import { NoCowboyConfig } from "../nocowboy/config/config"
 import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins"
 import { NoCowboyGlobalConfigStamp } from "@/nocowboy/config/global-stamp"
@@ -55,7 +52,6 @@ import {
   IndexingSchema as NoCowboyIndexingSchema,
 } from "@nocowboy/indexing/config"
 import { unique } from "remeda"
-// nocowboy_change end
 
 const log = Log.create({ service: "config" })
 
@@ -75,7 +71,7 @@ function mergeConfigConcatArrays(target: Info, source: Info): Info {
 
 function normalizeLoadedConfig(data: unknown, source: string) {
   if (!isRecord(data)) return data
-  const copy = NoCowboyConfig.retireIndexingFlag({ ...data }, source) // nocowboy_change
+  const copy = NoCowboyConfig.retireIndexingFlag({ ...data }, source)
   const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
   if (!hadLegacy) return copy
   delete copy.theme
@@ -85,7 +81,6 @@ function normalizeLoadedConfig(data: unknown, source: string) {
   return copy
 }
 
-// nocowboy_change start
 export const Warning = z.object({
   path: z.string(),
   message: z.string(),
@@ -94,7 +89,6 @@ export const Warning = z.object({
 export type Warning = z.infer<typeof Warning>
 
 const { caught: caughtWarning } = NoCowboyConfig
-// nocowboy_change end
 
 async function substituteWellKnownRemoteConfig(input: { value: unknown; dir: string; source: string }) {
   if (!isRecord(input.value) || typeof input.value.url !== "string") return
@@ -138,18 +132,16 @@ async function resolveLoadedPlugins<T extends { plugin?: ConfigPlugin.Spec[] }>(
 
 export type Layout = ConfigLayout.Layout
 
-// nocowboy_change start - indexing configuration
 export const Indexing = NoCowboyIndexingConfig
 export type Indexing = z.infer<typeof Indexing>
-// nocowboy_change end
 
 const LogLevelRef = Schema.Literals(["DEBUG", "INFO", "WARN", "ERROR"]).annotate({
   identifier: "LogLevel",
   description: "Log level",
 })
-const Percent = Schema.Number.check(Schema.isGreaterThan(0), Schema.isLessThanOrEqualTo(100)) // nocowboy_change
+const Percent = Schema.Number.check(Schema.isGreaterThan(0), Schema.isLessThanOrEqualTo(100))
 
-const IndexingRef = NoCowboyIndexingSchema.annotate({ [ZodOverride]: NoCowboyIndexingConfig }) // nocowboy_change
+const IndexingRef = NoCowboyIndexingSchema.annotate({ [ZodOverride]: NoCowboyIndexingConfig })
 
 export const Info = Schema.Struct({
   $schema: Schema.optional(Schema.String).annotate({
@@ -160,10 +152,10 @@ export const Info = Schema.Struct({
   }),
   logLevel: Schema.optional(LogLevelRef).annotate({ description: "Log level" }),
   server: Schema.optional(ConfigServer.Server).annotate({
-    description: "Server configuration for the kilo serve command", // nocowboy_change
+    description: "Server configuration for the kilo serve command",
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommand.Info)).annotate({
-    description: "Command configuration, see https://nocowboy.dev/docs/customize/workflows", // nocowboy_change - TODO: replace with own service
+    description: "Command configuration, see https://nocowboy.dev/docs/customize/workflows",
   }),
   skills: Schema.optional(ConfigSkills.Info).annotate({ description: "Additional skill folder paths" }),
   reference: Schema.optional(ConfigReference.Info).annotate({
@@ -197,8 +189,6 @@ export const Info = Schema.Struct({
   enabled_providers: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "When set, ONLY these providers will be enabled. All other providers will be ignored",
   }),
-  // nocowboy_change start
-  // nocowboy_change - TODO: replace with own service
   // NOTE: Any new nocowboy_change key added to Config.Info must also be mirrored in
   // apps/web/src/app/config.json/extras.ts in the cloud repo, otherwise
   // $schema: https://nocowboy.dev/config.json will not recognize it.
@@ -254,7 +244,6 @@ export const Info = Schema.Struct({
     description:
       "Default agent to use when none is specified. Must be a primary agent. Falls back to 'code' if not set or if the specified agent is invalid.",
   }),
-  // nocowboy_change end
   username: Schema.optional(Schema.String).annotate({
     description: "Custom username to display in conversations instead of system username",
   }),
@@ -271,9 +260,7 @@ export const Info = Schema.Struct({
     Schema.StructWithRest(
       Schema.Struct({
         build: Schema.optional(ConfigAgent.Info),
-        // nocowboy_change start
         debug: Schema.optional(ConfigAgent.Info),
-        // nocowboy_change end
         // specialized (internal)
         title: Schema.optional(ConfigAgent.Info),
         summary: Schema.optional(ConfigAgent.Info),
@@ -281,10 +268,8 @@ export const Info = Schema.Struct({
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
-    // nocowboy_change start
-  ).annotate({ description: "Agent configuration, see https://nocowboy.dev/docs/customize/custom-subagents" }), // nocowboy_change - TODO: replace with own service
+  ).annotate({ description: "Agent configuration, see https://nocowboy.dev/docs/customize/custom-subagents" }),
   provider: Schema.optional(Schema.Record(Schema.String, Schema.NullOr(ConfigProvider.Info))).annotate({
-    // nocowboy_change end
     description: "Custom provider configurations and model overrides",
   }),
   mcp: Schema.optional(
@@ -308,12 +293,10 @@ export const Info = Schema.Struct({
   instructions: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Additional instruction files or patterns to include",
   }),
-  // nocowboy_change start - Russian Language Pack
   lang: Schema.optional(Schema.String).annotate({
     description:
       "Language for system prompts and UI localization. 'ru' enables Russian prompts, YandexGPT/GigaChat support. Omit or set to 'en' for English.",
   }),
-  // nocowboy_change end
   layout: Schema.optional(ConfigLayout.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermission.Info),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
@@ -325,7 +308,7 @@ export const Info = Schema.Struct({
       url: Schema.optional(Schema.String).annotate({ description: "Enterprise URL" }),
     }),
   ),
-  commit_message: NoCowboyConfig.CommitMessageSchema, // nocowboy_change
+  commit_message: NoCowboyConfig.CommitMessageSchema,
   tool_output: Schema.optional(
     Schema.Struct({
       max_lines: Schema.optional(PositiveInt).annotate({
@@ -344,12 +327,10 @@ export const Info = Schema.Struct({
       auto: Schema.optional(Schema.Boolean).annotate({
         description: "Enable automatic compaction when context is full (default: true)",
       }),
-      // nocowboy_change start
       threshold_percent: Schema.optional(Schema.NullOr(Percent)).annotate({
         description:
           "Percentage of the model input/context window that triggers automatic compaction. The reserved safety buffer still applies if it would compact sooner.",
       }),
-      // nocowboy_change end
       prune: Schema.optional(Schema.Boolean).annotate({
         description: "Enable pruning of old tool outputs (default: true)",
       }),
@@ -369,7 +350,6 @@ export const Info = Schema.Struct({
     Schema.Struct({
       disable_paste_summary: Schema.optional(Schema.Boolean),
       batch_tool: Schema.optional(Schema.Boolean).annotate({ description: "Enable the batch tool" }),
-      // nocowboy_change start
       codebase_search: Schema.optional(Schema.Boolean).annotate({ description: "Enable AI-powered codebase search" }),
       speech_to_text_model: Schema.optional(Schema.String).annotate({
         description: "Speech-to-text transcription model ID to use for voice input",
@@ -377,7 +357,6 @@ export const Info = Schema.Struct({
       openTelemetry: Schema.Boolean.pipe(Schema.optional, Schema.withDecodingDefault(Effect.succeed(true))).annotate({
         description: "Enable telemetry. Set to false to opt-out.",
       }),
-      // nocowboy_change end
       primary_tools: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
         description: "Tools that should only be available to primary agents.",
       }),
@@ -387,17 +366,15 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
-      // nocowboy_change start
       permission_timeout: Schema.optional(PositiveInt).annotate({
         description:
           "Permission timeout in milliseconds. If the user doesn't respond within this window, the permission is auto-denied. Set to 0 to disable.",
       }),
-      // nocowboy_change end
     }),
   ),
 }).annotate({ identifier: "Config" })
 
-// Uses the shared `DeepMutable` from `@opencode-ai/core/schema`. See the definition
+// Uses the shared `DeepMutable` from `@nocowboy/core/schema`. See the definition
 // there for why the local variant is needed over `Types.DeepMutable` from
 // effect-smol (the upstream version collapses `unknown` to `{}`).
 export type Info = DeepMutable<Schema.Schema.Type<typeof Info>> & {
@@ -410,7 +387,7 @@ type State = {
   config: Info
   directories: string[]
   deps: Fiber.Fiber<void, never>[]
-  warnings: Warning[] // nocowboy_change
+  warnings: Warning[]
   consoleState: ConsoleState
 }
 
@@ -419,24 +396,20 @@ export interface Interface {
   readonly getGlobal: () => Effect.Effect<Info>
   readonly getConsoleState: () => Effect.Effect<ConsoleState>
   readonly update: (config: Info) => Effect.Effect<void>
-  // nocowboy_change start
   readonly updateGlobal: (
     config: Info,
     options?: { dispose?: boolean },
   ) => Effect.Effect<{ info: Info; changed: boolean }>
-  // nocowboy_change end
   readonly invalidate: () => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
   readonly waitForDependencies: () => Effect.Effect<void>
-  readonly warnings: () => Effect.Effect<Warning[]> // nocowboy_change
+  readonly warnings: () => Effect.Effect<Warning[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Config") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Config") {}
 
 function globalConfigFile() {
-  // nocowboy_change start
   const candidates = ["nocowboy.jsonc", "nocowboy.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
-    // nocowboy_change end
     path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
@@ -448,7 +421,6 @@ function globalConfigFile() {
 function patchJsonc(input: string, patch: unknown, path: string[] = []): string {
   if (!isRecord(patch)) {
     const edits = modify(input, path, patch === null ? undefined : patch, {
-      // nocowboy_change
       formattingOptions: {
         insertSpaces: true,
         tabSize: 2,
@@ -457,7 +429,6 @@ function patchJsonc(input: string, patch: unknown, path: string[] = []): string 
     return applyEdits(input, edits)
   }
 
-  // nocowboy_change start — when the existing JSONC node at this path is a
   // scalar (e.g. permission.bash is "ask" as a string), jsonc-parser cannot
   // add child keys to it. Detect this case and replace the whole node with
   // the patch object in a single modify() call instead of recursing.
@@ -475,7 +446,6 @@ function patchJsonc(input: string, patch: unknown, path: string[] = []): string 
       return applyEdits(input, edits)
     }
   }
-  // nocowboy_change end
 
   return Object.entries(patch).reduce((result, [key, value]) => patchJsonc(result, value, [...path, key]), input)
 }
@@ -525,10 +495,8 @@ export const layer = Layer.effect(
 
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
       if (!data.$schema) {
-        // nocowboy_change start
-        data.$schema = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
-        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://nocowboy.dev/config.json",') // nocowboy_change - TODO: replace with own service
-        // nocowboy_change end
+        data.$schema = "https://nocowboy.dev/config.json"
+        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://nocowboy.dev/config.json",')
         yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
       }
       return data
@@ -541,13 +509,11 @@ export const layer = Layer.effect(
       return yield* loadConfig(text, { path: filepath })
     })
 
-    let globalStamp = "" // nocowboy_change
+    let globalStamp = ""
 
     const loadGlobal = Effect.fnUntraced(function* () {
-      // nocowboy_change start
       yield* Effect.promise(() => NoCowboyConfig.migrateBashPermission())
       globalStamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config)
-      // nocowboy_change end
       let result: Info = {}
       // Seed the default global config with the schema for editor completion, but avoid writing when the user
       // explicitly routes config through env-provided paths or content.
@@ -555,17 +521,13 @@ export const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://nocowboy.dev/config.json" }, null, 2)) // nocowboy_change - TODO: replace with own service
+            .writeWithDirs(file, JSON.stringify({ $schema: "https://nocowboy.dev/config.json" }, null, 2))
             .pipe(Effect.catch(() => Effect.void))
         }
       }
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json")))
-      // nocowboy_change start
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.json")))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.jsonc")))
-      // nocowboy_change end
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json")))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc")))
 
       const legacy = path.join(Global.Path.config, "config")
       if (existsSync(legacy)) {
@@ -574,7 +536,7 @@ export const layer = Layer.effect(
             .then(async (mod) => {
               const { provider, model, ...rest } = mod.default
               if (provider && model) result.model = `${provider}/${model}`
-              result["$schema"] = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
+              result["$schema"] = "https://nocowboy.dev/config.json"
               result = mergeConfig(result, rest)
               await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
               await fsNode.unlink(legacy)
@@ -583,7 +545,7 @@ export const layer = Layer.effect(
         )
       }
 
-      globalStamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config) // nocowboy_change
+      globalStamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config)
       return result
     })
 
@@ -597,7 +559,6 @@ export const layer = Layer.effect(
       Duration.infinity,
     )
 
-    // nocowboy_change start - detect global config edits made by other Kilo processes
     const refreshGlobal = Effect.fnUntraced(function* () {
       const stamp = yield* NoCowboyGlobalConfigStamp.read(fs, Global.Path.config)
       if (!globalStamp || stamp === globalStamp) return false
@@ -605,10 +566,9 @@ export const layer = Layer.effect(
       yield* invalidateGlobal
       return true
     })
-    // nocowboy_change end
 
     const getGlobal = Effect.fn("Config.getGlobal")(function* () {
-      yield* refreshGlobal() // nocowboy_change
+      yield* refreshGlobal()
       return yield* cachedGlobal
     })
 
@@ -619,7 +579,6 @@ export const layer = Layer.effect(
         yield* fs
           .writeFileString(
             gitignore,
-            // nocowboy_change start - added pnpm-lock.yaml, yarn.lock, agent-manager.json (not in upstream)
             [
               "node_modules",
               "package.json",
@@ -630,11 +589,10 @@ export const layer = Layer.effect(
               ".gitignore",
               "agent-manager.json",
             ].join("\n"),
-            // nocowboy_change end
           )
           .pipe(
             Effect.catchIf(
-              (e) => e.reason._tag === "PermissionDenied" || e.reason._tag === "NotFound", // nocowboy_change - also ignore NotFound (broken symlink/junction on Windows)
+              (e) => e.reason._tag === "PermissionDenied" || e.reason._tag === "NotFound",
               () => Effect.void,
             ),
           )
@@ -643,7 +601,6 @@ export const layer = Layer.effect(
 
     const loadInstanceState = Effect.fn("Config.loadInstanceState")(
       function* (ctx: InstanceContext) {
-        // nocowboy_change start - warning accumulator and legacy Kilo config
         const warnings: Warning[] = []
         const auth = yield* authSvc.all().pipe(Effect.orDie)
 
@@ -662,7 +619,6 @@ export const layer = Layer.effect(
           result = mergeConfigConcatArrays(result, { agent: orgModes.agents })
         }
         warnings.push(...orgModes.warnings)
-        // nocowboy_change end
 
         const consoleManagedProviders = new Set<string>()
         let activeOrgName: string | undefined
@@ -695,19 +651,16 @@ export const layer = Layer.effect(
           result.plugin_origins = plugins
         })
 
-        // nocowboy_change start
         const merge = Effect.fnUntraced(function* (source: string, next: Info, kind?: ConfigPlugin.Scope) {
           const scope = kind ?? (yield* pluginScopeForSource(source))
           const scoped = NoCowboyConfig.scopeIndexing(next, scope)
           result = mergeConfigConcatArrays(result, scoped)
           return yield* mergePluginOrigins(source, scoped.plugin, scope)
         })
-        // nocowboy_change end
 
         for (const [key, value] of Object.entries(auth)) {
           if (value.type === "wellknown") {
             const url = key.replace(/\/+$/, "")
-            // nocowboy_change start
             const source = `${url}/.well-known/opencode`
             yield* Effect.gen(function* () {
               process.env[value.key] = value.token
@@ -738,7 +691,7 @@ export const layer = Layer.effect(
                   })) as Record<string, unknown>)
                 : {}
               const remoteConfig = mergeConfig(wellknown.config ?? {}, fetchedConfig as Info)
-              if (!remoteConfig.$schema) remoteConfig.$schema = "https://nocowboy.dev/config.json" // nocowboy_change - TODO: replace with own service
+              if (!remoteConfig.$schema) remoteConfig.$schema = "https://nocowboy.dev/config.json"
               const next = yield* loadConfig(JSON.stringify(remoteConfig), {
                 dir: path.dirname(source),
                 source,
@@ -757,23 +710,19 @@ export const layer = Layer.effect(
                 return Effect.void
               }),
             )
-            // nocowboy_change end
           }
         }
 
-        // nocowboy_change start - capture global config failures as warnings
         const global = yield* getGlobal().pipe(
           Effect.catchDefect((err: unknown) => {
             caughtWarning(warnings, "global config", err)
             return Effect.succeed({} as Info)
           }),
         )
-        // nocowboy_change end
 
         yield* merge(Global.Path.config, global, "global")
 
         if (Flag.NOCOWBOY_CONFIG) {
-          // nocowboy_change start - capture NOCOWBOY_CONFIG failures as warnings
           yield* merge(
             Flag.NOCOWBOY_CONFIG,
             yield* loadFile(Flag.NOCOWBOY_CONFIG).pipe(
@@ -783,13 +732,11 @@ export const layer = Layer.effect(
               }),
             ),
           )
-          // nocowboy_change end
           log.debug("loaded custom config", { path: Flag.NOCOWBOY_CONFIG })
         }
 
         if (!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG) {
-          // nocowboy_change start - also discover kilo.json project files
-          for (const name of ["nocowboy", "opencode"] as const) {
+          for (const name of ["nocowboy", "nocowboy"] as const) {
             for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.project.worktree).pipe(Effect.orDie)) {
               yield* merge(
                 file,
@@ -803,14 +750,13 @@ export const layer = Layer.effect(
               )
             }
           }
-          // nocowboy_change end
         }
 
         result.agent = result.agent || {}
         result.mode = result.mode || {}
         result.plugin = result.plugin || []
 
-        const directories = yield* ConfigPaths.directories(ctx.directory, ctx.project.worktree) // nocowboy_change
+        const directories = yield* ConfigPaths.directories(ctx.directory, ctx.project.worktree)
 
         if (Flag.NOCOWBOY_CONFIG_DIR) {
           log.debug("loading config from NOCOWBOY_CONFIG_DIR", { path: Flag.NOCOWBOY_CONFIG_DIR })
@@ -818,7 +764,6 @@ export const layer = Layer.effect(
 
         const deps: Fiber.Fiber<void, never>[] = []
 
-        // nocowboy_change start
         for (const dir of unique(directories)) {
           if (NoCowboyConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR)) {
             for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
@@ -838,7 +783,6 @@ export const layer = Layer.effect(
               result.plugin ??= []
             }
           }
-          // nocowboy_change end
 
           yield* ensureGitignore(dir).pipe(Effect.orDie)
 
@@ -865,14 +809,12 @@ export const layer = Layer.effect(
             )
           deps.push(dep)
 
-          // nocowboy_change start - propagate parse errors to the Warning accumulator
           result.command = mergeDeep(
             result.command ?? {},
             yield* Effect.promise(() => ConfigCommand.load(dir, warnings)),
           )
           result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.load(dir, warnings)))
           result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.loadMode(dir, warnings)))
-          // nocowboy_change end
           // Auto-discovered plugins under `.opencode/plugin(s)` are already local files, so ConfigPlugin.load
           // returns normalized Specs and we only need to attach origin metadata here.
           const list = yield* Effect.promise(() => ConfigPlugin.load(dir))
@@ -880,7 +822,6 @@ export const layer = Layer.effect(
         }
 
         if (process.env.NOCOWBOY_CONFIG_CONTENT) {
-          // nocowboy_change start - capture NOCOWBOY_CONFIG_CONTENT parse failures as warnings
           const source = "NOCOWBOY_CONFIG_CONTENT"
           yield* merge(
             source,
@@ -896,7 +837,6 @@ export const layer = Layer.effect(
             ),
             "local",
           )
-          // nocowboy_change end
         }
 
         const activeAccount = Option.getOrUndefined(
@@ -939,17 +879,14 @@ export const layer = Layer.effect(
         }
 
         const managedDir = ConfigManaged.managedConfigDir()
-        // nocowboy_change start - include kilo.json/kilo.jsonc in managed dir loading
         if (existsSync(managedDir)) {
           for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
             const source = path.join(managedDir, file)
             yield* merge(source, yield* loadFile(source), "global")
           }
         }
-        // nocowboy_change end
 
         // macOS managed preferences (.mobileconfig deployed via MDM) override everything
-        // nocowboy_change start
         const managed = yield* Effect.promise(() => ConfigManaged.readManagedPreferences())
         if (managed) {
           yield* merge(
@@ -961,7 +898,6 @@ export const layer = Layer.effect(
             "global",
           )
         }
-        // nocowboy_change end
 
         for (const [name, mode] of Object.entries(result.mode ?? {})) {
           result.agent = mergeDeep(result.agent ?? {}, {
@@ -1001,15 +937,13 @@ export const layer = Layer.effect(
         if (Flag.NOCOWBOY_DISABLE_PRUNE) {
           result.compaction = { ...result.compaction, prune: false }
         }
-        // nocowboy_change start — inject Kilo default plugins into both plugin list and origins
         NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
-        // nocowboy_change end
 
         return {
           config: result,
           directories,
           deps,
-          warnings, // nocowboy_change
+          warnings,
           consoleState: {
             consoleManagedProviders: Array.from(consoleManagedProviders),
             activeOrgName,
@@ -1027,11 +961,9 @@ export const layer = Layer.effect(
     )
 
     const get = Effect.fn("Config.get")(function* () {
-      // nocowboy_change start - reload instance config when global config changed elsewhere
       if (yield* refreshGlobal()) {
         yield* InstanceState.invalidate(state).pipe(Effect.catchCause(() => Effect.void))
       }
-      // nocowboy_change end
       return yield* InstanceState.use(state, (s) => s.config)
     })
 
@@ -1050,7 +982,6 @@ export const layer = Layer.effect(
     })
 
     const update = Effect.fn("Config.update")(function* (config: Info) {
-      // nocowboy_change start - delegate Kilo project config update behavior.
       const ctx = yield* InstanceState.context
       yield* NoCowboyConfig.updateProjectConfig({
         fs,
@@ -1077,16 +1008,13 @@ export const layer = Layer.effect(
     const warnings = Effect.fn("Config.warnings")(function* () {
       return yield* InstanceState.use(state, (s) => s.warnings)
     })
-    // nocowboy_change end
 
     const invalidate = Effect.fn("Config.invalidate")(function* () {
       yield* invalidateGlobal
     })
 
-    // nocowboy_change start - add dispose option to skip Instance.disposeAll for permission-only changes
     const updateGlobal = Effect.fn("Config.updateGlobal")(function* (config: Info, options?: { dispose?: boolean }) {
       const dispose = options?.dispose ?? true
-      // nocowboy_change end
       const file = globalConfigFile()
       const before = (yield* readConfigFile(file)) ?? "{}"
       const patch = writableGlobal(config)
@@ -1095,7 +1023,7 @@ export const layer = Layer.effect(
       let changed: boolean
       if (!file.endsWith(".jsonc")) {
         const existing = ConfigParse.schema(Info, ConfigParse.jsonc(before, file), file)
-        const merged = NoCowboyConfig.mergeConfig(writable(existing), patch) // nocowboy_change
+        const merged = NoCowboyConfig.mergeConfig(writable(existing), patch)
         const serialized = JSON.stringify(merged, null, 2)
         changed = serialized !== before
         if (changed) yield* fs.writeFileString(file, serialized).pipe(Effect.orDie)
@@ -1107,7 +1035,6 @@ export const layer = Layer.effect(
         if (changed) yield* fs.writeFileString(file, updated).pipe(Effect.orDie)
       }
 
-      // nocowboy_change start - skip dispose when caller opts out
       if (!dispose) {
         yield* invalidateGlobal
         yield* InstanceState.invalidate(state).pipe(Effect.catchCause(() => Effect.void))
@@ -1122,10 +1049,8 @@ export const layer = Layer.effect(
         ).pipe(Effect.catchCause(() => Effect.void))
         return { info: next, changed }
       }
-      // nocowboy_change end
 
       if (changed) yield* invalidate()
-      // nocowboy_change start - hot-reload global config changes in the active instance
       if (changed) {
         yield* InstanceState.invalidate(state).pipe(Effect.catchCause(() => Effect.void))
         yield* Effect.sync(() =>
@@ -1138,7 +1063,6 @@ export const layer = Layer.effect(
           }),
         ).pipe(Effect.catchCause(() => Effect.void))
       }
-      // nocowboy_change end
       return { info: next, changed }
     })
 
@@ -1151,7 +1075,7 @@ export const layer = Layer.effect(
       invalidate,
       directories,
       waitForDependencies,
-      warnings, // nocowboy_change
+      warnings,
     })
   }),
 )

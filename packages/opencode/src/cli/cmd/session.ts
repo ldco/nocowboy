@@ -6,7 +6,7 @@ import { Session } from "@/session/session"
 import { SessionID } from "../../session/schema"
 import { UI } from "../ui"
 import { Locale } from "@/util/locale"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
 import { NotFoundError } from "@/storage/storage"
@@ -83,7 +83,6 @@ export const SessionListCommand = effectCmd({
         choices: ["table", "json"],
         default: "table",
       })
-      // nocowboy_change start
       .option("all", {
         alias: "a",
         describe: "list sessions from all projects",
@@ -95,17 +94,13 @@ export const SessionListCommand = effectCmd({
         describe: "filter sessions by title",
         type: "string",
       }),
-  // nocowboy_change end
   handler: Effect.fn("Cli.session.list")(function* (args) {
-    // nocowboy_change start
     const sessions = args.all
       ? [...Session.listGlobal({ roots: true, limit: args.maxCount, search: args.search })]
       : yield* Session.Service.use((svc) => svc.list({ roots: true, limit: args.maxCount, search: args.search }))
-    // nocowboy_change end
 
     if (sessions.length === 0) return
 
-    // nocowboy_change start
     const output =
       args.format === "json"
         ? args.all
@@ -114,7 +109,6 @@ export const SessionListCommand = effectCmd({
         : args.all
           ? formatGlobalSessionTable(sessions as Session.GlobalInfo[])
           : formatSessionTable(sessions as Session.Info[])
-    // nocowboy_change end
 
     const shouldPaginate = process.stdout.isTTY && !args.maxCount && args.format === "table"
 
@@ -160,7 +154,6 @@ function formatSessionTable(sessions: Session.Info[]): string {
   return lines.join(EOL)
 }
 
-// nocowboy_change start
 function formatSessionJSON(sessions: Session.Info[]): string {
   const jsonData = sessions.map((session) => ({
     id: session.id,
@@ -172,9 +165,7 @@ function formatSessionJSON(sessions: Session.Info[]): string {
   }))
   return JSON.stringify(jsonData, null, 2)
 }
-// nocowboy_change end
 
-// nocowboy_change start
 function formatGlobalSessionTable(sessions: Session.GlobalInfo[]): string {
   const lines: string[] = []
 
@@ -213,4 +204,3 @@ function formatGlobalSessionJSON(sessions: Session.GlobalInfo[]): string {
   }))
   return JSON.stringify(jsonData, null, 2)
 }
-// nocowboy_change end

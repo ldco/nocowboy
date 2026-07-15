@@ -1,5 +1,5 @@
 import path from "path"
-import { Global } from "@opencode-ai/core/global"
+import { Global } from "@nocowboy/core/global"
 import { NocowboyPaths } from "@/nocowboy/paths"
 
 export namespace ConfigProtection {

@@ -3,7 +3,7 @@ import { Effect, Schema } from "effect"
 import { AppRuntime, type AppServices } from "@/effect/app-runtime"
 import { InstanceStore } from "@/project/instance-store"
 import { InstanceRef } from "@/effect/instance-ref"
-import { Instance } from "@/nocowboy/instance" // nocowboy_change
+import { Instance } from "@/nocowboy/instance"
 import { cmd, type WithDoubleDash } from "./cmd/cmd"
 
 /**
@@ -87,11 +87,9 @@ export const effectCmd = <Args, A>(opts: EffectCmdOpts<Args, A>) =>
         InstanceStore.Service.use((store) => store.load({ directory }).pipe(Effect.map((ctx) => ({ store, ctx })))),
       )
       try {
-        // nocowboy_change start - preserve legacy instance context across Promise callbacks
         await Instance.restore(ctx, () =>
           AppRuntime.runPromise(opts.handler(args).pipe(Effect.provideService(InstanceRef, ctx))),
         )
-        // nocowboy_change end
       } finally {
         await AppRuntime.runPromise(store.dispose(ctx))
       }

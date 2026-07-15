@@ -1,5 +1,5 @@
 import { describe, expect, spyOn, test } from "bun:test"
-import { Npm } from "@opencode-ai/core/npm"
+import { Npm } from "@nocowboy/core/npm"
 import type { ConfigPlugin } from "@/config/plugin"
 import { hasAtomicChatPlugin } from "@/nocowboy/atomic-chat-feature"
 import { NoCowboyDefaultPlugins } from "@/nocowboy/config/default-plugins"

@@ -3,7 +3,7 @@ import { deferredHighlight, fnv1a } from "../context/marked" // kilocode_change
 import { useI18n } from "../context/i18n"
 import DOMPurify from "dompurify"
 import morphdom from "morphdom"
-import { checksum } from "@opencode-ai/core/util/encode"
+import { checksum } from "@nocowboy/core/util/encode"
 import { ComponentProps, createEffect, createResource, createSignal, onCleanup, splitProps } from "solid-js"
 import { isServer } from "solid-js/web"
 import { stream } from "./markdown-stream"

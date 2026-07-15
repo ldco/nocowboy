@@ -1,6 +1,6 @@
 import type { TuiPluginApi, TuiSlotContext, TuiSlotMap, TuiSlotProps } from "@nocowboy/plugin/tui"
 import { createSlot, createSolidSlotRegistry, type JSX, type SolidPlugin } from "@opentui/solid"
-import { children, mergeProps } from "solid-js" // nocowboy_change
+import { children, mergeProps } from "solid-js"
 import { isRecord } from "@/util/record"
 
 type RuntimeSlotMap = TuiSlotMap<Record<string, object>>
@@ -22,7 +22,6 @@ function empty<Name extends string>(_props: TuiSlotProps<Name>) {
 
 let view: Slot = empty
 
-// nocowboy_change start - stabilize fallback children so replace-mode slots
 // don't recreate stateful defaults like the session prompt on prop changes.
 // mergeProps (instead of spread) preserves SolidJS prop reactivity so things
 // like ref, visible, disabled, on_submit keep flowing through to the slot.
@@ -35,7 +34,6 @@ export const Slot = <Name extends string>(props: TuiSlotProps<Name>) => {
   })
   return view(merged as TuiSlotProps<Name>)
 }
-// nocowboy_change end
 
 function isHostSlotPlugin(value: unknown): value is HostSlotPlugin<Record<string, object>> {
   if (!isRecord(value)) return false

@@ -12,15 +12,15 @@ import { AppRuntime } from "@/effect/app-runtime"
 import { Auth } from "@/auth"
 import { makeRuntime } from "@/effect/run-service"
 import { registerDisposer } from "@/effect/instance-registry"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
 import type { WorkspaceID } from "@/control-plane/schema"
 import { WorkspaceContext } from "@/control-plane/workspace-context"
 import { Event as IndexingEvent, Warning as IndexingWarningEvent } from "./indexing-event"
 import { indexingWarningKey, type IndexingWarning } from "./indexing-warning"
 import { IndexingWorker } from "./indexing-worker-client"
-import { LanceDBRuntime } from "./lancedb" // nocowboy_change
-import { indexingWithNoCowboyDefault, resolveNoCowboyIndexingAuth, type NoCowboyIndexingAuth } from "./indexing-auth" // nocowboy_change
+import { LanceDBRuntime } from "./lancedb"
+import { indexingWithNoCowboyDefault, resolveNoCowboyIndexingAuth, type NoCowboyIndexingAuth } from "./indexing-auth"
 
 const log = Log.create({ service: "nocowboy-indexing" })
 const auth = makeRuntime(Auth.Service, Auth.defaultLayer)

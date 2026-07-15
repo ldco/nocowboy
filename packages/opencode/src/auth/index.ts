@@ -1,11 +1,11 @@
 import path from "path"
 import { Effect, Layer, Record, Result, Schema, Context } from "effect"
-import { NonNegativeInt } from "@opencode-ai/core/schema"
-import { Global } from "@opencode-ai/core/global"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import { Telemetry } from "@nocowboy/telemetry" // nocowboy_change
+import { NonNegativeInt } from "@nocowboy/core/schema"
+import { Global } from "@nocowboy/core/global"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import { Telemetry } from "@nocowboy/telemetry"
 
-export const OAUTH_DUMMY_KEY = "kilo-oauth-dummy-key" // nocowboy_change
+export const OAUTH_DUMMY_KEY = "kilo-oauth-dummy-key"
 
 const file = path.join(Global.Path.data, "auth.json")
 
@@ -47,7 +47,7 @@ export interface Interface {
   readonly remove: (key: string) => Effect.Effect<void, AuthError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Auth") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Auth") {}
 
 export const layer = Layer.effect(
   Service,
@@ -87,12 +87,10 @@ export const layer = Layer.effect(
       delete data[norm]
       yield* fsys.writeJson(file, data, 0o600).pipe(Effect.mapError(fail("Failed to write auth data")))
 
-      // nocowboy_change start - Track logout and reset telemetry identity for Kilo
       if (key === "nocowboy") {
         yield* Effect.promise(() => Telemetry.updateIdentity())
       }
       Telemetry.trackAuthLogout()
-      // nocowboy_change end
     })
 
     return Service.of({ get, all, set, remove })

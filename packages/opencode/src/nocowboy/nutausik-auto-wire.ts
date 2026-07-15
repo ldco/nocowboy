@@ -1,4 +1,3 @@
-// nocowboy_change — NUTAUSIK session auto-wiring
 //
 // Replaces the manual nutausik-hooks.sh with native code wired into
 // the NoCowboy session lifecycle:
@@ -9,7 +8,7 @@
 // All MCP communication is delegated to nutausik-client.ts.
 
 import { autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { homedir } from "node:os"

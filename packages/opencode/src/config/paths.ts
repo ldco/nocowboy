@@ -1,11 +1,11 @@
 export * as ConfigPaths from "./paths"
 
 import path from "path"
-import { Flag } from "@opencode-ai/core/flag/flag"
-import { Global } from "@opencode-ai/core/global"
+import { Flag } from "@nocowboy/core/flag/flag"
+import { Global } from "@nocowboy/core/global"
 import { unique } from "remeda"
 import * as Effect from "effect/Effect"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 
 export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
   name: string,
@@ -26,13 +26,13 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!Flag.NOCOWBOY_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
-          targets: [".nocowboy"], // nocowboy_change
+          targets: [".nocowboy"],
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [".nocowboy"], // nocowboy_change
+      targets: [".nocowboy"],
       start: Global.Path.home,
       stop: Global.Path.home,
     })),

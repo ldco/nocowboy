@@ -1,31 +1,29 @@
 import { Cause, Duration, Effect, Layer, Schedule, Schema, Semaphore, Context } from "effect"
-import { Struct } from "effect" // nocowboy_change
+import { Struct } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { formatPatch, structuredPatch } from "diff"
 import path from "path"
-import { AppProcess } from "@opencode-ai/core/process"
+import { AppProcess } from "@nocowboy/core/process"
 import { InstanceState } from "@/effect/instance-state"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
-import { Hash } from "@opencode-ai/core/util/hash"
-import { EffectFlock } from "@opencode-ai/core/util/effect-flock" // nocowboy_change
+import { AppFileSystem } from "@nocowboy/core/filesystem"
+import { Hash } from "@nocowboy/core/util/hash"
+import { EffectFlock } from "@nocowboy/core/util/effect-flock"
 import { Config } from "@/config/config"
-import { Global } from "@opencode-ai/core/global"
-import * as Log from "@opencode-ai/core/util/log"
-// nocowboy_change start
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Global } from "@nocowboy/core/global"
+import * as Log from "@nocowboy/core/util/log"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { DiffFull } from "../nocowboy/snapshot/diff-full"
 import { SnapshotTrack } from "../nocowboy/snapshot/track"
 import { SnapshotSeed } from "../nocowboy/snapshot/seed"
 import { SnapshotMaterialize } from "../nocowboy/snapshot/materialize"
 import type { MessageID, SessionID } from "../session/schema"
-import { withStatics } from "@opencode-ai/core/schema"
-import { zod } from "@opencode-ai/core/effect-zod"
-// nocowboy_change end
+import { withStatics } from "@nocowboy/core/schema"
+import { zod } from "@nocowboy/core/effect-zod"
 
 export const Patch = Schema.Struct({
   hash: Schema.String,
   files: Schema.mutable(Schema.Array(Schema.String)),
-}).pipe(withStatics((s) => ({ zod: zod(s) }))) // nocowboy_change
+}).pipe(withStatics((s) => ({ zod: zod(s) })))
 export type Patch = typeof Patch.Type
 
 export const FileDiff = Schema.Struct({
@@ -37,23 +35,19 @@ export const FileDiff = Schema.Struct({
   additions: Schema.Finite,
   deletions: Schema.Finite,
   status: Schema.optional(Schema.Literals(["added", "deleted", "modified"])),
-  // nocowboy_change start
 })
   .annotate({ identifier: "SnapshotFileDiff" })
   .pipe(withStatics((s) => ({ zod: zod(s) })))
-// nocowboy_change end
 export type FileDiff = typeof FileDiff.Type
 
-// nocowboy_change start - lightweight FileDiff without patch for session summaries
 export const SummaryFileDiff = FileDiff.mapFields(Struct.omit(["patch"]))
   .annotate({ identifier: "SnapshotSummaryFileDiff" })
   .pipe(withStatics((s) => ({ zod: zod(s) })))
 export type SummaryFileDiff = typeof SummaryFileDiff.Type
-// nocowboy_change end
 
 const log = Log.create({ service: "snapshot" })
 const prune = "7.days"
-const retention = 7 * 24 * 60 * 60 * 1000 // nocowboy_change
+const retention = 7 * 24 * 60 * 60 * 1000
 const limit = 2 * 1024 * 1024
 const core = ["-c", "core.longpaths=true", "-c", "core.symlinks=true"]
 const cfg = ["-c", "core.autocrlf=false", ...core]
@@ -64,20 +58,18 @@ interface GitResult {
   readonly stderr: string
 }
 
-export const MAX_DIFF_SIZE = 256 * 1024 // nocowboy_change
+export const MAX_DIFF_SIZE = 256 * 1024
 
 type State = Omit<Interface, "init">
 
 export interface Interface {
   readonly init: () => Effect.Effect<void>
   readonly cleanup: () => Effect.Effect<void>
-  // nocowboy_change start - pass prompt context and managed initialization policy
   readonly track: (opts?: {
     sessionID?: SessionID
     messageID?: MessageID
     snapshotInitialization?: SnapshotTrack.SnapshotInitialization
   }) => Effect.Effect<string | undefined>
-  // nocowboy_change end
   readonly patch: (hash: string) => Effect.Effect<Patch>
   readonly restore: (snapshot: string) => Effect.Effect<void>
   readonly revert: (patches: Patch[]) => Effect.Effect<void>
@@ -85,19 +77,17 @@ export interface Interface {
   readonly diffFull: (from: string, to: string) => Effect.Effect<FileDiff[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Snapshot") {}
+export class Service extends Context.Service<Service, Interface>()("@nocowboy/Snapshot") {}
 
-// nocowboy_change start
 type Requirements = AppFileSystem.Service | AppProcess.Service | Config.Service | EffectFlock.Service
 export const layer: Layer.Layer<Service, never, Requirements> =
-  // nocowboy_change end
   Layer.effect(
     Service,
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
       const appProcess = yield* AppProcess.Service
       const config = yield* Config.Service
-      const flock = yield* EffectFlock.Service // nocowboy_change
+      const flock = yield* EffectFlock.Service
       const locks = new Map<string, Semaphore.Semaphore>()
 
       const lock = (key: string) => {
@@ -180,14 +170,11 @@ export const layer: Layer.Layer<Service, never, Requirements> =
             )
           })
 
-          // nocowboy_change start
           const stage = Effect.fnUntraced(function* (
             files: string[],
             opts?: { env?: Record<string, string>; root?: boolean },
           ) {
-            // nocowboy_change end
             if (!files.length) return
-            // nocowboy_change start
             // A new root snapshot covers the full worktree, so a single pathspec avoids
             // quadratic matching against every tracked path in very large repositories.
             const cmd = opts?.root
@@ -199,7 +186,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
               env: opts?.env,
               stdin: opts?.root ? undefined : feed(files),
             })
-            // nocowboy_change end
             if (result.code === 0) return
             log.warn("failed to add snapshot files", {
               exitCode: result.code,
@@ -210,15 +196,13 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           const exists = (file: string) => fs.exists(file).pipe(Effect.orDie)
           const read = (file: string) => fs.readFileString(file).pipe(Effect.catch(() => Effect.succeed("")))
           const remove = (file: string) => fs.remove(file).pipe(Effect.catch(() => Effect.void))
-          // nocowboy_change start - serialize snapshot repositories across CLI and extension processes
           const locked = <A, R>(fx: Effect.Effect<A, never, R>) =>
             lock(state.gitdir).withPermits(1)(flock.withLock(fx, `snapshot:${state.gitdir}`).pipe(Effect.orDie))
 
-          // nocowboy_change end
 
           const enabled = Effect.fnUntraced(function* () {
             if (state.vcs !== "git") return false
-            if (Flag.NOCOWBOY_CLIENT === "acp") return false // nocowboy_change - ACP clients do not support snapshots
+            if (Flag.NOCOWBOY_CLIENT === "acp") return false
             return (yield* config.get()).snapshot !== false
           })
 
@@ -246,7 +230,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           })
 
           const add = Effect.fnUntraced(function* (opts?: { env?: Record<string, string>; root?: boolean }) {
-            // nocowboy_change
             yield* sync()
             const [diff, other] = yield* Effect.all(
               [
@@ -308,7 +291,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
             const block = new Set(untracked.filter((item) => large.has(item)))
             yield* sync(Array.from(block))
             // Stage only the allowed candidate paths so snapshot updates stay scoped.
-            // nocowboy_change start - initial seeded writes stay protected by the source pin
             yield* stage(
               allow.filter((item) => !block.has(item)),
               opts,
@@ -326,16 +308,13 @@ export const layer: Layer.Layer<Service, never, Requirements> =
               Effect.asVoid,
             )
           })
-          // nocowboy_change end
 
           const cleanup = Effect.fnUntraced(function* () {
             return yield* locked(
               Effect.gen(function* () {
                 if (!(yield* enabled())) return
                 if (!(yield* exists(state.gitdir))) return
-                // nocowboy_change start - retain snapshots for the same seven-day window as object pruning
                 yield* SnapshotMaterialize.prune({ gitdir: state.gitdir, git, fs }, Date.now() - retention)
-                // nocowboy_change end
                 const result = yield* git(args(["gc", `--prune=${prune}`]), { cwd: state.directory })
                 if (result.code !== 0) {
                   log.warn("cleanup failed", {
@@ -350,12 +329,11 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           })
 
           const track = Effect.fnUntraced(function* (opts?: Parameters<Interface["track"]>[0]) {
-            // nocowboy_change
             return yield* locked(
               Effect.gen(function* () {
                 if (!(yield* enabled())) return
                 const existed = yield* exists(state.gitdir)
-                const seeded: { value?: SnapshotSeed.Output } = {} // nocowboy_change
+                const seeded: { value?: SnapshotSeed.Output } = {}
                 yield* fs.ensureDir(state.gitdir).pipe(Effect.orDie)
                 if (!existed) {
                   yield* git(["init"], {
@@ -365,7 +343,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                   yield* git(["--git-dir", state.gitdir, "config", "core.longpaths", "true"])
                   yield* git(["--git-dir", state.gitdir, "config", "core.symlinks", "true"])
                   yield* git(["--git-dir", state.gitdir, "config", "core.fsmonitor", "false"])
-                  // nocowboy_change start - seed all eligible new snapshots from the worktree index
                   seeded.value = yield* SnapshotSeed.seed({
                     dir: state.directory,
                     worktree: state.worktree,
@@ -374,10 +351,8 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                     git,
                     fs,
                   })
-                  // nocowboy_change end
                   log.info("initialized")
                 }
-                // nocowboy_change start - pin every snapshot before background materialization
                 const seed = seeded.value?.source
                 const env = seed
                   ? {
@@ -411,7 +386,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                 if (!(yield* SnapshotMaterialize.pin({ gitdir: state.gitdir, git, fs }, hash))) return
                 const alt = path.join(state.gitdir, "objects", "info", "alternates")
                 if (yield* exists(alt)) yield* materialize()
-                // nocowboy_change end
                 log.info("tracking", { hash, cwd: state.directory, git: state.gitdir })
                 return hash
               }),
@@ -805,7 +779,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                 const patch = (file: string, before: string, after: string) =>
                   formatPatch(structuredPatch(file, file, before, after, "", "", { context: Number.MAX_SAFE_INTEGER }))
 
-                // nocowboy_change start - use git patches to avoid blocking the event loop on large diffs
                 for (let i = 0; i < rows.length; i += step) {
                   const run = rows.slice(i, i + step)
                   const patches = yield* DiffFull.batch(
@@ -825,7 +798,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                   }
                 }
                 return result
-                // nocowboy_change end
 
                 for (let i = 0; i < rows.length; i += step) {
                   const run = rows.slice(i, i + step)
@@ -849,7 +821,7 @@ export const layer: Layer.Layer<Service, never, Requirements> =
             )
           })
 
-          yield* materialize() // nocowboy_change - resume interrupted snapshot object materialization
+          yield* materialize()
 
           yield* cleanup().pipe(
             Effect.catchCause((cause) => {
@@ -865,11 +837,9 @@ export const layer: Layer.Layer<Service, never, Requirements> =
         }),
       )
 
-      // nocowboy_change start - service-local state and cache avoid leaking across Snapshot layer instances
       const trackState = SnapshotTrack.makeState()
       const cache = new Map<string, Promise<FileDiff[]>>()
       const max = 100
-      // nocowboy_change end
 
       return Service.of({
         init: Effect.fn("Snapshot.init")(function* () {
@@ -878,7 +848,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
         cleanup: Effect.fn("Snapshot.cleanup")(function* () {
           return yield* InstanceState.useEffect(state, (s) => s.cleanup())
         }),
-        // nocowboy_change start - guard slow snapshots and surface progress to the active session
         track: Effect.fn("Snapshot.track")(function* (opts) {
           return yield* SnapshotTrack.wrap({
             inner: InstanceState.useEffect(state, (s) => s.track(opts)),
@@ -888,7 +857,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
             messageID: opts?.messageID,
           })
         }),
-        // nocowboy_change end
         patch: Effect.fn("Snapshot.patch")(function* (hash: string) {
           return yield* InstanceState.useEffect(state, (s) => s.patch(hash))
         }),
@@ -902,7 +870,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           return yield* InstanceState.useEffect(state, (s) => s.diff(hash))
         }),
         diffFull: Effect.fn("Snapshot.diffFull")(function* (from: string, to: string) {
-          // nocowboy_change start - cache full diffs at the service boundary
           if (from === to) return []
           const directory = yield* InstanceState.directory
           const key = `${directory}\0${from}:${to}`
@@ -921,7 +888,6 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           )
           cache.set(key, pending)
           return yield* Effect.promise(() => pending)
-          // nocowboy_change end
         }),
       })
     }),
@@ -931,7 +897,7 @@ export const defaultLayer = layer.pipe(
   Layer.provide(AppProcess.defaultLayer),
   Layer.provide(AppFileSystem.defaultLayer),
   Layer.provide(Config.defaultLayer),
-  Layer.provide(EffectFlock.defaultLayer), // nocowboy_change
+  Layer.provide(EffectFlock.defaultLayer),
 )
 
 export * as Snapshot from "."

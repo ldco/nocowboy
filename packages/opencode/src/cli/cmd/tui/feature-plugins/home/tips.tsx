@@ -21,7 +21,7 @@ function View(props: { api: TuiPluginApi; hidden: boolean; show: boolean; connec
     bindings: props.api.tuiConfig.keybinds.get("tips.toggle"),
   }))
 
-  return null // nocowboy_change - no visual output, no wasted space
+  return null
 }
 
 const tui: TuiPlugin = async (api) => {

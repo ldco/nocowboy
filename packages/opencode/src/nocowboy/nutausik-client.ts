@@ -1,4 +1,3 @@
-// nocowboy_change — NUTAUSIK MCP client abstraction
 //
 // Centralizes all NUTAUSIK MCP communication into one place.
 // Eliminates hardcoded URLs and duplicated raw fetch() patterns
@@ -8,7 +7,7 @@
 // framework from src/mcp/index.ts once the client supports
 // async (non-Effect) usage patterns or the callers are converted.
 
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
 import * as path from "node:path"
 

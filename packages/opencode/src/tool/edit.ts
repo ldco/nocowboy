@@ -16,15 +16,14 @@ import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
-import { AppFileSystem } from "@opencode-ai/core/filesystem"
+import { AppFileSystem } from "@nocowboy/core/filesystem"
 import * as Bom from "@/util/bom"
-import { filterDiagnostics } from "./diagnostics" // nocowboy_change
-import { ConfigValidation } from "../nocowboy/config-validation" // nocowboy_change
-import * as EncodedIO from "../nocowboy/tool/encoded-io" // nocowboy_change
+import { filterDiagnostics } from "./diagnostics"
+import { ConfigValidation } from "../nocowboy/config-validation"
+import * as EncodedIO from "../nocowboy/tool/encoded-io"
 
-const MAX_DIFF_CONTENT = 500_000 // nocowboy_change
+const MAX_DIFF_CONTENT = 500_000
 
-// nocowboy_change start
 export function buildFileDiff(file: string, before: string, after: string): Snapshot.FileDiff {
   const tooLarge = before.length > MAX_DIFF_CONTENT || after.length > MAX_DIFF_CONTENT
   let additions = 0
@@ -42,7 +41,6 @@ export function buildFileDiff(file: string, before: string, after: string): Snap
     deletions,
   }
 }
-// nocowboy_change end
 
 function normalizeLineEndings(text: string): string {
   return text.replaceAll("\r\n", "\n")
@@ -110,22 +108,20 @@ export const EditTool = Tool.define(
           let diff = ""
           let contentOld = ""
           let contentNew = ""
-          let cachedFilediff: Snapshot.FileDiff | undefined // nocowboy_change
+          let cachedFilediff: Snapshot.FileDiff | undefined
           yield* lock(filePath).withPermits(1)(
             Effect.gen(function* () {
               if (params.oldString === "") {
                 const existed = yield* afs.existsSafe(filePath)
-                // nocowboy_change start - encoding-aware read; Encoding.read strips UTF-8 BOMs so
                 // derive the BOM flag from the detected encoding label instead of the decoded text.
                 const pre = existed ? yield* EncodedIO.read(filePath) : { text: "", encoding: "utf-8" }
                 const source = { bom: pre.encoding === "utf-8-bom", text: pre.text, encoding: pre.encoding }
-                // nocowboy_change end
                 const next = Bom.split(params.newString)
                 const desiredBom = source.bom || next.bom
                 contentOld = source.text
                 contentNew = next.text
                 diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
-                cachedFilediff = buildFileDiff(filePath, contentOld, contentNew) // nocowboy_change
+                cachedFilediff = buildFileDiff(filePath, contentOld, contentNew)
                 yield* ctx.ask({
                   permission: "edit",
                   patterns: [path.relative(instance.worktree, filePath)],
@@ -133,10 +129,10 @@ export const EditTool = Tool.define(
                   metadata: {
                     filepath: filePath,
                     diff,
-                    filediff: cachedFilediff, // nocowboy_change
+                    filediff: cachedFilediff,
                   },
                 })
-                yield* EncodedIO.write(filePath, Bom.join(contentNew, desiredBom), source.encoding) // nocowboy_change - encoding-aware write (mkdirs) replaces afs.writeWithDirs
+                yield* EncodedIO.write(filePath, Bom.join(contentNew, desiredBom), source.encoding)
                 if (yield* format.file(filePath)) {
                   contentNew = yield* Bom.syncFile(afs, filePath, desiredBom)
                 }
@@ -151,11 +147,9 @@ export const EditTool = Tool.define(
               const info = yield* afs.stat(filePath).pipe(Effect.catch(() => Effect.succeed(undefined)))
               if (!info) throw new Error(`File ${filePath} not found`)
               if (info.type === "Directory") throw new Error(`Path is a directory, not a file: ${filePath}`)
-              // nocowboy_change start - encoding-aware read; Encoding.read strips UTF-8 BOMs so
               // derive the BOM flag from the detected encoding label instead of the decoded text.
               const pre = yield* EncodedIO.read(filePath)
               const source = { bom: pre.encoding === "utf-8-bom", text: pre.text, encoding: pre.encoding }
-              // nocowboy_change end
               contentOld = source.text
 
               const ending = detectLineEnding(contentOld)
@@ -174,7 +168,7 @@ export const EditTool = Tool.define(
                   normalizeLineEndings(contentNew),
                 ),
               )
-              cachedFilediff = buildFileDiff(filePath, contentOld, contentNew) // nocowboy_change
+              cachedFilediff = buildFileDiff(filePath, contentOld, contentNew)
               yield* ctx.ask({
                 permission: "edit",
                 patterns: [path.relative(instance.worktree, filePath)],
@@ -182,11 +176,11 @@ export const EditTool = Tool.define(
                 metadata: {
                   filepath: filePath,
                   diff,
-                  filediff: cachedFilediff, // nocowboy_change
+                  filediff: cachedFilediff,
                 },
               })
 
-              yield* EncodedIO.write(filePath, Bom.join(contentNew, desiredBom), source.encoding) // nocowboy_change - encoding-aware write replaces afs.writeWithDirs
+              yield* EncodedIO.write(filePath, Bom.join(contentNew, desiredBom), source.encoding)
               if (yield* format.file(filePath)) {
                 contentNew = yield* Bom.syncFile(afs, filePath, desiredBom)
               }
@@ -206,12 +200,12 @@ export const EditTool = Tool.define(
             }).pipe(Effect.orDie),
           )
 
-          const filediff: Snapshot.FileDiff = cachedFilediff ?? buildFileDiff(filePath, contentOld, contentNew) // nocowboy_change
+          const filediff: Snapshot.FileDiff = cachedFilediff ?? buildFileDiff(filePath, contentOld, contentNew)
 
           yield* ctx.metadata({
             metadata: {
               diff,
-              filediff, // nocowboy_change
+              filediff,
               diagnostics: {},
             },
           })
@@ -222,13 +216,13 @@ export const EditTool = Tool.define(
           const normalizedFilePath = AppFileSystem.normalizePath(filePath)
           const block = LSP.Diagnostic.report(filePath, diagnostics[normalizedFilePath] ?? [])
           if (block) output += `\n\nLSP errors detected in this file, please fix:\n${block}`
-          output += yield* Effect.promise(() => ConfigValidation.check(filePath)) // nocowboy_change
+          output += yield* Effect.promise(() => ConfigValidation.check(filePath))
 
           return {
             metadata: {
-              diagnostics: filterDiagnostics(diagnostics, [normalizedFilePath]), // nocowboy_change
+              diagnostics: filterDiagnostics(diagnostics, [normalizedFilePath]),
               diff,
-              filediff, // nocowboy_change
+              filediff,
             },
             title: `${path.relative(instance.worktree, filePath)}`,
             output,

@@ -56,7 +56,6 @@ const tui: TuiPlugin = async (api) => {
     permissions.delete(event.properties.requestID)
   })
 
-  // nocowboy_change start - only completed turns need completion attention
   api.event.on("session.status", (event) => {
     const sessionID = event.properties.sessionID
     if (event.properties.status.type !== "busy" && event.properties.status.type !== "retry") return
@@ -72,14 +71,13 @@ const tui: TuiPlugin = async (api) => {
     const session = api.state.session.get(sessionID)
     notify(api, sessionID, "Session done", session?.parentID ? "subagent_done" : "done")
   })
-  // nocowboy_change end
 
   api.event.on("session.error", (event) => {
     const sessionID = event.properties.sessionID
     if (!sessionID) return
     if (!active.has(sessionID)) return
     errored.add(sessionID)
-    if (event.properties.error?.name === "MessageAbortedError") return // nocowboy_change - manual stops do not need attention
+    if (event.properties.error?.name === "MessageAbortedError") return
     notify(api, sessionID, sessionErrorMessage(event.properties.error), "error")
   })
 }

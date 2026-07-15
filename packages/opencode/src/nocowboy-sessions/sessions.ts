@@ -8,7 +8,7 @@ import { SessionID } from "@/session/schema"
 import { ModelID, ProviderID } from "@/provider/schema"
 import { MessageV2 } from "@/session/message-v2"
 import { Storage } from "@/storage/storage"
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Auth } from "@/auth"
 import { makeRuntime } from "@/effect/run-service"
 import { IngestQueue } from "@/nocowboy-sessions/ingest-queue"
@@ -16,7 +16,6 @@ import { clearInFlightCache, withInFlightCache } from "@/nocowboy-sessions/infli
 import type * as SDK from "@nocowboy/sdk/v2"
 import z from "zod"
 import { Context, Effect, Layer, Schema, Stream } from "effect"
-// nocowboy_change - gateway removed
 const KILO_API_BASE = ""
 import { Config } from "@/config/config"
 import { EffectBridge } from "@/effect/bridge"
@@ -174,7 +173,7 @@ export namespace Sessions {
       const valid = await authValid(token)
       if (!valid) return undefined
 
-      const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "" // nocowboy_change - TODO: replace with own service, was: "" /* nocowboy_change - TODO: own ingestion service */
+      const base = process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? ""
       const baseHeaders: Record<string, string> = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -398,7 +397,6 @@ export namespace Sessions {
       }
       if (valid === undefined) throw new Error("Unable to enable remote: failed to verify NoCowboy credentials.")
 
-      // nocowboy_change - TODO: replace with own service, was: const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "" /* nocowboy_change - TODO: own ingestion service */)
       const url = (process.env["NOCOWBOY_SESSION_INGEST_URL"] ?? "")
         .replace(/^https:\/\//, "wss://")
         .replace(/^http:\/\//, "ws://")
@@ -602,7 +600,7 @@ export namespace Sessions {
       throw new Error(`Unable to share session ${sessionId}: server did not return a public id`)
     }
 
-    const url = `` // nocowboy_change - TODO: replace with own service, was: `https://nocowboy.dev/s/${result.public_id}`
+    const url = ``
 
     await save(sessionId, {
       ...current,

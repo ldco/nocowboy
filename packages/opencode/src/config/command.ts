@@ -1,17 +1,15 @@
 export * as ConfigCommand from "./command"
 
-import * as Log from "@opencode-ai/core/util/log"
+import * as Log from "@nocowboy/core/util/log"
 import { Cause, Exit, Schema, SchemaIssue } from "effect"
-import { Glob } from "@opencode-ai/core/util/glob"
+import { Glob } from "@nocowboy/core/util/glob"
 import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigModelID } from "./model-id"
-// nocowboy_change start
 import { Bus } from "@/bus"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { NamedError } from "@nocowboy/core/util/error"
 import { NoCowboyConfig } from "@/nocowboy/config/config"
 import type { Warning } from "./config"
-// nocowboy_change end
 
 const log = Log.create({ service: "config" })
 
@@ -27,9 +25,7 @@ export type Info = Schema.Schema.Type<typeof Info>
 
 const decodeInfo = Schema.decodeUnknownExit(Info)
 
-// nocowboy_change start
 export async function load(dir: string, warnings?: Warning[]) {
-  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{command,commands}/**/*.md", {
     cwd: dir,
@@ -41,7 +37,6 @@ export async function load(dir: string, warnings?: Warning[]) {
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse command ${item}`
-      // nocowboy_change start
       if (warnings) warnings.push({ path: item, message })
       try {
         const { capture } = await import("@/nocowboy/instance")
@@ -53,24 +48,20 @@ export async function load(dir: string, warnings?: Warning[]) {
       } catch (error) {
         log.warn("could not publish session error", { message, err: error })
       }
-      // nocowboy_change end
       log.error("failed to load command", { command: item, err })
       return undefined
     })
     if (!md) continue
 
-    // nocowboy_change start
     const patterns = [
       "/.nocowboy/command/",
       "/.nocowboy/commands/",
       "/.nocowboy/command/",
       "/.nocowboy/commands/",
-      "/.opencode/command/",
       "/.opencode/commands/",
       "/command/",
       "/commands/",
     ]
-    // nocowboy_change end
     const name = configEntryNameFromPath(item, patterns)
 
     const config = {
@@ -83,7 +74,6 @@ export async function load(dir: string, warnings?: Warning[]) {
       result[config.name] = parsed.value
       continue
     }
-    // nocowboy_change start
     const error = Cause.squash(parsed.cause)
     const issues = Schema.isSchemaError(error)
       ? SchemaIssue.makeFormatterStandardSchemaV1()(error.issue).issues.map((issue) => ({
@@ -94,7 +84,6 @@ export async function load(dir: string, warnings?: Warning[]) {
       : [{ message: String(error), path: [] }]
     const cause = error instanceof Error ? error : new Error(String(error))
     await NoCowboyConfig.handleInvalid("command", item, issues, cause, warnings)
-    // nocowboy_change end
   }
   return result
 }

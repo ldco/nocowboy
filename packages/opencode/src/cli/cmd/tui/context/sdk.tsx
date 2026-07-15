@@ -2,7 +2,7 @@ import { createNocowboyClient } from "@nocowboy/sdk/v2"
 import type { GlobalEvent } from "@nocowboy/sdk/v2"
 import { createSimpleContext } from "./helper"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
-import { Flag } from "@opencode-ai/core/flag/flag"
+import { Flag } from "@nocowboy/core/flag/flag"
 import { batch, onCleanup, onMount } from "solid-js"
 
 export type EventSource = {
