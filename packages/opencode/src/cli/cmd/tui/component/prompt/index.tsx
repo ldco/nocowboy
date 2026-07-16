@@ -51,7 +51,6 @@ import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
 import { DialogModel } from "../dialog-model"
 import { DialogAgent } from "../dialog-agent"
-import { DialogAgentModel } from "../dialog-agent-model"
 import { DialogVariant } from "../dialog-variant"
 import {
   confirmWorkspaceFileChanges,
@@ -1619,12 +1618,7 @@ onCursorChange={() => {
                             {local.model.parsed().model}
                           </text>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
-                          <text
-                            fg={fadeColor(theme.textMuted, modelMetaAlpha())}
-                            onMouseUp={(e: any) => { e?.preventDefault?.(); dialog.replace(() => <DialogAgentModel />) }}
-                          >
-                            ⚙ agents
-                          </text>
+                          {/* ⚙ agents button removed — model selection is done via model name */}
                           <Show when={showVariant()}>
                             <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
                             <text
