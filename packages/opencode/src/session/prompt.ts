@@ -36,6 +36,7 @@ import { ToolRegistry } from "@/tool/registry"
 import { ToolJsonSchema } from "@/tool/json-schema"
 import { MCP } from "../mcp"
 import { LSP } from "@/lsp/lsp"
+import { isToolBlocked } from "@/nocowboy/blocked-tools"
 import { ulid } from "ulid"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
@@ -514,9 +515,10 @@ export const layer = Layer.effect(
         providerID: input.model.providerID,
         agent: input.agent,
       })) {
-        // HARD BLOCK: agent must use complete_task (with verification gate)
-        // instead of nutausik_task_done (raw MCP tool, no verification).
-        if (item.id === "nutausik_task_done") continue
+        // PreToolUse block check: registered blockers can prevent tools from
+        // being available to the model. Currently blocks nutausik_task_done.
+        const blockResult: any = yield* Effect.promise(() => isToolBlocked(item.id))
+        if (blockResult.blocked) continue
         const schema = ProviderTransform.schema(input.model, ToolJsonSchema.fromTool(item))
         tools[item.id] = tool({
           description: item.description,
