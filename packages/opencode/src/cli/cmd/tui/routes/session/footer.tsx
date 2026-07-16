@@ -8,7 +8,6 @@ import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
 import { useEvent } from "../../context/event"
 import { RemoteIndicator } from "@/nocowboy/remote-tui"
-import { BalanceIndicator } from "@/nocowboy/components/balance-indicator"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -94,7 +93,6 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
-            <BalanceIndicator />
             <text fg={theme.textMuted}>/status</text>
           </Match>
         </Switch>

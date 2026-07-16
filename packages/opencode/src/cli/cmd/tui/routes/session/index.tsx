@@ -62,7 +62,7 @@ import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { ErrorBlock } from "@/nocowboy/components/error-display"
 import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { YoloButton } from "@/nocowboy/components/yolo-button"
-import { BalanceIndicator } from "@/nocowboy/components/balance-indicator"
+// BalanceIndicator — перенесён в Info tab (sidebar/context.tsx)
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
@@ -1483,7 +1483,6 @@ export function Session() {
   const cur = prompt?.current?.input ?? ""
   prompt?.set({ input: cur + (cur ? "\n" : "") + text, parts: [] })
 }} />
-                            <BalanceIndicator />
                             <TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />
                           </box>
                         }

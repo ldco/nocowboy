@@ -4,7 +4,15 @@ import type { InternalTuiPlugin } from "../../plugin/internal"
 import { createMemo, createResource, Show } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { useLocal } from "@tui/context/local"
-import { fetchBalance, findBalanceProvider, getBalanceColor, findBalanceDescriptor } from "@/nocowboy/provider-balance"
+import {
+  fetchBalance,
+  findBalanceProvider,
+  getBalanceColor,
+  findBalanceDescriptor,
+  getPeakPricing,
+  clearBalanceCache,
+} from "@/nocowboy/provider-balance"
+import { RGBA } from "@opentui/core"
 import { appendFileSync } from "node:fs"
 
 const BLOG = "/tmp/nocowboy-balance.log"
@@ -21,6 +29,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   const sync = useSync()
   const local = useLocal()
   const msg = createMemo(() => props.api.state.session.messages(props.session_id))
+  const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
   const providerInfo = createMemo(() => {
     const cur = local.model.current()
@@ -31,7 +40,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     return found
   })
 
-  const [balance] = createResource(
+  const [balance, { refetch }] = createResource(
     () => {
       const info = providerInfo()
       if (!info) return null
@@ -67,13 +76,35 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     return `Balance (${desc?.label ?? info.name})`
   })
 
+  const peakInfo = createMemo(() => {
+    const info = providerInfo()
+    if (!info) return null
+    if (info.providerID !== "deepseek" && !info.name.toLowerCase().includes("deepseek")) return null
+    return getPeakPricing()
+  })
+
+  const refresh = () => {
+    clearBalanceCache()
+    refetch()
+  }
+
   return (
     <box>
       <Show when={providerInfo()}>
         <text fg={theme().text}>
           <b>{balanceLabel()}</b>
         </text>
-        <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+        <box flexDirection="row" gap={1}>
+          <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+          <Show when={peakInfo()}>
+            <text fg={peakInfo()!.isPeak ? brand : theme().success}>
+              ({peakInfo()!.isPeak ? "×2 пик" : "×1 обычный"})
+            </text>
+          </Show>
+          <text fg={theme().textMuted} onMouseDown={refresh}>
+            ⟳
+          </text>
+        </box>
       </Show>
       <text fg={theme().text}>
         <b>Context</b>
