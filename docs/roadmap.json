@@ -1861,6 +1861,19 @@
           "path": "docs/features/tui-collapse-tool-default.md"
         }
       ]
+    },
+    {
+      "id": "todowrite-completed-block",
+      "title": "todowrite: блокировать status=completed — удалять пункты вместо completed",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Integrity",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/todowrite-completed-block.md"
+        }
+      ]
     }
   ]
 }

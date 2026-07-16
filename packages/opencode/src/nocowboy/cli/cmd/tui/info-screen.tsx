@@ -98,9 +98,7 @@ export function InfoScreen() {
     const id = sessionID()
     return id ? (sync.data.todo[id] ?? []) : []
   })
-  const showTodos = createMemo(() =>
-    todos().length > 0 && todos().some((item: Todo) => item.status !== "completed"),
-  )
+  const showTodos = createMemo(() => todos().length > 0)
 
   // --- MCP widget ---
   const mcpList = createMemo(() =>

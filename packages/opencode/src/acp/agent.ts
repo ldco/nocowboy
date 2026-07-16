@@ -379,15 +379,11 @@ export class Agent implements ACPAgent {
                       sessionId,
                       update: {
                         sessionUpdate: "plan",
-                        entries: parsedTodos.success.map((todo) => {
-                          const status: PlanEntry["status"] =
-                            todo.status === "cancelled" ? "completed" : (todo.status as PlanEntry["status"])
-                          return {
-                            priority: "medium",
-                            status,
-                            content: todo.content,
-                          }
-                        }),
+                        entries: parsedTodos.success.map((todo) => ({
+                          priority: "medium",
+                          status: todo.status as PlanEntry["status"],
+                          content: todo.content,
+                        })),
                       },
                     })
                     .catch((error) => {
@@ -863,15 +859,11 @@ export class Agent implements ACPAgent {
                     sessionId,
                     update: {
                       sessionUpdate: "plan",
-                      entries: parsedTodos.success.map((todo) => {
-                        const status: PlanEntry["status"] =
-                          todo.status === "cancelled" ? "completed" : (todo.status as PlanEntry["status"])
-                        return {
-                          priority: "medium",
-                          status,
-                          content: todo.content,
-                        }
-                      }),
+                      entries: parsedTodos.success.map((todo) => ({
+                        priority: "medium",
+                        status: todo.status as PlanEntry["status"],
+                        content: todo.content,
+                      })),
                     },
                   })
                   .catch((err) => {

@@ -10,7 +10,7 @@ import { TodoTable } from "./session.sql"
 export const Info = Schema.Struct({
   content: Schema.String.annotate({ description: "Brief description of the task" }),
   status: Schema.String.annotate({
-    description: "Current status of the task: pending, in_progress, completed, cancelled",
+    description: "Current status: pending (not started) or in_progress (actively working)",
   }),
   priority: Schema.String.annotate({ description: "Priority level of the task: high, medium, low" }),
 }).annotate({ identifier: "Todo" })
@@ -39,13 +39,12 @@ export const layer = Layer.effect(
     const bus = yield* Bus.Service
 
     const update = Effect.fn("Todo.update")(function* (input: { sessionID: SessionID; todos: Info[] }) {
-      // If all todos are terminal (completed/cancelled), clear them instead of
-      // storing stale items that would show in the sidebar forever.
-      const allTerminal = input.todos.length > 0 && input.todos.every((t) => t.status === "completed" || t.status === "cancelled")
+      // Empty todos array means "no active work" — clear storage
+      const allDone = input.todos.length === 0
       yield* Effect.sync(() =>
         Database.transaction((db) => {
           db.delete(TodoTable).where(eq(TodoTable.session_id, input.sessionID)).run()
-          if (allTerminal || input.todos.length === 0) return
+          if (allDone) return
           db.insert(TodoTable)
             .values(
               input.todos.map((todo, position) => ({

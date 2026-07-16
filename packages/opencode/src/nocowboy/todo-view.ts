@@ -63,7 +63,7 @@ export namespace TodoView {
   }
 
   function terminal(todos: Todo[]) {
-    return todos.every((todo) => todo.status === "completed" || todo.status === "cancelled")
+    return todos.length === 0
   }
 
   function structural(before: Todo[], after: Todo[]) {

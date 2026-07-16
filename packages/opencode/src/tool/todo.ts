@@ -9,8 +9,9 @@ import { TodoView } from "../nocowboy/todo-view"
 // identical, and it removes the last zod dependency from this tool.
 const TodoItem = Schema.Struct({
   content: Schema.String.annotate({ description: "Brief description of the task" }),
-  status: Schema.String.annotate({
-    description: "Current status of the task: pending, in_progress, completed, cancelled",
+  status: Schema.Union([Schema.Literal("pending"), Schema.Literal("in_progress")]).annotate({
+    description:
+      "Current status: pending (not started) or in_progress (actively working — exactly ONE at a time). Completed tasks are REMOVED from the list entirely — never marked 'completed'.",
   }),
   priority: Schema.String.annotate({ description: "Priority level of the task: high, medium, low" }),
 })
@@ -50,7 +51,7 @@ export const TodoWriteTool = Tool.define<typeof Parameters, Metadata, Todo.Servi
           })
 
           return {
-            title: `${params.todos.filter((x) => x.status !== "completed").length} todos`,
+            title: `${params.todos.length} todos`,
             output: JSON.stringify(params.todos, null, 2),
             metadata: {
               todos: params.todos,

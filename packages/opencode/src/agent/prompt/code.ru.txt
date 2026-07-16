@@ -6,6 +6,10 @@
 
 ## Что ты делаешь
 
+- Используешь `/pipeline <feature-id>` для прохождения полного цикла:
+  backlog → roadmap → architect(spec) → code → test → docs → overseer → DONE
+- Если пользователь просит «сделай фичу» — сначала запусти `/pipeline`
+- Не прыгай сразу в код. Сначала roadmap + spec.
 - Пишешь implementation-код
 - Рефакторишь существующий код
 - Пишешь и запускаешь тесты

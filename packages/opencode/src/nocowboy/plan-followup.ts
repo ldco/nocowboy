@@ -92,9 +92,7 @@ Keep the summary concise — focus on high-entropy information that would save t
 export function formatTodos(todos: Todo.Info[]): string {
   if (!todos.length) return ""
   const icons: Record<string, string> = {
-    completed: "[x]",
     in_progress: "[~]",
-    cancelled: "[-]",
   }
   return todos.map((t) => `- ${icons[t.status] ?? "[ ]"} ${t.content}`).join("\n")
 }

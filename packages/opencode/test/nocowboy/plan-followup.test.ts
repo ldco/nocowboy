@@ -621,7 +621,7 @@ describe("plan follow-up", () => {
       await todo.update({
         sessionID: seeded.sessionID,
         todos: [
-          { content: "Add API endpoint", status: "completed", priority: "high" },
+          { content: "Add API endpoint", status: "in_progress", priority: "high" },
           { content: "Write tests", status: "pending", priority: "medium" },
         ],
       })
@@ -681,13 +681,13 @@ describe("plan follow-up", () => {
       expect(part.text).toContain("## Handover from Planning Session")
       expect(part.text).toContain("Found REST endpoints in src/api.ts")
       expect(part.text).toContain("## Todo List")
-      expect(part.text).toContain("[x] Add API endpoint")
+      expect(part.text).toContain("[~] Add API endpoint")
       expect(part.text).toContain("[ ] Write tests")
       expect(part.synthetic).toBe(false)
 
       const newTodos = await todo.get(newSessionID)
       expect(newTodos).toHaveLength(2)
-      expect(newTodos).toContainEqual({ content: "Add API endpoint", status: "completed", priority: "high" })
+      expect(newTodos).toContainEqual({ content: "Add API endpoint", status: "in_progress", priority: "high" })
       expect(newTodos).toContainEqual({ content: "Write tests", status: "pending", priority: "medium" })
     }))
 
@@ -1458,13 +1458,12 @@ describe("plan follow-up", () => {
 
   test("formatTodos - formats todos with status icons", () => {
     const todos: Todo.Info[] = [
-      { content: "Set up project", status: "completed", priority: "high" },
       { content: "Write code", status: "in_progress", priority: "high" },
       { content: "Add tests", status: "pending", priority: "medium" },
-      { content: "Dropped task", status: "cancelled", priority: "low" },
+      { content: "Set up project", status: "pending", priority: "high" },
     ]
     const result = formatTodos(todos)
-    expect(result).toBe("- [x] Set up project\n- [~] Write code\n- [ ] Add tests\n- [-] Dropped task")
+    expect(result).toBe("- [~] Write code\n- [ ] Add tests\n- [ ] Set up project")
   })
 
   test("generateHandover - returns empty string on LLM stream failure", () =>

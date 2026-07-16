@@ -7,7 +7,7 @@ Use proactively when:
 - The user provides multiple tasks (numbered or comma-separated) or explicitly asks for a todo list
 - New instructions arrive - capture them as todos
 - You start a task - mark it `in_progress` (only one at a time) before working
-- You finish a task - mark it `completed` and add any follow-ups discovered during the work
+- You finish a task - REMOVE it from the todos array entirely (do NOT mark it "completed")
 
 ## When NOT to use
 Skip when:
@@ -18,16 +18,17 @@ Skip when:
 ## States
 - `pending` - not started
 - `in_progress` - actively working (exactly ONE at a time)
-- `completed` - finished successfully
-- `cancelled` - no longer needed
+- **There is NO "completed" state.** When a task is done, REMOVE it from the array.
+- **There is NO "cancelled" state.** When a task is no longer needed, REMOVE it from the array.
 
 ## Rules
 - Update status in real time; don't batch completions
-- Mark `completed` only after the required work is actually done, including any required verification. Never based on intent.
+- When a task is COMPLETELY DONE (verified, committed, tested) — REMOVE it from the array. The git log is the only proof of completion.
 - Keep exactly one `in_progress` while work remains
 - If blocked or partial, keep it `in_progress` and add a follow-up todo describing the blocker
 - Preserve user-provided commands verbatim (flags, args, order)
 - Items should be specific and actionable; break large work into smaller steps
+- NEVER use "completed" or "cancelled" as status values — they will cause a validation error
 
 ## Examples
 

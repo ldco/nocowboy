@@ -18,7 +18,7 @@ describe("TodoView.calculate", () => {
 
   test("shows a compact window around the changed item", () => {
     const before = Array.from({ length: 10 }, (_, index) => item(`Task ${index + 1}`))
-    const after = before.map((todo, index) => (index === 4 ? { ...todo, status: "completed" } : todo))
+    const after = before.map((todo, index) => (index === 4 ? { ...todo, status: "in_progress" } : todo))
     const view = TodoView.calculate(before, after)
 
     expect(view.mode).toBe("compact")
@@ -28,9 +28,9 @@ describe("TodoView.calculate", () => {
     expect(view.todos.map((todo) => Boolean(todo.changed))).toEqual([false, true, false])
   })
 
-  test("shows the full list when all todos are terminal", () => {
-    const before = [item("Inspect files", "completed"), item("Implement fix"), item("Run checks")]
-    const after = before.map((todo) => ({ ...todo, status: "completed" }))
+  test("shows the full list when all todos are removed (terminal)", () => {
+    const before = [item("Inspect files"), item("Implement fix"), item("Run checks")]
+    const after: TodoView.Todo[] = []
     const view = TodoView.calculate(before, after)
 
     expect(view.mode).toBe("full")

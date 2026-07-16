@@ -386,7 +386,7 @@ function runTodo(p: ToolProps<typeof TodoWriteTool>): ToolInline {
           return []
         }
 
-        const mark = item.status === "completed" ? "[✓]" : item.status === "in_progress" ? "[•]" : "[ ]"
+        const mark = item.status === "in_progress" ? "[•]" : "[ ]"
         return [`${mark} ${body}`]
       })
       .join("\n"),
@@ -801,18 +801,14 @@ function scrollTodoFinal(p: ToolProps<typeof TodoWriteTool>): string {
     return `0 todos · ${time}`
   }
 
-  const doneN = items.filter((item) => item.status === "completed").length
   const runN = items.filter((item) => item.status === "in_progress").length
-  const left = items.length - doneN - runN
+  const pendingN = items.length - runN
   const tail = [`${items.length} total`]
-  if (doneN > 0) {
-    tail.push(`${doneN} done`)
-  }
   if (runN > 0) {
     tail.push(`${runN} active`)
   }
-  if (left > 0) {
-    tail.push(`${left} pending`)
+  if (pendingN > 0) {
+    tail.push(`${pendingN} pending`)
   }
 
   if (time) {

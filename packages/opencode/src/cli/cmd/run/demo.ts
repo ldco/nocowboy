@@ -738,10 +738,6 @@ function emitTodo(state: State): void {
   const ref = make(state, "todowrite", {
     todos: [
       {
-        content: "Trigger permission UI",
-        status: "completed",
-      },
-      {
         content: "Trigger question UI",
         status: "in_progress",
       },
