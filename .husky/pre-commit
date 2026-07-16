@@ -9,6 +9,33 @@ if [ -f "$ROOT/packages/opencode/package.json" ]; then
   cd "$ROOT"
 fi
 
+# ── Pipeline integrity check ──
+# Запрещаем коммит если есть planned фичи в roadmap, для которых нет spec.
+# Это механическая защита от пропуска pipeline.
+if [ -f "$ROOT/docs/roadmap.json" ]; then
+  MISSING_SPEC=$(python3 -c "
+import json
+with open('$ROOT/docs/roadmap.json') as f:
+    data = json.load(f)
+for feat in data['features']:
+    if feat['status'] in ('planned', 'in_progress'):
+        spec_path = '$ROOT/.nocowboy/specs/' + feat['id'] + '.md'
+        import os
+        if not os.path.exists(spec_path):
+            print(feat['id'])
+" 2>&1)
+  if [ -n "$MISSING_SPEC" ]; then
+    echo ""
+    echo "❌ BLOCKED: planned features without spec:"
+    echo "$MISSING_SPEC" | while read id; do echo "  - $id"; done
+    echo ""
+    echo "Run: task(architect, 'write spec for $id') before committing."
+    echo "Or set status to 'backlog' in roadmap.json if not starting yet."
+    echo ""
+    exit 1
+  fi
+fi
+
 # ── Roadmap verification ──
 # Priority: dev source (latest) → standalone scripts → global nocowboy (may lag)
 
