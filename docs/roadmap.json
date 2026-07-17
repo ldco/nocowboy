@@ -1130,8 +1130,8 @@
     {
       "id": "self-being",
       "title": "Self-Being Meta-Cognitive Architecture (P3-SELF)",
-      "status": "planned",
-      "notes": "NoCowboy как самосовершенствующееся существо.",
+      "status": "done",
+      "notes": "Создан docs/features/self-being.md — архитектура самосовершенствования: Dream (память) + Distill (эволюция) + Meta-Cognition (рефлексия).",
       "version": "v0.11.0"
     },
     {
