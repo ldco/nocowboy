@@ -113,3 +113,50 @@ registerBlocker({
     "BLOCKED: use `complete_task` instead. nutausik_task_done bypasses verification.",
   check: () => ({ blocked: true, reason: "Use `complete_task` instead of nutausik_task_done" }),
 })
+
+// ── Task gate: code tool calls без активного task ────────────────────
+//
+// Блокирует code-modifying tools если нет ни одного активного NUTAUSIK task.
+// Проверяет только если проект использует roadmap.json (есть planned features).
+// Если roadmap.json нет — gate не срабатывает (проект не использует NUTAUSIK).
+function hasReadyTasks(): boolean {
+  try {
+    const { homedir } = require("os") as typeof import("os")
+    const { join } = require("path") as typeof import("path")
+    const { existsSync } = require("fs") as typeof import("fs")
+    const { Database } = require("bun:sqlite") as typeof import("bun:sqlite")
+
+    // Проверяем roadmap.json в текущей директории
+    const cwd = process.cwd()
+    const roadmapPath = join(cwd, "docs", "roadmap.json")
+    if (!existsSync(roadmapPath)) return true // Нет roadmap — не блокируем
+
+    const dbPath = join(homedir(), ".local/share/nocowboy/storage/nocowboy.db")
+    if (!existsSync(dbPath)) return true // Нет БД — не блокируем
+
+    const db = new Database(dbPath)
+    try {
+      const row = db.query("SELECT COUNT(*) as cnt FROM task WHERE status IN ('open', 'in_progress')").get() as { cnt: number } | undefined
+      return row !== undefined && row.cnt > 0
+    } finally {
+      db.close()
+    }
+  } catch {
+    return true // Если ошибка — не блокируем (fail open)
+  }
+}
+
+const CODE_TOOLS = ["edit", "write", "apply_patch", "search_replace"]
+
+for (const tool of CODE_TOOLS) {
+  registerBlocker({
+    toolName: tool,
+    description: `Task gate: ${tool} requires an active NUTAUSIK task when project uses roadmap.json.`,
+    check: () => {
+      if (!hasReadyTasks()) {
+        return { blocked: true, reason: `No active NUTAUSIK task found. Use \`task create\` or \`to-spec\` to start a task before making code changes.` }
+      }
+      return { blocked: false }
+    },
+  })
+}

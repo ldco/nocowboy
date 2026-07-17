@@ -1378,8 +1378,8 @@
     {
       "id": "task-gate-hook",
       "title": "Task-gate hook — блокировать code tool calls без активного task",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "Task gate blocker в blocked-tools.ts: edit/write/apply_patch/search_replace блокируются если нет активного NUTAUSIK task (SQLite). Работает только для проектов с roadmap.json.",
       "version": "v0.11.0"
     },
     {
