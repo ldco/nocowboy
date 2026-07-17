@@ -46,7 +46,9 @@ const providerFamilies = [
   ["deepinfra", OpenAICompatible.deepinfra, "https://api.deepinfra.com/v1/openai"],
   ["deepseek", OpenAICompatible.deepseek, "https://api.deepseek.com/v1"],
   ["fireworks", OpenAICompatible.fireworks, "https://api.fireworks.ai/inference/v1"],
+  ["gigachat", OpenAICompatible.gigachat, "https://gigachat.devices.sberbank.ru/api/v1"],
   ["togetherai", OpenAICompatible.togetherai, "https://api.together.xyz/v1"],
+  ["yandexgpt", OpenAICompatible.yandexgpt, "https://llm.api.cloud.yandex.net/v1"],
 ] as const
 
 describe("OpenAI-compatible Chat route", () => {

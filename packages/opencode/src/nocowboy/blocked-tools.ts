@@ -17,8 +17,8 @@ export interface BlockerCheckResult {
 export interface ToolBlocker {
   /** Tool name pattern (exact match or regex string). */
   toolName: string
-  /** Check function. Return { blocked: true } to block this tool. */
-  check: () => BlockerCheckResult | Promise<BlockerCheckResult>
+  /** Check function. Receives tool arguments if available. Return { blocked: true } to block this tool. */
+  check: (args?: Record<string, unknown>) => BlockerCheckResult | Promise<BlockerCheckResult>
   /** Human-readable description of why this tool is blocked. */
   description: string
 }
@@ -40,7 +40,7 @@ export function registerBlocker(blocker: ToolBlocker): void {
  * Check if a tool is blocked by any registered blocker.
  * Returns the first blocking result, or { blocked: false } if all pass.
  */
-export async function isToolBlocked(toolName: string): Promise<BlockerCheckResult> {
+export async function isToolBlocked(toolName: string, args?: Record<string, unknown>): Promise<BlockerCheckResult> {
   for (const blocker of blockers) {
     // Check if tool name matches (exact or regex)
     const matches = blocker.toolName.startsWith("/")
@@ -49,7 +49,7 @@ export async function isToolBlocked(toolName: string): Promise<BlockerCheckResul
 
     if (!matches) continue
 
-    const result = await blocker.check()
+    const result = await blocker.check(args)
     if (result.blocked) return result
   }
   return { blocked: false }
@@ -61,6 +61,42 @@ export async function isToolBlocked(toolName: string): Promise<BlockerCheckResul
 export function listBlockers(): ToolBlocker[] {
   return [...blockers]
 }
+
+// ── Bash firewall: опасные команды ───────────────────────────────────
+
+const DANGEROUS_BASH_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+  { pattern: /\brm\s+-rf\s+\/\s*$/, reason: "rm -rf / — удаление всей файловой системы" },
+  { pattern: /\brm\s+-rf\s+\/\s+\-/, reason: "rm -rf / — удаление всей файловой системы" },
+  { pattern: /\bdd\s+if=.*\s+of=\/dev\//, reason: "dd of=/dev/ — может уничтожить диск" },
+  { pattern: /\bdd\s+of=\/dev\/(sda|sdb|sdc|nvme|mmcblk)/, reason: "dd на системный диск" },
+  { pattern: /\b:\(\)\s*\{/, reason: "Fork bomb (:(){ :|:& };:)" },
+  { pattern: /\bchmod\s+-R\s+777\s+\//, reason: "chmod -R 777 / — открывает всю ФС" },
+  { pattern: /\bchown\s+-R\s+\/\/\s*$/, reason: "chown всего корня" },
+  { pattern: /\bmv\s+\/\s+\/dev\/null/, reason: "mv / в /dev/null" },
+  { pattern: /\bwget\s+-O\s*-\s+.*\s*\|.*\s*bash/, reason: "wget pipe to bash — опасный паттерн" },
+  { pattern: /\bcurl\s+.*\s*\|.*\s*bash/, reason: "curl pipe to bash — опасный паттерн" },
+  { pattern: /\bmkfs\.\w+\s+\/dev\/(sda|sdb|nvme)/, reason: "форматирование системного диска" },
+  { pattern: /\b>\s*\/dev\/(sda|sdb|nvme)/, reason: "прямая запись в устройство" },
+]
+
+registerBlocker({
+  toolName: "bash",
+  description: "Bash firewall: блокирует опасные команды (rm -rf /, dd, fork bomb, curl|bash, ...)",
+  check: (args) => {
+    const command = ((args?.command as string) ?? "").trim()
+    if (!command) return { blocked: false }
+
+    // Проверяем только первые 200 символов (достаточно для определения опасности)
+    const snippet = command.slice(0, 200).toLowerCase()
+
+    for (const { pattern, reason } of DANGEROUS_BASH_PATTERNS) {
+      if (pattern.test(snippet)) {
+        return { blocked: true, reason }
+      }
+    }
+    return { blocked: false }
+  },
+})
 
 // ── Built-in blockers ────────────────────────────────────────────────
 

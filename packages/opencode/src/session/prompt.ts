@@ -6,6 +6,7 @@ import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order"
 import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { NoCowboySession } from "@/nocowboy/session"
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
+import { GoalService } from "@/nocowboy/session/goal"
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { Suggestion } from "@/nocowboy/suggestion"
@@ -419,43 +420,7 @@ export const layer = Layer.effect(
           messages: input.messages,
         }),
       )
-      // These checks (lines 426-449) never match — "plan" agent no longer exists.
-      // Kept for reference; upstream plan mode feature is replaced by architect.
-      if (!flags.experimentalPlanMode) {
-        // wasPlan always false — no agent named "plan"
-        const wasPlan = false
-        if (wasPlan && input.agent.name === "code") {
-          userMessage.parts.push({
-            id: PartID.ascending(),
-            messageID: userMessage.info.id,
-            sessionID: userMessage.info.sessionID,
-            type: "text",
-            text: CODE_SWITCH,
-            synthetic: true,
-          })
-        }
-        return input.messages
-      }
-
-      // input.agent.name !== "plan" is always true, so this block is dead.
-      // Kept for reference — upstream feature replaced by architect agent.
-      const assistantMessage = input.messages.findLast((msg) => msg.info.role === "assistant")
-      if (input.agent.name !== "plan" && assistantMessage?.info.agent === "plan") {
-        const ctx = yield* InstanceState.context
-        const plan = Session.plan(input.session, ctx)
-        if (!(yield* fsys.existsSafe(plan))) return input.messages
-        const part = yield* sessions.updatePart({
-          id: PartID.ascending(),
-          messageID: userMessage.info.id,
-          sessionID: userMessage.info.sessionID,
-          type: "text",
-          text: `${CODE_SWITCH}\n\nA plan file exists at ${plan}. You should execute on the plan defined within it`,
-          synthetic: true,
-        })
-        userMessage.parts.push(part)
-        return input.messages
-      }
-
+      // Upstream plan mode feature removed — replaced by architect agent.
       return input.messages
     })
 
@@ -1966,6 +1931,20 @@ export const layer = Layer.effect(
             model,
             toolChoice: format.type === "json_schema" ? "required" : undefined,
           })
+
+          // Goal judge integration: если есть активная цель, проверяем её
+          const goal = GoalService.get(sessionID)
+          if (goal) {
+            const modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
+            const goalMet = yield* Effect.promise(() =>
+              GoalService.evaluate({ condition: goal.condition, messages: modelMsgs, model: model as any }),
+            )
+            if (goalMet?.ok || goalMet?.impossible) {
+              yield* Effect.logInfo(goalMet?.ok ? "goal met, stopping" : "goal impossible, stopping")
+              GoalService.clear(sessionID)
+              return "break" as const
+            }
+          }
 
           if (structured !== undefined) {
             handle.message.structured = structured

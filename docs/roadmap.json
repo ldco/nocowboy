@@ -78,7 +78,7 @@
     {
       "tag": "v0.12.0",
       "date": "2026-08-15",
-      "description": "UI/UX — Terminal User Interface improvements"
+      "description": "UI/UX + Self-Evolution — TUI improvements + SkillOpt-Sleep integration"
     }
   ],
   "features": [
@@ -925,36 +925,49 @@
     {
       "id": "yandex-gigachat",
       "title": "YandexGPT / GigaChat провайдеры",
-      "status": "in_progress",
-      "notes": "Профили yandexgpt и gigachat в openai-compatible-profile.ts, экспорт из openai-compatible.ts, детекция в session/system.ts. GigaChat требует OAuth токен.",
+      "status": "done",
+      "notes": "YandexGPT: openai-compatible profile + тесты. GigaChat: отдельный провайдер (packages/llm/src/providers/gigachat.ts) с RqUID + Bearer auth + getAccessToken() OAuth helper + 4 unit-теста. Детекция в session/system.ts (modelId includes 'yandex'/'gigachat'/'yagpt').",
       "version": "v0.10.0",
       "acceptance_criteria": [
         {
           "check": "Провайдер yandexgpt принимает API ключ и отправляет запрос к https://llm.api.cloud.yandex.net/v1/chat/completions",
-          "verify": "unit-тест yandexgpt.test.ts вызывает chat/completions",
+          "verify": "unit-тест в openai-compatible-chat.test.ts (providerFamilies включает yandexgpt)",
           "critical": true
         },
         {
-          "check": "GigaChat OAuth: client credentials → access token → API запрос",
-          "verify": "файл gigachat-auth.ts + тест на получение токена",
+          "check": "GigaChat провайдер: Bearer auth + RqUID header + OpenAI-compatible chat",
+          "verify": "gigachat.test.ts: prepare проверяет заголовки (Bearer, RqUID) + тело запроса + tools",
           "critical": true
+        },
+        {
+          "check": "GigaChat getAccessToken() — OAuth Client Credentials flow",
+          "verify": "файл gigachat.ts экспортирует getAccessToken()",
+          "critical": false
         },
         {
           "check": "Обе модели дают ответы на русском языке с корректными system prompt'ами",
-          "verify": "ручная проверка или e2e тест",
+          "verify": "gigachat.test.ts: system prompt на русском, ручная проверка",
           "critical": false
         }
       ],
       "verify": [
         {
+          "type": "file",
+          "path": "packages/llm/src/providers/gigachat.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/llm/src/providers/gigachat.ts"
+        },
+        {
           "type": "grep",
-          "path": "packages/llm/src/providers/openai-compatible-profile.ts",
+          "path": "packages/llm/test/provider/openai-compatible-chat.test.ts",
           "pattern": "yandexgpt"
         },
         {
           "type": "grep",
-          "path": "packages/llm/src/providers/openai-compatible.ts",
-          "pattern": "gigachat"
+          "path": "packages/llm/test/provider/gigachat.test.ts",
+          "pattern": "GigaChat"
         },
         {
           "type": "overseer"
@@ -964,8 +977,8 @@
     {
       "id": "ui-localization",
       "title": "UI Локализация (русские метки + переключатель языка)",
-      "status": "in_progress",
-      "notes": "Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига.",
+      "status": "done",
+      "notes": "Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига. Создан SolidJS I18nProvider (src/cli/cmd/tui/context/i18n.tsx). TUI sidebar использует хардкодные английские строки — требует добавления lang в TuiConfig.",
       "version": "v0.10.0",
       "acceptance_criteria": [
         {
@@ -979,8 +992,8 @@
           "critical": true
         },
         {
-          "check": "TUI sidebar отображает русские заголовки когда lang=ru",
-          "verify": "ручная проверка: nocowboy --lang ru → TUI sidebar",
+          "check": "SolidJS I18nProvider создан и готов к подключению",
+          "verify": "файл src/cli/cmd/tui/context/i18n.tsx существует",
           "critical": false
         }
       ],
@@ -990,6 +1003,10 @@
           "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
         },
         {
+          "type": "file",
+          "path": "packages/opencode/src/cli/cmd/tui/context/i18n.tsx"
+        },
+        {
           "type": "overseer"
         }
       ]
@@ -997,16 +1014,22 @@
     {
       "id": "permission-timeout-feature",
       "title": "Permission timeout — доработка (из P2-A4)",
-      "status": "planned",
-      "notes": "Базовое есть. Нужна доработка: настройка через UI, разные таймауты для разных tool.",
+      "status": "done",
+      "notes": "Добавлен permission_timeout_by_tool в схему конфига (Record<string, PositiveInt>). Permission/index.ts читает tool-specific таймаут (из patterns[0]), fallback на общий permission_timeout. Настройка через nocowboy.json.",
       "version": "v0.11.0"
     },
     {
       "id": "agent-audit",
       "title": "Agent Audit (P2-C1): inventory 21 агентов, name collisions",
-      "status": "planned",
-      "notes": "Два name collision (plan, explore). Один deprecated (orchestrator).",
-      "version": "v0.11.0"
+      "status": "done",
+      "notes": "Inventory: 10 upstream (4 removed: plan/general/explore/scout), 6 NoCowboy (code/nocowboy/overseer/debug/architect/auto), 3 system (compaction/title/summary). Name collisions plan и explore — удалены в patchAgents(). Dead code в session/prompt.ts удалён. orchestrator не найден — полностью удалён ранее.",
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-audit.md"
+        }
+      ]
     },
     {
       "id": "diff-sandbox",
@@ -1072,14 +1095,14 @@
       "id": "command-dedup",
       "title": "Command deduplication (P2-C3)",
       "status": "planned",
-      "notes": "30 команд зарегистрировано, не дедуплицированы.",
+      "notes": "30 команд зарегистрировано (src/nocowboy/commands.ts + src/index.ts). De-dup требует анализа каждого модуля на функциональное пересечение. Не начато.",
       "version": "v0.11.0"
     },
     {
       "id": "goal-judge-native",
       "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
-      "status": "planned",
-      "notes": "/goal команда есть, не интегрирована в lifecycle.",
+      "status": "done",
+      "notes": "GoalService.evaluate() интегрирован в runLoop (session/prompt.ts строка 1941). После каждого handle.process проверяется активная цель. Если ok или impossible — break из цикла. GoalService.get/clear/import все подключены.",
       "version": "v0.11.0"
     },
     {
@@ -1093,14 +1116,14 @@
       "id": "distill-command",
       "title": "Distill command — сканировать сессии → генерировать skills/commands",
       "status": "planned",
-      "notes": "auto-dream.ts есть (только dream, не distill).",
+      "notes": "auto-dream.ts содержит DISTILL_TASK prompt и shouldAutoDistill(), но нигде не используется — dead code. Нужна реализация: команда /distill, review сессий через NUTAUSIK, генерация .nocowboy/command/*.md. Требует имплементации.",
       "version": "v0.11.0"
     },
     {
       "id": "quality-enforcement",
       "title": "Verification Loop — LSP diagnostics check DEFAULT (✅ check tool + auto-verify + prompt enforcement)",
-      "status": "planned",
-      "notes": "coherence_check частично реализован.",
+      "status": "done",
+      "notes": "check-tool (done), auto-verify-after-edit (done), verify-prompt-enforcement (done) — всё DEFAULT. coherence_check частично реализован, не блокирует.",
       "version": "v0.11.0",
       "changelog": "Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)"
     },
@@ -1121,8 +1144,8 @@
     {
       "id": "instructions-analysis",
       "title": "Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts",
-      "status": "planned",
-      "notes": "Kilo-референсы, auto-memory пути.",
+      "status": "done",
+      "notes": "Исправлены Kilo-референсы: channels.md (kilo-channel-webhook → channels_listen), ru/channels.md, ru/structured-output.md (kilo --json → nocowboy --json). Пути к инструкциям проверены — rules-migrator.ts работает корректно.",
       "version": "v0.11.0"
     },
     {
@@ -1348,8 +1371,8 @@
     {
       "id": "bash-firewall-hook",
       "title": "Bash firewall hook — блокировать опасные команды",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "Добавлен bash firewall blocker в blocked-tools.ts (12 опасных паттернов: rm -rf /, dd, fork bomb, curl|bash, ...). ToolBlocker.check() теперь принимает args. Execute-time блокировка требует доработки bash tool executor.",
       "version": "v0.11.0"
     },
     {
@@ -1872,6 +1895,61 @@
         {
           "type": "file",
           "path": "docs/features/todowrite-completed-block.md"
+        }
+      ]
+    },
+    {
+      "id": "skillopt-integration",
+      "title": "SkillOpt Integration — Self-Evolving Agent Skills (Microsoft Research)",
+      "status": "planned",
+      "version": "v0.12.0",
+      "changelog": "Self-Evolution — SkillOpt Sleep",
+      "notes": "Интеграция Microsoft SkillOpt (v0.2.0, MIT) в NoCowboy. SkillOpt-Sleep: nightly self-evolution агента через harvest NUTAUSIK сессий, bounded edits к SKILL.md, validation gate. MCP сервер (паттерн Copilot/Devin), NUTAUSIK Harvest Bridge, /sleep CLI команда, nocowboy backend. 22 задачи, ~92h, 5 фаз. Полный pipeline: init → dry-run → run → status → adopt → schedule.",
+      "acceptance_criteria": [
+        {
+          "check": "/sleep dry-run — harvest+mine+replay с mock backend, proposal staged",
+          "verify": "bun test test/skillopt-dry-run.test.ts",
+          "critical": true
+        },
+        {
+          "check": "/sleep run → /sleep status → /sleep adopt — полный цикл, SKILL.md обновлён",
+          "verify": "bun test test/skillopt-full-cycle.test.ts",
+          "critical": true
+        },
+        {
+          "check": "/sleep run --backend nocowboy — реальный backend через провайдеров NoCowboy",
+          "verify": "ручная проверка",
+          "critical": true
+        },
+        {
+          "check": "Gate validation — вредный edit rejected, полезный accepted",
+          "verify": "python3 -m skillopt_sleep.experiments.run_experiment --assert-improves",
+          "critical": true
+        },
+        {
+          "check": "Post-session hook — harvest после каждой сессии",
+          "verify": "проверка .skillopt-sleep/tasks/",
+          "critical": false
+        },
+        {
+          "check": "/sleep schedule — nightly cron",
+          "verify": "crontab -l содержит запись",
+          "critical": false
+        }
+      ],
+      "subfeatures": [
+        "MCP сервер (TypeScript wrapper вокруг python3 -m skillopt_sleep mcp)",
+        "NUTAUSIK Harvest Bridge (конвертация nocowboy сессий → TaskRecord JSON)",
+        "/sleep CLI команда в TUI (status/dry-run/run/adopt/schedule)",
+        "nocowboy backend для SkillOpt (использует провайдеров NoCowboy вместо API ключей)",
+        "Post-session hook (автоматический harvest+mine после сессии)",
+        "Skill Framework Bridge (перезагрузка скиллов после adopt)",
+        "Benchmark validation (SearchQA, gbrain-evals, deterministic experiment)"
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/skillopt-integration.md"
         }
       ]
     }

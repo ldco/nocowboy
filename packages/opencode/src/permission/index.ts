@@ -259,7 +259,11 @@ export const layer = Layer.effect(
       pending.set(id, { info, ruleset, hardRuleset, deferred })
       yield* bus.publish(Event.Asked, info)
       const cfg = yield* config.get()
-      const timeoutMs = cfg.experimental?.permission_timeout
+      // Determine timeout: tool-specific > global > disabled
+      const toolName = request.patterns[0] ?? ""
+      const byTool = cfg.experimental?.permission_timeout_by_tool
+      const toolTimeout = byTool ? byTool[toolName] ?? byTool["*"] : undefined
+      const timeoutMs = toolTimeout ?? cfg.experimental?.permission_timeout
       const awaitPermission = Deferred.await(deferred)
       const withTimeout = timeoutMs && timeoutMs > 0
         ? awaitPermission.pipe(

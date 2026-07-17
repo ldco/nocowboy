@@ -19,7 +19,7 @@ channels_listen(port: 9337)
 
 Or from the terminal:
 ```bash
-kilo-channel-webhook --port 9337 &
+channels_listen(port: 9337)
 ```
 
 ### Post a message

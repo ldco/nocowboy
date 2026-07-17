@@ -370,6 +370,12 @@ export const Info = Schema.Struct({
         description:
           "Permission timeout in milliseconds. If the user doesn't respond within this window, the permission is auto-denied. Set to 0 to disable.",
       }),
+      permission_timeout_by_tool: Schema.optional(
+        Schema.Record(Schema.String, PositiveInt),
+      ).annotate({
+        description:
+          "Tool-specific permission timeouts. Key is tool name pattern (e.g. 'bash', 'edit', 'write'). Falls back to permission_timeout if not set.",
+      }),
     }),
   ),
 }).annotate({ identifier: "Config" })
