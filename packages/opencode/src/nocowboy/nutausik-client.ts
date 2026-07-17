@@ -45,8 +45,8 @@ function fireTool(name: string, args: Record<string, unknown> = {}): Promise<str
 }
 
 /** Fire a tool call and parse the result as text. */
-export async function callTool(name: string, args?: Record<string, unknown>): Promise<string> {
-  return fireTool(name, args)
+export async function callTool(name: string, args?: Record<string, unknown>, projectDir?: string): Promise<string> {
+  return fireTool(name, { ...(projectDir ? { projectDir } : {}), ...(args ?? {}) })
 }
 
 /** Check if .nutausik/ exists in a project directory. */
@@ -108,11 +108,11 @@ export function autoCreateTask(sessionID: string, title: string, directory: stri
     title: taskTitle,
     goal: `Auto-created task for session ${sessionID}`,
     acceptance_criteria: "Session completed with all goals met",
-  })
+  }, directory)
     .then((result) => {
       if (result) {
         log.info("auto-created NUTAUSIK task", { sessionID, taskTitle })
-        callTool("nutausik_session_start").then((sr) => {
+        callTool("nutausik_session_start", undefined, directory).then((sr) => {
           if (sr) log.info("auto-started NUTAUSIK session", { sessionID })
         })
       }
@@ -127,13 +127,13 @@ export function autoCreateTask(sessionID: string, title: string, directory: stri
 export function autoEndSession(sessionID: string, directory: string): void {
   if (!hasNutausik(directory)) return
 
-  callTool("nutausik_session_end")
+  callTool("nutausik_session_end", undefined, directory)
     .then(() => {
       const summary = `Session ${sessionID.slice(0, 8)} ended`
       callTool("nutausik_handoff_save", {
         session_id: sessionID,
         summary,
-      })
+      }, directory)
       callTool("nutausik_memory_compact", { last: 10 })
       callTool("nutausik_task_log", {
         message: summary,
