@@ -14,6 +14,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { trimDiff, buildFileDiff } from "./edit"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { filterDiagnostics } from "./diagnostics"
+import { scanSecrets, formatSecretWarning } from "@/nocowboy/secret-scan"
 import { ConfigValidation } from "../nocowboy/config-validation"
 import * as EncodedIO from "../nocowboy/tool/encoded-io"
 import * as Bom from "@/util/bom"
@@ -96,6 +97,12 @@ export const WriteTool = Tool.define(
             output += `\n\nLSP errors detected in other files:\n${block}`
           }
           output += yield* Effect.promise(() => ConfigValidation.check(filepath))
+
+          // Secret scan: check for hardcoded API keys, tokens, passwords
+          const secrets = scanSecrets(params.content)
+          if (secrets.length > 0) {
+            output += "\n\n" + formatSecretWarning(secrets)
+          }
 
           return {
             title: path.relative(instance.worktree, filepath),

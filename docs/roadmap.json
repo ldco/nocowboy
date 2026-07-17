@@ -1432,8 +1432,8 @@
     {
       "id": "secret-scan-hook",
       "title": "Secret-scan hook — сканировать на секреты перед записью",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "secret-scan.ts: 16 паттернов (OpenAI, GitHub, AWS, SSH keys, passwords, JWT, Slack, Discord, connection strings). Интегрирован в write.ts — автоматическое сканирование при записи файла.",
       "version": "v0.11.0"
     },
     {
