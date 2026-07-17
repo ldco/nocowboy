@@ -1115,8 +1115,8 @@
     {
       "id": "distill-command",
       "title": "Distill command — сканировать сессии → генерировать skills/commands",
-      "status": "planned",
-      "notes": "auto-dream.ts содержит DISTILL_TASK prompt и shouldAutoDistill(), но нигде не используется — dead code. Нужна реализация: команда /distill, review сессий через NUTAUSIK, генерация .nocowboy/command/*.md. Требует имплементации.",
+      "status": "done",
+      "notes": "Создан distill.ts (CLI команда + NUTAUSIK session scan + генерация .nocowboy/command/*.md). Зарегистрирован в setup.ts.",
       "version": "v0.11.0"
     },
     {

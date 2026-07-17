@@ -11,6 +11,7 @@ import { InstanceRuntime } from "@/project/instance-runtime"
 import { SessionExport } from "@/nocowboy/session-export"
 import { createHelpCommand } from "@/nocowboy/help-command"
 import { NocowboyConsoleCommand } from "@/nocowboy/cli/cmd/console"
+import { DistillCommand } from "@/nocowboy/cli/cmd/distill"
 import { RollCallCommand } from "@/nocowboy/cli/cmd/roll-call"
 import { ProfileCommand } from "@/nocowboy/cli/cmd/profile"
 import { DaemonCommand } from "@/nocowboy/cli/cmd/daemon"
@@ -29,6 +30,7 @@ export namespace NocowboyCli {
   export function register<T>(cli: Argv<T>): Argv<T> {
     cli
       .command(NocowboyConsoleCommand)
+      .command(DistillCommand)
       .command(RollCallCommand)
       .command(ProfileCommand)
       .command(RemoteCommand)
