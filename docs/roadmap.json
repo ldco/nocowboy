@@ -1357,15 +1357,29 @@
     {
       "id": "memory-reconcile",
       "title": "Memory reconcile — index MEMORY.md, prune dead",
-      "status": "planned",
-      "notes": "Базовое есть, полный reconcile нет",
+      "status": "done",
+      "notes": "memory/reconcile.ts — reconcile() уже реализован. Используется в memory/index.ts при поиске.",
       "version": "v0.11.0"
     },
     {
       "id": "channels-webhooks",
       "title": "Channels (webhooks MCP)",
-      "status": "planned",
-      "notes": "Инструменты в MCP есть, не стабильны",
+      "status": "done",
+      "notes": "Инструменты hooks_channels_listen/post/read уже в MCP. Документация в packaging/config/instructions/channels.md.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "fts5-query-builder",
+      "title": "FTS5 query builder (fts-query.ts)",
+      "status": "done",
+      "notes": "memory/fts-query.ts — buildFtsQuery() уже реализован (10 строк).",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "fts5-schema-migration",
+      "title": "FTS5 schema + migration",
+      "status": "done",
+      "notes": "memory/schema.ts — FTS5 virtual table уже создаётся.",
       "version": "v0.11.0"
     },
     {
@@ -1499,8 +1513,15 @@
     {
       "id": "auto-dream-prog",
       "title": "Auto-dream programmatic — программаторное сканирование сессий",
+      "status": "done",
+      "notes": "shouldAutoDream()/shouldAutoDistill() подключены в onSessionCreated (nutausik-auto-wire.ts). Запускают dream/distill task каждые 7/30 дней.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "nutausik-mcp-prompts",
+      "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
       "status": "planned",
-      "notes": "auto-dream.ts есть, но ручной",
+      "notes": "Остаётся: реализовать MCP prompt templates в NUTAUSIK. Требует доработки NUTAUSIK сервера.",
       "version": "v0.11.0"
     },
     {

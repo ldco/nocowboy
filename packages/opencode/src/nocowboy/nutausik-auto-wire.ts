@@ -7,6 +7,7 @@
 //
 // All MCP communication is delegated to nutausik-client.ts.
 
+import { shouldAutoDream, shouldAutoDistill, DREAM_TASK, DISTILL_TASK } from "./session/auto-dream"
 import { saveMetrics } from "./session-metrics"
 import { autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
 import * as Log from "@nocowboy/core/util/log"
@@ -63,6 +64,26 @@ function registerToolLoggingHook(): void {
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
   autoCreateTask(sessionID, title, directory)
   registerToolLoggingHook()
+
+  // Auto-dream memory consolidation (every 7 days)
+  if (shouldAutoDream()) {
+    try {
+      callTool("nutausik_task_quick", {
+        title: "Auto Dream",
+        goal: DREAM_TASK,
+      }).catch(() => {})
+    } catch {}
+  }
+
+  // Auto-distill workflow detection (every 30 days)
+  if (shouldAutoDistill()) {
+    try {
+      callTool("nutausik_task_quick", {
+        title: "Auto Distill",
+        goal: DISTILL_TASK,
+      }).catch(() => {})
+    } catch {}
+  }
 }
 
 /**
