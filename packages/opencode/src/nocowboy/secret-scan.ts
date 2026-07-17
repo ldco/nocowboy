@@ -10,20 +10,20 @@ const SECRET_PATTERNS: Array<{ pattern: RegExp; severity: "high" | "medium" | "l
   { pattern: /gho_[a-zA-Z0-9]{36}/, severity: "high", type: "GitHub OAuth" },
   { pattern: /github_pat_[a-zA-Z0-9]{22,}/, severity: "high", type: "GitHub Fine-Grained PAT" },
   { pattern: /AKIA[0-9A-Z]{16}/, severity: "high", type: "AWS Access Key" },
-  { pattern: /(?i)token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/, severity: "high", type: "Generic Token" },
-  { pattern: /(?i)api[_-]?key.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/, severity: "high", type: "API Key" },
-  { pattern: /(?i)secret.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/, severity: "high", type: "Secret" },
-  { pattern: /(?i)password.*=.*['\"][^'\"\s]{8,}['\"]/, severity: "high", type: "Password" },
+  { pattern: /token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/i, severity: "high", type: "Generic Token" },
+  { pattern: /api[_-]?key.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/i, severity: "high", type: "API Key" },
+  { pattern: /secret.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/i, severity: "high", type: "Secret" },
+  { pattern: /password.*=.*['\"][^'\"\s]{8,}['\"]/i, severity: "high", type: "Password" },
 
   // ── Medium severity ────────────────────────────────────────────────
   { pattern: /-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, severity: "medium", type: "Private Key" },
-  { pattern: /(?i)jwt[-_]?secret.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/, severity: "medium", type: "JWT Secret" },
-  { pattern: /(?i)slack.*token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/, severity: "medium", type: "Slack Token" },
-  { pattern: /(?i)discord.*token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/, severity: "medium", type: "Discord Token" },
+  { pattern: /jwt[-_]?secret.*=.*['\"][a-zA-Z0-9_-]{16,}['\"]/i, severity: "medium", type: "JWT Secret" },
+  { pattern: /slack.*token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/i, severity: "medium", type: "Slack Token" },
+  { pattern: /discord.*token.*=.*['\"][a-zA-Z0-9_-]{20,}['\"]/i, severity: "medium", type: "Discord Token" },
 
   // ── Low severity ────────────────────────────────────────────────────
-  { pattern: /(?i)(?:db|database)_(?:url|uri|name).*=.*['\"].+['\"]/, severity: "low", type: "Database Connection String" },
-  { pattern: /(?i)connection.?string.*=.*['\"].+['\"]/, severity: "low", type: "Connection String" },
+  { pattern: /(?:db|database)_(?:url|uri|name).*=.*['\"].+['\"]/i, severity: "low", type: "Database Connection String" },
+  { pattern: /connection.?string.*=.*['\"].+['\"]/i, severity: "low", type: "Connection String" },
 ]
 
 export interface SecretMatch {
