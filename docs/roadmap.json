@@ -1777,29 +1777,15 @@
       "id": "agent-model-settings-ui",
       "title": "UI для выбора модели каждого агента в Settings TUI",
       "status": "planned",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "lang-switcher-ui",
+      "title": "Lang switcher — переключатель ru/en в TUI Settings",
+      "status": "planned",
       "version": "v0.11.0",
-      "notes": "Сейчас модели конфигурируются в коде (patchAgents → model field). Нужно добавить dropdown для выбора модели (Flash/Pro/Kimi/default) для каждого агента в Settings TUI. Изменения сохраняются в nocowboy.json. Читать текущие модели из Agent.Service.defaultInfo()",
-      "acceptance_criteria": [
-        {
-          "check": "Settings TUI показывает список агентов с их текущей моделью",
-          "verify": "проверка UI или скриншот",
-          "critical": true
-        },
-        {
-          "check": "Выбор модели для агента сохраняется в nocowboy.json",
-          "verify": "grep в коде TUI на запись в config",
-          "critical": true
-        },
-        {
-          "check": "При перезапуске сессии агент использует сохранённую модель",
-          "verify": "ручная проверка: task(code) → deepseek-v4-flash или выбранная",
-          "critical": true
-        },
-        {
-          "check": "DropDown показывает только доступные модели (deepseek flash/pro, kimi-k2-thinking)",
-          "verify": "grep в providers для списка моделей",
-          "critical": false
-        }
+      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету."
+    }
       ],
       "verify": [
         {

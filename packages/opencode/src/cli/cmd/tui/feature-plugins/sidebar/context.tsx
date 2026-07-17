@@ -105,7 +105,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
           <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
           <Show when={peakInfo()}>
             <text fg={peakInfo()!.isPeak ? brand : theme().success}>
-              ({peakInfo()!.isPeak ? "×2 пик" : "×1 обычный"})
+              ({peakInfo()!.label})
             </text>
           </Show>
           <text fg={theme().textMuted} onMouseDown={refresh}>
