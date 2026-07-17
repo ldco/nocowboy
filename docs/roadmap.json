@@ -1446,8 +1446,8 @@
     {
       "id": "memory-audit-hook",
       "title": "Memory-audit hook — проверка дубликатов",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "memory-audit.ts: findDuplicates(title, content) проверяет SQLite на дубликаты по заголовку и содержимому. formatDuplicateWarning() для вывода.",
       "version": "v0.11.0"
     },
     {
