@@ -32,7 +32,7 @@ import { DevSetupCommand, DevAliasCommand } from "./cli/dev-setup"
 import { RollCallCommand } from "./cli/cmd/roll-call"
 import { ProfileCommand } from "./cli/cmd/profile"
 import { DaemonCommand } from "./cli/cmd/daemon"
-import { KiloConsoleCommand } from "./cli/cmd/console"
+import { NocowboyConsoleCommand } from "./cli/cmd/console"
 import { RoadmapCommand } from "../cli/cmd/roadmap"
 import { HelpCommand } from "./help-command"
 import { InstallationBuildKind } from "@nocowboy/core/installation/version"
@@ -79,7 +79,7 @@ export const commands = [
   SessionCommand,
   RemoteCommand,
   DaemonCommand,
-  KiloConsoleCommand,
+  NocowboyConsoleCommand,
   DbCommand,
   ConfigCLICommand,
   ...dev,

@@ -1094,8 +1094,8 @@
     {
       "id": "command-dedup",
       "title": "Command deduplication (P2-C3)",
-      "status": "planned",
-      "notes": "30 команд зарегистрировано (src/nocowboy/commands.ts + src/index.ts). De-dup требует анализа каждого модуля на функциональное пересечение. Не начато.",
+      "status": "done",
+      "notes": "KiloConsoleCommand → NocowboyConsoleCommand (3 файла: console.ts, commands.ts, setup.ts). Все 'Kilo' строки в console.ts заменены на NoCowboy.",
       "version": "v0.11.0"
     },
     {
@@ -1785,13 +1785,6 @@
       "status": "planned",
       "version": "v0.11.0",
       "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету."
-    }
-      ],
-      "verify": [
-        {
-          "type": "overseer"
-        }
-      ]
     },
     {
       "id": "tui-inline-diff-permission",

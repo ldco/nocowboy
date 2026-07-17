@@ -10,7 +10,7 @@ import { Auth } from "@/auth"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { SessionExport } from "@/nocowboy/session-export"
 import { createHelpCommand } from "@/nocowboy/help-command"
-import { KiloConsoleCommand } from "@/nocowboy/cli/cmd/console"
+import { NocowboyConsoleCommand } from "@/nocowboy/cli/cmd/console"
 import { RollCallCommand } from "@/nocowboy/cli/cmd/roll-call"
 import { ProfileCommand } from "@/nocowboy/cli/cmd/profile"
 import { DaemonCommand } from "@/nocowboy/cli/cmd/daemon"
@@ -28,7 +28,7 @@ export namespace NocowboyCli {
   // upstream merges that add or remove commands keep working without touching this file.
   export function register<T>(cli: Argv<T>): Argv<T> {
     cli
-      .command(KiloConsoleCommand)
+      .command(NocowboyConsoleCommand)
       .command(RollCallCommand)
       .command(ProfileCommand)
       .command(RemoteCommand)

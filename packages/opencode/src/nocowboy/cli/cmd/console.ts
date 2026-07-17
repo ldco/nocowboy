@@ -36,22 +36,22 @@ async function launch(url: string) {
   })
 }
 
-export const KiloConsoleCommand = cmd({
+export const NocowboyConsoleCommand = cmd({
   command: "console",
-  describe: "open the local Kilo Console",
+  describe: "open the local NoCowboy Console",
   builder: (yargs) => withNetworkOptions(yargs),
   handler: async (args) => {
     const opts = await AppRuntime.runPromise(resolveNetworkOptions(args))
     warnPort(opts.port)
     const daemon = await Daemon.ensure(opts, explicitNetworkOptions())
-    if (daemon.restarted) console.warn("Restarted the Kilo daemon to apply the requested network options")
+    if (daemon.restarted) console.warn("Restarted the daemon to apply the requested network options")
     const state = daemon.result.state
-    if (!state) throw new Error("Kilo daemon did not provide connection state")
+    if (!state) throw new Error("Daemon did not provide connection state")
 
     const url = publicUrl(state)
     await launch(browserUrl(state)).catch((err) => {
       console.warn(`Could not open browser automatically: ${err instanceof Error ? err.message : String(err)}`)
     })
-    console.log(`Kilo Console: ${url}`)
+    console.log(`NoCowboy Console: ${url}`)
   },
 })
