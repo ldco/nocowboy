@@ -43,7 +43,7 @@ function registerToolLoggingHook(): void {
         command: "sh",
         args: [
           "-c",
-          'cat | python3 -c "import sys,json,subprocess; ctx=json.loads(sys.stdin.read()); tool=ctx.get(\'tool_name\',\'\'); subprocess.run([\'curl\',\'-s\',\'-X\',\'POST\',\'http://127.0.0.1:9204/mcp\',\'-H\',\'Content-Type: application/json\',\'-d\',json.dumps({\'jsonrpc\':\'2.0\',\'id\':1,\'method\':\'tools/call\',\'params\':{\'name\':\'nutausik_task_log\',\'arguments\':{\'message\':f\'Tool: {tool} — completed\',\'phase\':\'execute\'}}})],capture_output=True)"',
+          'cat | python3 -c "\nimport sys,json,subprocess\nctx=json.loads(sys.stdin.read())\ntool=ctx.get(\'tool_name\',\'\')\nargs=ctx.get(\'tool_args\',{})\n# Extract relevant detail from args\nif tool==\'bash\': detail=\'cmd: \' + args.get(\'command\',\'\')[:80]\nelif tool in (\'edit\',\'write\'): detail=\'file: \' + args.get(\'filePath\',args.get(\'file\',\'\'))[:80]\nelif tool==\'search_replace\': detail=\'file: \' + args.get(\'filePath\',\'\')[:80]\nelse: detail=\'\'\nmsg=f\'{tool} — completed ({detail})\' if detail else f\'{tool} — completed\'\nsubprocess.run([\'curl\',\'-s\',\'-X\',\'POST\',\'http://127.0.0.1:9204/mcp\',\'-H\',\'Content-Type: application/json\',\'-d\',json.dumps({\'jsonrpc\':\'2.0\',\'id\':1,\'method\':\'tools/call\',\'params\':{\'name\':\'nutausik_task_log\',\'arguments\':{\'message\':msg,\'phase\':\'execute\'}}})],capture_output=True)\n"',
         ],
       })
       fs.writeFileSync(HOOKS_FILE, JSON.stringify(config, null, 2))

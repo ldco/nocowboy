@@ -1439,8 +1439,8 @@
     {
       "id": "activity-log-hook",
       "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "nutausik-auto-wire.ts: PostToolUse hook с детальным логгированием (bash: команда, write: путь, edit: путь). Вызывается из session/session.ts onSessionCreated/onSessionEnded.",
       "version": "v0.11.0"
     },
     {
