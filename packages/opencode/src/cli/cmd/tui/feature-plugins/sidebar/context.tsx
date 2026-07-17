@@ -1,7 +1,7 @@
 import type { AssistantMessage, Message, Provider } from "@nocowboy/sdk/v2"
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { createMemo, createResource, Show } from "solid-js"
+import { createMemo, createResource, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { useLocal } from "@tui/context/local"
 import {
@@ -76,10 +76,17 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     return `Balance (${desc?.label ?? info.name})`
   })
 
+  // Peak info — пересчитывается каждую минуту (createMemo не работает, т.к. new Date() не реактивен)
+  const [peakClock, setPeakClock] = createSignal(Date.now())
+  onMount(() => {
+    const interval = setInterval(() => setPeakClock(Date.now()), 60_000)
+    onCleanup(() => clearInterval(interval))
+  })
   const peakInfo = createMemo(() => {
     const info = providerInfo()
     if (!info) return null
     if (info.providerID !== "deepseek" && !info.name.toLowerCase().includes("deepseek")) return null
+    peakClock() // depends on clock signal to re-evaluate
     return getPeakPricing()
   })
 
