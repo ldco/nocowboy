@@ -1336,8 +1336,15 @@
     {
       "id": "lazy-treesitter",
       "title": "Lazy-load tree-sitter WASMs (40MB savings)",
+      "status": "done",
+      "notes": "shell.ts: Language import сделан динамическим (import() внутри lazy-функции). web-tree-sitter больше не грузится при старте.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "deepseek-prefix-cache",
+      "title": "DeepSeek prefix-cache optimization",
       "status": "planned",
-      "notes": "Был в P0.1",
+      "notes": "byte-stable prefix для DeepSeek. Требует анализа.",
       "version": "v0.11.0"
     },
     {

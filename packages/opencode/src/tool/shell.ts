@@ -7,7 +7,7 @@ import * as Log from "@nocowboy/core/util/log"
 import { containsPath, type InstanceContext } from "../project/instance-context"
 import { InstanceState } from "@/effect/instance-state"
 import { lazy } from "@/util/lazy"
-import { Language, type Node } from "web-tree-sitter"
+import type { Node } from "web-tree-sitter"
 
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { fileURLToPath } from "url"
@@ -340,7 +340,8 @@ const parser = lazy(async () => {
   })
   const bashPath = resolveWasm(bashWasm)
   const psPath = resolveWasm(psWasm)
-  const [bashLanguage, psLanguage] = await Promise.all([Language.load(bashPath), Language.load(psPath)])
+  const { Language: TreeSitterLanguage } = await import("web-tree-sitter")
+  const [bashLanguage, psLanguage] = await Promise.all([TreeSitterLanguage.load(bashPath), TreeSitterLanguage.load(psPath)])
   const bash = new Parser()
   bash.setLanguage(bashLanguage)
   const ps = new Parser()
