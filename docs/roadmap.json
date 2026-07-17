@@ -1453,8 +1453,8 @@
     {
       "id": "session-metrics-hook",
       "title": "Session-metrics hook — сбор метрик сессии",
-      "status": "planned",
-      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "status": "done",
+      "notes": "session-metrics.ts: SQLite таблица session_metrics, saveMetrics() на onSessionEnded, getAggregatedMetrics() для дашборда.",
       "version": "v0.11.0"
     },
     {

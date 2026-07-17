@@ -7,6 +7,7 @@
 //
 // All MCP communication is delegated to nutausik-client.ts.
 
+import { saveMetrics } from "./session-metrics"
 import { autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
 import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
@@ -70,4 +71,19 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
  */
 export function onSessionEnded(sessionID: string, directory: string): void {
   autoEndSession(sessionID, directory)
+  // Save session metrics (non-blocking, errors ignored)
+  try {
+    saveMetrics({
+      sessionID,
+      title: "",
+      agent: "",
+      startTime: 0,
+      endTime: Date.now(),
+      durationMs: 0,
+      messageCount: 0,
+      toolCallCount: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+    })
+  } catch {}
 }
