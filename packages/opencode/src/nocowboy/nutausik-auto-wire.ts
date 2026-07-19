@@ -9,15 +9,38 @@
 
 import { shouldAutoDream, shouldAutoDistill, DREAM_TASK, DISTILL_TASK } from "./session/auto-dream"
 import { saveMetrics } from "./session-metrics"
-import { autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
+import { hasNutausik, autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
 import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
 import * as path from "node:path"
 import { homedir } from "node:os"
+import { Launcher } from "./mcp/launcher"
+import { McpLifecycle } from "./mcp/lifecycle"
 
 const log = Log.create({ service: "nutausik.auto-wire" })
 
 const HOOKS_FILE = path.join(homedir(), ".nocowboy", "hooks.json")
+
+const NUTAUSIK_PORT = 9210
+
+/**
+ * Auto-start NUTAUSIK MCP server if it's not running.
+ * Delegates to McpLifecycle which handles proxy resolution, PID/port tracking.
+ * Called on session creation — fire-and-forget.
+ */
+async function ensureNutausikRunning(): Promise<void> {
+  if (await hasNutausik()) return // already running
+
+  try {
+    const cmd = await Launcher.command("nutausik")
+    if (!cmd) { log.warn("nutausik auto-start: no launch command found"); return }
+
+    const info = await McpLifecycle.startOne("nutausik", cmd, NUTAUSIK_PORT)
+    log.info("nutausik auto-started", { pid: info.pid, port: info.port })
+  } catch (e) {
+    log.warn("nutausik auto-start failed", { error: String(e) })
+  }
+}
 
 /**
  * Register a PostToolUse hook that logs tool calls to NUTAUSIK.
@@ -45,7 +68,7 @@ function registerToolLoggingHook(): void {
         command: "sh",
         args: [
           "-c",
-          'cat | python3 -c "\nimport sys,json,subprocess\nctx=json.loads(sys.stdin.read())\ntool=ctx.get(\'tool_name\',\'\')\nargs=ctx.get(\'tool_args\',{})\n# Extract relevant detail from args\nif tool==\'bash\': detail=\'cmd: \' + args.get(\'command\',\'\')[:80]\nelif tool in (\'edit\',\'write\'): detail=\'file: \' + args.get(\'filePath\',args.get(\'file\',\'\'))[:80]\nelif tool==\'search_replace\': detail=\'file: \' + args.get(\'filePath\',\'\')[:80]\nelse: detail=\'\'\nmsg=f\'{tool} — completed ({detail})\' if detail else f\'{tool} — completed\'\nsubprocess.run([\'curl\',\'-s\',\'-X\',\'POST\',\'http://127.0.0.1:9204/mcp\',\'-H\',\'Content-Type: application/json\',\'-d\',json.dumps({\'jsonrpc\':\'2.0\',\'id\':1,\'method\':\'tools/call\',\'params\':{\'name\':\'nutausik_task_log\',\'arguments\':{\'message\':msg,\'phase\':\'execute\'}}})],capture_output=True)\n"',
+          'cat | python3 -c "\nimport sys,json,subprocess\nctx=json.loads(sys.stdin.read())\ntool=ctx.get(\'tool_name\',\'\')\nargs=ctx.get(\'tool_args\',{})\n# Extract relevant detail from args\nif tool==\'bash\': detail=\'cmd: \' + args.get(\'command\',\'\')[:80]\nelif tool in (\'edit\',\'write\'): detail=\'file: \' + args.get(\'filePath\',args.get(\'file\',\'\'))[:80]\nelif tool==\'search_replace\': detail=\'file: \' + args.get(\'filePath\',\'\')[:80]\nelse: detail=\'\'\nmsg=f\'{tool} — completed ({detail})\' if detail else f\'{tool} — completed\'\nsubprocess.run([\'curl\',\'-s\',\'-X\',\'POST\',\'http://127.0.0.1:9210/mcp\',\'-H\',\'Content-Type: application/json\',\'-d\',json.dumps({\'jsonrpc\':\'2.0\',\'id\':1,\'method\':\'tools/call\',\'params\':{\'name\':\'nutausik_task_log\',\'arguments\':{\'message\':msg,\'phase\':\'execute\'}}})],capture_output=True)\n"',
         ],
       })
       fs.writeFileSync(HOOKS_FILE, JSON.stringify(config, null, 2))
@@ -58,11 +81,13 @@ function registerToolLoggingHook(): void {
 
 /**
  * Called when a NoCowboy session is created.
- * Auto-creates a NUTAUSIK task, starts a NUTAUSIK session,
- * and registers a PostToolUse hook for tool call logging.
+ * Auto-starts NUTAUSIK MCP server if needed, then creates a task,
+ * starts a session, and registers a PostToolUse hook.
  */
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
-  autoCreateTask(sessionID, title, directory)
+  ensureNutausikRunning().then(() => {
+    autoCreateTask(sessionID, title, directory).catch(() => {})
+  }).catch(() => {})
   registerToolLoggingHook()
 
   // Auto-dream memory consolidation (every 7 days)
@@ -91,7 +116,7 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
  * Auto-ends the NUTAUSIK session, saves handoff, compacts memory.
  */
 export function onSessionEnded(sessionID: string, directory: string): void {
-  autoEndSession(sessionID, directory)
+  autoEndSession(sessionID, directory).catch(() => {})
   // Save session metrics (non-blocking, errors ignored)
   try {
     saveMetrics({

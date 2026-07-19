@@ -152,8 +152,8 @@ export const layer = Layer.effect(
         const envLines = NoCowboySystemPrompt.environment({ ctx, model: model as any, editor: editorContext as any })
 
         // NUTAUSIK context injection — via shared client abstraction
-        const dir = ctx.directory || process.cwd()
-        if (hasNutausik(dir)) {
+        const nutausikAlive = yield* Effect.promise(() => hasNutausik()).pipe(Effect.catch(() => Effect.succeed(false)))
+        if (nutausikAlive) {
           const text = yield* Effect.promise(() => fetchContext()).pipe(Effect.catch(() => Effect.succeed("")))
           if (text) envLines.push(text)
 

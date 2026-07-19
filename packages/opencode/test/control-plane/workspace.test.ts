@@ -109,7 +109,7 @@ function restoreEnv() {
 }
 
 beforeEach(() => {
-  Database.close()
+  resetDatabase()
   restoreEnv()
   process.env.NOCOWBOY_EXPERIMENTAL_WORKSPACES = "true"
 })

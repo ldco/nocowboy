@@ -28,7 +28,7 @@
     "nutausik": {
       "type": "remote",
       "vendor": "nocowboy",
-      "url": "http://127.0.0.1:9204/mcp",
+      "url": "http://127.0.0.1:9210/mcp",
       "enabled": true
     },
     "git": {

@@ -18,18 +18,84 @@
     "newLine": "Alt+Enter"
   },
   "mcp": {
-    "plugin-registry": { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9200/mcp", "enabled": true },
-    "context7":        { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9201/mcp", "enabled": true },
-    "sqlite":          { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9202/mcp", "enabled": true },
-    "puppeteer":       { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9203/mcp", "enabled": true },
-    "nutausik":          { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9204/mcp", "enabled": true },
-    "git":             { "type": "remote", "vendor": "community", "url": "http://127.0.0.1:9205/mcp", "enabled": true },
-    "puppetmaster":    { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9206/mcp", "enabled": true },
-    "ralph":           { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9207/mcp", "enabled": true },
-    "constitution":    { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9208/mcp", "enabled": true },
-    "ncp-validator":   { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9209/mcp", "enabled": true },
-    "contract-guard":  { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9210/mcp", "enabled": true },
-    "score-engine":    { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9211/mcp", "enabled": true },
-    "hooks":           { "type": "remote", "vendor": "nocowboy", "url": "http://127.0.0.1:9212/mcp", "enabled": true }
-  }
+    "plugin-registry": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9200/mcp",
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9201/mcp",
+      "enabled": true
+    },
+    "sqlite": {
+      "type": "remote",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9202/mcp",
+      "enabled": true
+    },
+    "puppeteer": {
+      "type": "remote",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9203/mcp",
+      "enabled": true
+    },
+    "nutausik": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9210/mcp",
+      "enabled": false
+    },
+    "git": {
+      "type": "remote",
+      "vendor": "community",
+      "url": "http://127.0.0.1:9205/mcp",
+      "enabled": true
+    },
+    "puppetmaster": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9206/mcp",
+      "enabled": true
+    },
+    "ralph": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9207/mcp",
+      "enabled": true
+    },
+    "constitution": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9208/mcp",
+      "enabled": true
+    },
+    "ncp-validator": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9209/mcp",
+      "enabled": true
+    },
+    "contract-guard": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9210/mcp",
+      "enabled": true
+    },
+    "score-engine": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9211/mcp",
+      "enabled": true
+    },
+    "hooks": {
+      "type": "remote",
+      "vendor": "nocowboy",
+      "url": "http://127.0.0.1:9212/mcp",
+      "enabled": true
+    }
+  },
+  "snapshot": false
 }

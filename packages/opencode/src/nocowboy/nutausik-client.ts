@@ -8,19 +8,41 @@
 // async (non-Effect) usage patterns or the callers are converted.
 
 import * as Log from "@nocowboy/core/util/log"
-import * as fs from "node:fs"
-import * as path from "node:path"
 
 const log = Log.create({ service: "nutausik.client" })
 
 /**
- * Default NUTAUSIK MCP URL.
+ * NUTAUSIK MCP URL.
  * Can be overridden via the NUTAUSIK_MCP_URL env var for testing.
  */
 export const NUTAUSIK_MCP_URL: string =
   process.env.NUTAUSIK_MCP_URL ?? "http://127.0.0.1:9210/mcp"
 
 let reqId = 1
+
+/** Проверить, жив ли NUTAUSIK MCP сервер. */
+let _nutausikAlive: boolean | null = null
+let _lastCheck = 0
+const CHECK_INTERVAL = 30_000 // проверять не чаще раза в 30 сек
+
+async function checkNutausikAlive(): Promise<boolean> {
+  const now = Date.now()
+  if (_nutausikAlive !== null && now - _lastCheck < CHECK_INTERVAL) return _nutausikAlive
+  _lastCheck = now
+  try {
+    const res = await fetch(NUTAUSIK_MCP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }),
+      signal: AbortSignal.timeout(3000),
+    })
+    _nutausikAlive = res.ok
+    return _nutausikAlive
+  } catch {
+    _nutausikAlive = false
+    return false
+  }
+}
 
 /** Raw JSON-RPC tool call via fetch. Returns the first content text or "". */
 function fireTool(name: string, args: Record<string, unknown> = {}): Promise<string> {
@@ -49,13 +71,12 @@ export async function callTool(name: string, args?: Record<string, unknown>, pro
   return fireTool(name, { ...(projectDir ? { projectDir } : {}), ...(args ?? {}) })
 }
 
-/** Check if .nutausik/ exists in a project directory. */
-export function hasNutausik(dir: string): boolean {
-  try {
-    return fs.existsSync(path.join(dir, ".nutausik", "nutausik.db"))
-  } catch {
-    return false
-  }
+/**
+ * Check if NUTAUSIK MCP server is alive and usable.
+ * Использует глобальный ping сервера, а не проверку .nutausik/ в проекте.
+ */
+export async function hasNutausik(_dir?: string): Promise<boolean> {
+  return checkNutausikAlive()
 }
 
 // ---------------------------------------------------------------------------
@@ -99,8 +120,8 @@ export async function fetchHandoff(): Promise<string> {
  * Auto-create a NUTAUSIK task for a new session, then start the NUTAUSIK session.
  * Fire-and-forget: errors are logged but not propagated.
  */
-export function autoCreateTask(sessionID: string, title: string, directory: string): void {
-  if (!hasNutausik(directory)) return
+export async function autoCreateTask(sessionID: string, title: string, directory: string): Promise<void> {
+  if (!(await hasNutausik())) return
 
   const taskTitle = `Session ${sessionID.slice(0, 8)}${title ? ` — ${title}` : ""}`
 
@@ -124,8 +145,8 @@ export function autoCreateTask(sessionID: string, title: string, directory: stri
  * End the NUTAUSIK session, save handoff, compact memory, and log tool summary.
  * Fire-and-forget: errors are logged but not propagated.
  */
-export function autoEndSession(sessionID: string, directory: string): void {
-  if (!hasNutausik(directory)) return
+export async function autoEndSession(sessionID: string, directory: string): Promise<void> {
+  if (!(await hasNutausik())) return
 
   callTool("nutausik_session_end", undefined, directory)
     .then(() => {

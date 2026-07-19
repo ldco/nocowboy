@@ -6,7 +6,7 @@
 import { Flag } from "@nocowboy/core/flag/flag"
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { Database } from "../../src/storage/db"
+import { resetDatabase } from "../fixture/db"
 import { aggregateSessionStats } from "../../src/cli/cmd/stats"
 import { MessageV2 } from "../../src/session/message-v2"
 import { ProviderID, ModelID } from "../../src/provider/schema"
@@ -20,7 +20,7 @@ import { testEffect } from "../lib/effect"
 Flag.NOCOWBOY_DB = ":memory:"
 const { initProjectors } = await import("../../src/server/projectors")
 initProjectors()
-Database.close()
+resetDatabase()
 
 void Log.init({ print: false })
 

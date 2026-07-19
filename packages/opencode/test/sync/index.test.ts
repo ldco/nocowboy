@@ -1,5 +1,6 @@
 import { describe, expect, beforeEach, afterAll } from "bun:test"
 import { provideTmpdirInstance } from "../fixture/fixture"
+import { resetDatabase } from "../fixture/db"
 import { Effect, Layer, Schema } from "effect"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Bus } from "../../src/bus"
@@ -22,7 +23,7 @@ const it = testEffect(
 )
 
 beforeEach(() => {
-  Database.close()
+  resetDatabase()
 })
 
 describe("SyncEvent", () => {
