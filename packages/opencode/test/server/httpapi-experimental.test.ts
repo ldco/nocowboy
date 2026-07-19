@@ -94,7 +94,7 @@ function setSessionUpdated(session: Session.Info, updated: number) {
 }
 
 function withCreatedWorktree(directory: string, use: (info: Worktree.Info) => Effect.Effect<void, unknown, never>) {
-  const name = "api-test"
+  const name = `api-test-${Math.random().toString(36).slice(2, 8)}`
   const headers = { "content-type": "application/json" }
   return Effect.acquireUseRelease(
     Effect.gen(function* () {
@@ -107,7 +107,8 @@ function withCreatedWorktree(directory: string, use: (info: Worktree.Info) => Ef
 
       expect(created.status).toBe(200)
       const info = yield* json<Worktree.Info>(created)
-      expect(info).toMatchObject({ name, branch: "opencode/api-test" })
+      // nocowboy_change: branch prefix всегда nocowboy/ (см. worktree/index.ts:195)
+expect(info).toMatchObject({ name, branch: `nocowboy/${name}` })
       yield* Fiber.join(ready)
       return info
     }),

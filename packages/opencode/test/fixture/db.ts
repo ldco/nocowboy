@@ -26,6 +26,10 @@ export async function resetDatabase() {
   // Вместо этого очищаем все таблицы через DELETE FROM.
   try {
     const db = (Database as any).Client().$client
+
+    // Disable FK constraints temporarily so DELETE order doesn't matter
+    db.prepare("PRAGMA foreign_keys = OFF").run()
+
     const tables = db.prepare(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_drizzle%'"
     ).all() as { name: string }[]
@@ -36,6 +40,9 @@ export async function resetDatabase() {
 
     // Reset autoincrement sequences
     try { db.prepare("DELETE FROM sqlite_sequence").run() } catch {}
+
+    // Re-enable FK constraints
+    db.prepare("PRAGMA foreign_keys = ON").run()
   } catch {
     // Fallback: если soft reset не сработал, делаем старый close
     Database.close()
