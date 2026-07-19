@@ -1,4 +1,21 @@
 {
+
+  "provider": {
+    "kimi-for-coding": {
+      "api": "https://api.moonshot.ai/v1",
+      "npm": "@ai-sdk/openai-compatible",
+      "env": ["MOONSHOT_API_KEY"],
+      "models": {
+        "kimi-k2-thinking": {
+          "isFree": false,
+          "cost": {
+            "input": 0.6,
+            "output": 2.5
+          }
+        }
+      }
+    }
+  },
   "lsp": true,
   "settings": {
     "theme": "nocowboy-dark",
