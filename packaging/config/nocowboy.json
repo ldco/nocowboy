@@ -166,7 +166,7 @@
     },
     "overseer": {
       "mode": "primary",
-      "model": "kimi-for-coding/kimi-k2-thinking",
+      "model": "moonshotai/kimi-k2.5",
       "path": "~/.config/nocowboy/agent/overseer.md",
       "permission": {
         "mcp": { "nutausik_*": "allow", "*": "deny" },
