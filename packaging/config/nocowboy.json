@@ -123,44 +123,73 @@
       "mode": "primary",
       "model": "deepseek/deepseek-v4-pro",
       "description": "Senior Software Architect — deep design analysis, ADRs, trade-off evaluation, C4 modeling, NFR-driven architecture",
-      "groups": ["read", "command", "mcp"],
       "path": "~/.config/nocowboy/agent/architect.md",
-      "edit": {
-        "(^|/)(prd\\.json|docs/.*\\.(md|json))$": "allow",
-        "*": "deny"
+      "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
+        "read": "allow",
+        "edit": {
+          "(^|/)(prd\\.json|docs/.*\\.(md|json))$": "allow",
+          "*": "deny"
+        },
+        "bash": "allow",
+        "plan_exit": "allow"
+      }
+    },
+    "code": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-pro",
+      "path": "~/.config/nocowboy/agent/code.md",
+      "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
+        "read": "allow",
+        "edit": "allow",
+        "bash": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "search_replace": "allow",
+        "todowrite": "allow",
+        "skill": "allow"
+      }
+    },
+    "explore": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-flash",
+      "path": "~/.config/nocowboy/agent/explore.md",
+      "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "semantic_search": "allow"
       }
     },
     "overseer": {
       "mode": "primary",
       "model": "kimi-for-coding/kimi-k2-thinking",
-      "description": "Strict review and orchestration agent. Delegates to code, reviews with fresh eyes. Uses different model than code to catch model-blindness bugs.",
-      "groups": ["read", "command", "mcp"],
-      "webfetch": "allow",
-      "websearch": "allow",
-      "skill": "allow",
-      "recall": "allow",
-      "external_directory": "allow"
-    }
-    },
-    "overseer": {
-      "mode": "primary",
-      "model": "kimi-for-coding/kimi-k2-thinking",
-      "description": "Strict review and orchestration agent. Delegates to code, reviews with fresh eyes. Uses different model than code to catch model-blindness bugs.",
-      "path": "/home/ldco/.config/nocowboy/agent/overseer.md",
+      "path": "~/.config/nocowboy/agent/overseer.md",
       "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
         "read": "allow",
+        "bash": "allow",
         "glob": "allow",
         "grep": "allow",
-        "semantic_search": "allow",
-        "webfetch": "allow",
-        "websearch": "allow",
-        "bash": "allow",
+        "plan_exit": "allow"
+      }
+    },
+    "auto": {
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-flash",
+      "path": "~/.config/nocowboy/agent/auto.md",
+      "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
+        "read": "allow",
         "edit": "allow",
-        "mcp": "allow",
-        "skill": "allow",
-        "recall": "allow",
-        "external_directory": "allow",
-        "question": "allow"
+        "bash": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "task": "allow",
+        "skill": "allow"
       }
     }
   }
