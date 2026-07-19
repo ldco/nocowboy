@@ -5,7 +5,7 @@ import { HttpRouter } from "effect/unstable/http"
 import { ChildProcessSpawner } from "effect/unstable/process"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
-import { Flag } from "@nocowboy/core/flag/flag"
+// nocowboy_change: Flag больше не импортируется — app() не мутирует глобальные флаги
 import { createNocowboyClient } from "@nocowboy/sdk/v2"
 import { validateSession } from "../../src/cli/cmd/tui/validate-session"
 import { InstanceBootstrap } from "../../src/project/bootstrap-service"
@@ -33,11 +33,6 @@ const it = testEffect(
   ),
 )
 
-const original = {
-  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
-}
-
 type ServerPath = "default" | "raw"
 type Sdk = ReturnType<typeof createNocowboyClient>
 type SdkResult = { response: Response; data?: unknown; error?: unknown }
@@ -48,9 +43,11 @@ type TestServices = AppFileSystem.Service | ChildProcessSpawner.ChildProcessSpaw
 type TestScope = Scope.Scope | TestServices
 
 function app(serverPath: ServerPath, input?: { password?: string; username?: string }) {
-  Flag.NOCOWBOY_SERVER_PASSWORD = input?.password
-  Flag.NOCOWBOY_SERVER_USERNAME = input?.username
-  if (serverPath === "default") return Server.Default().app
+  // nocowboy_change: Больше не мутируем глобальные Flag.NOCOWBOY_SERVER_PASSWORD.
+  // Если нужны password/username — используем "raw" путь с ConfigProvider,
+  // который передаёт конфиг через Effect Layer, не трогая глобальное состояние.
+  // "default" путь — только без параметров, через Server.Default().app.
+  if (serverPath === "default" && !input?.password && !input?.username) return Server.Default().app
 
   const handler = HttpRouter.toWebHandler(
     HttpApiApp.routes.pipe(
@@ -369,8 +366,6 @@ function seedMessage(directory: string, sessionID: string) {
 }
 
 afterEach(async () => {
-  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
   await disposeAllInstances()
   await resetDatabase()
 })
