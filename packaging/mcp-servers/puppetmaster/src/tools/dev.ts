@@ -3,8 +3,8 @@ import { getProjectRoot, runCmd, runCmdDetached, checkPort } from './utils.js'
 
 export const devTool: PmTool = {
   name: 'pm_dev',
-  description:
-    'Manage the PM development server. Start, stop, restart, or check status. The dev server runs on port 3000 by default.',
+    description:
+    'Manage the PM development server. Start, stop, restart, or check status. The dev server runs on port 5173 by default (SvelteKit Vite).',
   inputSchema: {
     type: 'object',
     properties: {
@@ -15,13 +15,13 @@ export const devTool: PmTool = {
       },
       port: {
         type: 'number',
-        description: 'Port to check (default: 3000)',
+      description: 'Port to check (default: 5173)',
+        },
       },
     },
-  },
-  async handler(args) {
-    const action = (args.action as string) || 'status'
-    const port = (args.port as number) || 3000
+    async handler(args) {
+      const action = (args.action as string) || 'status'
+      const port = (args.port as number) || 5173
     const root = getProjectRoot()
 
     const isRunning = checkPort(port)
@@ -37,7 +37,7 @@ export const devTool: PmTool = {
 
     if (action === 'stop') {
       if (!isRunning) return 'Dev server is not running.'
-      runCmd(`lsof -i :${port} -sTCP:LISTEN -t | xargs kill 2>/dev/null; pkill -f "nuxt" 2>/dev/null || true`)
+      runCmd(`lsof -i :${port} -sTCP:LISTEN -t | xargs kill 2>/dev/null; pkill -f "vite" 2>/dev/null || true`)
       return `Dev server on port ${port} has been stopped.`
     }
 
@@ -46,7 +46,7 @@ export const devTool: PmTool = {
         return `Dev server already running on port ${port}. Use pm_dev restart to cycle it.`
       }
       if (isRunning && action === 'restart') {
-        runCmd(`lsof -i :${port} -sTCP:LISTEN -t | xargs kill 2>/dev/null; pkill -f "nuxt" 2>/dev/null || true`)
+      runCmd(`lsof -i :${port} -sTCP:LISTEN -t | xargs kill 2>/dev/null; pkill -f "vite" 2>/dev/null || true`)
         await new Promise(r => setTimeout(r, 2000))
       }
       const pid = runCmdDetached('npm', ['run', 'dev'], root)

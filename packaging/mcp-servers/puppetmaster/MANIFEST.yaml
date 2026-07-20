@@ -1,7 +1,7 @@
 # Puppet Master MCP Server — Machine-Readable Manifest
 version: "1.0.0"
 name: "pm-mcp-server"
-description: "26 MCP tools for Puppet Master framework operations, review, knowledge, contributing, and git workflow"
+description: "26 MCP tools for Puppet Master framework operations (SvelteKit + Tailwind v4), review, knowledge, contributing, and git workflow"
 
 tools:
   config:
@@ -90,9 +90,9 @@ tools:
 
   knowledge:
     - name: pm_knowledge
-      description: Load framework knowledge base (CSS, components, DB, API, config, RTL, rules)
+      description: Load framework knowledge base (CSS: Tailwind v4 + tokens, Svelte components, state/actions, DB, API, config, RTL, rules)
       schema:
-        topic: css | components | composables | database | api | config | rtl | rules | all
+        topic: css | components | state | database | api | config | rtl | rules | all
 
     - name: pm_knowledge_entrypoint
       description: Load greenfield or brownfield entrypoint documentation

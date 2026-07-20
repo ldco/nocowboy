@@ -3,8 +3,8 @@ import { npmScript, hasNpmScript } from './utils.js'
 
 export const buildTool: PmTool = {
   name: 'pm_build',
-  description:
-    'Run a production build of the Puppet Master project. Creates optimized output in .output/ directory. Only use when explicitly requested for deployment or testing.',
+    description:
+    'Run a production build of the Puppet Master project. Only use when explicitly requested for deployment or testing.',
   inputSchema: {
     type: 'object',
     properties: {},
