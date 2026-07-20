@@ -32,6 +32,7 @@ import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 import { it } from "../lib/effect"
 
 const originalWorkspaces = Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES
+Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = true
 
 type Method = "get" | "post" | "put" | "delete" | "patch"
 type QuerySchema = { readonly fields: Record<string, unknown> }
