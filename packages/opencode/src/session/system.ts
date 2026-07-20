@@ -24,7 +24,7 @@ import PROMPT_RU from "./prompt/nocowboy-ru.txt"
 import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
-import { fetchContext, fetchCoherenceCheck, fetchHandoff, hasNutausik } from "../nocowboy/nutausik-client"
+import { fetchContext, fetchCoherenceCheck, fetchHandoff, fetchPmContext, hasNutausik } from "../nocowboy/nutausik-client"
 
 export function instructions() {
   return PROMPT_CODEX.trim()
@@ -185,6 +185,18 @@ export const layer = Layer.effect(
         }).pipe(Effect.catch(() => Effect.succeed("")))
         if (roadmapSpecCheck) {
           envLines.push(["## ⚠️ Roadmap Spec Check", "", "These features have NO spec. You MUST process them before ANY user interaction:", "", roadmapSpecCheck].join("\n"))
+        }
+
+        // PM v3 project context injection — rules + enabled modules/features
+        // Uses the Puppet Master MCP server's pm_inject_context tool via HTTP
+        const pmContext = yield* Effect.promise(async () => {
+          try {
+            const dir = ctx.directory || process.cwd()
+            return await fetchPmContext(dir)
+          } catch { return "" }
+        }).pipe(Effect.catch(() => Effect.succeed("")))
+        if (pmContext) {
+          envLines.push(["## PM v3 Project Context", "", pmContext].join("\n"))
         }
 
         return envLines

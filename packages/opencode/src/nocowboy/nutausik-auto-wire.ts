@@ -117,6 +117,21 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
  */
 export function onSessionEnded(sessionID: string, directory: string): void {
   autoEndSession(sessionID, directory).catch(() => {})
+
+  // Auto-save PM project context as NUTAUSIK memory
+  try {
+    const { existsSync } = require("node:fs")
+    const { join } = require("node:path")
+    const configPath = join(directory, "project", "puppet-master.config.ts")
+    if (existsSync(configPath)) {
+      callTool("nutausik_memory_add", {
+        type: "context",
+        title: `PM session ${sessionID.slice(0, 8)}`,
+        content: `Session completed in PM v3 project at ${directory}. PM rules: Tailwind-only, clsx+twMerge, no global CSS, .dark {} class-based, $state/$derived.`,
+        tags: "pm,sveltekit,tailwind",
+      }).catch(() => {})
+    }
+  } catch {} // fire-and-forget
   // Save session metrics (non-blocking, errors ignored)
   try {
     saveMetrics({

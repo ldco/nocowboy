@@ -177,3 +177,53 @@ export function logToolCall(toolName: string, status: string, sessionID?: string
     .then(() => log.debug("tool call logged", { toolName, status, sessionID }))
     .catch(() => {})
 }
+
+// ---------------------------------------------------------------------------
+// PM (Puppet Master) context injection — called from system.ts
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect Puppet Master project and inject PM v3 rules + config
+ * into the system prompt. Uses the PM MCP server's pm_inject_context tool.
+ * Falls back to "" if PM MCP server is not available.
+ */
+export async function fetchPmContext(dir: string): Promise<string> {
+  try {
+    const { homedir } = await import("node:os")
+    const { readFileSync } = await import("node:fs")
+    const { join } = await import("node:path")
+
+    // Check if project has PM config
+    if (!readFileSync(join(dir, "project", "puppet-master.config.ts"), "utf-8")) return ""
+
+    // Read PM MCP port from ports.json
+    const portsPath = join(homedir(), ".nocowboy", "mcp", "ports.json")
+    let port = 9201 // default fallback
+    try {
+      const portsRaw = readFileSync(portsPath, "utf-8")
+      const ports = JSON.parse(portsRaw)
+      if (ports.puppetmaster) port = ports.puppetmaster
+    } catch {
+      // fallback to default port
+    }
+
+    const pmUrl = `http://127.0.0.1:${port}/mcp`
+    const res = await fetch(pmUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "pm_inject_context", arguments: { projectDir: dir } },
+      }),
+      signal: AbortSignal.timeout(2000),
+    })
+
+    if (!res.ok) return ""
+    const data = (await res.json()) as { result?: { content?: Array<{ text?: string }> } }
+    return data?.result?.content?.[0]?.text ?? ""
+  } catch {
+    return ""
+  }
+}

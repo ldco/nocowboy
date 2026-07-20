@@ -248,4 +248,84 @@ export const knowledgeTools: PmTool[] = [
       return `Unknown action: ${action}`
     },
   },
+  {
+    name: 'pm_inject_context',
+    description:
+      'Injects Puppet Master v3 rules and project config into the agent context. Called automatically by NoCowboy when a PM project is detected. Returns compressed rules + enabled modules/features.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectDir: {
+          type: 'string',
+          description: 'Project root directory path',
+        },
+      },
+    },
+    async handler(args) {
+      const { existsSync: fe, readFileSync: fr } = await import('node:fs')
+      const { join } = await import('node:path')
+
+      const projectDir = (args.projectDir as string) || getProjectRoot()
+      const configPath = join(projectDir, 'project', 'puppet-master.config.ts')
+
+      if (!fe(configPath)) return ''
+
+      // Read config to extract enabled modules and features
+      let configSummary = ''
+      try {
+        const configRaw = fr(configPath, 'utf-8')
+        const modules: string[] = []
+        const features: string[] = []
+
+        // Extract module enabled flags
+        const moduleRe = /(\w+):\s*\{\s*[^}]*enabled:\s*(true|false)/g
+        let m
+        while ((m = moduleRe.exec(configRaw)) !== null) {
+          const name = m[1]
+          const enabled = m[2] === 'true'
+          if (['blog', 'portfolio', 'team', 'pricing', 'testimonials', 'faq', 'clients', 'features', 'contact'].includes(name)) {
+            modules.push(`${name}=${enabled ? 'ON' : 'OFF'}`)
+          }
+        }
+
+        // Extract feature flags
+        const featRes = [
+          { key: 'bodyWidthMode', re: /bodyWidthMode:\s*'(\w+)'/ },
+          { key: 'headerFooterWidthMode', re: /headerFooterWidthMode:\s*'(\w+)'/ },
+          { key: 'onepager', re: /onepager:\s*(true|false)/ },
+          { key: 'cookies', re: /cookies:\s*(true|false)/ },
+          { key: 'multiLangs', re: /multiLangs:\s*(true|false)/ },
+          { key: 'doubleTheme', re: /doubleTheme:\s*(true|false)/ },
+        ]
+        for (const { key, re } of featRes) {
+          const match = re.exec(configRaw)
+          if (match) features.push(`${key}=${match[1]}`)
+        }
+
+        if (modules.length) configSummary += `MODULES: ${modules.join(', ')}\n`
+        if (features.length) configSummary += `FEATURES: ${features.join(', ')}`
+      } catch {}
+
+      // Compressed PM v3 rules
+      const rules = [
+        'PM v3 PROJECT — SvelteKit + Tailwind v4:',
+        '1. NO arbitrary Tailwind [...] (text-[...], max-w-[...], bg-[...]) — use @theme tokens',
+        '2. MANDATORY: clsx + twMerge + $props() class prop in EVERY .svelte',
+        '3. NO global CSS classes (.btn, .card, .section) — self-style via Tailwind',
+        '4. Dark mode: .dark {} class, NOT light-dark()',
+        '5. Config: FEATURES.bodyWidthMode, MODULES[sectionId].enabled from $lib/config/site',
+        '6. State: $state() + $derived() — no stores except theme/i18n',
+        '7. Sections: pt-[var(--pt-section)] pb-16, max-w-container, px-[var(--px-container)]',
+        '8. Fluid typography: text-fluid-3xl (sections), text-fluid-hero (h1)',
+        '9. i18n: Paraglide t() + DB translations; RTL via Tailwind ms-/me-/ps-/pe-',
+        '10. ZERO any, @ts-ignore, ! — use unknown; catch(e:unknown)',
+        '11. Zod on ALL inputs; Drizzle ORM only',
+        '12. Self-check: grep "text-\\[" src/ → 0; npm run check → 0 errors',
+      ].join('\n')
+
+      let result = rules
+      if (configSummary) result += '\n\n' + configSummary
+      return result
+    },
+  },
 ]

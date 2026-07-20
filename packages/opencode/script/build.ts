@@ -437,6 +437,20 @@ if (Script.release) {
       archives.push(out) // nocowboy_change
     }
     await $`rm -rf ${stagingDir}` // nocowboy_change
+
+    // Attempt to update the user's local binary
+    if (key.includes("linux")) {
+      try {
+        const homeBin = path.join(process.env["HOME"]!, ".nocowboy", "bin", "nocowboy")
+        const src = path.resolve(binDir, "nocowboy")
+        await $`cp ${src} ${homeBin}`.nothrow()
+        console.log(`  ✅ Updated ${homeBin}`)
+      } catch {
+        console.log(`  ⚠️  Could not update ~/.nocowboy/bin/nocowboy — file is busy.`)
+        console.log(`     Close all NoCowboy TUI instances and run:`)
+        console.log(`     cp ${path.resolve(binDir, "nocowboy")} ~/.nocowboy/bin/nocowboy`)
+      }
+    }
   }
 }
 
