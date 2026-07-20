@@ -1,10 +1,11 @@
 {
-
   "provider": {
     "kimi-for-coding": {
       "api": "https://api.moonshot.ai/v1",
       "npm": "@ai-sdk/openai-compatible",
-      "env": ["MOONSHOT_API_KEY"],
+      "env": [
+        "MOONSHOT_API_KEY"
+      ],
       "models": {
         "kimi-k2-thinking": {
           "isFree": false,
@@ -63,7 +64,7 @@
       "type": "remote",
       "vendor": "nocowboy",
       "url": "http://127.0.0.1:9210/mcp",
-      "enabled": false
+      "enabled": true
     },
     "git": {
       "type": "remote",
