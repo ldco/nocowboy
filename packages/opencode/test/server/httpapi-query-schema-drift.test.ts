@@ -1,10 +1,12 @@
-import { afterEach, describe, expect } from "bun:test"
-import { Effect, Schema } from "effect"
+import { afterEach, beforeEach, describe, expect } from "bun:test"
+import { ConfigProvider, Effect, Layer, Schema } from "effect"
+import { HttpRouter } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { Server } from "../../src/server/server"
 import { SessionID } from "../../src/session/schema"
 import { PublicApi } from "../../src/server/routes/instance/httpapi/public"
+import { HttpApiApp } from "../../src/server/routes/instance/httpapi/server"
 import {
   FilePaths,
   FileQuery,
@@ -30,9 +32,9 @@ import { QueryBoolean, QueryBooleanOpenApi } from "../../src/server/routes/insta
 import { resetDatabase } from "../fixture/db"
 import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 import { it } from "../lib/effect"
+import { InstanceBootstrap } from "../../src/project/bootstrap-service"
 
 const originalWorkspaces = Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES
-Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = true
 
 type Method = "get" | "post" | "put" | "delete" | "patch"
 type QuerySchema = { readonly fields: Record<string, unknown> }
@@ -103,11 +105,18 @@ const pathParamPatterns = [
 ] satisfies Array<{ method: Method; path: string; name: string; pattern: string }>
 
 function app() {
-  return Server.Default().app
+  // nocowboy_change: создаём настоящий сервер для полной инициализации слоёв
+  // toWebHandler не выполняет Layer.unwrap() что приводит к MissingServiceError
+  throw new Error("Use Server.listen() instead of app().request()")
 }
 
-function request(url: string, init?: RequestInit) {
-  return Effect.promise(async () => app().request(url, init))
+function request(url: string, init?: RequestInit, listener?: { url: URL }) {
+  return Effect.promise(async () => {
+    const base = listener?.url ?? new URL("http://localhost")
+    const fullUrl = new URL(url, base)
+    const req = new Request(fullUrl, init)
+    return fetch(req)
+  })
 }
 
 function withTmp<A, E, R>(
@@ -150,6 +159,10 @@ function assertAdvertisedQueryParamsAreRuntimeFields(input: {
     `${input.method.toUpperCase()} ${input.path} advertises query params not accepted by runtime schema`,
   ).toEqual([])
 }
+
+beforeEach(async () => {
+  Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = true
+})
 
 afterEach(async () => {
   Flag.NOCOWBOY_EXPERIMENTAL_WORKSPACES = originalWorkspaces
@@ -252,9 +265,14 @@ describe("httpapi query schema drift", () => {
     "session list accepts directory and workspace",
     withTmp({ config: { formatter: false, lsp: false } }, (tmp) =>
       Effect.gen(function* () {
-        const url = `/session?${routingParams(tmp.path)}`
-        const response = yield* request(url)
-        expectNotSchemaRejection(response.status, url)
+        // nocowboy_change: use real server to avoid singleton caching issue
+        const listener = yield* Effect.acquireRelease(
+          Effect.promise(() => Server.listen({ hostname: "127.0.0.1", port: 0 })),
+          (l) => Effect.promise(() => l.stop(true)),
+        )
+        const url = new URL(`/session?${routingParams(tmp.path)}`, listener.url)
+        const response = yield* Effect.promise(() => fetch(url))
+        expectNotSchemaRejection(response.status, url.href)
       }),
     ),
   )
