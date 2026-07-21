@@ -54,8 +54,8 @@ function app(serverPath: ServerPath, input?: { password?: string; username?: str
       Layer.provide(
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            KILO_SERVER_PASSWORD: input?.password,
-            KILO_SERVER_USERNAME: input?.username,
+            NOCOWBOY_SERVER_PASSWORD: input?.password,
+            NOCOWBOY_SERVER_USERNAME: input?.username,
           }),
         ),
       ),
