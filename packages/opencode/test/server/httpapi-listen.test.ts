@@ -70,7 +70,7 @@ async function requestTicket(
     headers: {
       authorization: authorization(),
       "x-nocowboy-directory": dir,
-      ...(options?.ticketHeader === false ? {} : { "x-kilo-ticket": "1" }),
+      ...(options?.ticketHeader === false ? {} : { "x-nocowboy-ticket": "1" }),
       ...(options?.origin ? { origin: options.origin } : {}),
     },
   })
@@ -383,7 +383,7 @@ describe("HttpApi Server.listen", () => {
       // Mint without directory — server uses its own cwd, can't find the PTY.
       const ambiguous = await fetch(new URL(PtyPaths.connectToken.replace(":ptyID", info.id), listener.url), {
         method: "POST",
-        headers: { authorization: authorization(), "x-kilo-ticket": "1" },
+        headers: { authorization: authorization(), "x-nocowboy-ticket": "1" },
       })
       expect(ambiguous.status).toBe(404)
 
@@ -395,7 +395,7 @@ describe("HttpApi Server.listen", () => {
         ),
         {
           method: "POST",
-          headers: { authorization: authorization(), "x-kilo-ticket": "1" },
+          headers: { authorization: authorization(), "x-nocowboy-ticket": "1" },
         },
       )
       expect(scoped.status).toBe(200)
