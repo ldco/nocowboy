@@ -1,12 +1,13 @@
 import { NodeHttpServer, NodeServices } from "@effect/platform-node"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { describe, expect } from "bun:test"
-import { Config, ConfigProvider, Effect, Layer } from "effect"
+import { Config, ConfigProvider, Effect, Layer, Option } from "effect"
 import { HttpClient, HttpClientRequest, HttpRouter, HttpServer } from "effect/unstable/http"
 import * as Socket from "effect/unstable/socket/Socket"
 import { Server } from "../../src/server/server"
 import { InstancePaths } from "../../src/server/routes/instance/httpapi/groups/instance"
 import { HttpApiApp } from "../../src/server/routes/instance/httpapi/server"
+import { ServerAuth } from "../../src/server/auth"
 import { resetDatabase } from "../fixture/db"
 import { testEffect } from "../lib/effect"
 
@@ -62,9 +63,12 @@ describe("HttpApi CORS", () => {
 
   it.live("adds CORS headers to unauthorized responses", () =>
     Effect.gen(function* () {
+      // nocowboy_change: use ConfigProvider.fromEnv with explicit env at layer creation time
       const handler = HttpRouter.toWebHandler(
         HttpApiApp.createRoutes().pipe(
-          Layer.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({ NOCOWBOY_SERVER_PASSWORD: "secret" }))),
+          Layer.provide(ConfigProvider.layer(
+            ConfigProvider.fromEnv({ env: { NOCOWBOY_SERVER_PASSWORD: "secret" } }),
+          )),
         ),
         { disableLogger: true },
       ).handler
