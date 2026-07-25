@@ -1214,6 +1214,17 @@ export function options(input: {
     result["promptCacheKey"] = input.sessionID
   }
 
+  // DeepSeek direct: pin all session requests to same GPU for KV-cache hits.
+  // DeepSeek API supports automatic prefix caching — no explicit markers needed,
+  // but session affinity via promptCacheKey routes to the same shard, avoiding
+  // cold-cache reprocessing of the full prompt on every turn.
+  if (
+    input.model.api.npm === "@ai-sdk/openai-compatible" &&
+    input.model.api.id.toLowerCase().includes("deepseek")
+  ) {
+    result["promptCacheKey"] = input.sessionID
+  }
+
   if (input.model.providerID === "openrouter") {
     result["prompt_cache_key"] = input.sessionID
   }

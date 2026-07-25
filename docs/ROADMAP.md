@@ -131,7 +131,7 @@
   - ⬜ Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts ❓
   - ⬜ Per-task cost tracking с леджером ❓
   - ⬜ Vector store switcher UI ❓
-  - ⬜ DeepSeek prefix-cache optimization ❓
+  - ✅ DeepSeek prefix-cache optimization (promptCacheKey + agent fallback + preflight cost estimation)
   - ⬜ Lazy-load tree-sitter WASMs (40MB savings) ❓
   - ⬜ FTS5 query builder (fts-query.ts) ❓
   - ⬜ FTS5 schema + migration ❓

@@ -1329,9 +1329,10 @@
     {
       "id": "deepseek-prefix-cache",
       "title": "DeepSeek prefix-cache optimization",
-      "status": "planned",
-      "notes": "Из Whale (MIT). Структурировать промпты для byte-stable prefix",
-      "version": "v0.11.0"
+      "status": "done",
+      "notes": "promptCacheKey для session affinity + agent model fallback + preflight cost estimation + cost cap helper + HTTP recorder",
+      "version": "v0.11.0",
+      "done_version": "v0.11.0"
     },
     {
       "id": "lazy-treesitter",

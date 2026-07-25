@@ -3,6 +3,7 @@ import { NamedError } from "@nocowboy/core/util/error"
 import { Glob } from "@nocowboy/core/util/glob"
 import * as Truncate from "../../tool/truncate"
 import { Config } from "../../config/config"
+import { Provider } from "../../provider/provider"
 import type { Info as AgentInfo } from "../../agent/agent"
 import { Schema } from "effect"
 import path from "path"
@@ -286,7 +287,26 @@ export function patchAgents(
   // Each agent can have an explicit `model` field. If omitted, the agent
   // uses the system default (cfg.model in nocowboy.json).
   // Configured here: patchAgents() → agents.<name>.model
+  //
+  // Fallback chain:
+  //   1. Agent-specific model from config (nocowboy.json agent.<name>.model)
+  //   2. Default model from config (nocowboy.json model)
+  //   3. Hardcoded fallback per agent type
   // ────────────────────────────────────────────────────────────────────
+
+  function resolveModel(
+    agentName: string,
+    hardcoded: { providerID: string; modelID: string },
+  ): { providerID: string; modelID: string } {
+    const agentCfg = cfg.agent?.[agentName]
+    if (agentCfg?.model) {
+      return Provider.parseModel(agentCfg.model) as unknown as { providerID: string; modelID: string }
+    }
+    if (cfg.model) {
+      return Provider.parseModel(cfg.model) as unknown as { providerID: string; modelID: string }
+    }
+    return hardcoded
+  }
 
   // Rename "build" → "code" for backward compatibility
   if (agents.build) {
@@ -295,7 +315,7 @@ export function patchAgents(
       name: "code",
       description: "Primary coding agent — writes, refactors, tests, debugs",
       prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt,
-      model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
+      model: resolveModel("code", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -316,7 +336,7 @@ export function patchAgents(
     name: "nocowboy",
     description: "Browser, filesystem, shell — full system automation",
     prompt: (lang === "ru" ? PROMPT_NOCOWBOY_RU : PROMPT_NOCOWBOY) + routerPrompt,
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
+    model: resolveModel("nocowboy", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -328,7 +348,7 @@ export function patchAgents(
     name: "overseer",
     description: "Orchestrates code agent + cross-model review. Read-only.",
     prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
-    model: { providerID: "nocowboy" as any, modelID: "kimi-k2-thinking" as any },
+    model: resolveModel("overseer", { providerID: "nocowboy", modelID: "kimi-k2-thinking" }),
     options: {},
     permission: Permission.merge(
       defaults,
@@ -351,7 +371,7 @@ export function patchAgents(
     name: "debug",
     description: "Systematic bug diagnosis and root cause analysis",
     prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
+    model: resolveModel("debug", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -363,7 +383,7 @@ export function patchAgents(
     name: "architect",
     description: "Planning, specification, acceptance criteria — read-only",
     prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT),
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-pro" as any },
+    model: resolveModel("architect", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
     mode: "primary",
@@ -375,7 +395,7 @@ export function patchAgents(
     name: "auto",
     description: "Orchestrator — routes to architect → code → overseer automatically",
     prompt: (lang === "ru" ? PROMPT_AUTO_RU : PROMPT_AUTO),
-    model: { providerID: "deepseek" as any, modelID: "deepseek-v4-flash" as any },
+    model: resolveModel("auto", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
     mode: "primary",

@@ -425,6 +425,31 @@ export namespace NoCowboySession {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Cost budget
+  // ---------------------------------------------------------------------------
+
+  const BUDGET_DEFAULT_MAX = 5.0 // USD, no budget warning at 80% by default
+
+  /**
+   * Check the cumulative assistant-message cost of the session against the
+   * configured budget. Returns "ok", "warn" (≥80% of budget), or "exceeded".
+   *
+   * Relies on the session cost being maintained incrementally in message rows
+   * via `KiloCostPropagation.propagate`.  `budget` config is read from
+   * `nocowboy.json` → `budget.maxCostPerSession` with no config → ∞ (always ok).
+   */
+  export function checkBudget(
+    cumulativeCost: number,
+    maxCostPerSession?: number,
+  ): "ok" | "warn" | "exceeded" {
+    const limit = maxCostPerSession ?? BUDGET_DEFAULT_MAX
+    if (limit <= 0) return "ok"
+    if (cumulativeCost >= limit) return "exceeded"
+    if (cumulativeCost >= limit * 0.8) return "warn"
+    return "ok"
+  }
+
   export const writer = _writer
 }
 

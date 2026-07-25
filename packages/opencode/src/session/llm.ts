@@ -37,6 +37,7 @@ const HEADER_TASKID = "x-nocowboy-taskid"
 import { Identity } from "@nocowboy/telemetry"
 import { NoCowboySession } from "@/nocowboy/session"
 import { KiloLLM } from "@/nocowboy/session/llm"
+import { getPeakPricing } from "@/nocowboy/provider-balance"
 import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { SessionExport } from "@/nocowboy/session-export"
 import { getActiveOrg } from "@/nocowboy/session-export/eligibility"
@@ -54,6 +55,31 @@ type StreamResult = { fullStream: AsyncIterable<Event> }
 // Avoid re-instantiating remeda's deep merge types in this hot LLM path; the runtime behavior is still mergeDeep.
 const mergeOptions = (target: Record<string, any>, source: Record<string, any> | undefined): Record<string, any> =>
   mergeDeep(target, source ?? {}) as Record<string, any>
+
+function estimateRequestCost(input: {
+  model: Provider.Model
+  messages: { role: string; content: string | Array<{ type: string; text?: string }> }[]
+  maxOutputTokens?: number
+  peakMultiplier: number
+}): number {
+  const costPerM = input.model.cost
+  if (!costPerM || !costPerM.input) return 0
+  const totalChars = input.messages.reduce((sum, m) => {
+    if (typeof m.content === "string") return sum + m.content.length
+    if (Array.isArray(m.content)) {
+      return sum + m.content.reduce((s, part) => {
+        if (part.type === "text" && "text" in part) return s + (part.text ?? "").length
+        return s + 85
+      }, 0)
+    }
+    return sum
+  }, 0)
+  const estimatedInputTokens = Math.round((totalChars / 4) * 1.3)
+  const estimatedOutputTokens = input.maxOutputTokens ?? 4096
+  const inputCost = (estimatedInputTokens / 1_000_000) * (costPerM.input ?? 0)
+  const outputCost = (estimatedOutputTokens / 1_000_000) * (costPerM.output ?? 0)
+  return (inputCost + outputCost) * input.peakMultiplier
+}
 
 export type StreamInput = {
   user: MessageV2.User
@@ -434,6 +460,20 @@ const live: Layer.Layer<
             toolChoice: input.toolChoice,
             params,
           },
+        })
+      }
+
+      const peak = getPeakPricing()
+      const estimatedCost = estimateRequestCost({
+        model: input.model,
+        messages: estimated,
+        maxOutputTokens: params.maxOutputTokens,
+        peakMultiplier: peak.multiplier,
+      })
+      if (estimatedCost > 0) {
+        l.info("preflight cost estimate", {
+          estimated: estimatedCost.toFixed(6),
+          peakMultiplier: peak.multiplier,
         })
       }
 
