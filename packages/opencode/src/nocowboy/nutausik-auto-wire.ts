@@ -10,6 +10,7 @@
 import { shouldAutoDream, shouldAutoDistill, DREAM_TASK, DISTILL_TASK } from "./session/auto-dream"
 import { saveMetrics } from "./session-metrics"
 import { hasNutausik, autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
+import { runAll as runStartupChecks } from "./startup-checks"
 import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
 import * as path from "node:path"
@@ -88,6 +89,12 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
   ensureNutausikRunning().then(() => {
     autoCreateTask(sessionID, title, directory).catch(() => {})
   }).catch(() => {})
+
+  // Startup checks: fire once per TUI lifetime
+  ensureNutausikRunning().then(() => {
+    runStartupChecks(directory).catch(() => {})
+  }).catch(() => {})
+
   registerToolLoggingHook()
 
   // Auto-dream memory consolidation (every 7 days)

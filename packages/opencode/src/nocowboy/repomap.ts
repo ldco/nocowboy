@@ -153,30 +153,18 @@ function describeResponsibility(dir: string, files: FileEntry[]): string {
   return hints[baseName] || baseName
 }
 
-// Cache keyed by root directory — invalidates when .git/index or root mtime changes
-const cache = new Map<string, { map: string; fingerprint: number }>()
-const CACHE_MAX = 10 // prevent unbounded growth for multi-project scenarios
-
-function dirFingerprint(root: string): number {
-  try {
-    // Use .git/index mtime as proxy for working tree changes (git updates index on add/edit/delete)
-    const gitIndex = path.join(root, ".git", "index")
-    if (fs.existsSync(gitIndex)) {
-      const stat = fs.statSync(gitIndex)
-      return stat.mtimeMs
-    }
-    // Fallback: root dir mtime (changes on file add/remove, not on edit)
-    return fs.statSync(root).mtimeMs
-  } catch {
-    return 0
-  }
-}
+// Cache keyed by root directory — TTL-based, not mtime-based
+// This prevents repomap regeneration on every git add/commit/status
+// which was breaking DeepSeek prefix caching.
+const cache = new Map<string, { map: string; timestamp: number }>()
+const CACHE_MAX = 10
+const CACHE_TTL_MS = 5 * 60 * 1000
 
 export namespace RepoMap {
   export function generate(root: string, maxLines: number = 50): string {
-    const fingerprint = dirFingerprint(root)
+    const now = Date.now()
     const cached = cache.get(root)
-    if (cached && cached.fingerprint === fingerprint) return cached.map
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) return cached.map
 
     const entries = scanDir(root)
     const modules = groupByDirectory(entries)
@@ -203,12 +191,11 @@ export namespace RepoMap {
     lines.push(`**Total:** ${totalFiles} files, ${totalLines.toLocaleString()} lines across ${modules.length} directories.`)
 
     const result = lines.join("\n")
-    // Evict oldest entry if cache is full
     if (cache.size >= CACHE_MAX) {
       const oldest = cache.keys().next().value
       if (oldest !== undefined) cache.delete(oldest)
     }
-    cache.set(root, { map: result, fingerprint })
+    cache.set(root, { map: result, timestamp: now })
     return result
   }
 }

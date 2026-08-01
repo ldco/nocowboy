@@ -2,7 +2,7 @@ import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@nocowboy/core/util/log"
-import { ConfigProvider, Context, Effect, Exit, Layer, Scope } from "effect"
+import { ConfigProvider, Context, Effect, Exit, Layer, Option, Scope } from "effect"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
 import { createServer } from "node:http"
@@ -11,6 +11,7 @@ import { HttpApiApp } from "./routes/instance/httpapi/server"
 import { disposeMiddleware } from "./routes/instance/httpapi/lifecycle"
 import { WebSocketTracker } from "./routes/instance/httpapi/websocket-tracker"
 import { PublicApi } from "./routes/instance/httpapi/public"
+import { ServerAuth } from "./auth"
 import type { CorsOptions } from "./cors"
 import { lazy } from "@/util/lazy"
 
@@ -34,6 +35,8 @@ type ServerApp = {
 type ListenOptions = CorsOptions & {
   port: number
   hostname: string
+  password?: string
+  username?: string
   mdns?: boolean
   mdnsDomain?: string
 }
@@ -101,20 +104,29 @@ const listenEffect: (opts: ListenOptions) => Effect.Effect<EffectListener, unkno
 )
 
 function listenerLayer(opts: ListenOptions, port: number) {
-  return HttpRouter.serve(HttpApiApp.createRoutes(opts), {
+  const base = HttpRouter.serve(HttpApiApp.createRoutes(opts), {
     middleware: disposeMiddleware,
     disableLogger: true,
     disableListenLog: true,
   }).pipe(
     Layer.provideMerge(WebSocketTracker.layer),
     Layer.provideMerge(serverLayer({ port, hostname: opts.hostname })),
-    // Install a fresh `ConfigProvider` per listener so `Config.string(...)`
-    // reads reflect the current `process.env`. Effect's default
-    // `ConfigProvider` snapshots `process.env` on first read and caches the
-    // result on a module-singleton Reference; without overriding it here,
-    // every later `Server.listen()` keeps observing that initial snapshot.
     Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnv())),
   )
+
+  // nocowboy_change: provide auth config inside the listener layer so it
+  // overrides ServerAuth.Config.defaultLayer baked into createRoutes().
+  if (opts.password) {
+    const authLayer: Layer.Layer<never, never, never> = Layer.succeed(
+      ServerAuth.Config as any,
+      ServerAuth.Config.of({
+        password: Option.some(opts.password),
+        username: opts.username ?? "nocowboy",
+      }),
+    ) as any
+    return base.pipe(Layer.provideMerge(authLayer))
+  }
+  return base
 }
 
 function startWithPortFallback(opts: ListenOptions) {

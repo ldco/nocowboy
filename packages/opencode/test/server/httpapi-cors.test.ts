@@ -63,24 +63,19 @@ describe("HttpApi CORS", () => {
 
   it.live("adds CORS headers to unauthorized responses", () =>
     Effect.gen(function* () {
-      // nocowboy_change: use Server.listen() which creates a runtime that sees process.env
-      process.env["NOCOWBOY_SERVER_PASSWORD"] = "secret"
-      try {
-        const listener = yield* Effect.acquireRelease(
-          Effect.promise(() => Server.listen({ hostname: "127.0.0.1", port: 0 })),
-          (l) => Effect.promise(() => l.stop(true)),
-        )
-        const response = yield* Effect.promise(() =>
-          fetch(new URL("/global/config", listener.url), {
-            headers: { origin: "https://app.opencode.ai" },
-          }),
-        )
+      // nocowboy_change: use Server.listen() with password option (added in server.ts)
+      const listener = yield* Effect.acquireRelease(
+        Effect.promise(() => Server.listen({ hostname: "127.0.0.1", port: 0, password: "secret" })),
+        (l) => Effect.promise(() => l.stop(true)),
+      )
+      const response = yield* Effect.promise(() =>
+        fetch(new URL("/global/config", listener.url), {
+          headers: { origin: "https://app.opencode.ai" },
+        }),
+      )
 
-        expect(response.status).toBe(401)
-        expect(response.headers.get("access-control-allow-origin")).toBe("https://app.opencode.ai")
-      } finally {
-        delete process.env["NOCOWBOY_SERVER_PASSWORD"]
-      }
+      expect(response.status).toBe(401)
+      expect(response.headers.get("access-control-allow-origin")).toBe("https://app.opencode.ai")
     }),
   )
 

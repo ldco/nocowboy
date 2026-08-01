@@ -13,6 +13,12 @@ import PROMPT_LING from "./prompt/ling.txt"
 
 import PROMPT_CODEX from "./prompt/codex.txt"
 import PROMPT_TRINITY from "./prompt/trinity.txt"
+
+// System prompt cache: TTL-based, keyed by project directory
+// Prevents redundant NUTAUSIK/PM fetches for every message
+const _envCache = new Map<string, { lines: string[]; timestamp: number }>()
+const _ENV_CACHE_TTL = 5 * 60 * 1000
+const _ENV_CACHE_MAX = 10
 import type { Provider } from "@/provider/provider"
 import type { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
@@ -149,57 +155,54 @@ export const layer = Layer.effect(
         editorContext?: EditorContext,
       ) {
         const ctx = yield* InstanceState.context
-        const envLines = NoCowboySystemPrompt.environment({ ctx, model: model as any, editor: editorContext as any })
+        const cacheKey = ctx.directory || process.cwd()
+        const now = Date.now()
+        const cached = _envCache.get(cacheKey)
+        if (cached && now - cached.timestamp < _ENV_CACHE_TTL) return cached.lines
 
-        // NUTAUSIK context injection — via shared client abstraction
+        const envParts = NoCowboySystemPrompt.environment({ ctx, model: model as any, editor: editorContext as any })
+
+        // 1. Static env info (model, date, platform, git) — always cache_hit
+        const lines: string[] = [envParts[0]]
+
+        // 2. Repomap (dynamic but TTL-cached — stable within session)
+        if (envParts.length > 1 && envParts[1]) lines.push(envParts[1])
+
+        // 4. DYNAMIC BLOCK — varies per session/message, always at end
         const nutausikAlive = yield* Effect.promise(() => hasNutausik()).pipe(Effect.catch(() => Effect.succeed(false)))
         if (nutausikAlive) {
           const text = yield* Effect.promise(() => fetchContext()).pipe(Effect.catch(() => Effect.succeed("")))
-          if (text) envLines.push(text)
+          if (text) lines.push(text)
 
-          // Coherence check — only inject if there are conflicts
           const cohText = yield* Effect.promise(() => fetchCoherenceCheck()).pipe(Effect.catch(() => Effect.succeed("")))
-          if (cohText) envLines.push(cohText)
+          if (cohText) lines.push(cohText)
 
-          // Handoff load — restore context from previous session
           const handoffText = yield* Effect.promise(() => fetchHandoff()).pipe(Effect.catch(() => Effect.succeed("")))
-          if (handoffText) envLines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
+          if (handoffText) lines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
-        const roadmapSpecCheck = yield* Effect.promise(async () => {
-          try {
-            const { existsSync, readFileSync } = await import("fs")
-            const { join } = await import("path")
-            const projectRoot = ctx.directory || process.cwd()
-            const roadmapPath = join(projectRoot, "docs", "roadmap.json")
-            if (!existsSync(roadmapPath)) return ""
-            const data = JSON.parse(readFileSync(roadmapPath, "utf-8"))
-            const noSpec = data.features?.filter((f: any) =>
-              (f.status === "planned" || f.status === "in_progress" || f.status === "backlog") &&
-              !existsSync(join(projectRoot, ".nocowboy", "specs", `${f.id}.md`))
-            )
-            if (!noSpec || noSpec.length === 0) return ""
-            return noSpec.slice(0, 5).map((f: any) => `#route: architect write spec for "${f.title}" (${f.id})`).join("\n") +
-                   (noSpec.length > 5 ? `\n\n... and ${noSpec.length - 5} more features without specs. Process all of them.` : "")
-          } catch { return "" }
-        }).pipe(Effect.catch(() => Effect.succeed("")))
-        if (roadmapSpecCheck) {
-          envLines.push(["## ⚠️ Roadmap Spec Check", "", "These features have NO spec. You MUST process them before ANY user interaction:", "", roadmapSpecCheck].join("\n"))
-        }
-
-        // PM v3 project context injection — rules + enabled modules/features
-        // Uses the Puppet Master MCP server's pm_inject_context tool via HTTP
+        // 5. PM context (dynamic) — lazy: only if PM config exists
         const pmContext = yield* Effect.promise(async () => {
           try {
             const dir = ctx.directory || process.cwd()
+            const { existsSync } = await import("fs")
+            const { join } = await import("path")
+            const configPath = join(dir, "project", "puppet-master.config.ts")
+            if (!existsSync(configPath)) return ""
             return await fetchPmContext(dir)
           } catch { return "" }
         }).pipe(Effect.catch(() => Effect.succeed("")))
         if (pmContext) {
-          envLines.push(["## PM v3 Project Context", "", pmContext].join("\n"))
+          lines.push(["## PM v3 Project Context", "", pmContext].join("\n"))
         }
 
-        return envLines
+        // Cache before returning
+        if (_envCache.size >= _ENV_CACHE_MAX) {
+          const oldest = _envCache.keys().next().value
+          if (oldest !== undefined) _envCache.delete(oldest)
+        }
+        _envCache.set(cacheKey, { lines, timestamp: now })
+        return lines
       }),
 
       skills: Effect.fn("SystemPrompt.skills")(function* (agent: Agent.Info) {
