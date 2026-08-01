@@ -414,7 +414,7 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_GOAL_RU : PROMPT_GOAL) + routerPrompt,
     model: resolveModel("goal", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
-    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", goal_set: "allow", goal_clear: "allow" }), user, META_TOOLS),
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", goal_set: "allow", goal_clear: "allow", team_spawn: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }

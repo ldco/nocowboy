@@ -3,6 +3,7 @@ import { RecallTool } from "../../tool/recall"
 import { AgentManagerTool } from "./agent-manager"
 import { BackgroundProcessTool } from "./background-process"
 import { GoalSetTool, GoalClearTool } from "./goal"
+import { TeamSpawnTool } from "./team"
 import * as Tool from "../../tool/tool"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { Effect } from "effect"
@@ -39,7 +40,8 @@ export namespace NocowboyToolRegistry {
       const process = yield* BackgroundProcessTool
       const goalSet = yield* GoalSetTool
       const goalClear = yield* GoalClearTool
-      return { codebase, recall, manager, process, goalSet, goalClear }
+      const teamSpawn = yield* TeamSpawnTool
+      return { codebase, recall, manager, process, goalSet, goalClear, teamSpawn }
     })
   }
 
@@ -53,6 +55,7 @@ export namespace NocowboyToolRegistry {
       process: Tool.Info
       goalSet: Tool.Info
       goalClear: Tool.Info
+      teamSpawn: Tool.Info
     },
     deps: Deps,
     loaders: Loaders = {},
@@ -65,6 +68,7 @@ export namespace NocowboyToolRegistry {
         process: Tool.init(tools.process),
         goalSet: Tool.init(tools.goalSet),
         goalClear: Tool.init(tools.goalClear),
+        teamSpawn: Tool.init(tools.teamSpawn),
       })
       const semantic = yield* semanticTool(deps, loaders)
       return { ...base, semantic }
@@ -118,6 +122,7 @@ export namespace NocowboyToolRegistry {
       process: Tool.Def
       goalSet: Tool.Def
       goalClear: Tool.Def
+      teamSpawn: Tool.Def
     },
     cfg: { experimental?: { codebase_search?: boolean } },
   ): Tool.Def[] {
@@ -127,6 +132,7 @@ export namespace NocowboyToolRegistry {
       tools.recall,
       tools.goalSet,
       tools.goalClear,
+      tools.teamSpawn,
       ...(Flag.NOCOWBOY_CLIENT === "cli" || Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.process] : []),
       // The extension is the only client that can consume the Agent Manager start event.
       ...(Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.manager] : []),

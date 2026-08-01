@@ -208,6 +208,7 @@ describe("NoCowboy tool registry indexing", () => {
       process: def("background_process"),
       goalSet: def("goal_set"),
       goalClear: def("goal_clear"),
+      teamSpawn: def("team_spawn"),
     }
 
     try {
@@ -218,21 +219,23 @@ describe("NoCowboy tool registry indexing", () => {
         "recall",
         "goal_set",
         "goal_clear",
+        "team_spawn",
         "background_process",
       ])
       expect(NocowboyToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
-        ["codebase_search", "semantic_search", "recall", "goal_set", "goal_clear", "background_process"],
+        ["codebase_search", "semantic_search", "recall", "goal_set", "goal_clear", "team_spawn", "background_process"],
       )
 
       process.env["NOCOWBOY_CLIENT"] = "vscode"
       process.env["NOCOWBOY_CLIENT"] = "vscode"
       expect(NocowboyToolRegistry.extra(tools, { experimental: { codebase_search: true } }).map((tool) => tool.id)).toEqual(
-        ["codebase_search", "semantic_search", "recall", "goal_set", "goal_clear", "background_process", "agent_manager"],
+        ["codebase_search", "semantic_search", "recall", "goal_set", "goal_clear", "team_spawn", "background_process", "agent_manager"],
       )
       expect(NocowboyToolRegistry.extra({ ...tools, semantic: undefined }, {}).map((tool) => tool.id)).toEqual([
         "recall",
         "goal_set",
         "goal_clear",
+        "team_spawn",
         "background_process",
         "agent_manager",
       ])
@@ -244,6 +247,7 @@ describe("NoCowboy tool registry indexing", () => {
         "recall",
         "goal_set",
         "goal_clear",
+        "team_spawn",
       ])
     } finally {
       if (prev === undefined) delete process.env["NOCOWBOY_CLIENT"]
