@@ -328,6 +328,7 @@
         "@types/cross-spawn": "catalog:",
         "@types/node": "catalog:",
         "@typescript/native-preview": "catalog:",
+        "prettier": "^3.4.0",
         "typescript": "catalog:",
       },
     },
