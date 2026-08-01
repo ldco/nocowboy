@@ -270,6 +270,18 @@ function terminalUpdate(
       )
       .run(status, now, cleanupAfter, now, session_id, id)
     insertEvent(database, session_id, id, status, event_summary, now)
+    // Dependency chain: when a parent task reaches a terminal state, unblock
+    // its children (they were blocked waiting on this task's completion).
+    const children = database
+      .prepare("SELECT id, status FROM task WHERE session_id = ? AND parent_task_id = ?")
+      .all(session_id, id) as any[]
+    for (const child of children) {
+      if (child.status !== "blocked") continue
+      database
+        .prepare("UPDATE task SET status = 'open', last_event_at = ? WHERE session_id = ? AND id = ?")
+        .run(now, session_id, child.id)
+      insertEvent(database, session_id, child.id, "unblocked", `parent ${id} ${status}`, now)
+    }
     const row = database
       .prepare("SELECT * FROM task WHERE session_id = ? AND id = ?")
       .get(session_id, id) as any

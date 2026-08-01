@@ -330,4 +330,14 @@ export interface Hooks {
    * Modify tool definitions (description and parameters) sent to LLM
    */
   "tool.definition"?: (input: { toolID: string }, output: { description: string; parameters: any }) => Promise<void>
+  /**
+   * Turn-level stop hook. Fired when an assistant turn is about to end.
+   * Return `{ continue: true }` to block the turn from ending and force
+   * another turn. Used for deterministic quality gates (e.g. AC verification).
+   * Mirrors Claude Code's Stop hook semantics.
+   */
+  "session.stop"?: (
+    input: { sessionID: string; messageID: string; agent: string },
+    output: { continue: boolean; reason?: string },
+  ) => Promise<void>
 }

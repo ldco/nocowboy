@@ -181,6 +181,10 @@ export const RunCommand = effectCmd({
         type: "string",
         describe: "agent to use",
       })
+      .option("max-turns", {
+        type: "number",
+        describe: "max autonomous turns for the goal agent (default 20)",
+      })
       .option("format", {
         type: "string",
         choices: ["default", "json"],

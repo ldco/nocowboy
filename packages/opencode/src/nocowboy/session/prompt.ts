@@ -21,6 +21,7 @@ import { Filesystem } from "@/util/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
+import { GoalService } from "@/nocowboy/session/goal"
 
 export namespace NoCowboySessionPrompt {
   const modes = ["architect", "overseer"]
@@ -452,5 +453,32 @@ export namespace NoCowboySessionPrompt {
    */
   export function maybeStripHistoricalMedia(msgs: MessageV2.WithParts[]): MessageV2.WithParts[] {
     return hasCompletedSummary(msgs) ? stripHistoricalMedia(msgs) : msgs
+  }
+
+  /**
+   * Handle the `/goal` command's status/clear subcommands without invoking the
+   * LLM. Returns "handled" when the argument matched a subcommand, or "run"
+   * when the agent should execute the goal normally.
+   */
+  export function handleGoalCommand(input: { sessionID: SessionID; arguments: string }):
+    | { kind: "handled"; output: string }
+    | { kind: "run" } {
+    const arg = input.arguments.trim()
+    if (arg === "status" || arg === "") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal) {
+        return { kind: "handled", output: "No active goal. Set one with /goal <condition>." }
+      }
+      const status = GoalService.exhausted(input.sessionID) ? "stopped (budget exhausted)" : "active"
+      return {
+        kind: "handled",
+        output: `Goal: "${goal.condition}" — ${status} — turns: ${goal.react}/${goal.maxTurns}`,
+      }
+    }
+    if (arg === "clear" || arg === "cancel" || arg === "stop") {
+      GoalService.clear(input.sessionID)
+      return { kind: "handled", output: "Goal cleared. Returning to normal interactive mode." }
+    }
+    return { kind: "run" }
   }
 }

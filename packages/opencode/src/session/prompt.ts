@@ -8,6 +8,7 @@ import { NoCowboySession } from "@/nocowboy/session"
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService } from "@/nocowboy/session/goal"
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
+import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { Suggestion } from "@/nocowboy/suggestion"
 import { Question } from "@/question"
@@ -1659,6 +1660,7 @@ export const layer = Layer.effect(
       const envCache: NoCowboySessionPrompt.EnvCache = {}
       closeReasons.delete(sessionID)
       let compactionAttempts = 0
+      let stopHookContinues = 0
       const ctx = yield* InstanceState.context
       const slog = elog.with({ sessionID })
       let structured: unknown
@@ -1932,6 +1934,30 @@ export const layer = Layer.effect(
             toolChoice: format.type === "json_schema" ? "required" : undefined,
           })
 
+          // Turn-level stop hook: plugins can block the turn from ending by
+          // returning continue:true (deterministic quality gates). Capped at
+          // 8 consecutive blocks to avoid infinite loops (Claude Code parity).
+          const stop = yield* plugin.trigger(
+            "session.stop",
+            { sessionID, messageID: handle.message.id, agent: handle.message.agent },
+            { continue: false, reason: undefined },
+          )
+          // Built-in AC verification: goal agents keep working while they own
+          // incomplete tasks (acceptance criteria not yet met).
+          const acCheck = ACVerificationHook.evaluate({
+            sessionID,
+            agent: handle.message.agent,
+          })
+          if (acCheck.continue && stopHookContinues < 8) {
+            stopHookContinues++
+            yield* Effect.logInfo("AC verification requested continue", { reason: acCheck.reason })
+          } else if (stop.continue && stopHookContinues < 8) {
+            stopHookContinues++
+            yield* Effect.logInfo("session.stop hook requested continue", { reason: stop.reason })
+          } else {
+            stopHookContinues = 0
+          }
+
           // Goal judge integration: если есть активная цель, проверяем её
           const goal = GoalService.get(sessionID)
           if (goal) {
@@ -2074,6 +2100,38 @@ export const layer = Layer.effect(
 
     const command = Effect.fn("SessionPrompt.command")(function* (input: CommandInput) {
       yield* elog.info("command", { sessionID: input.sessionID, command: input.command, agent: input.agent })
+      // nocowboy_change: handle /goal status|clear synchronously without an LLM turn
+      if (input.command === "goal") {
+        const handled = NoCowboySessionPrompt.handleGoalCommand({
+          sessionID: input.sessionID,
+          arguments: input.arguments,
+        })
+        if (handled.kind === "handled") {
+          const msg: MessageV2.Assistant = {
+            id: MessageID.ascending(),
+            parentID: input.messageID ?? MessageID.ascending(),
+            role: "assistant",
+            mode: "goal",
+            agent: "goal",
+            path: { cwd: input.sessionID, root: input.sessionID },
+            cost: 0,
+            tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+            modelID: ModelID.make("goal"),
+            providerID: ProviderID.make("goal"),
+            time: { created: Date.now(), completed: Date.now() },
+            sessionID: input.sessionID,
+          }
+          yield* sessions.updateMessage(msg)
+          const part = yield* sessions.updatePart({
+            id: PartID.ascending(),
+            messageID: msg.id,
+            sessionID: msg.sessionID,
+            type: "text",
+            text: handled.output,
+          })
+          return { info: msg, parts: [part] } satisfies MessageV2.WithParts
+        }
+      }
       const cmd = yield* commands.get(input.command)
       if (!cmd) {
         const available = (yield* commands.list()).map((c) => c.name)
