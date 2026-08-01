@@ -29,6 +29,8 @@ import PROMPT_AUTO from "../../agent/prompt/auto.txt"
 import PROMPT_AUTO_RU from "../../agent/prompt/auto.ru.txt"
 import PROMPT_ARCHITECT from "../../agent/prompt/architect.txt"
 import PROMPT_ARCHITECT_RU from "../../agent/prompt/architect.ru.txt"
+import PROMPT_GOAL from "../../agent/prompt/goal.txt"
+import PROMPT_GOAL_RU from "../../agent/prompt/goal.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -398,6 +400,21 @@ export function patchAgents(
     model: resolveModel("auto", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
+    mode: "primary",
+    native: true,
+  }
+
+  // Add Goal agent — autonomous execution until condition is met.
+  // Uses goal_set/goal_clear tools to arm the goal loop: after each turn a
+  // judge model checks the condition and the loop auto-continues until it
+  // holds, is impossible, or the turn budget is exhausted.
+  agents.goal = {
+    name: "goal",
+    description: "Autonomous goal-driven agent — works across turns until the condition is met",
+    prompt: (lang === "ru" ? PROMPT_GOAL_RU : PROMPT_GOAL) + routerPrompt,
+    model: resolveModel("goal", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
+    options: {},
+    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", goal_set: "allow", goal_clear: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }

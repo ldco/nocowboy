@@ -1944,6 +1944,12 @@ export const layer = Layer.effect(
               GoalService.clear(sessionID)
               return "break" as const
             }
+            if (GoalService.exhausted(sessionID)) {
+              yield* Effect.logInfo("goal turn budget exhausted, stopping")
+              GoalService.clear(sessionID)
+              return "break" as const
+            }
+            GoalService.bumpReact(sessionID)
           }
 
           if (structured !== undefined) {

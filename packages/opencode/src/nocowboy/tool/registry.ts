@@ -2,6 +2,7 @@ import { CodebaseSearchTool } from "../../tool/warpgrep"
 import { RecallTool } from "../../tool/recall"
 import { AgentManagerTool } from "./agent-manager"
 import { BackgroundProcessTool } from "./background-process"
+import { GoalSetTool, GoalClearTool } from "./goal"
 import * as Tool from "../../tool/tool"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { Effect } from "effect"
@@ -36,14 +37,23 @@ export namespace NocowboyToolRegistry {
       const recall = yield* RecallTool
       const manager = yield* AgentManagerTool
       const process = yield* BackgroundProcessTool
-      return { codebase, recall, manager, process }
+      const goalSet = yield* GoalSetTool
+      const goalClear = yield* GoalClearTool
+      return { codebase, recall, manager, process, goalSet, goalClear }
     })
   }
 
   /** Finalize Kilo-specific tools into Tool.Defs. Call this inside the InstanceState state Effect —
    * it has no Service deps beyond what Tool.init itself needs. */
   export function build(
-    tools: { codebase: Tool.Info; recall: Tool.Info; manager: Tool.Info; process: Tool.Info },
+    tools: {
+      codebase: Tool.Info
+      recall: Tool.Info
+      manager: Tool.Info
+      process: Tool.Info
+      goalSet: Tool.Info
+      goalClear: Tool.Info
+    },
     deps: Deps,
     loaders: Loaders = {},
   ) {
@@ -53,6 +63,8 @@ export namespace NocowboyToolRegistry {
         recall: Tool.init(tools.recall),
         manager: Tool.init(tools.manager),
         process: Tool.init(tools.process),
+        goalSet: Tool.init(tools.goalSet),
+        goalClear: Tool.init(tools.goalClear),
       })
       const semantic = yield* semanticTool(deps, loaders)
       return { ...base, semantic }
@@ -98,13 +110,23 @@ export namespace NocowboyToolRegistry {
 
   /** Kilo-specific tools to append to the builtin list */
   export function extra(
-    tools: { codebase: Tool.Def; semantic?: Tool.Def; recall: Tool.Def; manager: Tool.Def; process: Tool.Def },
+    tools: {
+      codebase: Tool.Def
+      semantic?: Tool.Def
+      recall: Tool.Def
+      manager: Tool.Def
+      process: Tool.Def
+      goalSet: Tool.Def
+      goalClear: Tool.Def
+    },
     cfg: { experimental?: { codebase_search?: boolean } },
   ): Tool.Def[] {
     return [
       ...(cfg.experimental?.codebase_search === true ? [tools.codebase] : []),
       ...(tools.semantic ? [tools.semantic] : []),
       tools.recall,
+      tools.goalSet,
+      tools.goalClear,
       ...(Flag.NOCOWBOY_CLIENT === "cli" || Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.process] : []),
       // The extension is the only client that can consume the Agent Manager start event.
       ...(Flag.NOCOWBOY_CLIENT === "vscode" ? [tools.manager] : []),

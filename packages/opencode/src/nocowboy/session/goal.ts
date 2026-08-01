@@ -4,6 +4,8 @@ import { z } from "zod"
 export type Goal = {
   condition: string
   react: number
+  maxTurns: number
+  createdAt: number
 }
 
 export const Verdict = z.object({
@@ -12,6 +14,8 @@ export const Verdict = z.object({
   reason: z.string(),
 })
 export type Verdict = z.infer<typeof Verdict>
+
+export const DEFAULT_MAX_TURNS = 20
 
 const JUDGE_SYSTEM = `You are evaluating a stop-condition hook. Read the conversation transcript carefully, then judge whether the user-provided condition is satisfied.
 
@@ -29,8 +33,13 @@ const judgeUser = (condition: string) =>
 const goals = new Map<string, Goal>()
 
 export namespace GoalService {
-  export function set(sessionID: string, condition: string): void {
-    goals.set(sessionID, { condition, react: 0 })
+  export function set(sessionID: string, condition: string, maxTurns: number = DEFAULT_MAX_TURNS): void {
+    goals.set(sessionID, {
+      condition,
+      react: 0,
+      maxTurns,
+      createdAt: Date.now(),
+    })
   }
 
   export function get(sessionID: string): Goal | undefined {
@@ -41,11 +50,19 @@ export namespace GoalService {
     goals.delete(sessionID)
   }
 
+  /** Increment the turn counter and return the new value (1-based after first call). */
   export function bumpReact(sessionID: string): number {
     const goal = goals.get(sessionID)
     if (!goal) return 0
     goal.react += 1
     return goal.react
+  }
+
+  /** True once the turn budget is exhausted — guards against infinite loops. */
+  export function exhausted(sessionID: string): boolean {
+    const goal = goals.get(sessionID)
+    if (!goal) return false
+    return goal.react >= goal.maxTurns
   }
 
   /**
