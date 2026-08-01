@@ -79,6 +79,11 @@
       "tag": "v0.12.0",
       "date": "2026-08-15",
       "description": "UI/UX + Self-Evolution — TUI improvements + SkillOpt-Sleep integration"
+    },
+    {
+      "tag": "v0.12.0",
+      "date": "2026-08",
+      "description": "Autonomous Agent Loop — Goal Loop + Agent Teams"
     }
   ],
   "features": [
@@ -1932,6 +1937,181 @@
           "path": "docs/features/skillopt-integration.md"
         }
       ]
+    },
+    {
+      "id": "goal-evaluator",
+      "title": "Goal Evaluator — быстрая модель для проверки условия после каждого turn",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agent-loop",
+        "goal"
+      ],
+      "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code."
+    },
+    {
+      "id": "goal-loop-controller",
+      "title": "Goal Loop Controller — автономный цикл agent turn → evaluate → repeat",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-evaluator"
+      ],
+      "tags": [
+        "autonomy",
+        "agent-loop"
+      ],
+      "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор."
+    },
+    {
+      "id": "auto-permission-classifier",
+      "title": "Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "permissions",
+        "safety"
+      ],
+      "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO."
+    },
+    {
+      "id": "goal-cli-flag",
+      "title": "CLI --goal флаг + headless автономный режим",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-loop-controller",
+        "auto-permission-classifier"
+      ],
+      "tags": [
+        "autonomy",
+        "cli",
+        "ci"
+      ],
+      "description": "nocowboy run --goal 'all tests pass' --max-turns 20. Headless режим для CI. --output-format json, --verbose."
+    },
+    {
+      "id": "tui-goal-ux",
+      "title": "TUI Goal UX — команда /goal, индикатор, управление в TUI",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-loop-controller"
+      ],
+      "tags": [
+        "autonomy",
+        "tui",
+        "ux"
+      ],
+      "description": "/goal 'condition', /goal (status), /goal clear. Индикатор в статус-баре, Esc пауза, Esc+Esc остановка."
+    },
+    {
+      "id": "stop-hooks-turn-level",
+      "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "hooks",
+        "quality"
+      ],
+      "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков."
+    },
+    {
+      "id": "ac-verification-hook",
+      "title": "Built-in AC Verification Stop Hook",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "stop-hooks-turn-level"
+      ],
+      "tags": [
+        "autonomy",
+        "quality",
+        "ac"
+      ],
+      "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system."
+    },
+    {
+      "id": "async-task-spawn",
+      "title": "Async Task Spawning — асинхронные под-агенты",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "async"
+      ],
+      "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие."
+    },
+    {
+      "id": "task-dependency-chain",
+      "title": "Task Dependency Chain — авто-запуск задач по зависимостям",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "async-task-spawn"
+      ],
+      "tags": [
+        "autonomy",
+        "tasks",
+        "workflow"
+      ],
+      "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека."
+    },
+    {
+      "id": "shared-task-list",
+      "title": "Shared Task List для Agent Teams",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "coordination"
+      ],
+      "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim."
+    },
+    {
+      "id": "agent-mailbox",
+      "title": "Inter-Agent Mailbox — сообщения между агентами",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "communication"
+      ],
+      "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых."
+    },
+    {
+      "id": "team-lead",
+      "title": "Team Lead — мульти-агентный оркестратор",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "shared-task-list",
+        "agent-mailbox"
+      ],
+      "tags": [
+        "autonomy",
+        "agents",
+        "orchestration"
+      ],
+      "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса."
     }
   ]
 }
