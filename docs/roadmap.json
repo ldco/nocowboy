@@ -78,12 +78,7 @@
     {
       "tag": "v0.12.0",
       "date": "2026-08-15",
-      "description": "UI/UX + Self-Evolution — TUI improvements + SkillOpt-Sleep integration"
-    },
-    {
-      "tag": "v0.12.0",
-      "date": "2026-08",
-      "description": "Autonomous Agent Loop — Goal Loop + Agent Teams"
+      "description": "Autonomous Agent Loop + UI/UX — Goal Loop, Agent Teams, TUI improvements, Self-Evolution"
     }
   ],
   "features": [
@@ -1941,7 +1936,7 @@
     {
       "id": "goal-evaluator",
       "title": "Goal Evaluator — быстрая модель для проверки условия после каждого turn",
-      "status": "planned",
+      "status": "done",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -1949,12 +1944,13 @@
         "agent-loop",
         "goal"
       ],
-      "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code."
+      "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "goal-loop-controller",
       "title": "Goal Loop Controller — автономный цикл agent turn → evaluate → repeat",
-      "status": "planned",
+      "status": "done",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -1964,12 +1960,13 @@
         "autonomy",
         "agent-loop"
       ],
-      "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор."
+      "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "auto-permission-classifier",
       "title": "Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls",
-      "status": "planned",
+      "status": "done",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -1977,12 +1974,13 @@
         "permissions",
         "safety"
       ],
-      "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO."
+      "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "stop-hooks-turn-level",
       "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -1990,12 +1988,13 @@
         "hooks",
         "quality"
       ],
-      "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков."
+      "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "ac-verification-hook",
       "title": "Built-in AC Verification Stop Hook",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2006,12 +2005,13 @@
         "quality",
         "ac"
       ],
-      "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system."
+      "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "async-task-spawn",
       "title": "Async Task Spawning — асинхронные под-агенты",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2019,12 +2019,13 @@
         "agents",
         "async"
       ],
-      "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие."
+      "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "task-dependency-chain",
       "title": "Task Dependency Chain — авто-запуск задач по зависимостям",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2035,12 +2036,13 @@
         "tasks",
         "workflow"
       ],
-      "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека."
+      "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "shared-task-list",
       "title": "Shared Task List для Agent Teams",
-      "status": "planned",
+      "status": "done",
       "priority": "P2",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2048,12 +2050,13 @@
         "agents",
         "coordination"
       ],
-      "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim."
+      "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "agent-mailbox",
       "title": "Inter-Agent Mailbox — сообщения между агентами",
-      "status": "planned",
+      "status": "done",
       "priority": "P2",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2061,12 +2064,13 @@
         "agents",
         "communication"
       ],
-      "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых."
+      "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "team-lead",
       "title": "Team Lead — мульти-агентный оркестратор",
-      "status": "planned",
+      "status": "done",
       "priority": "P2",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2078,12 +2082,13 @@
         "agents",
         "orchestration"
       ],
-      "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса."
+      "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "goal-agent",
       "title": "Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)",
-      "status": "planned",
+      "status": "done",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2096,12 +2101,13 @@
         "agent",
         "tui"
       ],
-      "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'"
+      "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
+      "done_at": "2026-08-01"
     },
     {
       "id": "tui-goal-ux",
       "title": "TUI Goal UX — индикатор, /goal команды, визуализация прогресса",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2112,12 +2118,13 @@
         "tui",
         "ux"
       ],
-      "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck."
+      "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck.",
+      "done_at": "2026-08-01"
     },
     {
       "id": "goal-headless",
       "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2128,7 +2135,8 @@
         "cli",
         "ci"
       ],
-      "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose."
+      "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
+      "done_at": "2026-08-01"
     }
   ]
 }
