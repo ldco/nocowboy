@@ -4,7 +4,7 @@
 > **Статус:** Proposed
 > **Основание:** Claude Code задаёт стандарт — агенты работают без остановки, без участия человека. NoCowboy требует взаимодействия в каждой сессии. Это ключевой архитектурный разрыв.
 > **Исследование:** Claude Code `/goal`, Agent Teams, Auto Mode, Stop Hooks, Verification Subagents
-> **Цель:** NoCowboy запускает задачу и работает автономно до выполнения acceptance criteria. Пользователь наблюдает, вмешивается по желанию, но не ОБЯЗАН.
+> **Цель:** Новый агент `goal` в TUI — пользователь переключается на него, ставит цель, агент работает автономно до выполнения. Пользователь наблюдает, вмешивается по желанию, но не ОБЯЗАН. CLI-режим (headless) — вторичный.
 
 ---
 
@@ -193,26 +193,98 @@ nocowboy run --goal "all tests pass"
 - Конфигурируемый через `nocowboy.json`: `autoMode.safe`, `autoMode.caution`, `autoMode.block`
 - Интеграция с существующей системой `blocked-tools`
 
-#### 1.4 CLI: `--goal` флаг
+#### 1.4 Goal Agent — Новый агент в TUI 🚨 ЯДРО
+
+**Архитектура:** Goal Agent — это новый тип агента в существующей системе, наравне с `architect`, `code`, `auto`, `overseer`.
 
 ```
-nocowboy run --goal "all tests pass" --max-turns 20
-nocowboy run --auto --goal "fix CI failures and commit"
+TUI: Ctrl+B → выбрать "Goal" → ввести цель
+
+┌─────────────────────────────────────────────────────────┐
+│  🤖 Goal Agent                                          │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ ◎ Цель: все тесты проходят, линт чист              ││
+│  │                                                    ││
+│  │ [turn 1] architect: план исправлений               ││
+│  │ [turn 2] code: фикс test_auth.ts                  ││
+│  │ [turn 3] code: фикс test_db.ts                    ││
+│  │ [turn 4] code: фикс test_api.ts                   ││
+│  │ [turn 5] overseer: проверка                       ││
+│  │ [turn 6] bash: npm test → 5/5 ✓                  ││
+│  │ [turn 7] bash: npm run lint → clean ✓             ││
+│  │                                                    ││
+│  │ ◎ Цель достигнута за 7 turns (4.2 min)            ││
+│  └─────────────────────────────────────────────────────┘│
+│  [Esc] пауза  [Esc+Esc] стоп  [/goal clear] снять цель │
+└─────────────────────────────────────────────────────────┘
 ```
 
-- Совместимость с `--auto` флагом (auto mode для permissions)
-- `--max-turns N` — лимит итераций
-- `--output-format json` для CI/скриптов
-- `--verbose` — streaming вывод каждого turn
+**Ключевые отличия от других агентов:**
+
+| Обычный агент | Goal Agent |
+|---------------|------------|
+| Один turn → ждёт пользователя | Turn → evaluator → auto-continue |
+| Пользователь нажимает Enter для продолжения | Агент сам продолжает |
+| Нет условия завершения | Условие проверяется после каждого turn |
+| Пользователь решает «готово» | Evaluator model решает «готово» |
+
+**Интеграция с существующей системой:**
+
+- **Тот же набор инструментов:** Read, Write, Edit, Bash, Grep, Glob, Task, SemanticSearch
+- **Тот же маршрутизатор:** `goal` агент использует `task` tool для spawn'а architect→code→overseer (как `auto`)
+- **Та же worktree-изоляция:** Agent Manager, отдельная сессия
+- **Та же система разрешений:** унаследованная от агента
+- **Тот же TUI:** выводится как обычная сессия, но с авто-продолжением
+
+**Файлы:**
+
+```
+packages/opencode/src/nocowboy/agent/goal/
+├── index.ts           — регистрация агента в AgentRegistry
+├── prompt.ts          — системный промпт Goal Agent
+├── goal-prompt.txt    — шаблон промпта (статический текст)
+└── eval.ts            — goal evaluator (flash-модель)
+```
+
+**Промпт Goal Agent (ключевые инструкции):**
+
+```markdown
+Ты — Goal Agent. Твоя задача: достичь цели, заданной пользователем.
+
+1. Разбей цель на подзадачи через task tool (architect→code→overseer)
+2. После каждого действия проверяй: приблизился ли ты к цели?
+3. Запускай проверки (тесты, линт, сборка) после каждых изменений
+4. НЕ спрашивай пользователя — действуй автономно
+5. Если зашёл в тупик — измени подход, не повторяй ошибку
+6. Когда цель достигнута — доложи результат с доказательствами
+```
 
 #### 1.5 TUI Goal UX
 
-- Команда `/goal "all tests pass"` — устанавливает цель
-- Индикатор в статус-баре: `◎ goal: "all tests pass" [12/20]`
-- `/goal` — показать статус
-- `/goal clear` — снять цель
-- Esc — пауза (агент останавливается после текущего turn)
+**Выбор агента:**
+- `Ctrl+B` → выбрать `Goal` из списка агентов
+- Или `/agent goal` в активной сессии
+
+**Интерактивный режим (внутри TUI):**
+- Цель вводится как первый промпт: `"все тесты проходят, линт чист"`
+- Индикатор в статус-баре: `◎ goal [turn 7/20]`
+- Каждый turn выводится как обычно, но с авто-продолжением
+- Esc — пауза (агент останавливается после текущего turn, можно дать указание)
 - Esc+Esc — полная остановка
+- `/goal status` — показать цель, прогресс, turns
+- `/goal clear` — снять цель, агент становится обычным
+
+**Headless режим (CLI, для CI):**
+
+```bash
+nocowboy run --agent goal "all tests pass" --max-turns 20
+nocowboy run --agent goal --yolo "fix CI failures and commit"
+```
+
+- `--agent goal` — запустить Goal Agent без TUI
+- `--max-turns N` — лимит итераций
+- `--yolo` — авто-одобрение всех tool calls
+- `--output-format json` для CI/скриптов
 - Rewind support — можно откатиться к предыдущему turn
 
 ### Фаза 2: Turn-Level Quality Gates ⚡
@@ -316,8 +388,8 @@ Architect:   напиши план → [async] code: реализуй → [async
 | **1.1** | Goal Evaluator | 🚨 P0 | — |
 | **1.2** | Goal Loop Controller | 🚨 P0 | Goal Evaluator |
 | **1.3** | Auto-Permission Classifier | 🚨 P0 | Permission system |
-| **1.4** | CLI `--goal` флаг | 🚨 P0 | Goal Loop + Auto-Perm |
-| **1.5** | TUI Goal UX | 🚨 P0 | Goal Loop |
+| **1.4** | Goal Agent — новый агент в TUI | 🚨 P0 | Goal Loop + Agent Registry + Auto-Perm |
+| **1.5** | TUI Goal UX — индикатор, /goal команды, пауза/стоп | 🚨 P0 | Goal Agent + Goal Loop |
 | **2.1** | Stop Hooks (turn-level) | ⚡ P1 | Hooks system |
 | **2.2** | Built-in AC Verification Hook | ⚡ P1 | Stop Hooks + Verify system |
 | **3.1** | Async Task Spawning | ⚡ P1 | Agent Manager + NUTAUSIK |

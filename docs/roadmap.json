@@ -1980,39 +1980,6 @@
       "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO."
     },
     {
-      "id": "goal-cli-flag",
-      "title": "CLI --goal флаг + headless автономный режим",
-      "status": "planned",
-      "priority": "P0",
-      "phase": "autonomous-loop-v0.12",
-      "depends_on": [
-        "goal-loop-controller",
-        "auto-permission-classifier"
-      ],
-      "tags": [
-        "autonomy",
-        "cli",
-        "ci"
-      ],
-      "description": "nocowboy run --goal 'all tests pass' --max-turns 20. Headless режим для CI. --output-format json, --verbose."
-    },
-    {
-      "id": "tui-goal-ux",
-      "title": "TUI Goal UX — команда /goal, индикатор, управление в TUI",
-      "status": "planned",
-      "priority": "P0",
-      "phase": "autonomous-loop-v0.12",
-      "depends_on": [
-        "goal-loop-controller"
-      ],
-      "tags": [
-        "autonomy",
-        "tui",
-        "ux"
-      ],
-      "description": "/goal 'condition', /goal (status), /goal clear. Индикатор в статус-баре, Esc пауза, Esc+Esc остановка."
-    },
-    {
       "id": "stop-hooks-turn-level",
       "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
       "status": "planned",
@@ -2112,6 +2079,56 @@
         "orchestration"
       ],
       "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса."
+    },
+    {
+      "id": "goal-agent",
+      "title": "Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-evaluator",
+        "goal-loop-controller",
+        "auto-permission-classifier"
+      ],
+      "tags": [
+        "autonomy",
+        "agent",
+        "tui"
+      ],
+      "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'"
+    },
+    {
+      "id": "tui-goal-ux",
+      "title": "TUI Goal UX — индикатор, /goal команды, визуализация прогресса",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-agent"
+      ],
+      "tags": [
+        "autonomy",
+        "tui",
+        "ux"
+      ],
+      "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck."
+    },
+    {
+      "id": "goal-headless",
+      "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-agent"
+      ],
+      "tags": [
+        "autonomy",
+        "cli",
+        "ci"
+      ],
+      "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose."
     }
   ]
 }
