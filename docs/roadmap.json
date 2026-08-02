@@ -79,6 +79,11 @@
       "tag": "v0.12.0",
       "date": "2026-08-15",
       "description": "Autonomous Agent Loop + UI/UX — Goal Loop, Agent Teams, TUI improvements, Self-Evolution"
+    },
+    {
+      "tag": "v0.13.0",
+      "date": "2026-09",
+      "description": "Knowledge Graph + Cost Routing + YAGNI Ladder — open-source integrations (Understand-Anything, Fable Advisor, Ponytail)"
     }
   ],
   "features": [
@@ -2137,6 +2142,135 @@
       ],
       "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
       "done_at": "2026-08-01"
+    },
+    {
+      "id": "knowledge-graph",
+      "title": "Knowledge Graph — интерактивный граф кодовой базы (Understand-Anything уровень)",
+      "status": "planned",
+      "priority": "P0",
+      "phase": "knowledge-graph-v0.13",
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "visualization",
+        "open-source-integration"
+      ],
+      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★)."
+    },
+    {
+      "id": "diff-impact-analysis",
+      "title": "Diff Impact Analysis — какие части системы затронуты изменениями",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "knowledge-graph-v0.13",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "open-source-integration"
+      ],
+      "description": "Перед коммитом: показать, какие модули затронет diff (ripple effects). Интегрировано с knowledge graph. Вдохновлено: Understand-Anything."
+    },
+    {
+      "id": "tree-sitter-parsing",
+      "title": "Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "knowledge-graph-v0.13",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "parsing",
+        "open-source-integration"
+      ],
+      "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything."
+    },
+    {
+      "id": "arch-layer-detection",
+      "title": "Architectural Layer Detection — авто-определение слоёв (API, Service, Data, UI)",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "knowledge-graph-v0.13",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "architecture",
+        "open-source-integration"
+      ],
+      "description": "Автоматическая группировка по архитектурным слоям с цветовой легендой. Вдохновлено: Understand-Anything."
+    },
+    {
+      "id": "cost-routing-doctrine",
+      "title": "Cost-Routing Doctrine — формализованный роутинг по стоимости модели",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "quality-v0.13",
+      "tags": [
+        "cost",
+        "routing",
+        "multi-model",
+        "open-source-integration"
+      ],
+      "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★)."
+    },
+    {
+      "id": "commitment-boundary-review",
+      "title": "Commitment-Boundary Review — обязательное ревью перед deliverable",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "quality-v0.13",
+      "tags": [
+        "quality",
+        "review",
+        "open-source-integration"
+      ],
+      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor."
+    },
+    {
+      "id": "spec-contract-delegation",
+      "title": "Spec Contract for Delegation — стандартизированный шаблон spec для делегации",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "quality-v0.13",
+      "tags": [
+        "quality",
+        "delegation",
+        "open-source-integration"
+      ],
+      "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor."
+    },
+    {
+      "id": "yagni-decision-ladder",
+      "title": "YAGNI Decision Ladder — 7-шаговая лестница «нужно ли это?» перед написанием кода",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "quality-v0.13",
+      "tags": [
+        "quality",
+        "yagni",
+        "cost",
+        "open-source-integration"
+      ],
+      "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★)."
+    },
+    {
+      "id": "over-engineering-review",
+      "title": "Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "quality-v0.13",
+      "tags": [
+        "quality",
+        "review",
+        "open-source-integration"
+      ],
+      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail."
     }
   ]
 }
