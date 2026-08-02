@@ -76,14 +76,29 @@
       "description": "Production release"
     },
     {
-      "tag": "v0.12.0",
-      "date": "2026-08-15",
-      "description": "Autonomous Agent Loop + UI/UX — Goal Loop, Agent Teams, TUI improvements, Self-Evolution"
+      "tag": "v0.13.0",
+      "date": "2026-09",
+      "description": "Knowledge Graph + Cost Routing + YAGNI Ladder — open-source integrations (Understand-Anything, Fable Advisor, Ponytail)"
     },
     {
       "tag": "v0.13.0",
       "date": "2026-09",
-      "description": "Knowledge Graph + Cost Routing + YAGNI Ladder — open-source integrations (Understand-Anything, Fable Advisor, Ponytail)"
+      "description": "Alpha Blockers — fix 10 tests, typecheck clean, npm publish"
+    },
+    {
+      "tag": "v1.0.0-alpha",
+      "date": "2026-09",
+      "description": "Alpha Release — internal testing, all features done, no critical bugs"
+    },
+    {
+      "tag": "v1.0.0-rc",
+      "date": "2026-10",
+      "description": "Release Candidate — user testing, performance, docs complete"
+    },
+    {
+      "tag": "v1.0.0",
+      "date": "2026-11",
+      "description": "Production Release — all tests green, npm published, roadmap verified"
     }
   ],
   "features": [
@@ -925,6 +940,11 @@
           "type": "cmd",
           "command": "npm org ls nocowboy 2>/dev/null"
         }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-no-critical-bugs"
       ]
     },
     {
@@ -1087,14 +1107,20 @@
       "title": "Deep Context (2M tokens с бюджетированием)",
       "status": "planned",
       "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": []
     },
     {
       "id": "mcp-framework-merge",
       "title": "MCP Framework — merge plugin-registry в NUTAUSIK",
       "status": "planned",
       "notes": "P2-C4. Решить судьбу first-party MCP серверов.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
     },
     {
       "id": "command-dedup",
@@ -1115,7 +1141,10 @@
       "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
       "status": "planned",
       "notes": "Файлы: packages/opencode/test/",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
     },
     {
       "id": "distill-command",
@@ -1144,7 +1173,10 @@
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)",
       "status": "planned",
       "notes": "Было в старом ROADMAP как NOT DONE.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
     },
     {
       "id": "instructions-analysis",
@@ -1322,14 +1354,20 @@
       "title": "Per-task cost tracking с леджером",
       "status": "planned",
       "notes": "cost-propagation.ts частично есть, леджера нет",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": []
     },
     {
       "id": "vector-store-switcher",
       "title": "Vector store switcher UI",
       "status": "planned",
       "notes": "Был в старом P2 роадмапе",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
     },
     {
       "id": "deepseek-prefix-cache",
@@ -1500,7 +1538,12 @@
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
       "status": "planned",
       "notes": "В NUTAUSIK-side, не в NoCowboy",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": [
+        "mcp-framework-merge"
+      ]
     },
     {
       "id": "auto-dream-prog",
@@ -1535,6 +1578,12 @@
         {
           "type": "typecheck"
         }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-tests-pass",
+        "release-typecheck-clean"
       ]
     },
     {
@@ -1548,7 +1597,10 @@
           "type": "cmd",
           "command": "bun run test 2>&1 | tail -5"
         }
-      ]
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
     },
     {
       "id": "alpha-manual-smoke-test",
@@ -1560,6 +1612,11 @@
         {
           "type": "agent"
         }
+      ],
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": [
+        "alpha-no-critical-bugs"
       ]
     },
     {
@@ -1567,14 +1624,24 @@
       "title": "Нет критических багов — known issues документированы",
       "status": "planned",
       "version": "v1.0.0-alpha",
-      "notes": "Все P0/P1 баги закрыты или занесены в known-issues.md"
+      "notes": "Все P0/P1 баги закрыты или занесены в known-issues.md",
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-all-features-done"
+      ]
     },
     {
       "id": "rc-alpha-feedback-incorporated",
       "title": "Alpha feedback incorporated",
       "status": "planned",
       "version": "v1.0.0-rc",
-      "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены"
+      "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены",
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "publish-npm"
+      ]
     },
     {
       "id": "rc-user-testing-complete",
@@ -1586,6 +1653,11 @@
         {
           "type": "agent"
         }
+      ],
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "rc-alpha-feedback-incorporated"
       ]
     },
     {
@@ -1593,13 +1665,23 @@
       "title": "Performance testing — startup < 500ms, memory < 200MB",
       "status": "planned",
       "version": "v1.0.0-rc",
-      "notes": "Холодный старт: < 500ms. RSS: < 200MB"
+      "notes": "Холодный старт: < 500ms. RSS: < 200MB",
+      "phase": "rc",
+      "priority": "P1",
+      "depends_on": [
+        "rc-user-testing-complete"
+      ]
     },
     {
       "id": "rc-all-issues-resolved",
       "title": "Все известные issues закрыты или имеют миграционный план",
       "status": "planned",
-      "version": "v1.0.0-rc"
+      "version": "v1.0.0-rc",
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "rc-user-testing-complete"
+      ]
     },
     {
       "id": "rc-docs-complete",
@@ -1611,6 +1693,11 @@
           "type": "file",
           "path": "docs/README.md"
         }
+      ],
+      "phase": "rc",
+      "priority": "P1",
+      "depends_on": [
+        "rc-user-testing-complete"
       ]
     },
     {
@@ -1618,7 +1705,12 @@
       "title": "RC feedback incorporated",
       "status": "planned",
       "version": "v1.0.0",
-      "notes": "Все фидбеки от RC-тестеров обработаны"
+      "notes": "Все фидбеки от RC-тестеров обработаны",
+      "phase": "v1.0-release",
+      "priority": "P1",
+      "depends_on": [
+        "release-all-tests-green"
+      ]
     },
     {
       "id": "release-all-tests-green",
@@ -1630,6 +1722,11 @@
           "type": "cmd",
           "command": "bun run test 2>&1 | tail -5"
         }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P0",
+      "depends_on": [
+        "rc-all-issues-resolved"
       ]
     },
     {
@@ -1641,7 +1738,10 @@
         {
           "type": "typecheck"
         }
-      ]
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
     },
     {
       "id": "release-roadmap-verified",
@@ -1653,6 +1753,11 @@
           "type": "cmd",
           "command": "bun run scripts/verify-roadmap.ts 2>&1 | tail -3"
         }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P1",
+      "depends_on": [
+        "release-all-tests-green"
       ]
     },
     {
@@ -1666,6 +1771,12 @@
           "type": "cmd",
           "command": "npm view @nocowboy/nocowboy version 2>/dev/null"
         }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P0",
+      "depends_on": [
+        "release-roadmap-verified",
+        "release-beta-feedback-incorporated"
       ]
     },
     {
@@ -1777,20 +1888,29 @@
       "title": "Obsidian integration — connect NoCowboy to Obsidian vault via MCP",
       "status": "planned",
       "version": "v0.11.0",
-      "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51."
+      "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
     },
     {
       "id": "agent-model-settings-ui",
       "title": "UI для выбора модели каждого агента в Settings TUI",
       "status": "planned",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
     },
     {
       "id": "lang-switcher-ui",
       "title": "Lang switcher — переключатель ru/en в TUI Settings",
       "status": "planned",
       "version": "v0.11.0",
-      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету."
+      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
     },
     {
       "id": "tui-inline-diff-permission",
@@ -1936,7 +2056,10 @@
           "type": "file",
           "path": "docs/features/skillopt-integration.md"
         }
-      ]
+      ],
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
     },
     {
       "id": "goal-evaluator",
@@ -2147,22 +2270,25 @@
       "id": "knowledge-graph",
       "title": "Knowledge Graph — интерактивный граф кодовой базы (Understand-Anything уровень)",
       "status": "planned",
-      "priority": "P0",
-      "phase": "knowledge-graph-v0.13",
+      "priority": "P1",
+      "phase": "knowledge-graph",
       "tags": [
         "knowledge-graph",
         "code-analysis",
         "visualization",
         "open-source-integration"
       ],
-      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★)."
+      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★).",
+      "depends_on": [
+        "publish-npm"
+      ]
     },
     {
       "id": "diff-impact-analysis",
       "title": "Diff Impact Analysis — какие части системы затронуты изменениями",
       "status": "planned",
       "priority": "P1",
-      "phase": "knowledge-graph-v0.13",
+      "phase": "knowledge-graph",
       "depends_on": [
         "knowledge-graph"
       ],
@@ -2178,7 +2304,7 @@
       "title": "Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)",
       "status": "planned",
       "priority": "P1",
-      "phase": "knowledge-graph-v0.13",
+      "phase": "knowledge-graph",
       "depends_on": [
         "knowledge-graph"
       ],
@@ -2194,7 +2320,7 @@
       "title": "Architectural Layer Detection — авто-определение слоёв (API, Service, Data, UI)",
       "status": "planned",
       "priority": "P2",
-      "phase": "knowledge-graph-v0.13",
+      "phase": "knowledge-graph",
       "depends_on": [
         "knowledge-graph"
       ],
@@ -2210,67 +2336,72 @@
       "title": "Cost-Routing Doctrine — формализованный роутинг по стоимости модели",
       "status": "planned",
       "priority": "P1",
-      "phase": "quality-v0.13",
+      "phase": "alpha-quality",
       "tags": [
         "cost",
         "routing",
         "multi-model",
         "open-source-integration"
       ],
-      "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★)."
+      "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★).",
+      "depends_on": []
     },
     {
       "id": "commitment-boundary-review",
       "title": "Commitment-Boundary Review — обязательное ревью перед deliverable",
       "status": "planned",
       "priority": "P1",
-      "phase": "quality-v0.13",
+      "phase": "alpha-quality",
       "tags": [
         "quality",
         "review",
         "open-source-integration"
       ],
-      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor."
+      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor.",
+      "depends_on": []
     },
     {
       "id": "spec-contract-delegation",
       "title": "Spec Contract for Delegation — стандартизированный шаблон spec для делегации",
       "status": "planned",
-      "priority": "P2",
-      "phase": "quality-v0.13",
+      "priority": "P1",
+      "phase": "alpha-quality",
       "tags": [
         "quality",
         "delegation",
         "open-source-integration"
       ],
-      "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor."
+      "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor.",
+      "depends_on": []
     },
     {
       "id": "yagni-decision-ladder",
       "title": "YAGNI Decision Ladder — 7-шаговая лестница «нужно ли это?» перед написанием кода",
       "status": "planned",
-      "priority": "P2",
-      "phase": "quality-v0.13",
+      "priority": "P1",
+      "phase": "alpha-quality",
       "tags": [
         "quality",
         "yagni",
         "cost",
         "open-source-integration"
       ],
-      "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★)."
+      "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★).",
+      "depends_on": []
     },
     {
       "id": "over-engineering-review",
       "title": "Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг",
       "status": "planned",
-      "priority": "P2",
-      "phase": "quality-v0.13",
+      "priority": "P1",
+      "phase": "alpha-quality",
       "tags": [
         "quality",
         "review",
         "open-source-integration"
       ],
-      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail."
+      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail.",
+      "depends_on": []
     }
   ]
 }
