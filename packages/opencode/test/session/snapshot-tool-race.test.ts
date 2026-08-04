@@ -184,6 +184,7 @@ function makeHttp() {
 const it = testEffect(makeHttp())
 
 const providerCfg = (url: string) => ({
+  model: "test/test-model",
   provider: {
     test: {
       name: "Test",
