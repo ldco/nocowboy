@@ -47,7 +47,7 @@ function app(serverPath: ServerPath, input?: { password?: string; username?: str
   // Если нужны password/username — используем "raw" путь с ConfigProvider,
   // который передаёт конфиг через Effect Layer, не трогая глобальное состояние.
   // "default" путь — только без параметров, через Server.Default().app.
-  if (serverPath === "default" && !input?.password && !input?.username) return Server.Default().app
+  if (!input?.password && !input?.username) return Server.Default().app
 
   const handler = HttpRouter.toWebHandler(
     HttpApiApp.routes.pipe(
@@ -78,7 +78,10 @@ function client(
   return createNocowboyClient({
     baseUrl: "http://localhost",
     directory,
-    headers: input?.headers,
+    headers: {
+      ...(directory ? { "x-nocowboy-directory": encodeURIComponent(directory) } : {}),
+      ...input?.headers,
+    },
     fetch: serverFetch(serverPath, input),
   })
 }
