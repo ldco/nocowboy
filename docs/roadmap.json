@@ -1139,7 +1139,7 @@
     {
       "id": "test-harness",
       "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
-      "status": "planned",
+      "status": "done",
       "notes": "Файлы: packages/opencode/test/",
       "version": "v0.11.0",
       "phase": "alpha-blockers",
