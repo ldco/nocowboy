@@ -53,7 +53,6 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
       version: version,
       license: pkg.license,
       keywords: pkg.keywords, // kilocode_change
-      private: pkg.private, // kilocode_change
       os: ["darwin", "linux", "win32"],
       cpu: ["arm64", "x64"],
       optionalDependencies: binaries,

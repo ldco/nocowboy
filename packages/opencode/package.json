@@ -4,7 +4,6 @@
   "name": "nocowboy-tui",
   "type": "module",
   "license": "MIT",
-  "private": true,
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun run script/test-runner.ts",
@@ -189,5 +188,15 @@
     "copilot",
     "autocomplete",
     "developer-tools"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/",
+    "package.json",
+    "README.md"
   ]
 }
