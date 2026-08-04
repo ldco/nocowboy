@@ -111,7 +111,7 @@ const ready = (ctx: InstanceContext) =>
   )
 
 // Get managed config directory from environment (set in preload.ts)
-const managedConfigDir = process.env.KILO_TEST_MANAGED_CONFIG_DIR!
+const managedConfigDir = process.env.NOCOWBOY_TEST_MANAGED_CONFIG_DIR!
 
 beforeEach(async () => {
   await clear(true)
@@ -499,18 +499,18 @@ test("jsonc overrides json in the same directory", async () => {
 })
 
 // kilocode_change start
-test("prefers .kilo directory config over legacy .kilocode", async () => {
+test("prefers .nocowboy directory config over legacy .kilo", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, ".kilocode", "nocowboy.json"),
+        path.join(dir, ".kilo", "nocowboy.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           model: "legacy/model",
         }),
       )
       await Filesystem.write(
-        path.join(dir, ".kilo", "nocowboy.json"),
+        path.join(dir, ".nocowboy", "nocowboy.json"),
         JSON.stringify({
           $schema: "https://app.kilo.ai/config.json",
           model: "new/model",
@@ -883,10 +883,10 @@ test("migrates mode field to agent field", async () => {
   })
 })
 
-test("loads config from .kilo directory", async () => {
+test("loads config from .nocowboy directory", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".kilo")
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
       const agentDir = path.join(opencodeDir, "agent")
       await fs.mkdir(agentDir, { recursive: true })
@@ -942,10 +942,10 @@ Ordered permissions`,
   })
 })
 
-test("loads agents from .kilo/agents (plural)", async () => {
+test("loads agents from .nocowboy/agents (plural)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".kilo")
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       const agentsDir = path.join(opencodeDir, "agents")
@@ -993,10 +993,10 @@ Nested agent prompt`,
   })
 })
 
-test("loads commands from .kilo/command (singular)", async () => {
+test("loads commands from .nocowboy/command (singular)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".kilo")
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       const commandDir = path.join(opencodeDir, "command")
@@ -1038,10 +1038,10 @@ Nested command template`,
   })
 })
 
-test("loads commands from .kilo/commands (plural)", async () => {
+test("loads commands from .nocowboy/commands (plural)", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".kilo")
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       const commandsDir = path.join(opencodeDir, "commands")
@@ -1084,18 +1084,18 @@ Nested command template`,
 })
 
 // kilocode_change start
-test("prefers .kilo commands over legacy .kilocode commands", async () => {
+test("prefers .nocowboy commands over legacy .kilo commands", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await Filesystem.write(
-        path.join(dir, ".kilocode", "command", "hello.md"),
+        path.join(dir, ".kilo", "command", "hello.md"),
         `---
 description: Legacy command
 ---
 Hello from legacy command`,
       )
       await Filesystem.write(
-        path.join(dir, ".kilo", "command", "hello.md"),
+        path.join(dir, ".nocowboy", "command", "hello.md"),
         `---
 description: New command
 ---
@@ -1265,9 +1265,9 @@ test("resolves scoped npm plugins in config", async () => {
 test("merges plugin arrays from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      // Create a nested project structure with local .kilo config
+      // Create a nested project structure with local .nocowboy config
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".kilo")
+      const opencodeDir = path.join(projectDir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       // Global config with plugins
@@ -1279,7 +1279,7 @@ test("merges plugin arrays from global and local configs", async () => {
         }),
       )
 
-      // Local .kilo config with different plugins
+      // Local .nocowboy config with different plugins
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
@@ -1311,7 +1311,7 @@ test("merges plugin arrays from global and local configs", async () => {
 test("does not error when only custom agent is a subagent", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      const opencodeDir = path.join(dir, ".kilo")
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
       const agentDir = path.join(opencodeDir, "agent")
       await fs.mkdir(agentDir, { recursive: true })
@@ -1344,7 +1344,7 @@ test("merges instructions arrays from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".kilo")
+      const opencodeDir = path.join(projectDir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       await Filesystem.write(
@@ -1383,7 +1383,7 @@ test("deduplicates duplicate instructions from global and local configs", async 
   await using tmp = await tmpdir({
     init: async (dir) => {
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".kilo")
+      const opencodeDir = path.join(projectDir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       await Filesystem.write(
@@ -1424,9 +1424,9 @@ test("deduplicates duplicate instructions from global and local configs", async 
 test("deduplicates duplicate plugins from global and local configs", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
-      // Create a nested project structure with local .kilo config
+      // Create a nested project structure with local .nocowboy config
       const projectDir = path.join(dir, "project")
-      const opencodeDir = path.join(projectDir, ".kilo")
+      const opencodeDir = path.join(projectDir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
 
       // Global config with plugins
@@ -1438,7 +1438,7 @@ test("deduplicates duplicate plugins from global and local configs", async () =>
         }),
       )
 
-      // Local .kilo config with some overlapping plugins
+      // Local .nocowboy config with some overlapping plugins
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
@@ -2092,7 +2092,7 @@ test("MCP config deep merges preserving base config properties", async () => {
   })
 })
 
-test("local .kilo config can override MCP from project config", async () => {
+test("local .nocowboy config can override MCP from project config", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       // Project config with disabled MCP
@@ -2109,8 +2109,8 @@ test("local .kilo config can override MCP from project config", async () => {
           },
         }),
       )
-      // Local .kilo directory config enables it
-      const opencodeDir = path.join(dir, ".kilo")
+      // Local .nocowboy directory config enables it
+      const opencodeDir = path.join(dir, ".nocowboy")
       await fs.mkdir(opencodeDir, { recursive: true })
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
@@ -2445,7 +2445,7 @@ describe("deduplicatePluginOrigins", () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         const projectDir = path.join(dir, "project")
-        const opencodeDir = path.join(projectDir, ".kilo")
+        const opencodeDir = path.join(projectDir, ".nocowboy")
         const pluginDir = path.join(opencodeDir, "plugin")
         await fs.mkdir(pluginDir, { recursive: true })
 
@@ -2511,16 +2511,16 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
     }
   })
 
-  test("skips project .kilo/ directories when flag is set", async () => {
-    // kilocode_change - test .kilo/ directory (the test body writes to .nocowboy/command/)
+  test("skips project .nocowboy/ directories when flag is set", async () => {
+    // kilocode_change - test .nocowboy/ directory (the test body writes to .nocowboy/command/)
     const originalEnv = process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"]
     process.env["NOCOWBOY_DISABLE_PROJECT_CONFIG"] = "true"
 
     try {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          // Create a .kilo directory with a command
-          const opencodeDir = path.join(dir, ".kilo", "command")
+          // Create a .nocowboy directory with a command
+          const opencodeDir = path.join(dir, ".nocowboy", "command")
           await fs.mkdir(opencodeDir, { recursive: true })
           await Filesystem.write(path.join(opencodeDir, "test-cmd.md"), "# Test Command\nThis is a test command.")
         },
@@ -2529,7 +2529,7 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
         directory: tmp.path,
         fn: async (ctx) => {
           const directories = await listDirs(ctx)
-          // Project .kilo should NOT be in directories list  // kilocode_change
+          // Project .nocowboy should NOT be in directories list  // kilocode_change
           const hasProjectOpencode = directories.some((d) => d.startsWith(tmp.path))
           expect(hasProjectOpencode).toBe(false)
         },
