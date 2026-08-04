@@ -983,6 +983,15 @@ export type GlobalEvent = {
     | EventSessionNextCompactionStarted
     | EventSessionNextCompactionDelta
     | EventSessionNextCompactionEnded
+    | EventSessionCompacted
+    | EventNocowboySessionsRemoteStatusChanged
+    | EventWorkspaceReady
+    | EventWorkspaceFailed
+    | EventWorkspaceStatus
+    | EventPtyCreated
+    | EventPtyUpdated
+    | EventPtyExited
+    | EventPtyDeleted
     | EventCatalogModelUpdated
     | SyncEventMessageUpdated
     | SyncEventMessageRemoved
@@ -1245,9 +1254,9 @@ export type ProviderConfig = {
       id?: string;
       name?: string;
       family?: string;
-      prompt?: unknown;
+      prompt?: string;
       isFree?: boolean;
-      ai_sdk_provider?: unknown;
+      ai_sdk_provider?: string;
       release_date?: string;
       attachment?: boolean;
       reasoning?: boolean;
@@ -1619,14 +1628,14 @@ export type Model = {
     };
   };
   recommendedIndex?: number;
-  prompt?: unknown;
+  prompt?: string;
   isFree?: boolean;
   mayTrainOnYourPrompts?: boolean;
   terminalBench?: {
     overallScore: number;
     avgAttemptCostUsd: number;
   };
-  ai_sdk_provider?: unknown;
+  ai_sdk_provider?: string;
 };
 
 export type Provider = {

@@ -33,7 +33,7 @@ export function RemoteIndicator(props: {
         if (res.data) setStatus(res.data)
       })
       .catch(() => undefined)
-    const off = props.event.on("kilo-sessions.remote-status-changed", (evt) => setStatus(evt.properties))
+    const off = props.event.on("nocowboy-sessions.remote-status-changed", (evt) => setStatus(evt.properties))
     onCleanup(off)
   })
 
