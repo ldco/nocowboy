@@ -17,8 +17,8 @@ function app(input: { password?: string; username?: string }) {
       Layer.provide(
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            KILO_SERVER_PASSWORD: input.password,
-            KILO_SERVER_USERNAME: input.username,
+            NOCOWBOY_SERVER_PASSWORD: input.password,
+            NOCOWBOY_SERVER_USERNAME: input.username,
           }),
         ),
       ),
@@ -58,7 +58,7 @@ describe("HttpApi raw route authorization", () => {
     expect(missing.status).toBe(401)
 
     const authed = await server.request(EventPaths.event, {
-      headers: { ...headers, authorization: basic("kilo", "secret") }, // kilocode_change - Kilo username default
+      headers: { ...headers, authorization: basic("nocowboy", "secret") }, // kilocode_change - Kilo username default
     })
     await cancelBody(authed)
     expect(authed.status).toBe(200)
@@ -75,7 +75,7 @@ describe("HttpApi raw route authorization", () => {
     expect(missing.status).toBe(401)
 
     const authed = await server.request(route, {
-      headers: { ...headers, authorization: basic("kilo", "secret") }, // kilocode_change - Kilo username default
+      headers: { ...headers, authorization: basic("nocowboy", "secret") }, // kilocode_change - Kilo username default
     })
     await cancelBody(authed)
     expect(authed.status).toBe(404)

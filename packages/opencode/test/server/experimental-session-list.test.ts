@@ -49,8 +49,8 @@ describe("experimental.session.list", () => {
           fn: (ctx) => create("worktree-session", ctx),
         })
 
-        // Now write a stale project ID to .git/kilo — this overrides the root's cached ID
-        await Bun.write(path.join(first.path, ".git", "kilo"), "stale-project-id")
+        // Now write a stale project ID to .git/nocowboy — this overrides the root's cached ID
+        await Bun.write(path.join(first.path, ".git", "nocowboy"), "stale-project-id")
 
         const root = await withTestInstance({
           directory: first.path,
@@ -62,7 +62,7 @@ describe("experimental.session.list", () => {
             session: await create("root-session", ctx),
           }),
         })
-        await Bun.file(path.join(first.path, ".git", "kilo")).delete()
+        await Bun.file(path.join(first.path, ".git", "nocowboy")).delete()
 
         await withTestInstance({
           directory: second.path,

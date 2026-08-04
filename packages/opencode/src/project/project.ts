@@ -252,7 +252,7 @@ export const layer: Layer.Layer<
 
           id = roots[0] ? ProjectID.make(roots[0]) : undefined
           if (id) {
-            yield* fs.writeFileString(pathSvc.join(common, "kilo"), id).pipe(Effect.ignore)
+            yield* fs.writeFileString(pathSvc.join(common, "nocowboy"), id).pipe(Effect.ignore)
           }
         }
 

@@ -70,12 +70,12 @@ describe("HttpApi CORS", () => {
       )
       const response = yield* Effect.promise(() =>
         fetch(new URL("/global/config", listener.url), {
-          headers: { origin: "https://app.opencode.ai" },
+          headers: { origin: "http://localhost:3000" },
         }),
       )
 
       expect(response.status).toBe(401)
-      expect(response.headers.get("access-control-allow-origin")).toBe("https://app.opencode.ai")
+      expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:3000")
     }),
   )
 

@@ -2574,7 +2574,7 @@ it.live(
             expect(NamedError.Unknown.isInstance(err)).toBe(true)
             if (NamedError.Unknown.isInstance(err)) {
               expect(err.data.message).toContain('Command not found: "nonexistent-command-xyz"')
-              expect(err.data.message).toContain("init")
+              expect(err.data.message).toContain("nocowboy-config")
             }
           }
         }),

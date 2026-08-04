@@ -2,7 +2,7 @@ import "./init-projectors"
 
 import { NodeHttpServer } from "@effect/platform-node"
 import * as Log from "@nocowboy/core/util/log"
-import { ConfigProvider, Context, Effect, Exit, Layer, Option, Scope } from "effect"
+import { ConfigProvider, Context, Effect, Exit, Layer, Scope } from "effect"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { OpenApi } from "effect/unstable/httpapi"
 import { createServer } from "node:http"
@@ -11,7 +11,6 @@ import { HttpApiApp } from "./routes/instance/httpapi/server"
 import { disposeMiddleware } from "./routes/instance/httpapi/lifecycle"
 import { WebSocketTracker } from "./routes/instance/httpapi/websocket-tracker"
 import { PublicApi } from "./routes/instance/httpapi/public"
-import { ServerAuth } from "./auth"
 import type { CorsOptions } from "./cors"
 import { lazy } from "@/util/lazy"
 
@@ -104,6 +103,14 @@ const listenEffect: (opts: ListenOptions) => Effect.Effect<EffectListener, unkno
 )
 
 function listenerLayer(opts: ListenOptions, port: number) {
+  const env: Record<string, string | undefined> = { ...(process.env as Record<string, string | undefined>) }
+  if (opts.password) {
+    env["NOCOWBOY_SERVER_PASSWORD"] = opts.password
+  }
+  if (opts.username) {
+    env["NOCOWBOY_SERVER_USERNAME"] = opts.username
+  }
+
   const base = HttpRouter.serve(HttpApiApp.createRoutes(opts), {
     middleware: disposeMiddleware,
     disableLogger: true,
@@ -111,21 +118,9 @@ function listenerLayer(opts: ListenOptions, port: number) {
   }).pipe(
     Layer.provideMerge(WebSocketTracker.layer),
     Layer.provideMerge(serverLayer({ port, hostname: opts.hostname })),
-    Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnv())),
+    Layer.provide(ConfigProvider.layer(ConfigProvider.fromEnv({ env: env as Record<string, string> }))),
   )
 
-  // nocowboy_change: provide auth config inside the listener layer so it
-  // overrides ServerAuth.Config.defaultLayer baked into createRoutes().
-  if (opts.password) {
-    const authLayer: Layer.Layer<never, never, never> = Layer.succeed(
-      ServerAuth.Config as any,
-      ServerAuth.Config.of({
-        password: Option.some(opts.password),
-        username: opts.username ?? "nocowboy",
-      }),
-    ) as any
-    return base.pipe(Layer.provideMerge(authLayer))
-  }
   return base
 }
 
