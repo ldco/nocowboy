@@ -52,7 +52,7 @@ function app(modules: Runtime, options: CallOptions) {
     modules.HttpApiApp.routes.pipe(
       Layer.provide(
         ConfigProvider.layer(
-          ConfigProvider.fromUnknown({ KILO_SERVER_PASSWORD: password, KILO_SERVER_USERNAME: username }),
+          ConfigProvider.fromUnknown({ NOCOWBOY_SERVER_PASSWORD: password, NOCOWBOY_SERVER_USERNAME: username }),
         ),
       ),
     ),

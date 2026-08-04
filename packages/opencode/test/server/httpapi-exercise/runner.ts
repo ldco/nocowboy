@@ -252,8 +252,8 @@ function fakeLlmConfig(url: string): Partial<Config.Info> {
 
 const resetState = Effect.promise(async () => {
   const modules = await runtime()
-  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+  Flag.NOCOWBOY_SERVER_PASSWORD = original.NOCOWBOY_SERVER_PASSWORD
+  Flag.NOCOWBOY_SERVER_USERNAME = original.NOCOWBOY_SERVER_USERNAME
   await modules.disposeAllInstances()
   // kilocode_change - each exerciser process already owns an isolated DB; unlinking it between scenarios races async Kilo callbacks
   await Bun.sleep(25)

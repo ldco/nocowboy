@@ -173,8 +173,8 @@ describe("lsp.spawn", () => {
   )
   // kilocode_change end
 
-  // kilocode_change start - Typescript spawn is gated behind KILO_EXPERIMENTAL_LSP_TOOL.
-  test("spawns tsgo LSP when KILO_EXPERIMENTAL_LSP_TOOL is enabled", async () => {
+  // kilocode_change start - Typescript spawn is gated behind NOCOWBOY_EXPERIMENTAL_LSP_TOOL.
+  test("spawns tsgo LSP when NOCOWBOY_EXPERIMENTAL_LSP_TOOL is enabled", async () => {
     const saved = Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL
     Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = true
     await using tmp = await tmpdir()
@@ -204,7 +204,7 @@ describe("lsp.spawn", () => {
     }
   })
 
-  test("Typescript.spawn returns undefined when KILO_EXPERIMENTAL_LSP_TOOL is off", async () => {
+  test("Typescript.spawn returns undefined when NOCOWBOY_EXPERIMENTAL_LSP_TOOL is off", async () => {
     const saved = Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL
     Flag.NOCOWBOY_EXPERIMENTAL_LSP_TOOL = false
     try {

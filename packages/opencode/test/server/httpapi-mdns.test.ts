@@ -29,14 +29,14 @@ void mock.module("bonjour-service", () => ({
 const { Server } = await import("../../src/server/server")
 
 const original = {
-  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
+  NOCOWBOY_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  NOCOWBOY_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
 }
 
 afterEach(async () => {
   events.length = 0
-  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+  Flag.NOCOWBOY_SERVER_PASSWORD = original.NOCOWBOY_SERVER_PASSWORD
+  Flag.NOCOWBOY_SERVER_USERNAME = original.NOCOWBOY_SERVER_USERNAME
   await disposeAllInstances()
   await resetDatabase()
 })

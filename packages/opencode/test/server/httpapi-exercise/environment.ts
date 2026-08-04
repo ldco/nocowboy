@@ -10,8 +10,8 @@ process.env.XDG_DATA_HOME = path.join(exerciseGlobalRoot, "data")
 process.env.XDG_CONFIG_HOME = path.join(exerciseGlobalRoot, "config")
 process.env.XDG_STATE_HOME = path.join(exerciseGlobalRoot, "state")
 process.env.XDG_CACHE_HOME = path.join(exerciseGlobalRoot, "cache")
-process.env.KILO_DISABLE_SHARE = "true"
-process.env.KILO_DISABLE_SESSION_INGEST = "true" // kilocode_change - isolate the exerciser from async Kilo session sync
+process.env.NOCOWBOY_DISABLE_SHARE = "true"
+process.env.NOCOWBOY_DISABLE_SESSION_INGEST = "true" // kilocode_change - isolate the exerciser from async Kilo session sync
 export const exerciseConfigDirectory = path.join(exerciseGlobalRoot, "config", "opencode")
 export const exerciseDataDirectory = path.join(exerciseGlobalRoot, "data", "kilo") // kilocode_change
 
@@ -23,8 +23,8 @@ process.env.NOCOWBOY_DB = exerciseDatabasePath
 Flag.NOCOWBOY_DB = exerciseDatabasePath
 
 export const original = {
-  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
+  NOCOWBOY_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  NOCOWBOY_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
 }
 
 export const cleanupExercisePaths = Effect.promise(async () => {

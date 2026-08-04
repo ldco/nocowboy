@@ -11,21 +11,21 @@ import { disposeAllInstances, tmpdir } from "../fixture/fixture"
 void Log.init({ print: false })
 
 const original = {
-  KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
-  KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
-  envPassword: process.env.KILO_SERVER_PASSWORD,
-  envUsername: process.env.KILO_SERVER_USERNAME,
+  NOCOWBOY_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+  NOCOWBOY_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
+  envPassword: process.env.NOCOWBOY_SERVER_PASSWORD,
+  envUsername: process.env.NOCOWBOY_SERVER_USERNAME,
 }
 const auth = { username: "opencode", password: "listen-secret" }
 const testPty = process.platform === "win32" ? test.skip : test
 
 afterEach(async () => {
-  Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-  Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
-  if (original.envPassword === undefined) delete process.env.KILO_SERVER_PASSWORD
-  else process.env.KILO_SERVER_PASSWORD = original.envPassword
-  if (original.envUsername === undefined) delete process.env.KILO_SERVER_USERNAME
-  else process.env.KILO_SERVER_USERNAME = original.envUsername
+  Flag.NOCOWBOY_SERVER_PASSWORD = original.NOCOWBOY_SERVER_PASSWORD
+  Flag.NOCOWBOY_SERVER_USERNAME = original.NOCOWBOY_SERVER_USERNAME
+  if (original.envPassword === undefined) delete process.env.NOCOWBOY_SERVER_PASSWORD
+  else process.env.NOCOWBOY_SERVER_PASSWORD = original.envPassword
+  if (original.envUsername === undefined) delete process.env.NOCOWBOY_SERVER_USERNAME
+  else process.env.NOCOWBOY_SERVER_USERNAME = original.envUsername
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -33,16 +33,16 @@ afterEach(async () => {
 async function startListener() {
   Flag.NOCOWBOY_SERVER_PASSWORD = auth.password
   Flag.NOCOWBOY_SERVER_USERNAME = auth.username
-  process.env.KILO_SERVER_PASSWORD = auth.password
-  process.env.KILO_SERVER_USERNAME = auth.username
+  process.env.NOCOWBOY_SERVER_PASSWORD = auth.password
+  process.env.NOCOWBOY_SERVER_USERNAME = auth.username
   return Server.listen({ hostname: "127.0.0.1", port: 0 })
 }
 
 async function startNoAuthListener() {
   Flag.NOCOWBOY_SERVER_PASSWORD = undefined
   Flag.NOCOWBOY_SERVER_USERNAME = auth.username
-  delete process.env.KILO_SERVER_PASSWORD
-  process.env.KILO_SERVER_USERNAME = auth.username
+  delete process.env.NOCOWBOY_SERVER_PASSWORD
+  process.env.NOCOWBOY_SERVER_USERNAME = auth.username
   return Server.listen({ hostname: "127.0.0.1", port: 0 })
 }
 
@@ -297,8 +297,8 @@ describe("HttpApi Server.listen", () => {
       // kilocode_change start - use an authenticated local route instead of proxy-dependent status
       Flag.NOCOWBOY_SERVER_PASSWORD = auth.password
       Flag.NOCOWBOY_SERVER_USERNAME = auth.username
-      process.env.KILO_SERVER_PASSWORD = auth.password
-      process.env.KILO_SERVER_USERNAME = auth.username
+      process.env.NOCOWBOY_SERVER_PASSWORD = auth.password
+      process.env.NOCOWBOY_SERVER_USERNAME = auth.username
       const response = await Server.Default().app.request("/doc", {
         headers: { authorization: authorization() },
       })

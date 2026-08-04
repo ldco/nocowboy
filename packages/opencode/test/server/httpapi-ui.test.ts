@@ -24,16 +24,16 @@ void Log.init({ print: false })
 const testStateLayer = Layer.effectDiscard(
   Effect.gen(function* () {
     const original = {
-      KILO_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
-      KILO_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
-      envPassword: process.env.KILO_SERVER_PASSWORD,
-      envUsername: process.env.KILO_SERVER_USERNAME,
+      NOCOWBOY_SERVER_PASSWORD: Flag.NOCOWBOY_SERVER_PASSWORD,
+      NOCOWBOY_SERVER_USERNAME: Flag.NOCOWBOY_SERVER_USERNAME,
+      envPassword: process.env.NOCOWBOY_SERVER_PASSWORD,
+      envUsername: process.env.NOCOWBOY_SERVER_USERNAME,
     }
 
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
-        Flag.NOCOWBOY_SERVER_PASSWORD = original.KILO_SERVER_PASSWORD
-        Flag.NOCOWBOY_SERVER_USERNAME = original.KILO_SERVER_USERNAME
+        Flag.NOCOWBOY_SERVER_PASSWORD = original.NOCOWBOY_SERVER_PASSWORD
+        Flag.NOCOWBOY_SERVER_USERNAME = original.NOCOWBOY_SERVER_USERNAME
         restoreEnv("NOCOWBOY_SERVER_PASSWORD", original.envPassword)
         restoreEnv("NOCOWBOY_SERVER_USERNAME", original.envUsername)
       }),
@@ -57,8 +57,8 @@ function app(input?: { password?: string; username?: string }) {
       Layer.provide(
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            KILO_SERVER_PASSWORD: input?.password,
-            KILO_SERVER_USERNAME: input?.username,
+            NOCOWBOY_SERVER_PASSWORD: input?.password,
+            NOCOWBOY_SERVER_USERNAME: input?.username,
           }),
         ),
       ),
@@ -105,8 +105,8 @@ function uiApp(input?: {
         HttpServer.layerServices,
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            KILO_SERVER_PASSWORD: input?.password,
-            KILO_SERVER_USERNAME: input?.username,
+            NOCOWBOY_SERVER_PASSWORD: input?.password,
+            NOCOWBOY_SERVER_USERNAME: input?.username,
           }),
         ),
       ]),
