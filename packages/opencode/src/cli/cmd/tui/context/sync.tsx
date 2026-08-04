@@ -662,7 +662,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
               .list({ workspace })
               .then((x) => setStore("mcp_resource", reconcile(x.data ?? {}))),
             sdk.client.formatter.status({ workspace }).then((x) => setStore("formatter", reconcile(x.data!))),
-            sdk.client.network.list().then((x) => {
+            (sdk.client.network?.list() ?? Promise.resolve({ data: [] })).then((x: any) => {
               const next: Record<string, SessionNetworkWait[]> = {}
               for (const item of x.data ?? []) {
                 if (!next[item.sessionID]) next[item.sessionID] = []
