@@ -65,7 +65,7 @@ export function patchModelsDevModel(providerID: string, source: Record<string, u
     isFree: source.isFree,
     mayTrainOnYourPrompts: source.mayTrainOnYourPrompts,
     terminalBench: source.terminalBench,
-    ai_sdk_provider: source.ai_sdk_provider,
+    ai_sdk_provider: source.ai_sdk_provider as string | undefined,
     options: source.options ?? {},
   }
 }
