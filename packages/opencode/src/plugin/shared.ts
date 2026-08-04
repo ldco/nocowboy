@@ -7,7 +7,7 @@ import { isRecord } from "@/util/record"
 import { Npm } from "@nocowboy/core/npm"
 
 // Old npm package names for plugins that are now built-in
-export const DEPRECATED_PLUGIN_PACKAGES = ["nocowboy-openai-codex-auth", "nocowboy-copilot-auth"]
+export const DEPRECATED_PLUGIN_PACKAGES = ["opencode-openai-codex-auth", "opencode-copilot-auth", "nocowboy-openai-codex-auth", "nocowboy-copilot-auth"]
 
 export function isDeprecatedPlugin(spec: string) {
   return DEPRECATED_PLUGIN_PACKAGES.some((pkg) => spec.includes(pkg))
