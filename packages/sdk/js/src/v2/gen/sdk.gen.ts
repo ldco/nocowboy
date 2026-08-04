@@ -7591,6 +7591,69 @@ export class Suggestion extends HeyApiClient {
   }
 }
 
+/**
+ * NoCowboy extension: Kilo cloud session import sub-service
+ */
+export class CloudSession extends HeyApiClient {
+  public import<ThrowOnError extends boolean = false>(
+    parameters: { sessionId: string },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).post({
+      url: '/kilo/cloud/session/import',
+      body: JSON.stringify(parameters),
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      ...options,
+    })
+  }
+}
+
+export class Cloud extends HeyApiClient {
+  private _session?: CloudSession
+  get session(): CloudSession {
+    return (this._session ??= new CloudSession({ client: this.client }))
+  }
+}
+
+export class Kilo extends HeyApiClient {
+  private _cloud?: Cloud
+  get cloud(): Cloud {
+    return (this._cloud ??= new Cloud({ client: this.client }))
+  }
+}
+
+export class Network extends HeyApiClient {
+  public list<ThrowOnError extends boolean = false>(
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).get({ url: '/network', ...options })
+  }
+
+  public reply<ThrowOnError extends boolean = false>(
+    parameters: { requestID: string },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).post({
+      url: '/network/{requestID}/reply',
+      body: JSON.stringify(parameters),
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      ...options,
+    })
+  }
+
+  public reject<ThrowOnError extends boolean = false>(
+    parameters: { requestID: string },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    return (options?.client ?? this.client).post({
+      url: '/network/{requestID}/reject',
+      body: JSON.stringify(parameters),
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      ...options,
+    })
+  }
+}
+
 export class KiloClient extends HeyApiClient {
   public static readonly __registry = new HeyApiRegistry<KiloClient>();
 
@@ -7774,5 +7837,15 @@ export class KiloClient extends HeyApiClient {
   private _suggestion?: Suggestion;
   get suggestion(): Suggestion {
     return (this._suggestion ??= new Suggestion({ client: this.client }));
+  }
+
+  private _kilo?: Kilo
+  get kilo(): Kilo {
+    return (this._kilo ??= new Kilo({ client: this.client }))
+  }
+
+  private _network?: Network
+  get network(): Network {
+    return (this._network ??= new Network({ client: this.client }))
   }
 }
