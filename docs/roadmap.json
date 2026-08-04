@@ -932,7 +932,7 @@
     {
       "id": "publish-npm",
       "title": "Publish: npm org @nocowboy + npm run publish-all",
-      "status": "planned",
+      "status": "done",
       "version": "v0.11.0",
       "notes": "9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.",
       "verify": [
