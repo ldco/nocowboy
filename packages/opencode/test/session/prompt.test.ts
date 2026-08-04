@@ -266,6 +266,7 @@ afterEach(() => {
 // Config that registers a custom "test" provider with a "test-model" model
 // so provider model lookup succeeds inside the loop.
 const cfg = {
+  model: "test/test-model",
   provider: {
     test: {
       name: "Test",
@@ -838,7 +839,7 @@ it.live("failed subtask preserves metadata on error tool state", () =>
       config: (url) => ({
         ...providerCfg(url),
         agent: {
-          general: {
+          code: {
             model: "test/missing-model",
           },
         },
