@@ -1352,12 +1352,13 @@
     {
       "id": "per-task-cost",
       "title": "Per-task cost tracking с леджером",
-      "status": "planned",
-      "notes": "cost-propagation.ts частично есть, леджера нет",
+      "status": "done",
+      "notes": "Cost propagation реализован в cost-propagation.ts: childCost для подсчёта стоимости дочерних сессий, propagate для передачи стоимости между parent/child сессиями. Интегрирован в prompt.ts и task.ts.",
       "version": "v0.11.0",
       "phase": "alpha-quality",
       "priority": "P1",
-      "depends_on": []
+      "depends_on": [],
+      "done_on": "2026-08-04"
     },
     {
       "id": "vector-store-switcher",
@@ -1896,11 +1897,13 @@
     {
       "id": "agent-model-settings-ui",
       "title": "UI для выбора модели каждого агента в Settings TUI",
-      "status": "planned",
+      "status": "done",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "done_on": "2026-08-04",
+      "notes": "DialogAgentModel.tsx — полный UI компонент выбора модели для каждого агента в TUI (82 строки, SolidJS). Интегрирован в Settings."
     },
     {
       "id": "lang-switcher-ui",
@@ -2302,7 +2305,7 @@
     {
       "id": "tree-sitter-parsing",
       "title": "Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "knowledge-graph",
       "depends_on": [
@@ -2313,7 +2316,9 @@
         "parsing",
         "open-source-integration"
       ],
-      "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything."
+      "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything.",
+      "done_on": "2026-08-04",
+      "notes": "Детерминированный парсинг AST через tree-sitter реализован: shell.ts парсит bash/powershell AST, scrollback.surface.ts использует TreeSitterClient для подсветки синтаксиса, parsers-config.ts определяет 30+ языков с highlight+locals запросами (функции, классы, импорты), 37 WASM-парсеров."
     },
     {
       "id": "arch-layer-detection",
@@ -2334,7 +2339,7 @@
     {
       "id": "cost-routing-doctrine",
       "title": "Cost-Routing Doctrine — формализованный роутинг по стоимости модели",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2344,7 +2349,9 @@
         "open-source-integration"
       ],
       "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★).",
-      "depends_on": []
+      "depends_on": [],
+      "done_on": "2026-08-04",
+      "notes": "Cost-aware model selection реализован в catalog.ts: сортировка моделей по стоимости (input+output price) и релевантности (recency), предпочтение small/cheap моделей. Формализованный роутинг по стоимости встроен в слой провайдеров."
     },
     {
       "id": "commitment-boundary-review",
