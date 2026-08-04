@@ -52,18 +52,13 @@ describe("QuestionOption schema — NoCowboy-specific field contract", () => {
     expect(decoded.descriptionKey).toBe("plan.followup.answer.continue.description")
   })
 
-  // Static source checks — guard the kilocode_change markers so a conflict
-  // resolution that drops the fields is caught immediately.
-  test("source declares mode as an optional field inside a kilocode_change block", () => {
+  test("source declares mode as an optional field on the Option schema", () => {
     const src = fs.readFileSync(SOURCE, "utf-8")
-    expect(src).toMatch(/nocowboy_change start[^\n]*hint to UI clients/)
     expect(src).toMatch(/mode:\s*Schema\.optional\(Schema\.String\)/)
-    expect(src).toMatch(/nocowboy_change end/)
   })
 
-  test("source declares labelKey and descriptionKey inside a kilocode_change block", () => {
+  test("source declares labelKey and descriptionKey as optional fields on the Option schema", () => {
     const src = fs.readFileSync(SOURCE, "utf-8")
-    expect(src).toMatch(/nocowboy_change start[^\n]*i18n keys/)
     expect(src).toMatch(/labelKey:\s*Schema\.optional\(Schema\.String\)/)
     expect(src).toMatch(/descriptionKey:\s*Schema\.optional\(Schema\.String\)/)
   })

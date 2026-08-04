@@ -151,7 +151,7 @@ it.instance("resolves attention config defaults and overrides", () =>
         notifications: true,
         sound: true,
         volume: 0.4,
-        sound_pack: "kilo.default", // kilocode_change
+        sound_pack: "nocowboy.default", // kilocode_change
         sounds: {},
       })
 

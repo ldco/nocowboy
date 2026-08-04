@@ -6,7 +6,7 @@ import { detectRepo, findRepoFrom } from "../../../src/nocowboy/cli/dev-setup"
 
 // Simulate a repo root by writing the sentinel file detectRepo looks for.
 async function makeSynthRepo(dir: string) {
-  const pkg = path.join(dir, "packages", "opencode")
+  const pkg = path.join(dir, "packages", "nocowboy")
   await fs.mkdir(pkg, { recursive: true })
   await Bun.write(path.join(pkg, "package.json"), JSON.stringify({ name: "synth" }))
   return dir
@@ -28,7 +28,7 @@ describe("findRepoFrom", () => {
   test("returns the repo root when started from a nested path", async () => {
     await using tmp = await tmpdir()
     await makeSynthRepo(tmp.path)
-    const nested = path.join(tmp.path, "packages", "opencode", "src", "kilocode", "cli")
+    const nested = path.join(tmp.path, "packages", "nocowboy", "src", "kilocode", "cli")
     await fs.mkdir(nested, { recursive: true })
 
     const found = await findRepoFrom(nested)
@@ -45,7 +45,7 @@ describe("findRepoFrom", () => {
 
   test("returns undefined when no sentinel is found up to filesystem root", async () => {
     await using tmp = await tmpdir()
-    // No packages/opencode/package.json anywhere under tmp, and the filesystem
+    // No packages/nocowboy/package.json anywhere under tmp, and the filesystem
     // above tmp does not contain a kilocode repo at its own root.
     const found = await findRepoFrom(tmp.path)
     expect(found).toBeUndefined()

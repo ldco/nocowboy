@@ -198,7 +198,7 @@ describe("NoCowboy CLI customizations are wired into index.ts", () => {
   test("registers the local NoCowboy Console instead of the upstream account console", async () => {
     const index = await file(INDEX)
     const setup = await file(SETUP)
-    expect(setup).toContain("KiloConsoleCommand")
+    expect(setup).toContain("NocowboyConsoleCommand")
     expect(index).not.toContain(".command(ConsoleCommand)")
   })
 
@@ -238,7 +238,7 @@ describe("NoCowboy CLI customizations are wired into index.ts", () => {
     const entries = [...body.matchAll(/\b(\w+Command)\b/g)].map((m) => m[1]!)
 
     // Not registered as a bare `.command(Ident)`:
-    //  ConsoleCommand    - replaced by KiloConsoleCommand
+    //  ConsoleCommand    - replaced by NocowboyConsoleCommand
     //  CompletionCommand - provided by yargs `.completion(...)`
     //  HelpCommand       - registered via createHelpCommand(() => cli)
     //  (DevSetup/DevAlias enter the array via `...dev`, so they aren't scraped here)

@@ -394,7 +394,11 @@ exports[`tool parameters JSON Schema (wire shape) todo 1`] = `
             "type": "string",
           },
           "status": {
-            "description": "Current status of the task: pending, in_progress, completed, cancelled",
+            "description": "Current status: pending (not started) or in_progress (actively working — exactly ONE at a time). Completed tasks are REMOVED from the list entirely — never marked 'completed'.",
+            "enum": [
+              "pending",
+              "in_progress",
+            ],
             "type": "string",
           },
         },

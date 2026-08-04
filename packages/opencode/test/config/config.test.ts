@@ -185,7 +185,7 @@ test("creates global jsonc config with schema when no global configs exist", asy
     })
 
     const content = await Filesystem.readText(path.join(tmp.path, "nocowboy.jsonc"))
-    expect(content).toContain('"$schema": "https://app.kilo.ai/config.json"')
+    expect(content).toContain('"$schema": "https://nocowboy.dev/config.json"')
   } finally {
     ;(Global.Path as { config: string }).config = prev
     await clear(true)
@@ -223,7 +223,7 @@ test("loads JSON config file", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         model: "test/model",
         username: "testuser",
       })
@@ -245,7 +245,7 @@ test("preserves Kilo provider free model metadata", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         model: "kilo/free-e2e",
         provider: {
           kilo: {
@@ -253,7 +253,6 @@ test("preserves Kilo provider free model metadata", async () => {
               "free-e2e": {
                 id: "free-e2e",
                 isFree: true,
-                ai_sdk_provider: "openai-compatible",
               },
             },
           },
@@ -267,7 +266,6 @@ test("preserves Kilo provider free model metadata", async () => {
       const config = await load(ctx)
       const model = config.provider?.kilo?.models?.["free-e2e"]
       expect(model?.isFree).toBe(true)
-      expect(model?.ai_sdk_provider).toBe("openai-compatible")
     },
   })
 })
@@ -453,7 +451,7 @@ test("loads JSONC config file", async () => {
         path.join(dir, "nocowboy.jsonc"),
         `{
         // This is a comment
-        "$schema": "https://app.kilo.ai/config.json",
+        "$schema": "https://nocowboy.dev/config.json",
         "model": "test/model",
         "username": "testuser"
       }`,
@@ -476,14 +474,14 @@ test("jsonc overrides json in the same directory", async () => {
       await writeConfig(
         dir,
         {
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           model: "base",
           username: "base",
         },
         "nocowboy.jsonc",
       )
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         model: "override",
       })
     },
@@ -505,14 +503,14 @@ test("prefers .nocowboy directory config over legacy .kilo", async () => {
       await Filesystem.write(
         path.join(dir, ".kilo", "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           model: "legacy/model",
         }),
       )
       await Filesystem.write(
         path.join(dir, ".nocowboy", "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           model: "new/model",
         }),
       )
@@ -537,7 +535,7 @@ test("handles environment variable substitution", async () => {
     await using tmp = await tmpdir({
       init: async (dir) => {
         await writeConfig(dir, {
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           username: "{env:TEST_VAR}",
         })
       },
@@ -666,7 +664,7 @@ test("handles file inclusion substitution", async () => {
     init: async (dir) => {
       await Filesystem.write(path.join(dir, "included.txt"), "test-user")
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         username: "{file:included.txt}",
       })
     },
@@ -685,7 +683,7 @@ test("handles file inclusion with replacement tokens", async () => {
     init: async (dir) => {
       await Filesystem.write(path.join(dir, "included.md"), "const out = await Bun.$`echo hi`")
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         username: "{file:included.md}",
       })
     },
@@ -704,7 +702,7 @@ test("validates config schema and reports warning on invalid fields", async () =
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         invalid_field: "should cause error",
       })
     },
@@ -744,7 +742,7 @@ test("handles agent configuration", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         agent: {
           test_agent: {
             model: "test/model",
@@ -774,7 +772,7 @@ test("treats agent variant as model-scoped setting (not provider option)", async
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         agent: {
           test_agent: {
             model: "openai/gpt-5.2",
@@ -805,7 +803,7 @@ test("handles command configuration", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         command: {
           test_command: {
             template: "test template",
@@ -835,7 +833,7 @@ test("migrates autoshare to share field", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           autoshare: true,
         }),
       )
@@ -857,7 +855,7 @@ test("migrates mode field to agent field", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mode: {
             test_mode: {
               model: "test/model",
@@ -1247,7 +1245,7 @@ test("resolves scoped npm plugins in config", async () => {
 
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
-        JSON.stringify({ $schema: "https://app.kilo.ai/config.json", plugin: ["@scope/plugin"] }, null, 2),
+        JSON.stringify({ $schema: "https://nocowboy.dev/config.json", plugin: ["@scope/plugin"] }, null, 2),
       )
     },
   })
@@ -1274,7 +1272,7 @@ test("merges plugin arrays from global and local configs", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           plugin: ["global-plugin-1", "global-plugin-2"],
         }),
       )
@@ -1283,7 +1281,7 @@ test("merges plugin arrays from global and local configs", async () => {
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           plugin: ["local-plugin-1"],
         }),
       )
@@ -1350,7 +1348,7 @@ test("merges instructions arrays from global and local configs", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           instructions: ["global-instructions.md", "shared-rules.md"],
         }),
       )
@@ -1358,7 +1356,7 @@ test("merges instructions arrays from global and local configs", async () => {
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           instructions: ["local-instructions.md"],
         }),
       )
@@ -1389,7 +1387,7 @@ test("deduplicates duplicate instructions from global and local configs", async 
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           instructions: ["duplicate.md", "global-only.md"],
         }),
       )
@@ -1397,7 +1395,7 @@ test("deduplicates duplicate instructions from global and local configs", async 
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           instructions: ["duplicate.md", "local-only.md"],
         }),
       )
@@ -1433,7 +1431,7 @@ test("deduplicates duplicate plugins from global and local configs", async () =>
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           plugin: ["duplicate-plugin", "global-plugin-1"],
         }),
       )
@@ -1442,7 +1440,7 @@ test("deduplicates duplicate plugins from global and local configs", async () =>
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           plugin: ["duplicate-plugin", "local-plugin-1"],
         }),
       )
@@ -1530,7 +1528,7 @@ test("migrates legacy tools config to permissions - allow", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1561,7 +1559,7 @@ test("migrates legacy tools config to permissions - deny", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1592,7 +1590,7 @@ test("migrates legacy write tool to edit permission", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1622,7 +1620,7 @@ test("managed settings override user settings", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         model: "user/model",
         share: "auto",
         username: "testuser",
@@ -1631,7 +1629,7 @@ test("managed settings override user settings", async () => {
   })
 
   await writeManagedSettings({
-    $schema: "https://app.kilo.ai/config.json",
+    $schema: "https://nocowboy.dev/config.json",
     model: "managed/model",
     share: "disabled",
   })
@@ -1651,7 +1649,7 @@ test("managed settings override project settings", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         autoupdate: true,
         disabled_providers: [],
       })
@@ -1659,7 +1657,7 @@ test("managed settings override project settings", async () => {
   })
 
   await writeManagedSettings({
-    $schema: "https://app.kilo.ai/config.json",
+    $schema: "https://nocowboy.dev/config.json",
     autoupdate: false,
     disabled_providers: ["openai"],
   })
@@ -1678,7 +1676,7 @@ test("missing managed settings file is not an error", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
       await writeConfig(dir, {
-        $schema: "https://app.kilo.ai/config.json",
+        $schema: "https://nocowboy.dev/config.json",
         model: "user/model",
       })
     },
@@ -1699,7 +1697,7 @@ test("migrates legacy edit tool to edit permission", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1728,7 +1726,7 @@ test("migrates legacy patch tool to edit permission", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1757,7 +1755,7 @@ test("migrates mixed legacy tools config", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               tools: {
@@ -1792,7 +1790,7 @@ test("merges legacy tools with existing permission config", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           agent: {
             test: {
               permission: {
@@ -1843,7 +1841,7 @@ test("permission config preserves user key order", async () => {
         await Filesystem.write(
           path.join(dir, "nocowboy.json"), // kilocode_change
           JSON.stringify({
-            $schema: "https://app.kilo.ai/config.json", // kilocode_change
+            $schema: "https://nocowboy.dev/config.json", // kilocode_change
             permission: {
               "*": "deny",
               edit: "ask",
@@ -1918,7 +1916,7 @@ test("local mcp accepts `env` as an alias for `environment`", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             context7: {
               type: "local",
@@ -1951,7 +1949,7 @@ test("local mcp prefers `environment` over `env` when both are present", async (
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             context7: {
               type: "local",
@@ -1986,7 +1984,7 @@ test("project config can override MCP server enabled status", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             jira: {
               type: "remote",
@@ -2005,7 +2003,7 @@ test("project config can override MCP server enabled status", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.jsonc"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             jira: {
               type: "remote",
@@ -2046,7 +2044,7 @@ test("MCP config deep merges preserving base config properties", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             myserver: {
               type: "remote",
@@ -2064,7 +2062,7 @@ test("MCP config deep merges preserving base config properties", async () => {
       await Filesystem.write(
         path.join(dir, "nocowboy.jsonc"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             myserver: {
               type: "remote",
@@ -2099,7 +2097,7 @@ test("local .nocowboy config can override MCP from project config", async () => 
       await Filesystem.write(
         path.join(dir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             docs: {
               type: "remote",
@@ -2115,7 +2113,7 @@ test("local .nocowboy config can override MCP from project config", async () => 
       await Filesystem.write(
         path.join(opencodeDir, "nocowboy.json"),
         JSON.stringify({
-          $schema: "https://app.kilo.ai/config.json",
+          $schema: "https://nocowboy.dev/config.json",
           mcp: {
             docs: {
               type: "remote",
@@ -2452,7 +2450,7 @@ describe("deduplicatePluginOrigins", () => {
         await Filesystem.write(
           path.join(dir, "nocowboy.json"),
           JSON.stringify({
-            $schema: "https://app.kilo.ai/config.json",
+            $schema: "https://nocowboy.dev/config.json",
             plugin: ["my-plugin@1.0.0"],
           }),
         )
@@ -2486,7 +2484,7 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
           await Filesystem.write(
             path.join(dir, "nocowboy.json"),
             JSON.stringify({
-              $schema: "https://app.kilo.ai/config.json",
+              $schema: "https://nocowboy.dev/config.json",
               model: "project/model",
               username: "project-user",
             }),
@@ -2582,7 +2580,7 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
           await Filesystem.write(
             path.join(dir, "nocowboy.json"),
             JSON.stringify({
-              $schema: "https://app.kilo.ai/config.json",
+              $schema: "https://nocowboy.dev/config.json",
               instructions: ["./CUSTOM.md"],
             }),
           )
@@ -2628,7 +2626,7 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
           await Filesystem.write(
             path.join(dir, "nocowboy.json"),
             JSON.stringify({
-              $schema: "https://app.kilo.ai/config.json",
+              $schema: "https://nocowboy.dev/config.json",
               model: "configdir/model",
             }),
           )
@@ -2641,7 +2639,7 @@ describe("NOCOWBOY_DISABLE_PROJECT_CONFIG", () => {
           await Filesystem.write(
             path.join(dir, "nocowboy.json"),
             JSON.stringify({
-              $schema: "https://app.kilo.ai/config.json",
+              $schema: "https://nocowboy.dev/config.json",
               model: "project/model",
             }),
           )

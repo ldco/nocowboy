@@ -33,7 +33,7 @@ export function getChannelPath(flags: Pick<DatabaseFlags, "disableChannelDb"> = 
     return path.join(Global.Path.data, "nocowboy.db")
   const safe = InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")
   const next = path.join(Global.Path.data, `nocowboy-${safe}.db`)
-  const prev = path.join(Global.Path.data, `nocowboy-${safe}.db`)
+  const prev = path.join(Global.Path.data, `opencode-${safe}.db`)
   if (!existsSync(next) && existsSync(prev)) return prev
   return next
 }
