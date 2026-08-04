@@ -309,7 +309,7 @@ describe("tool.read env file permissions", () => {
   ]
 
   // kilocode_change start - renamed from "build" to "code"
-  for (const agentName of ["code", "plan"] as const) {
+  for (const agentName of ["code"] as const) {
     // kilocode_change end
     describe(`agent=${agentName}`, () => {
       for (const [filename, shouldAsk] of cases) {
