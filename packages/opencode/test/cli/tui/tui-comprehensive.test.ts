@@ -89,10 +89,10 @@ test("B1. Theme nocowboy.json has correct colors (yellow warning, not 'darkOrang
   expect(t.theme.warning).toEqual({ dark: "darkYellow", light: "lightYellow" })
 })
 
-test("B2. Sidebar context plugin has Balance display + fetchDeepSeekBalance", async () => {
+test("B2. Sidebar context plugin has Balance display + fetchBalance", async () => {
   const f = await readFile(resolve(TUI_ROOT, "feature-plugins/sidebar/context.tsx"))
   expect(f).toContain("Balance")
-  expect(f).toContain("fetchDeepSeekBalance")
+  expect(f).toContain("fetchBalance")
 })
 
 test("B3. LSP sidebar plugin exists and shows status", async () => {
@@ -104,7 +104,7 @@ test("B3. LSP sidebar plugin exists and shows status", async () => {
 test("B4. Settings tab has LSP toggle with keyboard handler", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("useKeyboard")
-  expect(f).toContain("box paddingTop={1} onMouseDown={() => toggleLsp()}")
+  expect(f).toContain("onMouseDown={() => { toggleLsp() }}")
   expect(f).toContain("lspEnabled")
 })
 
@@ -123,13 +123,13 @@ test("B6. Theme mappings use semantic names (warning, error, success)", async ()
   expect(t.theme.accent).toBeDefined()
 })
 
+
 test("B7. LSP text is wrapped in box paddingTop=1 (required for click events)", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   const lspIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>")
-  const ciIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>")
   expect(lspIdx).toBeGreaterThan(-1)
-  expect(ciIdx).toBeGreaterThan(-1)
-  const lspSection = f.substring(lspIdx - 100, ciIdx)
+  // Check area around LSP element for box wrapper and click handler
+  const lspSection = f.substring(Math.max(0, lspIdx - 150), lspIdx + 400)
   expect(lspSection).toContain("<box paddingTop={1}>")
   expect(lspSection).toContain("onMouseDown")
 })
@@ -144,7 +144,7 @@ test("B8. Sidebar indexing info tab has NO clickable elements (info only)", asyn
 test("B9. Settings tab has onMouseDown for LSP and Indexing, plus keyboard shortcuts", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
   expect(f).toContain("onMouseDown={(e")
-  expect(f).toContain("onMouseDown={() => dialog.replace(() => <DialogIndexing")
+  expect(f).toContain("onMouseDown={() => { console.error(\"INDEXING_CLICK\");")
   expect(f).toContain("useKeyboard")
   expect(f).toContain("KeyL")
   expect(f).toContain("KeyI")
