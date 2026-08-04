@@ -501,12 +501,8 @@ describe("run stream transport", () => {
         expect.objectContaining({
           id: "perm-1",
           sessionID: "child-1",
-          metadata: {
-            input: {
-              filePath: "src/run/subagent-data.ts",
-              diff: "@@ -1 +1 @@",
-            },
-          },
+          permission: "edit",
+          patterns: ["src/run/subagent-data.ts"],
         }),
       ])
 
@@ -549,12 +545,8 @@ describe("run stream transport", () => {
           type: "permission",
           request: expect.objectContaining({
             id: "perm-1",
-            metadata: {
-              input: {
-                filePath: "src/run/subagent-data.ts",
-                diff: "@@ -1 +1 @@",
-              },
-            },
+            permission: "edit",
+            patterns: ["src/run/subagent-data.ts"],
           }),
         },
       })
