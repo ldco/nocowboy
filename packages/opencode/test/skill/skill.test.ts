@@ -72,7 +72,7 @@ describe("skill", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Bun.write(
-              path.join(dir, ".kilo", "skill", "test-skill", "SKILL.md"),
+              path.join(dir, ".nocowboy", "skill", "test-skill", "SKILL.md"),
               `---
 name: test-skill
 description: A test skill for verification.
@@ -105,7 +105,7 @@ Instructions here.
           Effect.gen(function* () {
             yield* Effect.promise(() =>
               Bun.write(
-                path.join(dir, ".kilo", "skill", "dir-skill", "SKILL.md"), // kilocode_change: .kilo is primary
+                path.join(dir, ".nocowboy", "skill", "dir-skill", "SKILL.md"), // kilocode_change: .kilo is primary
                 `---
 name: dir-skill
 description: Skill for dirs test.
@@ -118,7 +118,7 @@ description: Skill for dirs test.
 
             const skill = yield* Skill.Service
             const dirs = yield* skill.dirs()
-            expect(dirs).toContain(path.join(dir, ".kilo", "skill", "dir-skill")) // kilocode_change: .kilo is primary
+            expect(dirs).toContain(path.join(dir, ".nocowboy", "skill", "dir-skill")) // kilocode_change: .kilo is primary
             expect(dirs.length).toBe(1)
           }),
         ),
@@ -135,7 +135,7 @@ description: Skill for dirs test.
           yield* Effect.promise(() =>
             Promise.all([
               Bun.write(
-                path.join(dir, ".kilo", "skill", "skill-one", "SKILL.md"),
+                path.join(dir, ".nocowboy", "skill", "skill-one", "SKILL.md"),
                 `---
 name: skill-one
 description: First test skill.
@@ -145,7 +145,7 @@ description: First test skill.
 `,
               ),
               Bun.write(
-                path.join(dir, ".kilo", "skill", "skill-two", "SKILL.md"),
+                path.join(dir, ".nocowboy", "skill", "skill-two", "SKILL.md"),
                 `---
 name: skill-two
 description: Second test skill.
@@ -173,7 +173,7 @@ description: Second test skill.
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Bun.write(
-              path.join(dir, ".kilo", "skill", "no-frontmatter", "SKILL.md"), // kilocode_change: .kilo is primary
+              path.join(dir, ".nocowboy", "skill", "no-frontmatter", "SKILL.md"), // kilocode_change: .kilo is primary
               `# No Frontmatter
 
 Just some content without YAML frontmatter.
