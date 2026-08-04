@@ -191,7 +191,7 @@ export function cacheKey(cfg: Config.Info) {
 
 // Map "build" config key to "code" for backward compatibility.
 export function resolveKey(name: string): string {
-  return name === "build" ? "code" : name
+  return name === "general" ? "code" : name === "build" ? "code" : name
 }
 
 // Remap "build" → "code" in agent config entries for backward compat in the config loop.
