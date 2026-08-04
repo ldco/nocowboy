@@ -34,9 +34,9 @@ test("skips external tui plugins in pure mode", async () => {
   })
 
   const pure = process.env.NOCOWBOY_PURE
-  const meta = process.env.KILO_PLUGIN_META_FILE
+  const meta = process.env.NOCOWBOY_PLUGIN_META_FILE
   process.env.NOCOWBOY_PURE = "1"
-  process.env.KILO_PLUGIN_META_FILE = tmp.extra.meta
+  process.env.NOCOWBOY_PLUGIN_META_FILE = tmp.extra.meta
 
   const config = createTuiResolvedConfig({
     plugin: [[tmp.extra.spec, { marker: tmp.extra.marker }]],
@@ -64,9 +64,9 @@ test("skips external tui plugins in pure mode", async () => {
       process.env.NOCOWBOY_PURE = pure
     }
     if (meta === undefined) {
-      delete process.env.KILO_PLUGIN_META_FILE
+      delete process.env.NOCOWBOY_PLUGIN_META_FILE
     } else {
-      process.env.KILO_PLUGIN_META_FILE = meta
+      process.env.NOCOWBOY_PLUGIN_META_FILE = meta
     }
   }
 })
