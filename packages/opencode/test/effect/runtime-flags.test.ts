@@ -23,18 +23,18 @@ describe("RuntimeFlags", () => {
         Effect.provide(
           fromConfig({
             NOCOWBOY_PURE: "true",
-            KILO_DISABLE_DEFAULT_PLUGINS: "true",
-            KILO_DISABLE_CHANNEL_DB: "true",
-            KILO_AUTO_SHARE: "true",
-            KILO_DISABLE_EMBEDDED_WEB_UI: "true",
-            KILO_DISABLE_EXTERNAL_SKILLS: "true",
-            KILO_DISABLE_LSP_DOWNLOAD: "true",
-            KILO_SKIP_MIGRATIONS: "true",
-            KILO_EXPERIMENTAL: "true",
-            KILO_ENABLE_EXA: "true",
-            KILO_ENABLE_PARALLEL: "true",
-            KILO_ENABLE_EXPERIMENTAL_MODELS: "true",
-            KILO_ENABLE_QUESTION_TOOL: "true",
+            NOCOWBOY_DISABLE_DEFAULT_PLUGINS: "true",
+            NOCOWBOY_DISABLE_CHANNEL_DB: "true",
+            NOCOWBOY_AUTO_SHARE: "true",
+            NOCOWBOY_DISABLE_EMBEDDED_WEB_UI: "true",
+            NOCOWBOY_DISABLE_EXTERNAL_SKILLS: "true",
+            NOCOWBOY_DISABLE_LSP_DOWNLOAD: "true",
+            NOCOWBOY_SKIP_MIGRATIONS: "true",
+            NOCOWBOY_EXPERIMENTAL: "true",
+            NOCOWBOY_ENABLE_EXA: "true",
+            NOCOWBOY_ENABLE_PARALLEL: "true",
+            NOCOWBOY_ENABLE_EXPERIMENTAL_MODELS: "true",
+            NOCOWBOY_ENABLE_QUESTION_TOOL: "true",
             NOCOWBOY_CLIENT: "desktop",
           }),
         ),
@@ -66,12 +66,12 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("defaultLayer parses KILO_EXPERIMENTAL_LSP_TY", () =>
+  it.effect("defaultLayer parses NOCOWBOY_EXPERIMENTAL_LSP_TY", () =>
     Effect.gen(function* () {
       const flags = yield* readFlags.pipe(
         Effect.provide(
           fromConfig({
-            KILO_EXPERIMENTAL_LSP_TY: "true",
+            NOCOWBOY_EXPERIMENTAL_LSP_TY: "true",
           }),
         ),
       )
@@ -122,9 +122,9 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableExternalSkills reads KILO_DISABLE_EXTERNAL_SKILLS", () =>
+  it.effect("disableExternalSkills reads NOCOWBOY_DISABLE_EXTERNAL_SKILLS", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_EXTERNAL_SKILLS: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_EXTERNAL_SKILLS: "true" })))
 
       expect(flags.disableExternalSkills).toBe(true)
     }),
@@ -138,9 +138,9 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableLspDownload reads KILO_DISABLE_LSP_DOWNLOAD", () =>
+  it.effect("disableLspDownload reads NOCOWBOY_DISABLE_LSP_DOWNLOAD", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_LSP_DOWNLOAD: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_LSP_DOWNLOAD: "true" })))
 
       expect(flags.disableLspDownload).toBe(true)
     }),
@@ -154,9 +154,9 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("skipMigrations reads KILO_SKIP_MIGRATIONS", () =>
+  it.effect("skipMigrations reads NOCOWBOY_SKIP_MIGRATIONS", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_SKIP_MIGRATIONS: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_SKIP_MIGRATIONS: "true" })))
 
       expect(flags.skipMigrations).toBe(true)
     }),
@@ -170,33 +170,33 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableClaudeCodePrompt reads KILO_DISABLE_CLAUDE_CODE_PROMPT", () =>
+  it.effect("disableClaudeCodePrompt reads NOCOWBOY_DISABLE_CLAUDE_CODE_PROMPT", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_CLAUDE_CODE_PROMPT: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_CLAUDE_CODE_PROMPT: "true" })))
 
       expect(flags.disableClaudeCodePrompt).toBe(true)
     }),
   )
 
-  it.effect("disableClaudeCodePrompt inherits KILO_DISABLE_CLAUDE_CODE", () =>
+  it.effect("disableClaudeCodePrompt inherits NOCOWBOY_DISABLE_CLAUDE_CODE", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_CLAUDE_CODE: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_CLAUDE_CODE: "true" })))
 
       expect(flags.disableClaudeCodePrompt).toBe(true)
     }),
   )
 
-  it.effect("experimentalIconDiscovery reads KILO_EXPERIMENTAL_ICON_DISCOVERY", () =>
+  it.effect("experimentalIconDiscovery reads NOCOWBOY_EXPERIMENTAL_ICON_DISCOVERY", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_EXPERIMENTAL_ICON_DISCOVERY: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_EXPERIMENTAL_ICON_DISCOVERY: "true" })))
 
       expect(flags.experimentalIconDiscovery).toBe(true)
     }),
   )
 
-  it.effect("experimentalIconDiscovery inherits KILO_EXPERIMENTAL", () =>
+  it.effect("experimentalIconDiscovery inherits NOCOWBOY_EXPERIMENTAL", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_EXPERIMENTAL: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_EXPERIMENTAL: "true" })))
 
       expect(flags.experimentalIconDiscovery).toBe(true)
     }),
@@ -210,12 +210,12 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("experimentalOxfmt is enabled by KILO_EXPERIMENTAL_OXFMT", () =>
+  it.effect("experimentalOxfmt is enabled by NOCOWBOY_EXPERIMENTAL_OXFMT", () =>
     Effect.gen(function* () {
       const flags = yield* readFlags.pipe(
         Effect.provide(
           fromConfig({
-            KILO_EXPERIMENTAL_OXFMT: "true",
+            NOCOWBOY_EXPERIMENTAL_OXFMT: "true",
           }),
         ),
       )
@@ -224,12 +224,12 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("experimentalOxfmt inherits KILO_EXPERIMENTAL", () =>
+  it.effect("experimentalOxfmt inherits NOCOWBOY_EXPERIMENTAL", () =>
     Effect.gen(function* () {
       const flags = yield* readFlags.pipe(
         Effect.provide(
           fromConfig({
-            KILO_EXPERIMENTAL: "true",
+            NOCOWBOY_EXPERIMENTAL: "true",
           }),
         ),
       )
@@ -242,19 +242,19 @@ describe("RuntimeFlags", () => {
     { name: "absent", config: {}, expected: undefined },
     {
       name: "valid positive integer",
-      config: { KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234" },
+      config: { NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234" },
       expected: 1234,
     },
     {
       name: "invalid string",
-      config: { KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "nope" },
+      config: { NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "nope" },
       expected: undefined,
     },
-    { name: "zero", config: { KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "0" }, expected: undefined },
-    { name: "negative", config: { KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "-1" }, expected: undefined },
+    { name: "zero", config: { NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "0" }, expected: undefined },
+    { name: "negative", config: { NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "-1" }, expected: undefined },
     {
       name: "non-integer",
-      config: { KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1.5" },
+      config: { NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1.5" },
       expected: undefined,
     },
   ]) {
@@ -271,19 +271,19 @@ describe("RuntimeFlags", () => {
     { name: "absent", config: {}, expected: undefined },
     {
       name: "valid positive integer",
-      config: { KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "1234" },
+      config: { NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "1234" },
       expected: 1234,
     },
     {
       name: "invalid string",
-      config: { KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "nope" },
+      config: { NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "nope" },
       expected: undefined,
     },
-    { name: "zero", config: { KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "0" }, expected: undefined },
-    { name: "negative", config: { KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "-1" }, expected: undefined },
+    { name: "zero", config: { NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "0" }, expected: undefined },
+    { name: "negative", config: { NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "-1" }, expected: undefined },
     {
       name: "non-integer",
-      config: { KILO_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "1.5" },
+      config: { NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX: "1.5" },
       expected: undefined,
     },
   ]) {
@@ -304,13 +304,13 @@ describe("RuntimeFlags", () => {
           ConfigProvider.layer(
             ConfigProvider.fromUnknown({
             NOCOWBOY_PURE: "true",
-              KILO_DISABLE_DEFAULT_PLUGINS: "true",
-              KILO_DISABLE_EXTERNAL_SKILLS: "true",
-              KILO_DISABLE_LSP_DOWNLOAD: "true",
-              KILO_SKIP_MIGRATIONS: "true",
-              KILO_EXPERIMENTAL: "true",
-              KILO_ENABLE_EXA: "true",
-              KILO_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234",
+              NOCOWBOY_DISABLE_DEFAULT_PLUGINS: "true",
+              NOCOWBOY_DISABLE_EXTERNAL_SKILLS: "true",
+              NOCOWBOY_DISABLE_LSP_DOWNLOAD: "true",
+              NOCOWBOY_SKIP_MIGRATIONS: "true",
+              NOCOWBOY_EXPERIMENTAL: "true",
+              NOCOWBOY_ENABLE_EXA: "true",
+              NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "1234",
               NOCOWBOY_CLIENT: "desktop",
             }),
           ),
@@ -343,17 +343,17 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableClaudeCodeSkills reads KILO_DISABLE_CLAUDE_CODE_SKILLS", () =>
+  it.effect("disableClaudeCodeSkills reads NOCOWBOY_DISABLE_CLAUDE_CODE_SKILLS", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_CLAUDE_CODE_SKILLS: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_CLAUDE_CODE_SKILLS: "true" })))
 
       expect(flags.disableClaudeCodeSkills).toBe(true)
     }),
   )
 
-  it.effect("disableClaudeCodeSkills inherits KILO_DISABLE_CLAUDE_CODE", () =>
+  it.effect("disableClaudeCodeSkills inherits NOCOWBOY_DISABLE_CLAUDE_CODE", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ KILO_DISABLE_CLAUDE_CODE: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ NOCOWBOY_DISABLE_CLAUDE_CODE: "true" })))
 
       expect(flags.disableClaudeCodeSkills).toBe(true)
     }),
