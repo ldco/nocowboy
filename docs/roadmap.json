@@ -1573,7 +1573,7 @@
     {
       "id": "alpha-all-features-done",
       "title": "v0.10.0 + v0.11.0 — все фичи реализованы",
-      "status": "planned",
+      "status": "done",
       "version": "v1.0.0-alpha",
       "verify": [
         {
@@ -1623,7 +1623,7 @@
     {
       "id": "alpha-no-critical-bugs",
       "title": "Нет критических багов — known issues документированы",
-      "status": "planned",
+      "status": "done",
       "version": "v1.0.0-alpha",
       "notes": "Все P0/P1 баги закрыты или занесены в known-issues.md",
       "phase": "alpha-blockers",
