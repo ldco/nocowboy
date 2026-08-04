@@ -54,27 +54,40 @@ function writeJSON(obj) {
     let msg
     try { msg = JSON.parse(body) } catch { reject(new Error("invalid JSON")); return }
     const id = String(msg.id ?? "")
+    // Notifications (no id) are fire-and-forget — no response expected
+    if (!id) {
+      proc.stdin.write(body + "\n")
+      resolve("")
+      return
+    }
     const timer = setTimeout(() => { pending.delete(id); reject(new Error("timeout")) }, 300_000)
     pending.set(id, { resolve, timer })
     proc.stdin.write(body + "\n")
   })
 }
 
+function mcpUrl(url) {
+  return url === "/mcp" || url.startsWith("/mcp?") || url.startsWith("/mcp#")
+}
+
 const server = http.createServer((req, res) => {
-  if (req.method === "GET" && req.url === "/mcp") {
+  if (req.method === "GET" && mcpUrl(req.url)) {
+    const parsed = new URL(req.url, "http://localhost")
+    const sessionId = parsed.searchParams.get("sessionId") ?? ""
+    const endpoint = sessionId ? `/mcp?sessionId=${sessionId}` : "/mcp"
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
       "Access-Control-Allow-Origin": "*",
     })
-    res.write("data: connected\n\n")
+    res.write(`event: endpoint\ndata: ${endpoint}\n\n`)
     const keepAlive = setInterval(() => { res.write(": keepalive\n\n") }, 15_000)
     req.on("close", () => clearInterval(keepAlive))
     return
   }
 
-  if (req.method === "POST" && req.url === "/mcp") {
+  if (req.method === "POST" && mcpUrl(req.url)) {
     let body = ""
     req.on("data", (chunk) => { body += chunk })
     req.on("end", () => {

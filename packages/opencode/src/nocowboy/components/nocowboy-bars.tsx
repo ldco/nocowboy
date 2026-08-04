@@ -171,23 +171,30 @@ function SidebarToggle() {
 
 function NutausikDot() {
   const { theme } = useTheme()
-  const sync = useSync()
-  const nutausik = () => sync.data.mcp["nutausik"]
-  const connected = () => nutausik()?.status === "connected"
-  const initialized = () => {
-    try {
-      return existsSync(resolve(process.cwd(), ".nutausik", "nutausik.db"))
-    } catch {
-      return false
+  const [alive, setAlive] = createSignal<boolean | null>(null)
+  const nutausikUrl = "http://127.0.0.1:9210/mcp"
+
+  onMount(() => {
+    const check = () => {
+      fetch(nutausikUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "nutausik_health", arguments: {} } }),
+        signal: AbortSignal.timeout(3000),
+      })
+        .then((r) => r.ok && setAlive(true))
+        .catch(() => setAlive(false))
     }
-  }
+    check()
+    const id = setInterval(check, 30_000)
+    onCleanup(() => clearInterval(id))
+  })
+
   const fg = () => {
-    if (!connected()) return theme.textMuted
-    return initialized() ? theme.success : theme.warning
+    return alive() === true ? theme.success : theme.textMuted
   }
   const label = () => {
-    if (!connected()) return "Nutausik:✗"
-    return initialized() ? "Nutausik:✓" : "Nutausik:init"
+    return alive() === true ? "Nutausik:✓" : "Nutausik:✗"
   }
   return (
     <text fg={fg()} paddingLeft={1}>

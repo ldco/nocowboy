@@ -630,6 +630,14 @@ export const layer = Layer.effect(
 
       for (const [key, mcp] of Object.entries(config)) {
         if (!isMcpConfigured(mcp)) continue
+
+        const cur = s.status[key]
+
+        // Auto-retry enabled MCPs that are not in a healthy/terminal state
+        if (mcp.enabled !== false && (!cur || (cur.status !== "connected" && cur.status !== "needs_auth" && cur.status !== "needs_client_registration"))) {
+          yield* createAndStore(key, mcp).pipe(Effect.ignore)
+        }
+
         result[key] = s.status[key] ?? { status: "disabled" }
       }
 
