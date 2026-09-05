@@ -65,6 +65,94 @@ function pending(): z.infer<typeof IndexingStatus> {
   }
 }
 
+const FALLBACK_PROBE_TIMEOUT_MS = 5_000
+const FALLBACK_RECHECK_INTERVAL_MS = 120_000
+const OLLAMA_FALLBACK_MODEL = "mxbai-embed-large"
+const OLLAMA_FALLBACK_DIMENSION = 1024
+
+/** Probe the Voyage embedding API with a minimal request. Resolves true only on HTTP 200. */
+async function probeVoyage(apiKey: string, model: string): Promise<boolean> {
+  const ctl = new AbortController()
+  const timer = setTimeout(() => ctl.abort(), FALLBACK_PROBE_TIMEOUT_MS)
+  try {
+    const response = await fetch("https://api.voyageai.com/v1/embeddings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ input: ["probe"], model }),
+      signal: ctl.signal,
+    })
+    return response.ok
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Probe an Ollama server and confirm the fallback embedding model is available. */
+async function probeOllama(baseUrl: string, model: string): Promise<boolean> {
+  const ctl = new AbortController()
+  const timer = setTimeout(() => ctl.abort(), FALLBACK_PROBE_TIMEOUT_MS)
+  try {
+    const url = `${baseUrl.replace(/\/+$/, "")}/api/tags`
+    const response = await fetch(url, { signal: ctl.signal })
+    if (!response.ok) return false
+    const data = (await response.json()) as { models?: Array<{ name?: string; model?: string }> }
+    const names = new Set((data.models ?? []).flatMap((item) => [item.name, item.model]).filter(Boolean))
+    return names.has(model)
+  } catch {
+    return false
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Automatic embedder failover: when the configured provider is "voyage" and an
+ * `ollama` section is also present in the indexing config, the Ollama embedder is
+ * used while the Voyage API is unreachable. The moment Voyage answers again the
+ * caller (boot monitor) switches back to the primary provider.
+ */
+async function resolveEmbedderFailover(
+  indexing: IndexingConfig | undefined,
+): Promise<{ config: IndexingConfig | undefined; fallback: boolean }> {
+  if (
+    !indexing ||
+    indexing.enabled === false ||
+    indexing.provider !== "voyage" ||
+    !indexing.voyage?.apiKey ||
+    !indexing.ollama
+  ) {
+    return { config: indexing, fallback: false }
+  }
+
+  const model = indexing.model ?? "voyage-code-3"
+  const voyageOk = await probeVoyage(indexing.voyage.apiKey, model)
+  if (voyageOk) return { config: indexing, fallback: false }
+
+  const baseUrl = indexing.ollama.baseUrl ?? "http://localhost:11434"
+  const ollamaOk = await probeOllama(baseUrl, OLLAMA_FALLBACK_MODEL)
+  if (!ollamaOk) {
+    log.warn("voyage api unreachable and ollama fallback unavailable; keeping voyage provider", {
+      baseUrl,
+      model: OLLAMA_FALLBACK_MODEL,
+    })
+    return { config: indexing, fallback: false }
+  }
+
+  log.warn("voyage api unreachable — falling back to local ollama embeddings", { baseUrl, model: OLLAMA_FALLBACK_MODEL })
+  return {
+    config: {
+      ...indexing,
+      provider: "ollama",
+      model: OLLAMA_FALLBACK_MODEL,
+      dimension: OLLAMA_FALLBACK_DIMENSION,
+      ollama: { baseUrl },
+    },
+    fallback: true,
+  }
+}
+
 async function nocowboyAuth(cfg: Config.Info): Promise<NoCowboyIndexingAuth> {
   const info = await auth.runPromise((svc) => svc.get("kilo"))
   return resolveNoCowboyIndexingAuth({ config: cfg, auth: info })
@@ -256,7 +344,11 @@ export namespace KiloIndexing {
     const auth = await nocowboyAuth(cfg)
     const global = globalConfig.indexing
     const merged = indexingWithNoCowboyDefault({ ...global, ...cfg.indexing }, auth)
-    const cfgInput = await model(enrichNocowboy(input(merged, global), auth), auth)
+    // Automatic embedder failover: when the primary (voyage) API is unreachable and an
+    // ollama section is configured, index with local ollama embeddings until voyage is back.
+    const resolved = await resolveEmbedderFailover(merged)
+    const primaryMerged = resolved.fallback ? merged : undefined
+    const cfgInput = await model(enrichNocowboy(input(resolved.config, global), auth), auth)
     const workspaces = new Set<WorkspaceID | undefined>([WorkspaceContext.workspaceID])
     const box = { status: pending() }
     const warnings = new Map<string, IndexingWarning>()
@@ -344,6 +436,16 @@ export namespace KiloIndexing {
       if (disposed) return
       log[event.level](event.message, { source: "worker", workspacePath: dir })
     })
+    // While the primary provider is down (fallback active), periodically probe it and
+    // switch the worker back the moment it answers. Model-scoped caches/stores make the
+    // switch safe: the primary starts a fresh model-scoped index.
+    let failoverTimer: ReturnType<typeof setInterval> | undefined
+    const stopFailoverMonitor = Instance.bind(() => {
+      if (!failoverTimer) return
+      clearInterval(failoverTimer)
+      failoverTimer = undefined
+    })
+
     const base: Entry = {
       current,
       warnings: () => [...warnings.values()],
@@ -353,6 +455,7 @@ export namespace KiloIndexing {
         if (disposed) return
         disposed = true
         clear()
+        stopFailoverMonitor()
         base.initialized = false
         await base.engine?.dispose().catch((err) => {
           log.warn("failed to dispose project indexing worker", { err, workspacePath: dir })
@@ -375,6 +478,34 @@ export namespace KiloIndexing {
       await report()
       return base
     }
+    const startFailoverMonitor = Instance.bind(() => {
+      if (failoverTimer || disposed || !primaryMerged) return
+      const primary = primaryMerged
+      const tick = Instance.bind(async () => {
+        if (disposed) return
+        const apiKey = primary.voyage?.apiKey
+        if (!apiKey) return
+        try {
+          const ok = await probeVoyage(apiKey, primary.model ?? "voyage-code-3")
+          if (!ok || disposed) return
+          log.info("voyage api is reachable again — switching indexing back to primary", { workspacePath: dir })
+          stopFailoverMonitor()
+          base.initialized = false
+          const primaryCfgInput = await model(enrichNocowboy(input(primary, global), auth), auth)
+          await base.engine?.dispose().catch((err) => {
+            log.warn("dispose failed during failover recovery", { err, workspacePath: dir })
+          })
+          if (disposed) return
+          base.engine = IndexingWorker.create(dir, root, { status, telemetry, warning, log: output, failure })
+          box.status = await base.engine.init(primaryCfgInput, baseline)
+          base.initialized = true
+          await report()
+        } catch (err) {
+          log.error("failover recovery failed", { err, workspacePath: dir })
+        }
+      })
+      failoverTimer = setInterval(tick, FALLBACK_RECHECK_INTERVAL_MS)
+    })
 
     const err = await LanceDBRuntime.ensure(cfgInput.vectorStoreProvider)
       .then(async () => {
@@ -408,8 +539,11 @@ export namespace KiloIndexing {
     log.info("project indexing initialized", {
       workspacePath: dir,
       state: current().state,
+      provider: cfgInput.embedderProvider,
+      model: cfgInput.modelId ?? "default",
     })
     await report()
+    startFailoverMonitor()
 
     return base
   }

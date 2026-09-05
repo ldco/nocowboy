@@ -56,8 +56,12 @@ export class LanceDBVectorStore implements IVectorStore {
         dimension: vectorSize,
       } as EmbeddingProfile)
     const basename = path.basename(workspacePath)
-    // Generate database directory name from workspace path
-    const hash = createHash("sha256").update(workspacePath).digest("hex")
+    // Generate database directory name from workspace path AND embedding model.
+    // Embeddings are model-specific: vectors written by one model must never be
+    // searched by another (e.g. after an automatic provider failover), so each
+    // (workspace, model) pair gets its own database directory.
+    const modelScope = this.profile.modelId || "default"
+    const hash = createHash("sha256").update(`${workspacePath}\n${modelScope}`).digest("hex")
     const dbName = `${basename}-${hash.substring(0, 16)}`
     // Set up database path
     this.dbPath = path.join(dbDirectory, dbName)

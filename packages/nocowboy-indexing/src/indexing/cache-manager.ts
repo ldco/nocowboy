@@ -21,8 +21,12 @@ export class CacheManager implements ICacheManager {
   constructor(
     private readonly cacheDirectory: string,
     private readonly workspacePath: string,
+    private readonly modelId?: string,
   ) {
-    const hash = createHash("sha256").update(workspacePath).digest("hex")
+    // Model-scoped cache: embeddings are model-specific, so a cache written by one
+    // embedding model must not suppress re-indexing under another (e.g. after an
+    // automatic failover between providers/models).
+    const hash = createHash("sha256").update(`${workspacePath}\n${modelId ?? ""}`).digest("hex")
     this.cachePath = path.join(cacheDirectory, `roo-index-cache-${hash}.json`)
   }
 

@@ -14,6 +14,7 @@ import { Log } from "../util/log"
 import { loadIgnore } from "./shared/load-ignore"
 import { sanitizeErrorMessage } from "./shared/validation-helpers"
 import { WorktreeOverlay } from "./worktree-overlay"
+import { getDefaultModelId } from "./model-registry"
 import type { SqliteDatabase } from "./vector-store/sqlite-vector-store"
 
 const log = Log.create({ service: "indexing-manager" })
@@ -113,6 +114,13 @@ export class CodeIndexManager {
       trigger,
       error: sanitizeErrorMessage(msg),
     })
+  }
+
+  /** Resolved embedding model id for the active configuration (used to scope cache files). */
+  private get cacheModelId(): string | undefined {
+    if (!this._configManager) return undefined
+    const cfg = this._configManager.getConfig()
+    return cfg.modelId ?? getDefaultModelId(cfg.embedderProvider)
   }
 
   private clearRetryTimer(): void {
@@ -311,10 +319,10 @@ export class CodeIndexManager {
 
     if (!this._cacheManager) {
       log.info("initializing indexing cache", { cacheDirectory: this.cacheDirectory })
-      this._cacheManager = new CacheManager(this.cacheDirectory, this.workspacePath)
+      this._cacheManager = new CacheManager(this.cacheDirectory, this.workspacePath, this.cacheModelId)
       await this._cacheManager.initialize()
       if (this._disposed) return { requiresRestart }
-      log.info("indexing cache initialized", { cacheDirectory: this.cacheDirectory })
+      log.info("cache initialized", { cacheDirectory: this.cacheDirectory, modelId: this.cacheModelId })
     }
 
     const needsServiceRecreation = !this._serviceFactory || requiresRestart
@@ -639,7 +647,7 @@ export class CodeIndexManager {
     if (requiresRestart && this.isFeatureEnabled && this.isFeatureConfigured) {
       try {
         if (!this._cacheManager) {
-          this._cacheManager = new CacheManager(this.cacheDirectory, this.workspacePath)
+          this._cacheManager = new CacheManager(this.cacheDirectory, this.workspacePath, this.cacheModelId)
           await this._cacheManager.initialize()
         }
         await this._recreateServices()
