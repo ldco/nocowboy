@@ -86,14 +86,17 @@ function registerToolLoggingHook(): void {
  * starts a session, and registers a PostToolUse hook.
  */
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
-  ensureNutausikRunning().then(() => {
-    autoCreateTask(sessionID, title, directory).catch(() => {})
-  }).catch(() => {})
+  // Single flight: ensureNutausikRunning guards against duplicate proxy startup
+  // (two parallel startOne() calls raced and one failed with EADDRINUSE on the port).
+  const ready = ensureNutausikRunning()
 
-  // Startup checks: fire once per TUI lifetime
-  ensureNutausikRunning().then(() => {
-    runStartupChecks(directory).catch(() => {})
-  }).catch(() => {})
+  ready
+    .then(() => autoCreateTask(sessionID, title, directory))
+    .catch(() => {})
+
+  ready
+    .then(() => runStartupChecks(directory))
+    .catch(() => {})
 
   registerToolLoggingHook()
 

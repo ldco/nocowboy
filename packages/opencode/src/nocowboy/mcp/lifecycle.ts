@@ -65,7 +65,27 @@ export namespace McpLifecycle {
     return { name, pid, running, port, url }
   }
 
+  // In-flight single-flight guard: two parallel startOne() calls for the same name
+  // used to race (both saw "not running") and spawn duplicate proxies on one port.
+  const starting = new Map<string, Promise<McpProcessInfo>>()
+
   export async function startOne(name: string, command: string, port: number): Promise<McpProcessInfo> {
+    const existing = await status(name)
+    if (existing.running) return existing
+
+    const prior = starting.get(name)
+    if (prior) return prior
+
+    const task = doStart(name, command, port)
+    starting.set(name, task)
+    try {
+      return await task
+    } finally {
+      starting.delete(name)
+    }
+  }
+
+  async function doStart(name: string, command: string, port: number): Promise<McpProcessInfo> {
     const existing = await status(name)
     if (existing.running) return existing
 
