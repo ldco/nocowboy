@@ -19,15 +19,25 @@ describe("NUTAUSIK initialization", () => {
   })
 })
 
-describe("nocowboy.json NUTAUSIK config", () => {
-  it("points nutausik to correct port (9210)", () => {
+describe("nocowboy.json project config", () => {
+  it("parses without legacy tui keys that rejected the whole file", () => {
     const configPath = resolve(PROJECT_DIR, "nocowboy.json")
     expect(existsSync(configPath)).toBe(true)
     const config = JSON.parse(readFileSync(configPath, "utf-8"))
-    const nutausikMcp = config.mcp?.nutausik
-    expect(nutausikMcp).toBeDefined()
-    expect(nutausikMcp.url).toContain(":9210/")
-    expect(nutausikMcp.enabled).toBe(true)
+    // `settings`/`shortcuts` are not part of the v0.11 config schema; topLevelExtraKeys
+    // rejected the file with ConfigInvalidError so NOTHING in it applied (incl. remote MCP).
+    expect(config.settings).toBeUndefined()
+    expect(config.shortcuts).toBeUndefined()
+  })
+
+  it("does not shadow globally-managed MCP servers with dead remote entries", () => {
+    const configPath = resolve(PROJECT_DIR, "nocowboy.json")
+    const config = JSON.parse(readFileSync(configPath, "utf-8"))
+    // MCP servers (incl. nutausik on 9210) are managed in the global config
+    // (~/.config/nocowboy/nocowboy.jsonc). Project-level remote entries conflicted with
+    // lifecycle port assignments and were never applied while the file was rejected —
+    // keep the project config free of an mcp section.
+    expect(config.mcp).toBeUndefined()
   })
 })
 
