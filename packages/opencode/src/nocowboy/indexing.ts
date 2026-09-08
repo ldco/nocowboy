@@ -89,6 +89,11 @@ async function probeVoyage(apiKey: string, model: string): Promise<boolean> {
   }
 }
 
+/** Strip the implicit `:latest` tag Ollama reports for default-tagged pulls. */
+function ollamaModelId(name: string): string {
+  return name.replace(/:latest$/, "")
+}
+
 /** Probe an Ollama server and confirm the fallback embedding model is available. */
 async function probeOllama(baseUrl: string, model: string): Promise<boolean> {
   const ctl = new AbortController()
@@ -98,8 +103,12 @@ async function probeOllama(baseUrl: string, model: string): Promise<boolean> {
     const response = await fetch(url, { signal: ctl.signal })
     if (!response.ok) return false
     const data = (await response.json()) as { models?: Array<{ name?: string; model?: string }> }
-    const names = new Set((data.models ?? []).flatMap((item) => [item.name, item.model]).filter(Boolean))
-    return names.has(model)
+    // Ollama reports pulled models as "<name>:latest" even when pulled without an
+    // explicit tag (e.g. "mxbai-embed-large:latest"), so compare tag-insensitively.
+    const requested = ollamaModelId(model)
+    return (data.models ?? []).some((item) =>
+      [item.name, item.model].some((candidate) => !!candidate && ollamaModelId(candidate) === requested),
+    )
   } catch {
     return false
   } finally {

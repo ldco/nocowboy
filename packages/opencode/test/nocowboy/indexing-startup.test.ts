@@ -743,6 +743,52 @@ describe("indexing startup degradation", () => {
     }
   })
 
+  test("falls back to local ollama embeddings when voyage is down and ollama reports :latest-tagged models", async () => {
+    global.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes("voyageai.com")) {
+        return new Response(JSON.stringify({ detail: "Provided API key is invalid." }), { status: 401 })
+      }
+      if (url.endsWith("/api/tags")) {
+        return new Response(JSON.stringify({ models: [{ name: "mxbai-embed-large:latest", model: "mxbai-embed-large:latest" }] }))
+      }
+      throw new Error(`unexpected fetch in failover test: ${url}`)
+    }) as unknown as typeof global.fetch
+    const init = spyOn(CodeIndexManager.prototype, "initialize").mockResolvedValue({ requiresRestart: false })
+
+    const voyage: Partial<Config.Info> = {
+      plugin: ["@nocowboy/indexing"],
+      indexing: {
+        enabled: true,
+        provider: "voyage",
+        vectorStore: "qdrant",
+        voyage: { apiKey: "voyage-token" },
+        ollama: { baseUrl: "http://127.0.0.1:1" },
+      },
+    }
+
+    await using tmp = await tmpdir({ git: true, config: voyage })
+    process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
+
+    try {
+      await provideTestInstance({
+        directory: tmp.path,
+        init: Effect.promise(() => KiloIndexing.init()),
+        fn: async () => {
+          await called(init)
+          expect(init.mock.calls[0]?.[0]).toMatchObject({
+            embedderProvider: "ollama",
+            modelId: "mxbai-embed-large",
+            modelDimension: 1024,
+            ollamaBaseUrl: "http://127.0.0.1:1",
+          })
+        },
+      })
+    } finally {
+      init.mockRestore()
+    }
+  })
+
   test("stays disabled when VS Code starts without a workspace folder", async () => {
     await using tmp = await tmpdir({ git: true, config: cfg })
     process.env["NOCOWBOY_CONFIG_DIR"] = tmp.path
