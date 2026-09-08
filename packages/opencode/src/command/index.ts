@@ -9,7 +9,6 @@ import { MCP } from "../mcp"
 import { Skill } from "../skill"
 import { localReviewCommand, localReviewUncommittedCommand } from "@/nocowboy/review/command"
 import PROMPT_REVIEW from "./template/review.txt"
-import PROMPT_GOAL from "./template/goal.txt"
 
 type State = {
   commands: Record<string, Info>
@@ -56,7 +55,6 @@ export const Default = {
   REVIEW: "review",
   LOCAL_REVIEW: "local-review",
   LOCAL_REVIEW_UNCOMMITTED: "local-review-uncommitted",
-  GOAL: "goal",
 } as const
 
 export interface Interface {
@@ -111,17 +109,6 @@ export const layer = Layer.effect(
 
       commands[Default.LOCAL_REVIEW] = localReviewCommand()
       commands[Default.LOCAL_REVIEW_UNCOMMITTED] = localReviewUncommittedCommand()
-
-      commands[Default.GOAL] = {
-        name: Default.GOAL,
-        description: "goal <condition> — autonomous goal-driven execution (agent: goal)",
-        source: "command",
-        agent: "goal",
-        get template() {
-          return PROMPT_GOAL
-        },
-        hints: ["$ARGUMENTS"],
-      }
 
       for (const [name, command] of Object.entries(cfg.command ?? {})) {
         commands[name] = {

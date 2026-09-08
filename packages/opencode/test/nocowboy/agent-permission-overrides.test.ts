@@ -13,7 +13,7 @@ afterEach(async () => {
   await disposeAllInstances()
 })
 
-test("debug agent honors user MCP allow", async () => {
+test("worker agent honors user MCP allow", async () => {
   await using tmp = await tmpdir({
     config: {
       mcp: {
@@ -28,14 +28,14 @@ test("debug agent honors user MCP allow", async () => {
   await provideTestInstance({
     directory: tmp.path,
     fn: async () => {
-      const debug = await load(tmp.path, (svc) => svc.get("debug"))
-      expect(debug).toBeDefined()
-      expect(Permission.evaluate("context7_query-docs", "*", debug!.permission).action).toBe("allow")
+      const worker = await load(tmp.path, (svc) => svc.get("worker"))
+      expect(worker).toBeDefined()
+      expect(Permission.evaluate("context7_query-docs", "*", worker!.permission).action).toBe("allow")
     },
   })
 })
 
-test("code agent respects user bash permission", async () => {
+test("worker agent respects user bash permission", async () => {
   await using tmp = await tmpdir({
     config: {
       permission: {
@@ -47,9 +47,9 @@ test("code agent respects user bash permission", async () => {
   await provideTestInstance({
     directory: tmp.path,
     fn: async () => {
-      const code = await load(tmp.path, (svc) => svc.get("code"))
-      expect(code).toBeDefined()
-      expect(Permission.evaluate("bash", "cargo search serde", code!.permission).action).toBe("allow")
+      const worker = await load(tmp.path, (svc) => svc.get("worker"))
+      expect(worker).toBeDefined()
+      expect(Permission.evaluate("bash", "cargo search serde", worker!.permission).action).toBe("allow")
     },
   })
 })

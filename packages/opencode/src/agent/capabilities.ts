@@ -9,21 +9,21 @@ export interface AgentCapability {
 }
 
 export const AGENT_CAPABILITIES: Record<string, AgentCapability> = {
-  code: {
+  worker: {
     domains: ["implementation", "refactoring", "testing", "debugging"],
-    description: "Primary engineer — writes, refactors, tests, debugs production code",
+    description: "Primary engineer — implements, refactors, tests, debugs production code",
   },
-  debug: {
-    domains: ["diagnosis", "root-cause-analysis", "stacktrace"],
-    description: "Systematic bug diagnosis and root cause analysis",
+  planner: {
+    domains: ["planning", "specification", "acceptance-criteria"],
+    description: "Designs plans and specs before code is written. Read-only.",
   },
-  overseer: {
-    domains: ["review", "orchestration", "quality"],
-    description: "Orchestrates agents + cross-model review. Read-only.",
+  reviewer: {
+    domains: ["review", "verification", "quality"],
+    description: "Verifies work against acceptance criteria. Read-only, different model.",
   },
   nocowboy: {
-    domains: ["automation", "browser", "shell", "filesystem"],
-    description: "Browser, filesystem, shell — full system automation",
+    domains: ["conversation", "ideas", "questions"],
+    description: "Companion — chat, brainstorming, questions, conversations",
   },
 }
 

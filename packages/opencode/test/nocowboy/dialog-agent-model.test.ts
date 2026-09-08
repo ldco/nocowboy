@@ -67,10 +67,10 @@ describe("DialogAgentModel", () => {
 
   const mockAgents: AgentInfo[] = [
     { name: "auto", model: { providerID: "deepseek", modelID: "deepseek-v4-flash" } },
-    { name: "code", model: { providerID: "deepseek", modelID: "deepseek-v4-flash" } },
-    { name: "architect", model: { providerID: "deepseek", modelID: "deepseek-v4-pro" } },
-    { name: "overseer", model: { providerID: "opencode", modelID: "kimi-k2-thinking" } },
-    { name: "debug" },
+    { name: "worker", model: { providerID: "deepseek", modelID: "deepseek-v4-flash" } },
+    { name: "planner", model: { providerID: "deepseek", modelID: "deepseek-v4-pro" } },
+    { name: "reviewer", model: { providerID: "opencode", modelID: "kimi-k2-thinking" } },
+    { name: "nocowboy" },
   ]
 
   it("lists all non-deprecated models from providers", () => {
@@ -94,11 +94,11 @@ describe("DialogAgentModel", () => {
     const auto = result.find((a) => a.agentName === "auto")
     expect(auto?.currentModel).toBe("deepseek-v4-flash (deepseek)")
 
-    const overseer = result.find((a) => a.agentName === "overseer")
-    expect(overseer?.currentModel).toBe("kimi-k2-thinking (opencode)")
+    const reviewer = result.find((a) => a.agentName === "reviewer")
+    expect(reviewer?.currentModel).toBe("kimi-k2-thinking (opencode)")
 
-    const debug = result.find((a) => a.agentName === "debug")
-    expect(debug?.currentModel).toBe("not configured")
+    const nocowboy = result.find((a) => a.agentName === "nocowboy")
+    expect(nocowboy?.currentModel).toBe("not configured")
   })
 
   it("filters out hidden/internal agents", () => {

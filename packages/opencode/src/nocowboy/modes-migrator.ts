@@ -25,8 +25,9 @@ export namespace ModesMigrator {
     customModes: NoCowboyMode[]
   }
 
-  // Default modes to skip - these have native Opencode equivalents
-  const DEFAULT_MODE_SLUGS = new Set(["code", "build", "architect", "debug"])
+  // Default modes to skip - these have native equivalents (current NoCowboy
+  // names + legacy aliases from the pre-simplification persona set)
+  const DEFAULT_MODE_SLUGS = new Set(["code", "build", "architect", "debug", "worker", "planner", "reviewer"])
 
   // Group to permission mapping
   const GROUP_TO_PERMISSION: Record<string, string> = {

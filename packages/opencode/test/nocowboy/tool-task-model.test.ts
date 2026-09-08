@@ -195,7 +195,7 @@ function writeState(input: unknown) {
 }
 
 function run(input: {
-  agent: "pinned" | "worker"
+  agent: "pinned" | "runner"
   state?: unknown
   client?: string
   variant?: string
@@ -243,7 +243,7 @@ function run(input: {
         ...catalog,
         ...input.config,
         agent: {
-          worker: { mode: "subagent" },
+          runner: { mode: "subagent" },
           pinned: { mode: "subagent", model: "config-provider/config-model", variant: cfgVariant },
         },
       },
@@ -268,10 +268,10 @@ describe("tool.task model resolution", () => {
     ),
   )
 
-  it.live("saved model beats parent for worker", () =>
+  it.live("saved model beats parent for runner", () =>
     run({
-      agent: "worker",
-      state: { model: { worker: saved }, variant: { "saved-provider/saved-model": savedVariant } },
+      agent: "runner",
+      state: { model: { runner: saved }, variant: { "saved-provider/saved-model": savedVariant } },
     }).pipe(
       Effect.tap((result) =>
         Effect.sync(() => {
@@ -286,9 +286,9 @@ describe("tool.task model resolution", () => {
 
   it.live("saved model without variant leaves variant undefined", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
-      state: { model: { worker: saved } },
+      state: { model: { runner: saved } },
     }).pipe(
       Effect.tap((result) =>
         Effect.sync(() => {
@@ -303,8 +303,8 @@ describe("tool.task model resolution", () => {
 
   it.live("unrelated saved variant key ignored", () =>
     run({
-      agent: "worker",
-      state: { model: { worker: saved }, variant: { "other-provider/other-model": savedVariant } },
+      agent: "runner",
+      state: { model: { runner: saved }, variant: { "other-provider/other-model": savedVariant } },
     }).pipe(
       Effect.tap((result) =>
         Effect.sync(() => {
@@ -320,7 +320,7 @@ describe("tool.task model resolution", () => {
   it.live("missing saved entry falls back to agent config for pinned", () =>
     run({
       agent: "pinned",
-      state: { model: { worker: saved } },
+      state: { model: { runner: saved } },
     }).pipe(
       Effect.tap((result) =>
         Effect.sync(() => {
@@ -333,9 +333,9 @@ describe("tool.task model resolution", () => {
     ),
   )
 
-  it.live("configured subagent default model and variant apply to task workers", () =>
+  it.live("configured subagent default model and variant apply to task subagents", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
       config: { subagent_model: "sub-provider/sub-model", subagent_variant: subVariant },
     }).pipe(
@@ -369,7 +369,7 @@ describe("tool.task model resolution", () => {
 
   it.live("model-specific override replaces an inherited parent variant", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
       config: { subagent_variant_overrides: { "parent-provider/parent-model": overrideVariant } },
     }).pipe(
@@ -403,8 +403,8 @@ describe("tool.task model resolution", () => {
 
   it.live("model-specific override follows a saved custom subagent model", () =>
     run({
-      agent: "worker",
-      state: { model: { worker: saved }, variant: { "saved-provider/saved-model": savedVariant } },
+      agent: "runner",
+      state: { model: { runner: saved }, variant: { "saved-provider/saved-model": savedVariant } },
       config: { subagent_variant_overrides: { "saved-provider/saved-model": overrideVariant } },
     }).pipe(
       Effect.tap((result) =>
@@ -437,7 +437,7 @@ describe("tool.task model resolution", () => {
 
   it.live("unavailable configured subagent model falls back to the parent model override", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
       config: {
         subagent_model: "missing-provider/missing-model",
@@ -458,7 +458,7 @@ describe("tool.task model resolution", () => {
 
   it.live("unavailable configured subagent model falls back to the parent model", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
       config: { subagent_model: "missing-provider/missing-model", subagent_variant: subVariant },
     }).pipe(
@@ -475,7 +475,7 @@ describe("tool.task model resolution", () => {
 
   it.live("stale configured subagent variant is ignored without dropping its model", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       config: { subagent_model: "sub-provider/sub-model", subagent_variant: "gone" },
     }).pipe(
       Effect.tap((result) =>
@@ -491,7 +491,7 @@ describe("tool.task model resolution", () => {
 
   it.live("no file and no agent config inherits the parent model and variant", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       variant: inherited,
     }).pipe(
       Effect.tap((result) =>
@@ -548,7 +548,7 @@ describe("tool.task model resolution", () => {
         config: {
           ...catalog,
           agent: {
-            worker: { mode: "subagent" },
+            runner: { mode: "subagent" },
             pinned: { mode: "subagent", model: "config-provider/config-model", variant: cfgVariant },
           },
         },
@@ -556,11 +556,11 @@ describe("tool.task model resolution", () => {
     ),
   )
 
-  it.live("non-CLI client gate ignores saved worker model and uses parent", () =>
+  it.live("non-CLI client gate ignores saved runner model and uses parent", () =>
     run({
-      agent: "worker",
+      agent: "runner",
       client: "vscode",
-      state: { model: { worker: saved }, variant: { "saved-provider/saved-model": savedVariant } },
+      state: { model: { runner: saved }, variant: { "saved-provider/saved-model": savedVariant } },
     }).pipe(
       Effect.tap((result) =>
         Effect.sync(() => {

@@ -1,18 +1,17 @@
 
 ## Automatic Agent Routing
 
-Если ты сталкиваешься с задачей, которая не входит в твою компетенцию — НЕ пытайся её решить самостоятельно. Вместо этого напиши директиву роутинга в своём ответе:
+If you face a task outside your competence — do NOT try to solve it yourself. Write a routing directive in your reply:
 
-#route: <имя_агента> <краткое описание>
-<подробное описание задачи>
+#route: <agent_name> <short description>
+<detailed task description>
 
-Система автоматически направит задачу нужному агенту и вернёт результат.
-Ты получишь результат и сможешь продолжить работу.
+The system automatically routes the task to the right agent and returns the result.
+You get the result back and can continue working.
 
-Доступные агенты:
-- **auto**: Оркестратор — маршрутизирует architect → code → overseer (по умолчанию)
-- **architect**: Планирование, спецификации, acceptance criteria
-- **code**: Имплементация, рефакторинг, тестирование, отладка production-кода
-- **debug**: Систематическая диагностика, анализ root cause, разбор stacktrace
-- **overseer**: Ревью, оркестрация, контроль качества (read-only, другая модель)
-- **nocowboy**: Автоматизация, браузер, shell, файловая система
+Available agents:
+- **auto**: Dispatcher — decides which agent to run for the current task (default)
+- **planner**: Planning, specifications, acceptance criteria (read-only)
+- **worker**: Implementation, refactoring, testing, debugging of production code
+- **reviewer**: Quality verification against acceptance criteria (read-only, different model)
+- **nocowboy**: Companion — chat, ideas, questions, conversation

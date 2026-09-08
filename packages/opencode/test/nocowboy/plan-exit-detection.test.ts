@@ -341,7 +341,7 @@ describe("plan_exit detection", () => {
           PlanFollowup.ANSWER_REFINE,
         ])
         expect(question.questions[0].options.find((item) => item.label === PlanFollowup.ANSWER_CONTINUE)?.mode).toBe(
-          "code",
+          "worker",
         )
         await questions.reject(question.id)
         await expect(pending).resolves.toBe("break")
@@ -388,7 +388,7 @@ describe("plan_exit detection", () => {
         .find((m) => m.info.role === "user")
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
     }))
 
   test("plan agent completion without plan_exit does NOT trigger PlanFollowup", () =>
@@ -621,7 +621,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: seeded.sessionID,
           time: { created: Date.now() },
-          agent: "Architect",
+          agent: "Planner",
           model,
         },
         parts: [
@@ -635,7 +635,7 @@ describe("plan_exit detection", () => {
         ],
       }
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "Architect", options: {} },
+        agent: { name: "Planner", options: {} },
         session,
         userMessage: user,
         messages: [...seeded.messages, user],
@@ -659,7 +659,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: session.id,
           time: { created: Date.now() },
-          agent: "architect",
+          agent: "planner",
           model,
         },
         parts: [
@@ -674,7 +674,7 @@ describe("plan_exit detection", () => {
       }
 
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "architect", options: {} },
+        agent: { name: "planner", options: {} },
         session,
         userMessage: user,
         messages: [user],
@@ -711,7 +711,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: seeded.sessionID,
           time: { created: Date.now() },
-          agent: "architect",
+          agent: "planner",
           model,
         },
         parts: [
@@ -725,7 +725,7 @@ describe("plan_exit detection", () => {
         ],
       }
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "architect", options: {} },
+        agent: { name: "planner", options: {} },
         session,
         userMessage: user,
         messages: [...seeded.messages, user],
@@ -738,7 +738,7 @@ describe("plan_exit detection", () => {
       expect(text).not.toContain("No plan file exists yet")
     }))
 
-  test("architect reminder prefers project plan path instructions over fallback", () =>
+  test("planner reminder prefers project plan path instructions over fallback", () =>
     withInstance(async () => {
       const session = await sessions.create({})
       const id = MessageID.ascending()
@@ -748,7 +748,7 @@ describe("plan_exit detection", () => {
           role: "user",
           sessionID: session.id,
           time: { created: Date.now() },
-          agent: "Architect",
+          agent: "Planner",
           model,
         },
         parts: [
@@ -763,7 +763,7 @@ describe("plan_exit detection", () => {
       }
 
       await NoCowboySessionPrompt.insertPlanReminders({
-        agent: { name: "Architect", options: {} },
+        agent: { name: "Planner", options: {} },
         session,
         userMessage: user,
         messages: [user],

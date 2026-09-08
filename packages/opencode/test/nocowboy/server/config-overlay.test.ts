@@ -284,7 +284,7 @@ describe("config overlay routes", () => {
     await setGlobal(global.path, { permission: { edit: "allow" } })
 
     const before = await json<Agent[]>(await req(project.path, "/agent"))
-    expect(Permission.evaluate("edit", "*", before.find((item) => item.name === "code")?.permission ?? []).action).toBe(
+    expect(Permission.evaluate("edit", "*", before.find((item) => item.name === "worker")?.permission ?? []).action).toBe(
       "allow",
     )
 
@@ -302,7 +302,7 @@ describe("config overlay routes", () => {
     const after = await json<Agent[]>(await req(project.path, "/agent"))
 
     expect(typeof edit === "string" ? edit : edit["*"]).toBe("ask")
-    expect(Permission.evaluate("edit", "*", after.find((item) => item.name === "code")?.permission ?? []).action).toBe(
+    expect(Permission.evaluate("edit", "*", after.find((item) => item.name === "worker")?.permission ?? []).action).toBe(
       "ask",
     )
     expect(body.collections.permission.find((item) => item.key === "edit")).toMatchObject({
@@ -317,7 +317,7 @@ describe("config overlay routes", () => {
     await setGlobal(global.path, { permission: { edit: "allow" } })
 
     const before = await json<Agent[]>(await req(project.path, "/agent"))
-    expect(Permission.evaluate("edit", "*", before.find((item) => item.name === "code")?.permission ?? []).action).toBe(
+    expect(Permission.evaluate("edit", "*", before.find((item) => item.name === "worker")?.permission ?? []).action).toBe(
       "allow",
     )
 
@@ -335,7 +335,7 @@ describe("config overlay routes", () => {
     const after = await json<Agent[]>(await req(project.path, "/agent"))
 
     expect(typeof edit === "string" ? edit : edit["*"]).toBe("ask")
-    expect(Permission.evaluate("edit", "*", after.find((item) => item.name === "code")?.permission ?? []).action).toBe(
+    expect(Permission.evaluate("edit", "*", after.find((item) => item.name === "worker")?.permission ?? []).action).toBe(
       "ask",
     )
   })
@@ -381,7 +381,7 @@ describe("config overlay routes", () => {
 
         const before = await json<Agent[]>(await request(target, project.path, "/agent"))
         expect(
-          Permission.evaluate("edit", "*", before.find((item) => item.name === "code")?.permission ?? []).action,
+          Permission.evaluate("edit", "*", before.find((item) => item.name === "worker")?.permission ?? []).action,
         ).toBe("ask")
 
         await json(
@@ -394,7 +394,7 @@ describe("config overlay routes", () => {
         const after = await json<Agent[]>(await request(target, project.path, "/agent"))
 
         expect(
-          Permission.evaluate("edit", "*", after.find((item) => item.name === "code")?.permission ?? []).action,
+          Permission.evaluate("edit", "*", after.find((item) => item.name === "worker")?.permission ?? []).action,
         ).toBe("allow")
       },
     )

@@ -10,7 +10,7 @@
  *   2. mode  — lost in the same merge cycle (c37f85386f + 5bb42b6bdb),
  *      restored in the ionized-emmental branch.
  *
- * The plan follow-up "Continue here" option relies on `mode: "code"` being
+ * The plan follow-up "Continue here" option relies on `mode: "worker"` being
  * present at the schema level so Effect Schema's decodeUnknownSync does not
  * strip the field before the question is published via SSE, and so the
  * generated SDK / OpenAPI spec expose the field to VS Code.
@@ -29,9 +29,9 @@ const SOURCE = path.resolve(import.meta.dir, "../../src/question/index.ts")
 
 describe("QuestionOption schema — NoCowboy-specific field contract", () => {
   test("Option class accepts and round-trips the mode field", () => {
-    const raw = { label: "Continue here", description: "Implement the plan in this session", mode: "code" }
+    const raw = { label: "Continue here", description: "Implement the plan in this session", mode: "worker" }
     const decoded = Schema.decodeUnknownSync(Option)(raw)
-    expect(decoded.mode).toBe("code")
+    expect(decoded.mode).toBe("worker")
   })
 
   test("mode is optional — Option without it decodes cleanly", () => {

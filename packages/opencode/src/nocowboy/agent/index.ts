@@ -9,14 +9,12 @@ import { Schema } from "effect"
 import path from "path"
 import { Global } from "@nocowboy/core/global"
 
-import PROMPT_DEBUG from "../../agent/prompt/debug.txt"
-import PROMPT_DEBUG_RU from "../../agent/prompt/debug.ru.txt"
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
 import PROMPT_NOCOWBOY_RU from "../../agent/prompt/nocowboy.ru.txt"
-import PROMPT_OVERSEER from "../../agent/prompt/overseer.txt"
-import PROMPT_OVERSEER_RU from "../../agent/prompt/overseer.ru.txt"
-import PROMPT_CODE from "../../agent/prompt/code.txt"
-import PROMPT_CODE_RU from "../../agent/prompt/code.ru.txt"
+import PROMPT_REVIEWER from "../../agent/prompt/reviewer.txt"
+import PROMPT_REVIEWER_RU from "../../agent/prompt/reviewer.ru.txt"
+import PROMPT_WORKER from "../../agent/prompt/worker.txt"
+import PROMPT_WORKER_RU from "../../agent/prompt/worker.ru.txt"
 import PROMPT_COMPACTION from "../../agent/prompt/compaction.txt"
 import PROMPT_COMPACTION_RU from "../../agent/prompt/compaction.ru.txt"
 import PROMPT_TITLE from "../../agent/prompt/title.txt"
@@ -27,10 +25,8 @@ import PROMPT_ROUTER from "../../agent/prompt/router.txt"
 import PROMPT_ROUTER_RU from "../../agent/prompt/router.ru.txt"
 import PROMPT_AUTO from "../../agent/prompt/auto.txt"
 import PROMPT_AUTO_RU from "../../agent/prompt/auto.ru.txt"
-import PROMPT_ARCHITECT from "../../agent/prompt/architect.txt"
-import PROMPT_ARCHITECT_RU from "../../agent/prompt/architect.ru.txt"
-import PROMPT_GOAL from "../../agent/prompt/goal.txt"
-import PROMPT_GOAL_RU from "../../agent/prompt/goal.ru.txt"
+import PROMPT_PLANNER from "../../agent/prompt/planner.txt"
+import PROMPT_PLANNER_RU from "../../agent/prompt/planner.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -189,16 +185,31 @@ export function cacheKey(cfg: Config.Info) {
   })
 }
 
-// Map "build" config key to "code" for backward compatibility.
+// Map legacy agent names to the current set for backward compatibility:
+// the old four-persona set (build/general/code/debug → worker, architect →
+// planner, overseer → reviewer) is folded into the simplified NoCowboy set.
 export function resolveKey(name: string): string {
-  return name === "general" ? "code" : name === "build" ? "code" : name
+  switch (name) {
+    case "general":
+    case "build":
+    case "code":
+    case "debug":
+      return "worker"
+    case "architect":
+      return "planner"
+    case "overseer":
+      return "reviewer"
+    default:
+      return name
+  }
 }
 
-// Remap "build" → "code" in agent config entries for backward compat in the config loop.
+// Remap legacy keys to their current agent names in config entries for
+// backward compat in the config loop.
 export function preprocessConfig<T>(agentConfig: Record<string, T>): Record<string, T> {
   const result: Record<string, T> = {}
   for (const [key, value] of Object.entries(agentConfig)) {
-    result[key === "build" ? "code" : key] = value
+    result[resolveKey(key)] = value
   }
   return result
 }
@@ -247,12 +258,11 @@ export function telemetryOptions(_cfg: Config.Info) {
 }
 
 // Patch the base agents map in-place with NoCowboy changes:
-// - Rename build → code
-// - Remove upstream unused agents: general, explore, scout, plan
-// - Rewrite nocowboy as OpenClaw-style general-purpose assistant
-// - Add overseer (Traycer-like review/orchestration agent)
-// - Add jurist (Russian IT law specialist)
-// - Keep debug
+// - Fold upstream "build" into worker; remove upstream unused agents:
+//   general, explore, scout, plan
+// - Simplified agent set: auto (dispatcher), planner, worker, reviewer,
+//   nocowboy (companion) — nothing else is a first-class persona
+// - planner/reviewer are read-only; reviewer runs a different model
 export function patchAgents(
   agents: Record<
     string,
@@ -310,14 +320,14 @@ export function patchAgents(
     return hardcoded
   }
 
-  // Rename "build" → "code" for backward compatibility
+  // Upstream default coding agent "build" becomes NoCowboy's "worker".
   if (agents.build) {
-    agents.code = {
+    agents.worker = {
       ...agents.build,
-      name: "code",
-      description: "Primary coding agent — writes, refactors, tests, debugs",
-      prompt: (lang === "ru" ? PROMPT_CODE_RU : PROMPT_CODE) + routerPrompt,
-      model: resolveModel("code", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
+      name: "worker",
+      description: "Primary engineering agent — implements, refactors, tests, debugs",
+      prompt: (lang === "ru" ? PROMPT_WORKER_RU : PROMPT_WORKER) + routerPrompt,
+      model: resolveModel("worker", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
       permission: Permission.merge(
         defaults,
         agents.build.permission,
@@ -333,10 +343,11 @@ export function patchAgents(
     delete agents[name]
   }
 
-  // Add nocowboy — OpenClaw-style general-purpose automation agent
+  // Add nocowboy — companion agent. Chat, ideas, questions, conversation.
+  // Technical work is delegated to planner/worker/reviewer via #route.
   agents.nocowboy = {
     name: "nocowboy",
-    description: "Browser, filesystem, shell — full system automation",
+    description: "Companion — chat, brainstorming, questions, conversations. The soul of NoCowboy.",
     prompt: (lang === "ru" ? PROMPT_NOCOWBOY_RU : PROMPT_NOCOWBOY) + routerPrompt,
     model: resolveModel("nocowboy", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
@@ -345,12 +356,12 @@ export function patchAgents(
     native: true,
   }
 
-  // Add overseer — Traycer-like review/orchestration agent
-  agents.overseer = {
-    name: "overseer",
-    description: "Orchestrates code agent + cross-model review. Read-only.",
-    prompt: (lang === "ru" ? PROMPT_OVERSEER_RU : PROMPT_OVERSEER) + routerPrompt,
-    model: resolveModel("overseer", { providerID: "nocowboy", modelID: "kimi-k2-thinking" }),
+  // Add reviewer — Traycer-like review/verification agent. Read-only.
+  agents.reviewer = {
+    name: "reviewer",
+    description: "Reviews work against acceptance criteria. Cross-model, read-only.",
+    prompt: (lang === "ru" ? PROMPT_REVIEWER_RU : PROMPT_REVIEWER) + routerPrompt,
+    model: resolveModel("reviewer", { providerID: "nocowboy", modelID: "kimi-k2-thinking" }),
     options: {},
     permission: Permission.merge(
       defaults,
@@ -368,53 +379,26 @@ export function patchAgents(
     native: true,
   }
 
-  // Add debug agent
-  agents.debug = {
-    name: "debug",
-    description: "Systematic bug diagnosis and root cause analysis",
-    prompt: (lang === "ru" ? PROMPT_DEBUG_RU : PROMPT_DEBUG) + routerPrompt,
-    model: resolveModel("debug", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
-    options: {},
-    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow", semantic_search: "allow" }), user, META_TOOLS),
-    mode: "primary",
-    native: true,
-  }
-
-  // Add architect agent — planning and specification
-  agents.architect = {
-    name: "architect",
+  // Add planner agent — planning and specification (was architect)
+  agents.planner = {
+    name: "planner",
     description: "Planning, specification, acceptance criteria — read-only",
-    prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT),
-    model: resolveModel("architect", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
+    prompt: (lang === "ru" ? PROMPT_PLANNER_RU : PROMPT_PLANNER),
+    model: resolveModel("planner", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }
 
-  // Add Auto agent — orchestrator, default agent
+  // Add Auto agent — dispatcher, default agent. Decides which agent to start.
   agents.auto = {
     name: "auto",
-    description: "Orchestrator — routes to architect → code → overseer automatically",
+    description: "Dispatcher — decides which agent to run for the current task",
     prompt: (lang === "ru" ? PROMPT_AUTO_RU : PROMPT_AUTO),
     model: resolveModel("auto", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
-    mode: "primary",
-    native: true,
-  }
-
-  // Add Goal agent — autonomous execution until condition is met.
-  // Uses goal_set/goal_clear tools to arm the goal loop: after each turn a
-  // judge model checks the condition and the loop auto-continues until it
-  // holds, is impossible, or the turn budget is exhausted.
-  agents.goal = {
-    name: "goal",
-    description: "Autonomous goal-driven agent — works across turns until the condition is met",
-    prompt: (lang === "ru" ? PROMPT_GOAL_RU : PROMPT_GOAL) + routerPrompt,
-    model: resolveModel("goal", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
-    options: {},
-    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", goal_set: "allow", goal_clear: "allow", team_spawn: "allow" }), user, META_TOOLS),
     mode: "primary",
     native: true,
   }

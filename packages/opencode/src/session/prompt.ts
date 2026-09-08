@@ -421,7 +421,7 @@ export const layer = Layer.effect(
           messages: input.messages,
         }),
       )
-      // Upstream plan mode feature removed — replaced by architect agent.
+      // Upstream plan mode feature removed — replaced by the planner agent.
       return input.messages
     })
 

@@ -10,6 +10,9 @@ describe("ModesMigrator", () => {
       expect(ModesMigrator.isDefaultMode("build")).toBe(true)
       expect(ModesMigrator.isDefaultMode("architect")).toBe(true)
       expect(ModesMigrator.isDefaultMode("debug")).toBe(true)
+      expect(ModesMigrator.isDefaultMode("worker")).toBe(true)
+      expect(ModesMigrator.isDefaultMode("planner")).toBe(true)
+      expect(ModesMigrator.isDefaultMode("reviewer")).toBe(true)
     })
 
     test("returns false for upstream defaults not in NoCowboy set", () => {
@@ -20,7 +23,6 @@ describe("ModesMigrator", () => {
     test("returns false for custom modes", () => {
       expect(ModesMigrator.isDefaultMode("translate")).toBe(false)
       expect(ModesMigrator.isDefaultMode("my-custom-mode")).toBe(false)
-      expect(ModesMigrator.isDefaultMode("reviewer")).toBe(false)
     })
   })
 
@@ -304,9 +306,9 @@ describe("ModesMigrator", () => {
     roleDefinition: Translator
     groups:
       - read
-  - slug: reviewer
-    name: Reviewer
-    roleDefinition: Code reviewer
+  - slug: auditor
+    name: Auditor
+    roleDefinition: Code auditor
     groups:
       - read
       - edit`,
@@ -318,7 +320,27 @@ describe("ModesMigrator", () => {
 
       expect(Object.keys(result.agents)).toHaveLength(2)
       expect(result.agents).toHaveProperty("translate")
-      expect(result.agents).toHaveProperty("reviewer")
+      expect(result.agents).toHaveProperty("auditor")
+    })
+
+    test("skips current native agent names as custom modes", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await Bun.write(
+            path.join(dir, ".nocowboy-modes"),
+            `customModes:
+  - slug: reviewer
+    name: Reviewer
+    roleDefinition: Code reviewer
+    groups:
+      - read`,
+          )
+        },
+      })
+
+      const result = await ModesMigrator.migrate({ projectDir: tmp.path, skipGlobalPaths: true })
+
+      expect(Object.keys(result.agents)).toHaveLength(0)
     })
   })
 })

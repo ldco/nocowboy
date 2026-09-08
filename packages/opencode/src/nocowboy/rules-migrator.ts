@@ -11,8 +11,9 @@ export namespace RulesMigrator {
   const KILO_RULES_DIRS = [".nocowboy/rules"]
   const globalRulesDirs = () => [path.join(home(), ".nocowboy", "rules")]
 
-  // Known modes for mode-specific rule discovery
-  const KNOWN_MODES = ["code", "architect", "debug"]
+  // Known modes for mode-specific rule discovery (current NoCowboy names +
+  // legacy aliases from the pre-simplification persona set)
+  const KNOWN_MODES = ["code", "architect", "debug", "worker", "planner", "reviewer"]
 
   export interface RuleFile {
     path: string

@@ -334,7 +334,7 @@ describe("plan follow-up", () => {
       if (!q) return
 
       const continueOpt = q.options.find((o) => o.label === PlanFollowup.ANSWER_CONTINUE)
-      expect(continueOpt?.mode).toBe("code")
+      expect(continueOpt?.mode).toBe("worker")
 
       // Start new session should not carry a mode (it opens a new session — the
       // current picker is irrelevant once the session switches).
@@ -424,9 +424,9 @@ describe("plan follow-up", () => {
   test("ask - returns continue and creates code message on Continue here", () =>
     withInstance(async () => {
       const get = spyOn(PlanFollowupRuntime, "agent").mockImplementation(async (name: string) => {
-        if (name === "code") {
+        if (name === "worker") {
           return {
-            name: "code",
+            name: "worker",
             mode: "primary",
             permission: [],
             options: {},
@@ -464,7 +464,7 @@ describe("plan follow-up", () => {
       const user = await latestUser(seeded.sessionID)
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
       expect(user.info.model).toEqual({ ...saved, variant: configVar })
 
       const part = user.parts.find((item) => item.type === "text")
@@ -497,7 +497,7 @@ describe("plan follow-up", () => {
       const user = await latestUser(seeded.sessionID)
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("plan")
+      expect(user.info.agent).toBe("planner")
 
       const part = user.parts.find((item) => item.type === "text")
       expect(part?.type).toBe("text")
@@ -544,9 +544,9 @@ describe("plan follow-up", () => {
   test("ask - creates a new session on Start new session with handover and todos", () =>
     withInstance(async () => {
       const get = spyOn(PlanFollowupRuntime, "agent").mockImplementation(async (name: string) => {
-        if (name === "code") {
+        if (name === "worker") {
           return {
-            name: "code",
+            name: "worker",
             mode: "primary",
             permission: [],
             options: {},
@@ -573,8 +573,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: {
             cwd: "/tmp",
             root: "/tmp",
@@ -668,7 +668,7 @@ describe("plan follow-up", () => {
       const user = messages.find((item) => item.info.role === "user")
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") throw new Error("expected seeded user message")
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
       expect(user.info.model).toEqual({ ...saved, variant: configVar })
 
       const part = user.parts.find((item) => item.type === "text")
@@ -706,8 +706,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: {
@@ -791,9 +791,9 @@ describe("plan follow-up", () => {
         variant: { [savedKey]: savedVar },
       })
       const get = spyOn(PlanFollowupRuntime, "agent").mockImplementation(async (name: string) => {
-        if (name === "code") {
+        if (name === "worker") {
           return {
-            name: "code",
+            name: "worker",
             mode: "primary",
             permission: [],
             options: {},
@@ -837,7 +837,7 @@ describe("plan follow-up", () => {
       const user = await latestUser(seeded.sessionID)
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
       expect(user.info.model).toEqual({ ...saved, variant: savedVar })
     }))
 
@@ -845,9 +845,9 @@ describe("plan follow-up", () => {
     withInstance(async () => {
       await writeState({ model: { code: { providerID: ProviderID.make("missing"), modelID: ModelID.make("ghost") } } })
       const get = spyOn(PlanFollowupRuntime, "agent").mockImplementation(async (name: string) => {
-        if (name === "code") {
+        if (name === "worker") {
           return {
-            name: "code",
+            name: "worker",
             mode: "primary",
             permission: [],
             options: {},
@@ -890,14 +890,14 @@ describe("plan follow-up", () => {
       const user = await latestUser(seeded.sessionID)
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
       expect(user.info.model).toEqual({ ...config, variant: configVar })
     }))
 
   test("ask - falls back to planning model when no saved or configured code model exists", () =>
     withInstance(async () => {
       const get = spyOn(PlanFollowupRuntime, "agent").mockImplementation(async (name: string) => {
-        if (name === "code") return undefined as any
+        if (name === "worker") return undefined as any
         return undefined as any
       })
       using _ = {
@@ -926,7 +926,7 @@ describe("plan follow-up", () => {
       const user = await latestUser(seeded.sessionID)
       expect(user?.info.role).toBe("user")
       if (!user || user.info.role !== "user") return
-      expect(user.info.agent).toBe("code")
+      expect(user.info.agent).toBe("worker")
       expect(user.info.model).toEqual({ ...model, variant: planVar })
     }))
 
@@ -941,8 +941,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: {
@@ -1012,8 +1012,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: { total: 0, input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
@@ -1138,8 +1138,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: {
@@ -1221,8 +1221,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: { total: 0, input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
@@ -1322,8 +1322,8 @@ describe("plan follow-up", () => {
           parentID: MessageID.make("msg_parent"),
           modelID: ModelID.make("test"),
           providerID: ProviderID.make("test"),
-          mode: "code",
-          agent: "code",
+          mode: "worker",
+          agent: "worker",
           path: { cwd: "/tmp", root: "/tmp" },
           cost: 0,
           tokens: { total: 0, input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },

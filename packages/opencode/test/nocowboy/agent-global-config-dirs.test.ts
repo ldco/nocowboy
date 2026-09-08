@@ -8,11 +8,11 @@ import { Global } from "@nocowboy/core/global"
 
 const it = testEffect(Agent.defaultLayer)
 
-it.instance("code agent allows global config directory reads by default", () =>
+it.instance("worker agent allows global config directory reads by default", () =>
   Effect.gen(function* () {
     const agent = yield* Agent.Service
-    const code = yield* agent.get("code")
-    expect(code).toBeDefined()
-    expect(Permission.evaluate("external_directory", `${Global.Path.config}/*`, code!.permission).action).toBe("allow")
+    const worker = yield* agent.get("worker")
+    expect(worker).toBeDefined()
+    expect(Permission.evaluate("external_directory", `${Global.Path.config}/*`, worker!.permission).action).toBe("allow")
   }),
 )

@@ -435,10 +435,14 @@ export const layer = Layer.effect(
             if (agent.hidden === true) throw new Error(`default agent "${c.default_agent}" is hidden`)
             return agent
           }
+          // NoCowboy: default is the auto dispatcher. nocowboy is a companion,
+          // worker is the engineering fallback.
+          const auto = agents.auto
+          if (auto && auto.mode !== "subagent" && auto.hidden !== true) return auto
           const nc = agents.nocowboy
           if (nc && nc.mode !== "subagent" && nc.hidden !== true) return nc
-          const code = agents.code
-          if (code && code.mode !== "subagent" && code.hidden !== true) return code
+          const worker = agents.worker
+          if (worker && worker.mode !== "subagent" && worker.hidden !== true) return worker
           const visible = Object.values(agents).find((a) => a.mode !== "subagent" && a.hidden !== true)
           if (!visible) throw new Error("no primary visible agent found")
           return visible

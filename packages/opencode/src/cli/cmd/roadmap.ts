@@ -41,7 +41,7 @@ interface Feature { id: string; title: string; status: string; version?: string;
 interface Version { tag: string; date?: string; description: string }
 interface RoadmapData { versions: Version[]; features: Feature[] }
 
-const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "overseer"]
+const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "reviewer"]
 const VALID_STATUSES = ["done", "planned", "in_progress", "backlog", "abandoned", "blocked"]
 
 function loadRoadmap(): RoadmapData | null {
@@ -92,7 +92,7 @@ const ROADMAP_TEMPLATE_MD = `# ROADMAP.md
 >
 > 📋 Roadmap-верификация NoCowboy. Как пользоваться:
 >   • \`/backlog-promote "feature"\` → добавить фичу с acceptance criteria
->   • Разработать → \`#route overseer: verify\` → attestation
+>   • Разработать → \`#route reviewer: verify\` → attestation
 >   • Только PASS → DONE → коммит с \`nocowboy roadmap verify\`
 
 _No features planned yet. Add them to \`docs/roadmap.json\`._
@@ -120,7 +120,7 @@ function initRoadmap(force: boolean): boolean {
   // Also create docs/attestations directory
   if (!existsSync(ATTESTATIONS_DIR)) {
     mkdirSync(ATTESTATIONS_DIR, { recursive: true })
-    writeFileSync(join(ATTESTATIONS_DIR, "README.md"), `# Attestations\n\nPlace overseer attestation files here: \`docs/attestations/<version>/<feature-id>.md\`\n`)
+    writeFileSync(join(ATTESTATIONS_DIR, "README.md"), `# Attestations\n\nPlace reviewer attestation files here: \`docs/attestations/<version>/<feature-id>.md\`\n`)
   }
 
   // Generate initial .md docs
@@ -272,7 +272,7 @@ function checkAgent(version: string, name: string): string | null {
 
 function checkOverseer(version: string, name: string, id: string, criteria: AcceptanceCriterion[] | undefined): string | null {
   const file = join(ATTESTATIONS_DIR, version, `${id}.md`)
-  if (!existsSync(file)) return `overseer attestation not found: ${file}\n  Run overseer agent to verify this feature first.`
+  if (!existsSync(file)) return `reviewer attestation not found: ${file}\n  Run reviewer agent to verify this feature first.`
   const content = readFileSync(file, "utf-8").trim()
   if (!content) return `attestation is empty: ${file}`
   const lines = content.split("\n")
@@ -281,12 +281,12 @@ function checkOverseer(version: string, name: string, id: string, criteria: Acce
   const hasFail = verdictLine ? /FAIL/i.test(verdictLine) : false
   const isTemplate = verdictLine && !isPass && !hasFail
   if (isTemplate) return `attestation has default verdict (not PASS/FAIL): ${file}`
-  if (!isPass) return `overseer attestation FAILED or missing PASS verdict: ${file}`
+  if (!isPass) return `reviewer attestation FAILED or missing PASS verdict: ${file}`
   if (criteria && criteria.length > 0) {
     const criticalCriteria = criteria.filter(c => c.critical)
     const passCount = (content.match(/✅/g) || []).length
     if (passCount < criticalCriteria.length && content.includes("❌")) {
-      return `overseer attestation has failing critical criteria: ${file}`
+      return `reviewer attestation has failing critical criteria: ${file}`
     }
   }
   return null
@@ -300,7 +300,7 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
     case "typecheck": return checkTypecheck()
     case "cmd": return checkCmd(v.command ?? v.path ?? "")
     case "agent": return checkAgent(feat.version ?? "unknown", feat.title)
-    case "overseer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria)
+    case "reviewer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria)
     default: return `unknown verify type: ${v.type}`
   }
 }

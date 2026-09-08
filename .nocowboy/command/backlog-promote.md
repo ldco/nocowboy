@@ -11,11 +11,11 @@ Process:
    - Формального шаблона: check (что работает), verify (как проверить), critical (блокирует ли DONE)
    - Анализа кода: какие модули/файлы нужно создать или изменить
 4. Добавляет фичу в roadmap.json со статусом "planned"
-5. Добавляет verify-директиву: {"type": "overseer"}
+5. Добавляет verify-директиву: {"type": "reviewer"}
 
 После promote — предложи пользователю создать spec:
 
-> `/backlog-spec <feature-id>` — architect напишет детальный spec
+> `/backlog-spec <feature-id>` — planner напишет детальный spec
 > `/fast` — сделать сразу без spec (только для простых задач)
 
 Шаблон acceptance_criteria:
@@ -23,17 +23,17 @@ Process:
 "acceptance_criteria": [
   {
     "check": "Конкретное описание что должно работать",
-    "verify": "Как overseer это проверит (unit-тест, grep, чтение кода)",
+    "verify": "Как reviewer это проверит (unit-тест, grep, чтение кода)",
     "critical": true
   }
 ]
 ```
 
-Универсальные критерии (typecheck, test, file-exists) добавляются автоматически — architect их НЕ пишет.
+Универсальные критерии (typecheck, test, file-exists) добавляются автоматически — planner их НЕ пишет.
 
 Usage:
 `/backlog-promote <feature-title>`
 
 Пример:
 `/backlog-promote "YandexGPT / GigaChat провайдеры"`
-→ architect читает описание, смотрит код, генерирует criteria, добавляет в roadmap.json
+→ planner читает описание, смотрит код, генерирует criteria, добавляет в roadmap.json

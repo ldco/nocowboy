@@ -209,7 +209,7 @@ export namespace PlanFollowup {
       }
     }
 
-    const entry = await PlanFollowupRuntime.agent("code")
+    const entry = await PlanFollowupRuntime.agent("worker")
     if (entry?.model) {
       const full = await PlanFollowupRuntime.model(entry.model.providerID, entry.model.modelID).catch(() => undefined)
       if (full) {
@@ -317,7 +317,7 @@ export namespace PlanFollowup {
               labelKey: "plan.followup.answer.continue",
               description: "Implement the plan in this session",
               descriptionKey: "plan.followup.answer.continue.description",
-              mode: "code",
+              mode: "worker",
             },
             {
               label: ANSWER_REFINE,
@@ -409,7 +409,7 @@ export namespace PlanFollowup {
             sessionID: next.id,
             role: "user",
             time: { created: Date.now() },
-            agent: "code",
+            agent: "worker",
             model: code.model,
           }
           const pid = PartID.ascending()
@@ -537,7 +537,7 @@ export namespace PlanFollowup {
       })
       const msg = await inject({
         sessionID: input.sessionID,
-        agent: "code",
+        agent: "worker",
         model: code.model,
         text: "Implement the plan above.",
       })
@@ -549,7 +549,7 @@ export namespace PlanFollowup {
       Telemetry.trackPlanFollowup()
       const msg = await inject({
         sessionID: input.sessionID,
-        agent: "plan",
+        agent: "planner",
         model: user.model,
         text: "Continue refining the plan.",
       })
@@ -560,7 +560,7 @@ export namespace PlanFollowup {
     Telemetry.trackPlanFollowup()
     const msg = await inject({
       sessionID: input.sessionID,
-      agent: "plan",
+      agent: "planner",
       model: user.model,
       text: answer,
     })

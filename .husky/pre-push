@@ -1,1 +1,20 @@
-cd packages/opencode && bun test test/nocowboy/ --concurrency 2 2>&1 | grep -E "^(test/|\(pass|\(fail|\(skip|Ran |error:)" || true
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+# pre-push gate: fast typecheck.
+# NOTE: the previous hook ran the full `test/nocowboy/` suite (~7 min), which
+# outlived GitHub's SSH keep-alive and made every push fail with
+# "Connection to github.com closed by remote host". Heavy/nightly test runs
+# belong in CI, not in the push path. Typecheck stays as the blocking gate.
+
+echo "pre-push: running typecheck (packages/opencode)..."
+
+if [ -f "$ROOT/packages/opencode/package.json" ]; then
+  (cd "$ROOT/packages/opencode" && bun run typecheck)
+else
+  echo "pre-push: packages/opencode not found, skipping typecheck"
+fi
+
+echo "pre-push: typecheck passed."
