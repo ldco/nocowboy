@@ -15,7 +15,14 @@ function detectProjectRoot(): string {
   
   // 2. Try from git root
   try {
-    const gitRoot = execSync("git rev-parse --show-toplevel", { encoding: "utf-8", timeout: 5000 }).trim()
+    const gitRoot = execSync("git rev-parse --show-toplevel", {
+      encoding: "utf-8",
+      timeout: 5000,
+      // Suppress git's stderr: outside a repo this prints a scary "fatal: not a
+      // git repository" even though we handle the failure. NoCowboy works fine
+      // outside git — don't leak that message to the user's terminal.
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim()
     if (existsSync(join(gitRoot, "docs", "roadmap.json"))) return gitRoot
     // Use git root anyway - user can create roadmap there
     return gitRoot

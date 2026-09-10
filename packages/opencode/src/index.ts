@@ -33,8 +33,6 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
-import path from "path"
-import { Global } from "@nocowboy/core/global"
 import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@/storage/db"
 import { errorMessage } from "./util/error"
@@ -122,7 +120,11 @@ let cli = yargs(args)
 
     await NocowboyCli.bootstrap()
 
-    const marker = path.join(Global.Path.data, "nocowboy.db")
+    // nocowboy_change - the marker must be the channel-aware database path. The old
+    // hardcoded "nocowboy.db" only matches prod/latest channels; dev/local use
+    // "nocowboy-<channel>.db", so the one-time JSON migration never found its marker and
+    // re-ran on every startup.
+    const marker = Database.getPath()
     if (!(await Filesystem.exists(marker))) {
       const tty = process.stderr.isTTY
       process.stderr.write("Performing one time database migration, may take a few minutes..." + EOL)

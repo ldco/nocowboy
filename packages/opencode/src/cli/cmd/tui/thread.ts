@@ -41,37 +41,42 @@ async function start(input: TuiInput) {
     const projectRoot = process.cwd()
     const roadmapPath = join(projectRoot, "docs", "roadmap.json")
     if (!existsSync(roadmapPath)) {
-      // Check if we're in a git repo (saveguard)
+      // Check if we're in a git repo (saveguard). Outside git we skip roadmap
+      // auto-init — but must NOT bail out of start(), or the TUI never launches.
       const { execSync } = await import("child_process")
-      try {
-        execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore", timeout: 5000 })
-      } catch {
-        // Not a git repo — don't create a roadmap
-        return
-      }
-      const docsDir = join(projectRoot, "docs")
-      if (!existsSync(docsDir)) mkdirSync(docsDir, { recursive: true })
-      const attestationsDir = join(docsDir, "attestations")
-      if (!existsSync(attestationsDir)) mkdirSync(attestationsDir, { recursive: true })
+      const inGitRepo = (() => {
+        try {
+          execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore", timeout: 5000 })
+          return true
+        } catch {
+          return false
+        }
+      })()
+      if (inGitRepo) {
+        const docsDir = join(projectRoot, "docs")
+        if (!existsSync(docsDir)) mkdirSync(docsDir, { recursive: true })
+        const attestationsDir = join(docsDir, "attestations")
+        if (!existsSync(attestationsDir)) mkdirSync(attestationsDir, { recursive: true })
 
-      const template = {
-        versions: [{ tag: "v0.1.0", description: "Initial" }],
-        features: [],
-      }
-      writeFileSync(roadmapPath, JSON.stringify(template, null, 2) + "\n", "utf-8")
+        const template = {
+          versions: [{ tag: "v0.1.0", description: "Initial" }],
+          features: [],
+        }
+        writeFileSync(roadmapPath, JSON.stringify(template, null, 2) + "\n", "utf-8")
 
-      // Generate minimal .md files (only if they don't already exist)
-      const generateIfMissing = (file: string, content: string) => {
-        if (!existsSync(file)) writeFileSync(file, content, "utf-8")
-      }
-      const roadmapMd = join(docsDir, "ROADMAP.md")
-      const changelogMd = join(docsDir, "CHANGELOG.md")
-      const backlogMd = join(docsDir, "BACKLOG.md")
-      const genNotice = "> generated from docs/roadmap.json — do not edit directly. Run `nocowboy roadmap generate`.\n\n"
+        // Generate minimal .md files (only if they don't already exist)
+        const generateIfMissing = (file: string, content: string) => {
+          if (!existsSync(file)) writeFileSync(file, content, "utf-8")
+        }
+        const roadmapMd = join(docsDir, "ROADMAP.md")
+        const changelogMd = join(docsDir, "CHANGELOG.md")
+        const backlogMd = join(docsDir, "BACKLOG.md")
+        const genNotice = "> generated from docs/roadmap.json — do not edit directly. Run `nocowboy roadmap generate`.\n\n"
 
-      generateIfMissing(roadmapMd, `# ROADMAP.md\n${genNotice}_No features planned yet. Add them to \`docs/roadmap.json\`._\n`)
-      generateIfMissing(changelogMd, `# CHANGELOG.md\n${genNotice}_No releases yet._\n`)
-      generateIfMissing(backlogMd, `# BACKLOG.md\n${genNotice}_Nothing in backlog._\n`)
+        generateIfMissing(roadmapMd, `# ROADMAP.md\n${genNotice}_No features planned yet. Add them to \`docs/roadmap.json\`._\n`)
+        generateIfMissing(changelogMd, `# CHANGELOG.md\n${genNotice}_No releases yet._\n`)
+        generateIfMissing(backlogMd, `# BACKLOG.md\n${genNotice}_Nothing in backlog._\n`)
+      }
     }
   } catch {
     // Silent fail — auto-init is best-effort
