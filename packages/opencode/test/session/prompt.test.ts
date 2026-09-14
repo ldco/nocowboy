@@ -429,6 +429,7 @@ it.live("loop calls LLM and returns assistant message", () =>
     }),
     { git: true, config: providerCfg },
   ),
+  30_000,
 )
 
 // kilocode_change start - replacement prompts unblock pending Question service requests
@@ -846,6 +847,7 @@ it.live("failed subtask preserves metadata on error tool state", () =>
       }),
     },
   ),
+  30_000,
 )
 
 it.live(
@@ -912,7 +914,7 @@ it.live(
           const end = Date.now() + 5_000
           while (Date.now() < end) {
             const msgs = await Effect.runPromise(MessageV2.filterCompactedEffect(chat.id))
-            const assistant = msgs.findLast((item) => item.info.role === "assistant" && item.info.agent === "code") // kilocode_change
+            const assistant = msgs.findLast((item) => item.info.role === "assistant" && item.info.agent === "worker") // kilocode_change - persona renamed build → code → worker
             const tool = assistant?.parts.find(
               (part): part is MessageV2.ToolPart => part.type === "tool" && part.tool === "task",
             )
@@ -976,6 +978,7 @@ it.live("failed task tool preserves metadata and lets the parent follow up", () 
     }),
     { git: true, config: providerCfg },
   ),
+  30_000,
 )
 // kilocode_change end
 
