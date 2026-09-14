@@ -507,3 +507,24 @@ describe("bash permission migration", () => {
     }
   })
 })
+
+// nocowboy_change — subagent hang watchdog config surface
+describe("subagent hang watchdog config", () => {
+  test("decodes the watchdog timeouts and accepts 0 to disable", () => {
+    const config = decode({
+      experimental: {
+        stream_idle_timeout_ms: 1234,
+        subagent_stall_timeout_ms: 0,
+        subagent_max_runtime_ms: 60000,
+      },
+    })
+
+    expect(config.experimental?.stream_idle_timeout_ms).toBe(1234)
+    expect(config.experimental?.subagent_stall_timeout_ms).toBe(0)
+    expect(config.experimental?.subagent_max_runtime_ms).toBe(60000)
+  })
+
+  test("rejects negative timeouts", () => {
+    expect(() => decode({ experimental: { subagent_stall_timeout_ms: -1 } })).toThrow()
+  })
+})

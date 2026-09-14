@@ -3,6 +3,7 @@ import { expect } from "bun:test"
 import { Effect, Exit, Fiber, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
 import path from "path"
+import { Activity } from "@/nocowboy/session/activity"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import * as Log from "@nocowboy/core/util/log"
@@ -118,6 +119,7 @@ const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLaye
 
 function makeHttp() {
   const deps = Layer.mergeAll(
+    Activity.defaultLayer,
     Session.defaultLayer,
     BackgroundJob.defaultLayer,
     Snapshot.defaultLayer,

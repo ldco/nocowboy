@@ -2,6 +2,7 @@ import { afterEach, describe, expect, mock, test } from "bun:test"
 import { APICallError } from "ai"
 import { Cause, Deferred, Effect, Exit, Fiber, Layer } from "effect"
 import * as Stream from "effect/Stream"
+import { Activity } from "@/nocowboy/session/activity"
 import { Bus } from "../../src/bus"
 import { Config } from "@/config/config"
 import { Image } from "@/image/image"
@@ -219,6 +220,7 @@ function cfg(compaction?: Config.Info["compaction"]) {
 }
 
 const deps = Layer.mergeAll(
+  Activity.defaultLayer,
   wide().layer,
   layer("continue"),
   Agent.defaultLayer,
@@ -274,6 +276,7 @@ function compactionProcessLayer(options?: CompactionProcessOptions) {
     Layer.provide(options?.llm ?? LLM.defaultLayer),
     Layer.provide(Permission.defaultLayer),
     Layer.provide(Agent.defaultLayer),
+    Layer.provide(Activity.defaultLayer),
     Layer.provide(options?.plugin ?? Plugin.defaultLayer),
     Layer.provide(status),
     Layer.provide(bus),

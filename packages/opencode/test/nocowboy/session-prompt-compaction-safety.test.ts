@@ -6,6 +6,7 @@ import { NodeFileSystem } from "@effect/platform-node"
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
+import { Activity } from "@/nocowboy/session/activity"
 import { Agent as AgentSvc } from "../../src/agent/agent"
 import { BackgroundJob } from "../../src/background/job"
 import { Bus } from "../../src/bus"
@@ -124,6 +125,7 @@ const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLaye
 
 function makeHttp() {
   const deps = Layer.mergeAll(
+    Activity.defaultLayer,
     Session.defaultLayer,
     BackgroundJob.defaultLayer,
     Snapshot.defaultLayer,

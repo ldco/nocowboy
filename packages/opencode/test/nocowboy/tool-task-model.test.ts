@@ -2,6 +2,7 @@ import { afterEach, beforeAll, describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
 import fs from "fs/promises"
 import path from "path"
+import { Activity } from "@/nocowboy/session/activity"
 import { Agent } from "../../src/agent/agent"
 import { BackgroundJob } from "../../src/background/job"
 import { Bus } from "../../src/bus"
@@ -98,6 +99,7 @@ const catalog = {
 
 const it = testEffect(
   Layer.mergeAll(
+    Activity.defaultLayer,
     Agent.defaultLayer,
     BackgroundJob.defaultLayer,
     Bus.defaultLayer,

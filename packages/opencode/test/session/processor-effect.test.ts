@@ -4,6 +4,7 @@ import { Cause, Effect, Exit, Fiber, Layer } from "effect"
 import path from "path"
 import type { Agent } from "../../src/agent/agent"
 import { Agent as AgentSvc } from "../../src/agent/agent"
+import { Activity } from "@/nocowboy/session/activity"
 import { Bus } from "../../src/bus"
 import { Config } from "@/config/config"
 import { Image } from "@/image/image"
@@ -172,6 +173,7 @@ const assistant = Effect.fn("TestSession.assistant")(function* (
 const status = SessionStatus.layer.pipe(Layer.provideMerge(Bus.layer))
 const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLayer)
 const deps = Layer.mergeAll(
+  Activity.defaultLayer,
   Session.defaultLayer,
   Snapshot.defaultLayer,
   AgentSvc.defaultLayer,

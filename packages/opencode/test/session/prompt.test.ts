@@ -7,6 +7,7 @@ import { Telemetry } from "@nocowboy/telemetry"
 import { Cause, Effect, Exit, Fiber, Layer } from "effect"
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
+import { Activity } from "@/nocowboy/session/activity"
 import { NamedError } from "@nocowboy/core/util/error"
 import { Agent as AgentSvc } from "../../src/agent/agent"
 import { Bus } from "../../src/bus"
@@ -181,6 +182,7 @@ const run = SessionRunState.layer.pipe(Layer.provide(status))
 const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLayer)
 function makeHttp() {
   const deps = Layer.mergeAll(
+    Activity.defaultLayer,
     Session.defaultLayer,
     BackgroundJob.defaultLayer,
     Snapshot.defaultLayer,

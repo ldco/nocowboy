@@ -16,6 +16,7 @@ import { Effect, Layer } from "effect"
 import { FetchHttpClient } from "effect/unstable/http"
 import fs from "fs/promises"
 import path from "path"
+import { Activity } from "@/nocowboy/session/activity"
 import { Session } from "@/session/session"
 import { LLM } from "../../src/session/llm"
 import { SessionPrompt } from "../../src/session/prompt"
@@ -114,6 +115,7 @@ const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLaye
 
 function makeHttp() {
   const deps = Layer.mergeAll(
+    Activity.defaultLayer,
     Session.defaultLayer,
     Snapshot.defaultLayer,
     LLM.defaultLayer,

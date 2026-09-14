@@ -1,11 +1,13 @@
 import { afterEach, describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
+import { Activity } from "@/nocowboy/session/activity"
 import { Agent } from "@/agent/agent"
 import { BackgroundJob } from "@/background/job"
 import { Bus } from "@/bus"
+import { Config } from "@/config/config"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Session } from "@/session/session"
-import { MessageID } from "@/session/schema"
+import { MessageID, SessionID } from "@/session/schema"
 import { SessionStatus } from "@/session/status"
 import { TaskStatusTool } from "@/tool/task_status"
 import { Truncate } from "@/tool/truncate"
@@ -19,9 +21,11 @@ afterEach(async () => {
 
 const layer = (flags: Partial<RuntimeFlags.Info> = {}) =>
   Layer.mergeAll(
+    Activity.defaultLayer,
     Agent.defaultLayer,
     BackgroundJob.defaultLayer,
     Bus.defaultLayer,
+    Config.defaultLayer,
     CrossSpawnSpawner.defaultLayer,
     Session.defaultLayer,
     SessionStatus.defaultLayer,
@@ -122,3 +126,79 @@ describe("tool.task_status", () => {
   )
   // kilocode_change end
 })
+
+// kilocode_change start - subagent hang watchdog stall surfacing
+const stallLayer = (flags: Partial<RuntimeFlags.Info> = {}) =>
+  Layer.mergeAll(
+    Activity.defaultLayer,
+    Agent.defaultLayer,
+    BackgroundJob.defaultLayer,
+    Bus.defaultLayer,
+    Config.defaultLayer,
+    CrossSpawnSpawner.defaultLayer,
+    Session.defaultLayer,
+    SessionStatus.defaultLayer,
+    Truncate.defaultLayer,
+    RuntimeFlags.layer(flags),
+  )
+
+const stalled = testEffect(stallLayer({ experimentalBackgroundSubagents: true, subagentStallTimeoutMs: 150 }))
+
+function ctx(sessionID: SessionID) {
+  return {
+    sessionID,
+    messageID: MessageID.ascending(),
+    agent: "build",
+    abort: new AbortController().signal,
+    messages: [],
+    metadata: () => Effect.void,
+    ask: () => Effect.void,
+  }
+}
+
+describe("tool.task_status stall detection", () => {
+  stalled.instance("reports stalled for a running task with no recent activity", () =>
+    Effect.gen(function* () {
+      const jobs = yield* BackgroundJob.Service
+      const sessions = yield* Session.Service
+      const activity = yield* Activity.Service
+      const tool = yield* TaskStatusTool
+      const def = yield* tool.init()
+      const chat = yield* sessions.create({})
+      const task = yield* sessions.create({ parentID: chat.id })
+
+      yield* jobs.start({ id: task.id, type: "task", run: Effect.never })
+      yield* activity.touch(task.id)
+      yield* Effect.sleep("250 millis")
+
+      const result = yield* def.execute({ task_id: task.id, wait: false }, ctx(chat.id))
+
+      expect(result.metadata.stalled).toBe(true)
+      expect(result.output).toContain("stalled: true")
+      expect(result.output).toContain("appears frozen")
+    }),
+  )
+
+  stalled.instance("wait=true reports stalled instead of a bare timeout", () =>
+    Effect.gen(function* () {
+      const jobs = yield* BackgroundJob.Service
+      const sessions = yield* Session.Service
+      const activity = yield* Activity.Service
+      const tool = yield* TaskStatusTool
+      const def = yield* tool.init()
+      const chat = yield* sessions.create({})
+      const task = yield* sessions.create({ parentID: chat.id })
+
+      yield* jobs.start({ id: task.id, type: "task", run: Effect.never })
+      yield* activity.touch(task.id)
+      yield* Effect.sleep("250 millis")
+
+      const result = yield* def.execute({ task_id: task.id, wait: true, timeout_ms: 50 }, ctx(chat.id))
+
+      expect(result.metadata.timed_out).toBe(true)
+      expect(result.metadata.stalled).toBe(true)
+      expect(result.output).toContain("appears frozen")
+    }),
+  )
+})
+// kilocode_change end

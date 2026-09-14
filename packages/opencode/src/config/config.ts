@@ -376,6 +376,19 @@ export const Info = Schema.Struct({
         description:
           "Tool-specific permission timeouts. Key is tool name pattern (e.g. 'bash', 'edit', 'write'). Falls back to permission_timeout if not set.",
       }),
+      // nocowboy_change — subagent hang watchdog timeouts (0 = disabled)
+      stream_idle_timeout_ms: Schema.optional(NonNegativeInt).annotate({
+        description:
+          "Abort an LLM stream when no event arrives within this many milliseconds. Prevents a silently stalled provider from hanging forever. Set to 0 to disable. Default: 300000 (5 minutes).",
+      }),
+      subagent_stall_timeout_ms: Schema.optional(NonNegativeInt).annotate({
+        description:
+          "Cancel a subagent that produces no progress (no stream events, no tool completion) for this many milliseconds, and report the stall to the parent. Set to 0 to disable. Default: 600000 (10 minutes).",
+      }),
+      subagent_max_runtime_ms: Schema.optional(NonNegativeInt).annotate({
+        description:
+          "Absolute wall-clock cap for a subagent in milliseconds, regardless of activity. Set to 0 to disable. Default: 0.",
+      }),
     }),
   ),
 }).annotate({ identifier: "Config" })

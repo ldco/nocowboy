@@ -5,6 +5,8 @@ import { NoCowboySessionPrompt } from "@/nocowboy/session/prompt"
 import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order"
 import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { NoCowboySession } from "@/nocowboy/session"
+import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
+import { subagentStallTimeoutMs, toolHeartbeatIntervalMs } from "@/nocowboy/session/watchdog" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService } from "@/nocowboy/session/goal"
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
@@ -227,6 +229,7 @@ export const layer = Layer.effect(
     const references = yield* Reference.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
+    const activity = yield* Activity.Service // nocowboy_change
     const runner = Effect.fn("SessionPrompt.runner")(function* () {
       return yield* EffectBridge.make()
     })
@@ -425,7 +428,24 @@ export const layer = Layer.effect(
       return input.messages
     })
 
-    const resolveTools = Effect.fn("SessionPrompt.resolveTools")(function* (input: {
+      // nocowboy_change — keep the session heartbeat fresh while a tool call is
+      // in flight. A running tool emits no stream events, so without this a
+      // legitimately long tool (e.g. a shell command with a large timeout, or an
+      // MCP tool) would be mistaken for a stalled subagent and cancelled. The
+      // keep-alive is bounded by the stall window (Activity.keepAlive) so a
+      // genuinely runaway tool still trips the watchdog shortly after.
+      const withToolHeartbeat = (sessionID: SessionID) => <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+        Effect.gen(function* () {
+          const stallMs = subagentStallTimeoutMs({ flags, config: yield* config.get() })
+          const intervalMs = toolHeartbeatIntervalMs(stallMs)
+          if (intervalMs <= 0) return yield* effect
+          return yield* Effect.raceFirst(
+            effect,
+            Activity.keepAlive(activity, sessionID, { intervalMs, maxMs: stallMs }),
+          )
+        })
+
+      const resolveTools = Effect.fn("SessionPrompt.resolveTools")(function* (input: {
       agent: Agent.Info
       model: Provider.Model
       session: Session.Info
@@ -517,7 +537,7 @@ export const layer = Layer.effect(
                   yield* input.processor.completeToolCall(options.toolCallId, output)
                 }
                 return output
-              }),
+              }).pipe(withToolHeartbeat(input.session.id)),
             )
           },
         })
@@ -605,7 +625,7 @@ export const layer = Layer.effect(
                 yield* input.processor.completeToolCall(opts.toolCallId, output)
               }
               return output
-            }),
+            }).pipe(withToolHeartbeat(input.session.id)),
           )
         tools[key] = item
       }
@@ -1685,6 +1705,7 @@ export const layer = Layer.effect(
 
       while (true) {
         yield* status.set(sessionID, { type: "busy" })
+        yield* activity.touch(sessionID) // nocowboy_change — step boundary is progress
         yield* slog.info("loop", { step })
 
         let msgs = yield* MessageV2.filterCompactedEffect(sessionID)
@@ -2310,6 +2331,7 @@ export const defaultLayer = Layer.suspend(() =>
           Bus.layer,
           CrossSpawnSpawner.defaultLayer,
           RuntimeFlags.defaultLayer,
+          Activity.defaultLayer, // nocowboy_change
         ),
       ),
     ),

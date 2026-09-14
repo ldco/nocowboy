@@ -57,6 +57,7 @@ import { Npm } from "@nocowboy/core/npm"
 import { memoMap } from "@nocowboy/core/effect/memo-map"
 import { DataMigration } from "@/data-migration"
 import { BackgroundJob } from "@/background/job"
+import { Activity } from "@/nocowboy/session/activity"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 
@@ -90,6 +91,7 @@ const SessionLayer = Layer.mergeAll(
   Session.defaultLayer,
   SessionStatus.defaultLayer,
   BackgroundJob.defaultLayer,
+  Activity.defaultLayer,
   RuntimeFlags.defaultLayer,
   SessionRunState.defaultLayer,
   SessionProcessor.defaultLayer,

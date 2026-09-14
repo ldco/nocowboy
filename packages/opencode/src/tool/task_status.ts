@@ -7,7 +7,10 @@ import { SessionID } from "@/session/schema"
 import { SessionStatus } from "@/session/status"
 import { PositiveInt } from "@nocowboy/core/schema"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { Effect, Option, Schema } from "effect"
+import { Config } from "@/config/config" // nocowboy_change
+import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
+import { stalledStatusText, subagentStallTimeoutMs } from "@/nocowboy/session/watchdog" // nocowboy_change
+import { Duration, Effect, Option, Schema } from "effect" // nocowboy_change - Duration
 
 const DEFAULT_TIMEOUT = 60_000
 const POLL_MS = 300
@@ -25,9 +28,24 @@ const Parameters = Schema.Struct({
 type State = BackgroundJob.Status
 type InspectResult = { state: State; text: string }
 
-function format(input: { taskID: SessionID; state: State; text: string }) {
+function format(input: {
+  taskID: SessionID
+  state: State
+  text: string
+  stalled?: boolean
+  idleForMs?: number
+}) {
   const tag = input.state === "completed" || input.state === "running" ? "task_result" : "task_error"
-  return [`task_id: ${input.taskID}`, `state: ${input.state}`, "", `<${tag}>`, input.text, `</${tag}>`].join("\n")
+  return [
+    `task_id: ${input.taskID}`,
+    `state: ${input.state}`,
+    ...(input.stalled ? ["stalled: true"] : []),
+    ...(input.idleForMs !== undefined ? [`idle_for_ms: ${Math.round(input.idleForMs)}`] : []),
+    "",
+    `<${tag}>`,
+    input.text,
+    `</${tag}>`,
+  ].join("\n")
 }
 
 function errorText(error: NonNullable<MessageV2.Assistant["error"]>) {
@@ -53,6 +71,8 @@ export const TaskStatusTool = Tool.define(
     const sessions = yield* Session.Service
     const status = yield* SessionStatus.Service
     const flags = yield* RuntimeFlags.Service
+    const config = yield* Config.Service // nocowboy_change
+    const activity = yield* Activity.Service // nocowboy_change
 
     const inspect: (taskID: SessionID) => Effect.Effect<InspectResult> = Effect.fn("TaskStatusTool.inspect")(function* (
       taskID: SessionID,
@@ -123,7 +143,8 @@ export const TaskStatusTool = Tool.define(
             task_id: params.task_id,
             state: "error" as const,
             timed_out: false,
-          },
+            stalled: false,
+          } as Record<string, any>,
           output: format({
             taskID: params.task_id,
             state: "error",
@@ -155,21 +176,36 @@ export const TaskStatusTool = Tool.define(
         : params.wait === true
           ? yield* waitForTerminal(params.task_id, params.timeout_ms ?? DEFAULT_TIMEOUT)
           : { result: yield* inspect(params.task_id), timedOut: false }
-      const text = inspected.timedOut
-        ? `Timed out after ${params.timeout_ms ?? DEFAULT_TIMEOUT}ms while waiting for task completion.`
-        : inspected.result.text
+      // nocowboy_change — stall detection from the shared activity heartbeat.
+      const stallMs = subagentStallTimeoutMs({ flags, config: yield* config.get() })
+      const idle = stallMs > 0 ? yield* activity.idleFor(params.task_id) : undefined
+      const idleMs = idle === undefined ? undefined : Duration.toMillis(idle)
+      const running = inspected.result.state === "running"
+      const stalled = running && idleMs !== undefined && idleMs >= stallMs
+
+      const text = stalled
+        ? stalledStatusText({ idleMs: idleMs!, thresholdMs: stallMs })
+        : inspected.timedOut
+          ? `Timed out after ${params.timeout_ms ?? DEFAULT_TIMEOUT}ms while waiting for task completion.`
+          : inspected.result.text
+
+      const metadata: Record<string, any> = {
+        task_id: params.task_id,
+        state: inspected.result.state,
+        timed_out: inspected.timedOut,
+        stalled,
+      }
+      if (idleMs !== undefined) metadata.idle_for_ms = Math.round(idleMs)
 
       return {
         title: "Task status",
-        metadata: {
-          task_id: params.task_id,
-          state: inspected.result.state,
-          timed_out: inspected.timedOut,
-        },
+        metadata,
         output: format({
           taskID: params.task_id,
           state: inspected.result.state,
           text,
+          stalled,
+          ...(idleMs !== undefined ? { idleForMs: idleMs } : {}),
         }),
       }
     })

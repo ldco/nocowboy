@@ -17,11 +17,21 @@ import { KiloTask } from "../nocowboy/tool/task"
 import { KiloCostPropagation } from "../nocowboy/session/cost-propagation"
 import { NoCowboySessionProcessor } from "../nocowboy/session/processor"
 import { NoCowboySession } from "../nocowboy/session"
+import { Activity } from "../nocowboy/session/activity" // nocowboy_change
+import {
+  maxRuntimeFailureText,
+  stalledFailureText,
+  subagentMaxRuntimeMs,
+  subagentStallTimeoutMs,
+} from "../nocowboy/session/watchdog" // nocowboy_change
 import { errorMessage } from "@/util/error"
 import { TuiEvent } from "@/cli/cmd/tui/event"
-import { Cause, Effect, Exit, Option, Schema, Scope } from "effect"
+import { Cause, Duration, Effect, Exit, Option, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import * as Log from "@nocowboy/core/util/log" // nocowboy_change
+
+const logWatchdog = Log.create({ service: "subagent.watchdog" }) // nocowboy_change
 
 export interface TaskPromptOps {
   cancel(sessionID: SessionID): Effect.Effect<void>
@@ -128,6 +138,7 @@ export const TaskTool = Tool.define(
     const scope = yield* Scope.Scope
     const status = yield* SessionStatus.Service
     const flags = yield* RuntimeFlags.Service
+    const activity = yield* Activity.Service // nocowboy_change
 
     const run = Effect.fn("TaskTool.execute")(function* (
       params: Schema.Schema.Type<typeof Parameters>,
@@ -278,6 +289,77 @@ export const TaskTool = Tool.define(
         )
       })
 
+      // nocowboy_change — subagent hang watchdog.
+      // Race the child prompt against a per-session idle watchdog (and an
+      // optional absolute wall-clock cap). A subagent that produces no progress
+      // must never block the parent forever: on trip we cancel the child session
+      // and fail with a clear, actionable error.
+      const stallMs = subagentStallTimeoutMs({ flags, config: cfg })
+      const maxMs = subagentMaxRuntimeMs({ flags, config: cfg })
+      type WatchdogOutcome =
+        | { kind: "done"; text: string }
+        | { kind: "failed"; cause: Cause.Cause<unknown> }
+        | { kind: "stalled" }
+        | { kind: "max" }
+      const guardedRun = Effect.fn("TaskTool.guardedRun")(function* () {
+        yield* activity.touch(nextSession.id)
+        const watchers: Array<Effect.Effect<WatchdogOutcome, unknown>> = [
+          runTask().pipe(
+            Effect.map((text): WatchdogOutcome => ({ kind: "done", text })),
+            // Watchers must not fail: raceAllFirst returns the first SUCCESS.
+            // Convert a failed run into an outcome we re-raise after the race.
+            Effect.catchCause((cause): Effect.Effect<WatchdogOutcome> => Effect.succeed({ kind: "failed", cause })),
+          ),
+        ]
+        if (stallMs > 0)
+          watchers.push(
+            activity.waitUntilIdle(nextSession.id, stallMs).pipe(Effect.map((): WatchdogOutcome => ({ kind: "stalled" }))),
+          )
+        if (maxMs > 0)
+          watchers.push(
+            Effect.sleep(Duration.millis(maxMs)).pipe(Effect.map((): WatchdogOutcome => ({ kind: "max" }))),
+          )
+
+        // raceAllFirst: the first watcher to SUCCEED wins and the losers are
+        // interrupted. A failed run is wrapped as `kind: "failed"` above, so an
+        // immediate runTask error surfaces right away instead of waiting for the
+        // stall window.
+        const outcome: WatchdogOutcome = yield* Effect.raceAllFirst(watchers)
+        if (outcome.kind === "done") return outcome.text
+        if (outcome.kind === "failed") return yield* Effect.failCause(outcome.cause)
+
+        const idle = yield* activity.idleFor(nextSession.id)
+        const idleMs = idle ? Duration.toMillis(idle) : stallMs
+        yield* ops.cancel(nextSession.id).pipe(Effect.ignore)
+        logWatchdog.warn("subagent watchdog tripped", {
+          sessionID: nextSession.id,
+          reason: outcome.kind,
+          idleMs,
+          stallMs,
+          maxMs,
+        })
+        return yield* Effect.fail(
+          new Error(
+            outcome.kind === "max"
+              ? maxRuntimeFailureText({
+                  description: params.description,
+                  subagent: params.subagent_type,
+                  sessionID: nextSession.id,
+                  maxRuntimeMs: maxMs,
+                })
+              : stalledFailureText({
+                  description: params.description,
+                  subagent: params.subagent_type,
+                  sessionID: nextSession.id,
+                  idleMs,
+                  thresholdMs: stallMs,
+                }),
+          ),
+        )
+      })
+      const runTaskGuarded = () =>
+        guardedRun().pipe(Effect.ensuring(activity.remove(nextSession.id).pipe(Effect.ignore)))
+
       const resumeWhenIdle: (input: { userID: MessageID; state: "completed" | "error" }) => Effect.Effect<void> =
         Effect.fn("TaskTool.resumeWhenIdle")(function* (input: { userID: MessageID; state: "completed" | "error" }) {
           const latest = yield* sessions
@@ -351,7 +433,7 @@ export const TaskTool = Tool.define(
           run: Effect.acquireUseRelease(
             KiloCostPropagation.childCost(sessions, nextSession.id),
             () =>
-              runTask().pipe(
+              runTaskGuarded().pipe(
                 Effect.tap((text) => inject("completed", text).pipe(Effect.ignore)),
                 Effect.catchCause((cause) =>
                   (Cause.hasInterruptsOnly(cause)
@@ -391,7 +473,7 @@ export const TaskTool = Tool.define(
         }),
         () =>
           Effect.gen(function* () {
-            const text = yield* runTask()
+            const text = yield* runTaskGuarded()
             return {
               title: params.description,
               metadata,

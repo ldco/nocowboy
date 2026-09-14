@@ -1,5 +1,7 @@
 import { InstanceState } from "@/effect/instance-state"
 import { Identifier } from "@/id/id"
+import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
+import type { SessionID } from "@/session/schema" // nocowboy_change
 import { Cause, Clock, Context, Deferred, Effect, Fiber, Layer, Scope, SynchronizedRef } from "effect"
 
 export type Status = "running" | "completed" | "error" | "cancelled"
@@ -14,6 +16,8 @@ export type Info = {
   output?: string
   error?: string
   metadata?: Record<string, unknown>
+  /** nocowboy_change — heartbeat: epoch ms of the last observed progress, when known. */
+  last_activity_at?: number
 }
 
 type Active = {
@@ -75,6 +79,7 @@ function errorText(error: unknown) {
 export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
+    const activity = yield* Activity.Service // nocowboy_change
     const state = yield* InstanceState.make<State>(
       Effect.fn("BackgroundJob.state")(function* () {
         return {
@@ -83,6 +88,13 @@ export const layer = Layer.effect(
         }
       }),
     )
+
+    // nocowboy_change — attach the session heartbeat to the job snapshot.
+    const snapshotInfo = Effect.fn("BackgroundJob.snapshotInfo")(function* (job: Active) {
+      const info = snapshot(job)
+      const last = yield* activity.lastActivityAt(job.info.id as SessionID)
+      return last === undefined ? info : { ...info, last_activity_at: last }
+    })
 
     const finish = Effect.fn("BackgroundJob.finish")(function* (
       id: string,
@@ -115,15 +127,15 @@ export const layer = Layer.effect(
     })
 
     const list: Interface["list"] = Effect.fn("BackgroundJob.list")(function* () {
-      return Array.from((yield* SynchronizedRef.get((yield* InstanceState.get(state)).jobs)).values())
-        .map(snapshot)
-        .toSorted((a, b) => a.started_at - b.started_at)
+      const jobs = Array.from((yield* SynchronizedRef.get((yield* InstanceState.get(state)).jobs)).values())
+      const infos = yield* Effect.forEach(jobs, (job) => snapshotInfo(job), { concurrency: "unbounded" })
+      return infos.toSorted((a, b) => a.started_at - b.started_at)
     })
 
     const get: Interface["get"] = Effect.fn("BackgroundJob.get")(function* (id) {
       const job = (yield* SynchronizedRef.get((yield* InstanceState.get(state)).jobs)).get(id)
       if (!job) return
-      return snapshot(job)
+      return yield* snapshotInfo(job)
     })
 
     const start: Interface["start"] = Effect.fn("BackgroundJob.start")(function* (input) {
@@ -171,12 +183,12 @@ export const layer = Layer.effect(
     const wait: Interface["wait"] = Effect.fn("BackgroundJob.wait")(function* (input) {
       const job = (yield* SynchronizedRef.get((yield* InstanceState.get(state)).jobs)).get(input.id)
       if (!job) return { timedOut: false }
-      if (job.info.status !== "running") return { info: snapshot(job), timedOut: false }
+      if (job.info.status !== "running") return { info: yield* snapshotInfo(job), timedOut: false }
       if (input.timeout === undefined) return { info: yield* Deferred.await(job.done), timedOut: false }
-      if (input.timeout <= 0) return { info: snapshot(job), timedOut: true }
+      if (input.timeout <= 0) return { info: yield* snapshotInfo(job), timedOut: true }
       const info = yield* Deferred.await(job.done).pipe(Effect.timeoutOption(input.timeout))
       if (info._tag === "Some") return { info: info.value, timedOut: false }
-      return { info: snapshot(job), timedOut: true }
+      return { info: yield* snapshotInfo(job), timedOut: true }
     })
 
     const cancel: Interface["cancel"] = Effect.fn("BackgroundJob.cancel")(function* (id) {
@@ -195,6 +207,7 @@ export const layer = Layer.effect(
   }),
 )
 
-export const defaultLayer = layer
+// nocowboy_change — Activity is consumed internally to attach the heartbeat.
+export const defaultLayer = layer.pipe(Layer.provide(Activity.defaultLayer))
 
 export * as BackgroundJob from "./job"

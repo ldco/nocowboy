@@ -4,6 +4,7 @@ import fs from "fs/promises"
 import { fileURLToPath, pathToFileURL } from "url"
 import { Effect, Layer, Result, Schema } from "effect"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
+import { Activity } from "@/nocowboy/session/activity"
 import { ToolRegistry } from "@/tool/registry"
 import { Tool } from "@/tool/tool"
 import { disposeAllInstances, TestInstance } from "../fixture/fixture"
@@ -42,6 +43,7 @@ const configLayer = TestConfig.layer({
 
 const registryLayer = (flags: Partial<RuntimeFlags.Info> = {}) => {
   const deps = Layer.mergeAll(
+    Activity.defaultLayer,
     configLayer,
     Plugin.defaultLayer,
     Question.defaultLayer,

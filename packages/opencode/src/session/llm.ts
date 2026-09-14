@@ -44,6 +44,8 @@ import { getActiveOrg } from "@/nocowboy/session-export/eligibility"
 import { USER_AGENT } from "@/installation"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
+import { streamIdleTimeoutMs } from "@/nocowboy/session/watchdog"
+import { withIdleTimeout } from "@/nocowboy/session/stream-idle"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
 
@@ -581,7 +583,14 @@ const live: Layer.Layer<
 
             const result = yield* run({ ...input, abort: ctrl.signal })
 
-            return Stream.fromAsyncIterable(result.fullStream, (e) => (e instanceof Error ? e : new Error(String(e))))
+            // nocowboy_change — fail a silently stalled provider instead of
+            // hanging the session forever. Applied to the raw SSE async
+            // iterable (see stream-idle.ts), not to the Effect stream.
+            const idleMs = streamIdleTimeoutMs({ flags, config: yield* config.get() })
+            const fullStream =
+              idleMs > 0 ? withIdleTimeout(result.fullStream, idleMs, ctrl) : result.fullStream
+
+            return Stream.fromAsyncIterable(fullStream, (e) => (e instanceof Error ? e : new Error(String(e))))
           }),
         ),
       )

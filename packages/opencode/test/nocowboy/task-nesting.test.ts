@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { Effect, Exit, Layer } from "effect"
+import { Activity } from "@/nocowboy/session/activity"
 import { Agent } from "../../src/agent/agent"
 import { BackgroundJob } from "../../src/background/job"
 import { Bus } from "../../src/bus"
@@ -28,6 +29,7 @@ const ref = {
 
 const it = testEffect(
   Layer.mergeAll(
+    Activity.defaultLayer,
     Agent.defaultLayer,
     BackgroundJob.defaultLayer,
     Bus.defaultLayer,

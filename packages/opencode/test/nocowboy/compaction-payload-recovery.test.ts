@@ -8,6 +8,7 @@ import { Config } from "../../src/config/config"
 import { RuntimeFlags } from "../../src/effect/runtime-flags"
 import { EventV2Bridge } from "../../src/event-v2-bridge"
 import { Image } from "../../src/image/image"
+import { Activity } from "@/nocowboy/session/activity"
 import { KiloCompactionPayloadRecovery } from "../../src/nocowboy/session/compaction-payload-recovery"
 import { KiloSessionCompaction } from "../../src/nocowboy/session/compaction"
 import { Permission } from "../../src/permission"
@@ -186,6 +187,7 @@ function runtime(layer: Layer.Layer<LLM.Service>, config = Config.defaultLayer) 
     Layer.provide(summary),
     Layer.provide(Image.defaultLayer),
     Layer.provide(SyncEvent.defaultLayer),
+    Layer.provide(Activity.defaultLayer),
   )
   const model = ProviderTest.model({ providerID, id: modelID, limit: { context: 100_000, output: 32_000 } })
   return ManagedRuntime.make(

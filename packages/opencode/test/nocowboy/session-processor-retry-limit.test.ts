@@ -10,6 +10,7 @@ import { APICallError } from "ai"
 import { Context, Effect, Layer } from "effect"
 import * as Stream from "effect/Stream"
 import path from "path"
+import { Activity } from "@/nocowboy/session/activity"
 import { Agent as AgentSvc } from "../../src/agent/agent"
 import { Bus } from "../../src/bus"
 import { Config } from "../../src/config/config"
@@ -118,6 +119,7 @@ const reference = Layer.mock(Reference.Service)({
 const status = SessionStatus.layer.pipe(Layer.provideMerge(Bus.layer))
 const infra = Layer.mergeAll(NodeFileSystem.layer, CrossSpawnSpawner.defaultLayer)
 const deps = Layer.mergeAll(
+  Activity.defaultLayer,
   Session.defaultLayer,
   Snapshot.defaultLayer,
   AgentSvc.defaultLayer,

@@ -2,6 +2,7 @@ import { afterEach, describe, expect } from "bun:test"
 import { Effect, Exit, Fiber, Layer } from "effect"
 import { Agent } from "../../src/agent/agent"
 import { BackgroundJob } from "@/background/job"
+import { Activity } from "@/nocowboy/session/activity"
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
@@ -32,6 +33,7 @@ const ref = {
 
 const layer = (flags: Partial<RuntimeFlags.Info> = {}) =>
   Layer.mergeAll(
+    Activity.defaultLayer,
     Agent.defaultLayer,
     BackgroundJob.defaultLayer,
     Bus.defaultLayer,

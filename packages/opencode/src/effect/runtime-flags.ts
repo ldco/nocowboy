@@ -7,6 +7,12 @@ const positiveInteger = (name: string) =>
     Config.map((value) => (Number.isInteger(value) && value > 0 ? value : undefined)),
     Config.orElse(() => Config.succeed(undefined)),
   )
+// nocowboy_change — like positiveInteger but accepts 0 (0 = disabled).
+const nonNegativeInteger = (name: string) =>
+  Config.number(name).pipe(
+    Config.map((value) => (Number.isInteger(value) && value >= 0 ? value : undefined)),
+    Config.orElse(() => Config.succeed(undefined)),
+  )
 const experimental = bool("NOCOWBOY_EXPERIMENTAL")
 const enabledByExperimental = (name: string) =>
   Config.all({ experimental, enabled: bool(name) }).pipe(Config.map((flags) => flags.experimental || flags.enabled))
@@ -50,6 +56,10 @@ export class Service extends ConfigService.Service<Service>()("@nocowboy/Runtime
   experimentalIconDiscovery: enabledByExperimental("NOCOWBOY_EXPERIMENTAL_ICON_DISCOVERY"),
   outputTokenMax: positiveInteger("NOCOWBOY_EXPERIMENTAL_OUTPUT_TOKEN_MAX"),
   bashDefaultTimeoutMs: positiveInteger("NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"),
+  // nocowboy_change — subagent hang watchdog env overrides (0 = disabled)
+  streamIdleTimeoutMs: nonNegativeInteger("NOCOWBOY_STREAM_IDLE_TIMEOUT_MS"),
+  subagentStallTimeoutMs: nonNegativeInteger("NOCOWBOY_SUBAGENT_STALL_TIMEOUT_MS"),
+  subagentMaxRuntimeMs: nonNegativeInteger("NOCOWBOY_SUBAGENT_MAX_RUNTIME_MS"),
   client: Config.string("NOCOWBOY_CLIENT").pipe(Config.withDefault("cli")),
 }) {}
 

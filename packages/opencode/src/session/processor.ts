@@ -21,6 +21,7 @@ import { Question } from "@/question"
 import { NoCowboySessionProcessor, type ReviewTelemetry } from "@/nocowboy/session/processor"
 import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { Suggestion } from "@/nocowboy/suggestion"
+import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
 import { errorMessage } from "@/util/error"
 import * as Log from "@nocowboy/core/util/log"
 import { isRecord } from "@/util/record"
@@ -111,6 +112,7 @@ export const layer = Layer.effect(
     const image = yield* Image.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
+    const activity = yield* Activity.Service // nocowboy_change
 
     const create = Effect.fn("SessionProcessor.create")(function* (input: Input) {
       // Pre-capture snapshot before the LLM stream starts. The AI SDK
@@ -203,6 +205,7 @@ export const layer = Layer.effect(
           attachments?: MessageV2.FilePart[]
         },
       ) {
+        yield* activity.touch(ctx.sessionID) // nocowboy_change
         const match = yield* readToolCall(toolCallID)
         if (!match || match.part.state.status !== "running") return
         yield* session.updatePart({
@@ -224,6 +227,7 @@ export const layer = Layer.effect(
       })
 
       const failToolCall = Effect.fn("SessionProcessor.failToolCall")(function* (toolCallID: string, error: unknown) {
+        yield* activity.touch(ctx.sessionID) // nocowboy_change
         const match = yield* readToolCall(toolCallID)
         if (!match || match.part.state.status !== "running") return false
         yield* session.updatePart({
@@ -248,6 +252,7 @@ export const layer = Layer.effect(
       })
 
       const handleEvent = Effect.fnUntraced(function* (value: StreamEvent) {
+        yield* activity.touch(ctx.sessionID) // nocowboy_change
         switch (value.type) {
           case "start":
             yield* status.set(ctx.sessionID, { type: "busy" })
@@ -859,6 +864,10 @@ export const layer = Layer.effect(
               preflight: !ctx.assistantMessage.summary,
             })
 
+            // The stream idle timeout lives at the provider layer
+            // (`src/nocowboy/session/stream-idle.ts`, applied in session/llm.ts)
+            // so it observes the raw SSE async-iterable instead of wrapping the
+            // Effect stream, which is incompatible with `Stream.timeoutOrElse`.
             yield* stream.pipe(
               Stream.tap((event) => handleEvent(event)),
               Stream.takeUntil(() => ctx.needsCompaction),
@@ -945,6 +954,7 @@ export const defaultLayer = Layer.suspend(() =>
     Layer.provide(Plugin.defaultLayer),
     Layer.provide(SessionSummary.defaultLayer),
     Layer.provide(SessionStatus.defaultLayer),
+    Layer.provide(Activity.defaultLayer), // nocowboy_change
     Layer.provide(Image.defaultLayer),
     Layer.provide(Bus.layer),
     Layer.provide(Config.defaultLayer),

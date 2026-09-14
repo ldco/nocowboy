@@ -7,6 +7,7 @@ import { Config } from "../../src/config/config"
 import { RuntimeFlags } from "../../src/effect/runtime-flags"
 import { EventV2Bridge } from "../../src/event-v2-bridge"
 import { Image } from "../../src/image/image"
+import { Activity } from "@/nocowboy/session/activity"
 import { Permission } from "../../src/permission"
 import { Plugin } from "../../src/plugin"
 import { provideTestInstance } from "../fixture/fixture"
@@ -210,6 +211,7 @@ function runtime(layer: Layer.Layer<LLM.Service>, context = 7_000) {
     Layer.provide(summary),
     Layer.provide(Image.defaultLayer),
     Layer.provide(SyncEvent.defaultLayer),
+    Layer.provide(Activity.defaultLayer),
   )
   const model = ProviderTest.model({ providerID, id: modelID, limit: { context, output: 1_000 } })
   return ManagedRuntime.make(
@@ -311,6 +313,7 @@ function liveRuntime(layer: Layer.Layer<LLM.Service>, context = 10_000) {
     Layer.provide(summary),
     Layer.provide(Image.defaultLayer),
     Layer.provide(SyncEvent.defaultLayer),
+    Layer.provide(Activity.defaultLayer),
   )
   const model = ProviderTest.model({ providerID, id: modelID, limit: { context, output: 1_000 } })
   return ManagedRuntime.make(
