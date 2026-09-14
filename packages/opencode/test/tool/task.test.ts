@@ -437,7 +437,7 @@ describe("tool.task", () => {
           {
             description: "inspect bug",
             prompt: "look into the cache key path",
-            subagent_type: "reviewer",
+            subagent_type: "qc",
           },
           {
             sessionID: chat.id,
@@ -490,10 +490,16 @@ describe("tool.task", () => {
     {
       config: {
         agent: {
-          reviewer: {
-            mode: "subagent",
+          // A custom subagent without META_TOOLS. Builtin agents (reviewer,
+          // worker, ...) get task/todowrite via META_TOOLS, which makes the
+          // derived todowrite deny unreachable for them — use a custom agent
+          // to exercise the deny branch.
+          qc: {
+            description: "Read-only QC subagent without meta-tools",
             permission: {
-              task: "allow",
+              read: "allow",
+              glob: "allow",
+              grep: "allow",
             },
           },
         },

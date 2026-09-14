@@ -44,6 +44,12 @@ export const Info = Schema.Struct({
       providerID: ProviderID,
     }),
   ),
+  fallbackModel: Schema.optional(
+    Schema.Struct({
+      modelID: ModelID,
+      providerID: ProviderID,
+    }),
+  ),
   variant: Schema.optional(Schema.String),
   prompt: Schema.optional(Schema.String),
   options: Schema.Record(Schema.String, Schema.Unknown),
@@ -306,6 +312,7 @@ export const layer = Layer.effect(
               native: false,
             }
           if (value.model) item.model = Provider.parseModel(value.model)
+          if (value.fallback_model) item.fallbackModel = Provider.parseModel(value.fallback_model)
           item.variant = value.variant ?? item.variant
           item.prompt = value.prompt ?? item.prompt
           item.description = value.description ?? item.description

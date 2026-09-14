@@ -127,7 +127,7 @@ export namespace KiloTask {
   /** Resolve the task subagent model while discarding stale unavailable overrides. */
   export const resolveModel = Effect.fn("KiloTask.resolveModel")(function* (input: {
     name: string
-    agent: Pick<Agent.Info, "model" | "variant">
+    agent: Pick<Agent.Info, "model" | "variant" | "fallbackModel">
     config: Pick<Config.Info, "subagent_model" | "subagent_variant" | "subagent_variant_overrides">
     parent: Model
     variant?: string
@@ -136,6 +136,27 @@ export namespace KiloTask {
     const state = yield* saved(input.name)
     const cfg = parse(input.config.subagent_model)
     const override = (model: Model) => input.config.subagent_variant_overrides?.[key(model)] ?? undefined
+    const lookup = (model: Model) =>
+      input.provider
+        .getModel(model.providerID, model.modelID)
+        .pipe(Effect.catchTag("ProviderModelNotFoundError", () => Effect.succeed(undefined)))
+
+    // Resolve one candidate to a concrete { model, variant }, or undefined when
+    // the model is not available in the registry (so the chain moves on).
+    const resolveCandidate = (choice: Choice) =>
+      Effect.gen(function* () {
+        const full = yield* lookup(choice.model)
+        if (!full) return undefined
+        const value = override(choice.model)
+        if (choice.direct) {
+          const variant = value && full.variants?.[value] ? value : choice.variant
+          return { model: choice.model, variant }
+        }
+        const fallback = choice.variant && full.variants?.[choice.variant] ? choice.variant : undefined
+        const variant = value && full.variants?.[value] ? value : fallback
+        return { model: choice.sticky && variant ? { ...choice.model, variant } : choice.model, variant }
+      })
+
     const choices: Array<Choice | undefined> = [
       state
         ? {
@@ -145,46 +166,40 @@ export namespace KiloTask {
           }
         : undefined,
       input.agent.model ? { model: input.agent.model, variant: input.agent.variant, direct: true } : undefined,
+      input.agent.fallbackModel ? { model: input.agent.fallbackModel, direct: true } : undefined,
       cfg ? { model: cfg, variant: input.config.subagent_variant ?? undefined } : undefined,
     ]
 
+    const resolved: Array<{ model: Model; variant?: string }> = []
+    let explicitUnavailable: Choice | undefined
     for (const choice of choices) {
       if (!choice) continue
-      if (choice.direct) {
-        const value = override(choice.model)
-        if (!value) return { model: choice.model, variant: choice.variant }
-        const full = yield* input.provider.getModel(choice.model.providerID, choice.model.modelID)
-        const variant = full.variants?.[value] ? value : choice.variant
-        return { model: choice.model, variant }
-      }
-      const full = yield* input.provider.getModel(choice.model.providerID, choice.model.modelID).pipe(
-        Effect.catchTag("ProviderModelNotFoundError", (err) =>
-          Effect.sync(() => {
-            log.debug("skipping unavailable task subagent model", {
-              providerID: choice.model.providerID,
-              modelID: choice.model.modelID,
-              err,
-            })
-            return undefined
-          }),
-        ),
-      )
-      if (!full) continue
-      const fallback = choice.variant && full.variants?.[choice.variant] ? choice.variant : undefined
-      const value = override(choice.model)
-      const variant = value && full.variants?.[value] ? value : fallback
-      return {
-        model: choice.sticky && variant ? { ...choice.model, variant } : choice.model,
-        variant,
-      }
+      const item = yield* resolveCandidate(choice)
+      if (item) resolved.push(item)
+      else if (choice.direct && !explicitUnavailable) explicitUnavailable = choice
+    }
+    if (resolved.length > 0) {
+      const [primary, next] = resolved
+      // The caller's own model is the last-resort fallback: it is already in
+      // use, so it is guaranteed to be reachable.
+      const sameParent =
+        primary.model.providerID === input.parent.providerID && primary.model.modelID === input.parent.modelID
+      const fallback = next ?? (sameParent ? undefined : { model: input.parent, variant: input.variant })
+      return { model: primary.model, variant: primary.variant, fallback }
+    }
+
+    // No candidate resolved. An explicitly configured agent model is honored
+    // even when it is not in the registry (fail loud) unless a fallback was
+    // configured above — that keeps misconfigured agents visible instead of
+    // silently swapping the model behind the user's back.
+    if (explicitUnavailable) {
+      return { model: explicitUnavailable.model, variant: explicitUnavailable.variant, fallback: undefined }
     }
 
     const value = override(input.parent)
-    if (!value) return { model: input.parent, variant: input.variant }
-    const full = yield* input.provider
-      .getModel(input.parent.providerID, input.parent.modelID)
-      .pipe(Effect.catchTag("ProviderModelNotFoundError", () => Effect.succeed(undefined)))
+    if (!value) return { model: input.parent, variant: input.variant, fallback: undefined }
+    const full = yield* lookup(input.parent)
     const variant = full?.variants?.[value] ? value : input.variant
-    return { model: input.parent, variant }
+    return { model: input.parent, variant, fallback: undefined }
   })
 }

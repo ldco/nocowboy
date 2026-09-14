@@ -30,6 +30,10 @@ const AgentSchema = Schema.StructWithRest(
     variant: Schema.optional(Schema.NullOr(Schema.String)).annotate({
       description: "Default model variant for this agent (applies only when using the agent's configured model).",
     }),
+    fallback_model: Schema.optional(Schema.NullOr(ConfigModelID)).annotate({
+      description:
+        "Model used when this agent's `model` is unavailable, in the format provider/model. Tried before the global subagent default and the parent model.",
+    }),
     temperature: Schema.optional(Schema.NullOr(Schema.Finite)),
     top_p: Schema.optional(Schema.NullOr(Schema.Finite)),
     prompt: Schema.optional(Schema.NullOr(Schema.String)),
@@ -66,6 +70,7 @@ const KNOWN_KEYS = new Set([
   "name",
   "model",
   "variant",
+  "fallback_model",
   "prompt",
   "description",
   "temperature",

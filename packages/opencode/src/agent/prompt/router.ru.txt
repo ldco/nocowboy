@@ -11,6 +11,7 @@
 
 Доступные агенты:
 - **auto**: Диспетчер — решает, какого агента запустить для текущей задачи (по умолчанию)
+- **architect**: Проектирование системы — ADR, C4, trade-offs, NFR (read-only, docs)
 - **planner**: Планирование, спецификации, acceptance criteria (read-only)
 - **worker**: Реализация, рефакторинг, тестирование, отладка production-кода
 - **reviewer**: Проверка качества против acceptance criteria (read-only, другая модель)

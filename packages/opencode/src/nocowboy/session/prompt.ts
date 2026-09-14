@@ -3,6 +3,7 @@ import fs from "fs/promises"
 import { StringDecoder } from "string_decoder"
 import { Cause, Effect, Exit } from "effect"
 import { SessionID, PartID } from "@/session/schema"
+import { ModelID, ProviderID } from "@/provider/schema"
 import { MessageV2 } from "@/session/message-v2"
 import { Session } from "@/session/session"
 import { Agent } from "@/agent/agent"
@@ -24,7 +25,7 @@ import CODE_SWITCH from "@/session/prompt/code-switch.txt"
 import { GoalService } from "@/nocowboy/session/goal"
 
 export namespace NoCowboySessionPrompt {
-  const modes = ["planner", "reviewer"]
+  const modes = ["architect", "planner", "reviewer"]
 
   export function titleID(sessionID: SessionID) {
     return `title-${sessionID}`
@@ -37,7 +38,33 @@ export namespace NoCowboySessionPrompt {
   function planning(input: { name: string; options?: Record<string, unknown> }) {
     const id = typeof input.options?.id === "string" ? mode(input.options.id) : undefined
     const name = mode(input.name)
-    return name === "planner" || name === "reviewer"
+    return name === "architect" || name === "planner" || name === "reviewer"
+  }
+
+  /**
+   * Pick the model for a prompt. Prefers an explicit override, then the
+   * agent's configured model, then its `fallback_model`, then the session
+   * model — so an unavailable agent model degrades instead of hard-failing.
+   */
+  export function resolveAgentModel(input: {
+    agent: {
+      model?: { providerID: ProviderID; modelID: ModelID }
+      fallbackModel?: { providerID: ProviderID; modelID: ModelID }
+    }
+    explicit?: { providerID: ProviderID; modelID: ModelID }
+    current: () => Effect.Effect<{ providerID: ProviderID; modelID: ModelID }>
+    available: (model: { providerID: ProviderID; modelID: ModelID }) => Effect.Effect<boolean>
+  }): Effect.Effect<{ providerID: ProviderID; modelID: ModelID }> {
+    return Effect.gen(function* () {
+      if (input.explicit) return input.explicit
+      if (input.agent.model) {
+        if (yield* input.available(input.agent.model)) return input.agent.model
+        if (input.agent.fallbackModel && (yield* input.available(input.agent.fallbackModel))) {
+          return input.agent.fallbackModel
+        }
+      }
+      return yield* input.current()
+    })
   }
 
   /**

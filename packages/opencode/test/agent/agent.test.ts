@@ -53,12 +53,12 @@ it.instance("returns default native agents when no config", () =>
     const agents = yield* load((svc) => svc.list())
     const names = agents.map((a) => a.name)
     expect(names).toContain("auto")
+    expect(names).toContain("architect")
     expect(names).toContain("planner")
     expect(names).toContain("worker")
     expect(names).toContain("reviewer")
     expect(names).toContain("nocowboy")
     expect(names).not.toContain("code")
-    expect(names).not.toContain("architect")
     expect(names).not.toContain("overseer")
     expect(names).not.toContain("debug")
     expect(names).not.toContain("goal")
@@ -73,7 +73,7 @@ it.instance("worker agent has correct default properties", () =>
   Effect.gen(function* () {
     const worker = yield* load((svc) => svc.get("worker"))
     expect(worker).toBeDefined()
-    expect(worker?.mode).toBe("primary")
+    expect(worker?.mode).toBe("all")
     expect(worker?.native).toBe(true)
     expect(evalPerm(worker, "edit")).toBe("allow")
     expect(evalPerm(worker, "bash")).toBe("ask")
@@ -88,7 +88,7 @@ it.instance("legacy persona names resolve to the simplified set", () =>
     expect(NocowboyAgent.resolveKey("general")).toBe("worker")
     expect(NocowboyAgent.resolveKey("code")).toBe("worker")
     expect(NocowboyAgent.resolveKey("debug")).toBe("worker")
-    expect(NocowboyAgent.resolveKey("architect")).toBe("planner")
+    expect(NocowboyAgent.resolveKey("architect")).toBe("architect")
     expect(NocowboyAgent.resolveKey("overseer")).toBe("reviewer")
     expect(NocowboyAgent.resolveKey("worker")).toBe("worker")
     expect(NocowboyAgent.resolveKey("planner")).toBe("planner")
@@ -100,9 +100,47 @@ it.instance("reviewer agent exists with correct permissions", () =>
   Effect.gen(function* () {
     const reviewer = yield* load((svc) => svc.get("reviewer"))
     expect(reviewer).toBeDefined()
-    expect(reviewer?.mode).toBe("primary")
+    expect(reviewer?.mode).toBe("all")
     expect(evalPerm(reviewer, "question")).toBe("allow")
     expect(evalPerm(reviewer, "suggest")).toBe("allow")
+  }),
+)
+
+// Regression: architect's read-only guard is applied LAST so a global
+// `permission.edit`/`permission.bash` allow cannot silently re-grant it.
+it.instance(
+  "architect edit deny survives a global permission.edit allow",
+  () =>
+    Effect.gen(function* () {
+      const architect = yield* load((svc) => svc.get("architect"))
+      expect(architect).toBeDefined()
+      expect(Permission.evaluate("edit", "src/app.ts", architect!.permission).action).toBe("deny")
+      expect(Permission.evaluate("edit", ".nocowboy/plans/plan.md", architect!.permission).action).toBe("allow")
+    }),
+  { config: { permission: { edit: { "*": "allow" } } } },
+)
+
+it.instance(
+  "architect bash is read-only despite a global permission.bash allow",
+  () =>
+    Effect.gen(function* () {
+      const architect = yield* load((svc) => svc.get("architect"))
+      expect(architect).toBeDefined()
+      expect(Permission.evaluate("bash", "cat package.json", architect!.permission).action).toBe("allow")
+      expect(Permission.evaluate("bash", "echo x > src/app.ts", architect!.permission).action).toBe("deny")
+      expect(Permission.evaluate("bash", "rm -rf src", architect!.permission).action).toBe("deny")
+    }),
+  { config: { permission: { bash: "allow" } } },
+)
+
+// The shipped markdown frontmatter is merged AFTER the JSON config and would
+// override `mode`, hiding architect from the task tool on a fresh install.
+it.instance("packaged architect agent markdown pins mode all", () =>
+  Effect.gen(function* () {
+    const file = path.join(import.meta.dir, "..", "..", "..", "..", "packaging", "config", "agent", "architect.md")
+    const text = yield* Effect.promise(() => Bun.file(file).text())
+    expect(text).toMatch(/^mode:\s*all\s*$/m)
+    expect(text).not.toMatch(/^mode:\s*primary\s*$/m)
   }),
 )
 
@@ -645,6 +683,7 @@ it.instance(
     config: {
       agent: {
         worker: { disable: true },
+        architect: { disable: true },
         planner: { disable: true },
         reviewer: { disable: true },
         nocowboy: { disable: true },

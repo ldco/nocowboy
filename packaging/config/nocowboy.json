@@ -124,37 +124,57 @@
       "npm": "@ai-sdk/openai-compatible",
       "env": ["MOONSHOT_API_KEY"],
       "models": {
-        "kimi-k2-thinking": {
+        "kimi-k2.7-code": { "isFree": false, "cost": { "input": 0.6, "output": 2.5 } },
+        "kimi-k2.7-code-highspeed": { "isFree": false, "cost": { "input": 0.6, "output": 2.5 } },
+        "kimi-k2.6": { "isFree": false, "cost": { "input": 0.6, "output": 2.5 } },
+        "kimi-k3": {
           "isFree": false,
-          "cost": {
-            "input": 0.6,
-            "output": 2.5
-          }
+          "cost": { "input": 2, "output": 8 },
+          "reasoning": true,
+          "tool_call": true,
+          "limit": { "context": 1000000, "output": 64000 }
         }
       }
     }
   },
   "agent": {
     "architect": {
-      "mode": "primary",
+      "mode": "all",
       "model": "deepseek/deepseek-v4-pro",
       "description": "Senior Software Architect — deep design analysis, ADRs, trade-off evaluation, C4 modeling, NFR-driven architecture",
       "path": "~/.config/nocowboy/agent/architect.md",
       "permission": {
         "mcp": { "nutausik_*": "allow", "*": "deny" },
         "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "plan_exit": "allow"
+      }
+    },
+    "planner": {
+      "mode": "all",
+      "model": "deepseek/deepseek-v4-pro",
+      "description": "Planning, specification, acceptance criteria — read-only",
+      "path": "~/.config/nocowboy/agent/planner.md",
+      "permission": {
+        "mcp": { "nutausik_*": "allow", "*": "deny" },
+        "read": "allow",
         "edit": {
-          "(^|/)(prd\\.json|docs/.*\\.(md|json))$": "allow",
-          "*": "deny"
+          "*": "deny",
+          "docs/*.md": "allow",
+          "docs/*.json": "allow",
+          "prd.json": "allow",
+          ".nocowboy/plans/*.md": "allow"
         },
         "bash": "allow",
         "plan_exit": "allow"
       }
     },
-    "code": {
-      "mode": "primary",
-      "model": "deepseek/deepseek-v4-pro",
-      "path": "~/.config/nocowboy/agent/code.md",
+    "worker": {
+      "mode": "all",
+      "model": "deepseek/deepseek-v4-flash",
+      "description": "Primary engineering agent — implements, refactors, tests, debugs",
+      "path": "~/.config/nocowboy/agent/worker.md",
       "permission": {
         "mcp": { "nutausik_*": "allow", "*": "deny" },
         "read": "allow",
@@ -168,22 +188,12 @@
         "skill": "allow"
       }
     },
-    "explore": {
-      "mode": "primary",
-      "model": "deepseek/deepseek-v4-flash",
-      "path": "~/.config/nocowboy/agent/explore.md",
-      "permission": {
-        "mcp": { "nutausik_*": "allow", "*": "deny" },
-        "read": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "semantic_search": "allow"
-      }
-    },
-    "overseer": {
-      "mode": "primary",
-      "model": "moonshotai/kimi-k2.5",
-      "path": "~/.config/nocowboy/agent/overseer.md",
+    "reviewer": {
+      "mode": "all",
+      "model": "kimi-for-coding/kimi-k2.7-code",
+      "fallback_model": "deepseek/deepseek-v4-pro",
+      "description": "Reviews work against acceptance criteria — read-only, different model",
+      "path": "~/.config/nocowboy/agent/reviewer.md",
       "permission": {
         "mcp": { "nutausik_*": "allow", "*": "deny" },
         "read": "allow",
@@ -196,6 +206,7 @@
     "auto": {
       "mode": "primary",
       "model": "deepseek/deepseek-v4-flash",
+      "description": "Dispatcher — decides which agent to run for the current task, then launches it via task",
       "path": "~/.config/nocowboy/agent/auto.md",
       "permission": {
         "mcp": { "nutausik_*": "allow", "*": "deny" },

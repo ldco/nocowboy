@@ -27,6 +27,8 @@ import PROMPT_AUTO from "../../agent/prompt/auto.txt"
 import PROMPT_AUTO_RU from "../../agent/prompt/auto.ru.txt"
 import PROMPT_PLANNER from "../../agent/prompt/planner.txt"
 import PROMPT_PLANNER_RU from "../../agent/prompt/planner.ru.txt"
+import PROMPT_ARCHITECT from "../../agent/prompt/architect.txt"
+import PROMPT_ARCHITECT_RU from "../../agent/prompt/architect.ru.txt"
 // russian-it-law is now a skill, not an agent (P2-C2 refactor)
 
 export const bash: Record<string, "allow" | "ask" | "deny"> = {
@@ -186,8 +188,9 @@ export function cacheKey(cfg: Config.Info) {
 }
 
 // Map legacy agent names to the current set for backward compatibility:
-// the old four-persona set (build/general/code/debug → worker, architect →
-// planner, overseer → reviewer) is folded into the simplified NoCowboy set.
+// the old coding personas (build/general/code/debug → worker, overseer →
+// reviewer) fold into the simplified NoCowboy set. `architect` is now a
+// first-class agent again (design stage before planner), so it is NOT remapped.
 export function resolveKey(name: string): string {
   switch (name) {
     case "general":
@@ -195,8 +198,6 @@ export function resolveKey(name: string): string {
     case "code":
     case "debug":
       return "worker"
-    case "architect":
-      return "planner"
     case "overseer":
       return "reviewer"
     default:
@@ -260,9 +261,13 @@ export function telemetryOptions(_cfg: Config.Info) {
 // Patch the base agents map in-place with NoCowboy changes:
 // - Fold upstream "build" into worker; remove upstream unused agents:
 //   general, explore, scout, plan
-// - Simplified agent set: auto (dispatcher), planner, worker, reviewer,
-//   nocowboy (companion) — nothing else is a first-class persona
-// - planner/reviewer are read-only; reviewer runs a different model
+// - Agent set: auto (dispatcher), architect (system design), planner
+//   (spec + acceptance criteria), worker (implementation), reviewer
+//   (verification), nocowboy (companion)
+// - Delegated agents use mode "all": they stay selectable in the TUI AND are
+//   spawnable via the task tool (the task tool only lists mode !== "primary").
+//   `auto` stays "primary" — the dispatcher must never be a subagent.
+// - architect/planner/reviewer are read-only; reviewer runs a different model
 export function patchAgents(
   agents: Record<
     string,
@@ -334,6 +339,7 @@ export function patchAgents(
         user,
         Permission.fromConfig({ semantic_search: "allow" }),
       ),
+      mode: "all",
     }
     delete agents.build
   }
@@ -352,7 +358,7 @@ export function patchAgents(
     model: resolveModel("nocowboy", { providerID: "deepseek", modelID: "deepseek-v4-flash" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow" }), user, META_TOOLS),
-    mode: "primary",
+    mode: "all",
     native: true,
   }
 
@@ -361,7 +367,7 @@ export function patchAgents(
     name: "reviewer",
     description: "Reviews work against acceptance criteria. Cross-model, read-only.",
     prompt: (lang === "ru" ? PROMPT_REVIEWER_RU : PROMPT_REVIEWER) + routerPrompt,
-    model: resolveModel("reviewer", { providerID: "nocowboy", modelID: "kimi-k2-thinking" }),
+    model: resolveModel("reviewer", { providerID: "moonshotai", modelID: "kimi-k3" }),
     options: {},
     permission: Permission.merge(
       defaults,
@@ -375,11 +381,46 @@ export function patchAgents(
       user,
       META_TOOLS,
     ),
-    mode: "primary",
+    mode: "all",
     native: true,
   }
 
-  // Add planner agent — planning and specification (was architect)
+  // Add architect — system design stage. Designs the shape of the system
+  // (ADRs, C4, ISO 25010 trade-offs) and hands the approved design to planner.
+  // Read-only beyond design artifacts (docs/ and .nocowboy/plans/).
+  agents.architect = {
+    name: "architect",
+    description: "Senior architect — system design, ADRs, trade-offs, NFR analysis. Read-only.",
+    prompt: (lang === "ru" ? PROMPT_ARCHITECT_RU : PROMPT_ARCHITECT) + routerPrompt,
+    model: resolveModel("architect", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
+    options: {},
+    // Restrictive rules go LAST (after defaults/user/META_TOOLS): Permission
+    // .evaluate returns the LAST matching rule, so a global `permission.bash`
+    // or `permission.edit` allow cannot silently re-grant what a read-only
+    // agent must not have. Agent-level config still merges later in agent.ts,
+    // so users can still opt out explicitly.
+    permission: Permission.merge(
+      defaults,
+      user,
+      META_TOOLS,
+      Permission.fromConfig({
+        suggest: "allow",
+        plan_enter: "allow",
+        bash: readOnlyBash,
+        edit: {
+          "*": "deny",
+          "docs/*.md": "allow",
+          "docs/*.json": "allow",
+          ".nocowboy/plans/*.md": "allow",
+        },
+      }),
+    ),
+    mode: "all",
+    native: true,
+  }
+
+  // Add planner agent — planning and specification. Consumes the architect's
+  // design and turns it into a spec plus acceptance criteria. Read-only.
   agents.planner = {
     name: "planner",
     description: "Planning, specification, acceptance criteria — read-only",
@@ -387,7 +428,7 @@ export function patchAgents(
     model: resolveModel("planner", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
-    mode: "primary",
+    mode: "all",
     native: true,
   }
 

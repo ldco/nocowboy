@@ -195,11 +195,12 @@ function writeState(input: unknown) {
 }
 
 function run(input: {
-  agent: "pinned" | "runner"
+  agent: string
   state?: unknown
   client?: string
   variant?: string
   config?: Pick<Config.Info, "subagent_model" | "subagent_variant" | "subagent_variant_overrides">
+  extraAgent?: Record<string, unknown>
 }) {
   return provideTmpdirInstance(
     () =>
@@ -245,6 +246,7 @@ function run(input: {
         agent: {
           runner: { mode: "subagent" },
           pinned: { mode: "subagent", model: "config-provider/config-model", variant: cfgVariant },
+          ...input.extraAgent,
         },
       },
     },
@@ -571,5 +573,87 @@ describe("tool.task model resolution", () => {
         }),
       ),
     ),
+  )
+
+  it.live("agent fallback_model is used when the primary agent model is unavailable", () =>
+    run({
+      agent: "pinfall",
+      extraAgent: {
+        pinfall: { mode: "subagent", model: "missing-provider/missing-model", fallback_model: "sub-provider/sub-model" },
+      },
+    }).pipe(
+      Effect.tap((result) =>
+        Effect.sync(() => {
+          expect(result.prompt).toEqual(sub)
+          expect(result.model).toEqual(sub)
+        }),
+      ),
+    ),
+  15000,
+  )
+
+  it.live("retries the task with the fallback model when the primary model is rejected", () =>
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          process.env.NOCOWBOY_CLIENT = "cli"
+          const { chat, assistant } = yield* seed("pinned")
+          const tool = yield* TaskTool
+          const def = yield* tool.init()
+          const used: Array<{ providerID: string; modelID: string }> = []
+          const promptOps: TaskPromptOps = {
+            cancel: () => Effect.void,
+            resolvePromptParts: (template) => Effect.succeed([{ type: "text" as const, text: template }]),
+            prompt: (input) =>
+              Effect.sync(() => {
+                used.push({ providerID: String(input.model!.providerID), modelID: String(input.model!.modelID) })
+                if (used.length === 1) {
+                  const base = reply(input, "")
+                  return {
+                    ...base,
+                    info: {
+                      ...base.info,
+                      error: MessageV2.fromError(new Error("Not found the model config-model or Permission denied"), {
+                        providerID: input.model!.providerID,
+                      }),
+                    },
+                  }
+                }
+                return reply(input, "fallback ok")
+              }),
+            loop: (input) => Effect.succeed(reply({ sessionID: input.sessionID, parts: [] }, "done")),
+          }
+
+          const result = yield* def.execute(
+            { description: "run pinned", prompt: "inspect resolution", subagent_type: "pinned" },
+            {
+              sessionID: chat.id,
+              messageID: assistant.id,
+              agent: "build",
+              abort: new AbortController().signal,
+              extra: { promptOps, bypassAgentCheck: true },
+              messages: [],
+              metadata: () => Effect.void,
+              ask: () => Effect.void,
+            },
+          )
+
+          // primary attempt uses the pinned agent model, then the caller model
+          expect(used).toHaveLength(2)
+          expect(used[0]).toEqual({ providerID: String(cfg.providerID), modelID: String(cfg.modelID) })
+          expect(used[1]).toEqual({ providerID: String(parent.providerID), modelID: String(parent.modelID) })
+          expect(result.output).toContain("fallback ok")
+        }),
+      {
+        config: {
+          ...catalog,
+          agent: {
+            runner: { mode: "subagent" },
+            pinned: { mode: "subagent", model: "config-provider/config-model", variant: cfgVariant },
+          },
+        },
+      },
+    ),
+  15000,
   )
 })

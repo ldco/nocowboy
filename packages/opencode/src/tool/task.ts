@@ -5,6 +5,7 @@ import { BackgroundJob } from "@/background/job"
 import { Bus } from "@/bus"
 import { Session } from "@/session/session"
 import { SessionID, MessageID } from "../session/schema"
+import { ModelID, ProviderID } from "../provider/schema"
 import { MessageV2 } from "../session/message-v2"
 import { Agent } from "../agent/agent"
 import { deriveSubagentSessionPermission } from "../agent/subagent-permissions"
@@ -104,6 +105,15 @@ function backgroundMessage(input: {
 function errorText(error: unknown) {
   if (error instanceof Error) return error.message
   return String(error)
+}
+
+// Provider APIs reject an unavailable model at request time (e.g. Moonshot's
+// "Not found the model X or Permission denied"). Such failures happen on the
+// first call, before any tool side effects, so retrying with a fallback model
+// is safe.
+function isModelUnavailableError(error: unknown) {
+  const message = errorText(error).toLowerCase()
+  return /not found the model|model not found|unknown model|unsupported model|model does not exist/.test(message)
 }
 
 export const TaskTool = Tool.define(
@@ -214,6 +224,7 @@ export const TaskTool = Tool.define(
       })
       const model = selected.model
       const variant = selected.variant
+      const fallback = selected.fallback
       const metadata = {
         parentSessionId: ctx.sessionID,
         sessionId: nextSession.id,
@@ -232,29 +243,39 @@ export const TaskTool = Tool.define(
       const runCancel = yield* EffectBridge.make()
 
       const runTask = Effect.fn("TaskTool.runTask")(function* () {
-        const parts = yield* ops.resolvePromptParts(params.prompt)
-        NoCowboySessionProcessor.markReviewTelemetry(parts, params.command)
-        const result = yield* ops.prompt({
-          messageID: MessageID.ascending(),
-          sessionID: nextSession.id,
-          model: {
-            modelID: model.modelID,
-            providerID: model.providerID,
-          },
-          variant,
-          agent: next.name,
-          tools: {
-            question: false,
-            ...(canTodo ? {} : { todowrite: false }),
-            ...(canTask ? {} : { task: false }),
-            ...Object.fromEntries((cfg.experimental?.primary_tools ?? []).map((item) => [item, false])),
-          },
-          parts,
-        })
-        if (result.info.role === "assistant" && result.info.error) {
-          return yield* Effect.fail(new Error(errorMessage(result.info.error)))
-        }
-        return result.parts.findLast((item) => item.type === "text")?.text ?? ""
+        const attempt = (target: { providerID: ProviderID; modelID: ModelID }, targetVariant?: string) =>
+          Effect.gen(function* () {
+            const parts = yield* ops.resolvePromptParts(params.prompt)
+            NoCowboySessionProcessor.markReviewTelemetry(parts, params.command)
+            const result = yield* ops.prompt({
+              messageID: MessageID.ascending(),
+              sessionID: nextSession.id,
+              model: {
+                modelID: target.modelID,
+                providerID: target.providerID,
+              },
+              variant: targetVariant,
+              agent: next.name,
+              tools: {
+                question: false,
+                ...(canTodo ? {} : { todowrite: false }),
+                ...(canTask ? {} : { task: false }),
+                ...Object.fromEntries((cfg.experimental?.primary_tools ?? []).map((item) => [item, false])),
+              },
+              parts,
+            })
+            if (result.info.role === "assistant" && result.info.error) {
+              return yield* Effect.fail(new Error(errorMessage(result.info.error)))
+            }
+            return result.parts.findLast((item) => item.type === "text")?.text ?? ""
+          })
+
+        return yield* attempt(model, variant).pipe(
+          Effect.catchCause((cause) => {
+            if (!fallback || !isModelUnavailableError(Cause.squash(cause))) return Effect.failCause(cause)
+            return attempt(fallback.model, fallback.variant)
+          }),
+        )
       })
 
       const resumeWhenIdle: (input: { userID: MessageID; state: "completed" | "error" }) => Effect.Effect<void> =

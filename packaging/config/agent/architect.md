@@ -1,6 +1,6 @@
 ---
 name: architect
-mode: primary
+mode: all
 description: Architecture design, ADRs, trade-off analysis, C4 diagrams
 ---
 

@@ -2542,7 +2542,7 @@ it.live(
             const err = Cause.squash(exit.cause)
             expect(NamedError.Unknown.isInstance(err)).toBe(true)
             if (NamedError.Unknown.isInstance(err)) {
-              expect(err.data.message).toContain("code") // kilocode_change - "build" renamed to "code"
+              expect(err.data.message).toContain("worker") // kilocode_change - persona renamed build → code → worker
             }
           }
         }),

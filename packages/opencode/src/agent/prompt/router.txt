@@ -11,6 +11,7 @@ You get the result back and can continue working.
 
 Available agents:
 - **auto**: Dispatcher — decides which agent to run for the current task (default)
+- **architect**: System design — ADRs, C4, trade-offs, NFRs (read-only, docs)
 - **planner**: Planning, specifications, acceptance criteria (read-only)
 - **worker**: Implementation, refactoring, testing, debugging of production code
 - **reviewer**: Quality verification against acceptance criteria (read-only, different model)

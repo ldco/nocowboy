@@ -841,7 +841,15 @@ export const layer = Layer.effect(
               yield* bus.publish(Session.Event.Error, { sessionID: input.sessionID, error: error.toObject() })
               throw error
             }
-            const model = input.model ?? agent.model ?? (yield* currentModel(input.sessionID))
+            const model = yield* NoCowboySessionPrompt.resolveAgentModel({
+              agent,
+              explicit: input.model,
+              current: () => currentModel(input.sessionID),
+              available: (candidate) =>
+                provider
+                  .getModel(candidate.providerID, candidate.modelID)
+                  .pipe(Effect.as(true), Effect.catchCause(() => Effect.succeed(false))),
+            })
             const userMsg: MessageV2.User = {
               id: input.messageID ?? MessageID.ascending(),
               sessionID: input.sessionID,
@@ -1045,7 +1053,15 @@ export const layer = Layer.effect(
           .where(eq(SessionTable.id, input.sessionID))
           .get(),
       )
-      const model = input.model ?? ag.model ?? (yield* currentModel(input.sessionID))
+      const model = yield* NoCowboySessionPrompt.resolveAgentModel({
+        agent: ag,
+        explicit: input.model,
+        current: () => currentModel(input.sessionID),
+        available: (candidate) =>
+          provider
+            .getModel(candidate.providerID, candidate.modelID)
+            .pipe(Effect.as(true), Effect.catchCause(() => Effect.succeed(false))),
+      })
       const same = ag.model && model.providerID === ag.model.providerID && model.modelID === ag.model.modelID
       const full =
         !input.variant && ag.variant && same
