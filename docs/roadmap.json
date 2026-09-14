@@ -64,6 +64,11 @@
       "description": "Quality & Infrastructure — verification loop как DEFAULT behavior"
     },
     {
+      "tag": "v0.12.0",
+      "date": "2026-09-14",
+      "description": "Autonomous Agent Loop + Subagent Reliability — Goal Agent, Agent Teams, subagent watchdog, TUI polish"
+    },
+    {
       "tag": "v1.0.0-alpha",
       "description": "Alpha — internal testing"
     },
@@ -2076,7 +2081,8 @@
         "goal"
       ],
       "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "goal-loop-controller",
@@ -2092,7 +2098,8 @@
         "agent-loop"
       ],
       "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "auto-permission-classifier",
@@ -2106,7 +2113,8 @@
         "safety"
       ],
       "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "stop-hooks-turn-level",
@@ -2120,7 +2128,8 @@
         "quality"
       ],
       "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "ac-verification-hook",
@@ -2137,7 +2146,8 @@
         "ac"
       ],
       "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "async-task-spawn",
@@ -2151,7 +2161,8 @@
         "async"
       ],
       "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "task-dependency-chain",
@@ -2168,7 +2179,8 @@
         "workflow"
       ],
       "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "shared-task-list",
@@ -2182,7 +2194,8 @@
         "coordination"
       ],
       "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "agent-mailbox",
@@ -2196,7 +2209,8 @@
         "communication"
       ],
       "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "team-lead",
@@ -2214,7 +2228,8 @@
         "orchestration"
       ],
       "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "goal-agent",
@@ -2233,7 +2248,8 @@
         "tui"
       ],
       "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "tui-goal-ux",
@@ -2250,7 +2266,8 @@
         "ux"
       ],
       "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "goal-headless",
@@ -2267,7 +2284,8 @@
         "ci"
       ],
       "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
-      "done_at": "2026-08-01"
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
     },
     {
       "id": "knowledge-graph",
@@ -2318,7 +2336,8 @@
       ],
       "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything.",
       "done_on": "2026-08-04",
-      "notes": "Детерминированный парсинг AST через tree-sitter реализован: shell.ts парсит bash/powershell AST, scrollback.surface.ts использует TreeSitterClient для подсветки синтаксиса, parsers-config.ts определяет 30+ языков с highlight+locals запросами (функции, классы, импорты), 37 WASM-парсеров."
+      "notes": "Детерминированный парсинг AST через tree-sitter реализован: shell.ts парсит bash/powershell AST, scrollback.surface.ts использует TreeSitterClient для подсветки синтаксиса, parsers-config.ts определяет 30+ языков с highlight+locals запросами (функции, классы, импорты), 37 WASM-парсеров.",
+      "version": "v0.12.0"
     },
     {
       "id": "arch-layer-detection",
@@ -2351,7 +2370,8 @@
       "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★).",
       "depends_on": [],
       "done_on": "2026-08-04",
-      "notes": "Cost-aware model selection реализован в catalog.ts: сортировка моделей по стоимости (input+output price) и релевантности (recency), предпочтение small/cheap моделей. Формализованный роутинг по стоимости встроен в слой провайдеров."
+      "notes": "Cost-aware model selection реализован в catalog.ts: сортировка моделей по стоимости (input+output price) и релевантности (recency), предпочтение small/cheap моделей. Формализованный роутинг по стоимости встроен в слой провайдеров.",
+      "version": "v0.12.0"
     },
     {
       "id": "commitment-boundary-review",
@@ -2409,6 +2429,45 @@
       ],
       "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail.",
       "depends_on": []
+    },
+    {
+      "id": "subagent-hang-watchdog",
+      "title": "Subagent Hang Watchdog — детект зависших субагентов, idle-таймаут стрима, уведомление родителя",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/tool/task-watchdog.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "agent-model-fallback",
+      "title": "Model Fallback — резервная модель агента при сбое провайдера",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/tool-task-model.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "embedder-autofailover",
+      "title": "Indexing — автоматический failover voyage → ollama для эмбеддера",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/indexing.ts"
+        }
+      ]
     }
   ]
 }
