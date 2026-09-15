@@ -5,6 +5,7 @@ import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Bus } from "../../../src/bus"
 import * as Config from "../../../src/config/config"
 import { AllowEverythingPermission } from "../../../src/nocowboy/permission/allow-everything"
+import { isAllowEverythingConfig } from "../../../src/nocowboy/permission/allow-everything-config"
 import { Permission } from "../../../src/permission"
 import { PermissionID } from "../../../src/permission/schema"
 import { provideTestInstance } from "../../fixture/fixture"
@@ -167,4 +168,81 @@ describe("AllowEverythingPermission", () => {
       { git: true },
     ),
   )
+
+  it.live("global enable suppresses prompts even when the agent ruleset asks", () =>
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const sessions = yield* Session.Service
+          const permission = yield* Permission.Service
+          expect(yield* AllowEverythingPermission.effect({ enable: true })).toBe(true)
+          const session = yield* sessions.create({})
+          // With YOLO on the ask resolves immediately; without it the effect
+          // parks on the pending deferred and the timeout turns it into a failure.
+          const exit = yield* permission
+            .ask({
+              id: PermissionID.make("permission_yolo_ruleset"),
+              sessionID: session.id,
+              permission: "bash",
+              patterns: ["rm -rf /tmp/nope"],
+              metadata: {},
+              always: [],
+              ruleset: [{ permission: "bash", pattern: "*", action: "ask" }],
+            })
+            .pipe(Effect.timeout("2 seconds"), Effect.exit)
+          expect(Exit.isSuccess(exit)).toBe(true)
+          expect(yield* AllowEverythingPermission.effect({ enable: false })).toBe(true)
+        }),
+      { git: true },
+    ),
+  )
+
+  it.live("a deny rule still wins over global YOLO", () =>
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const sessions = yield* Session.Service
+          const permission = yield* Permission.Service
+          expect(yield* AllowEverythingPermission.effect({ enable: true })).toBe(true)
+
+          const session = yield* sessions.create({})
+          const exit = yield* permission
+            .ask({
+              id: PermissionID.make("permission_yolo_deny"),
+              sessionID: session.id,
+              permission: "bash",
+              patterns: ["rm -rf /"],
+              metadata: {},
+              always: [],
+              ruleset: [{ permission: "bash", pattern: "*", action: "deny" }],
+            })
+            .pipe(Effect.exit)
+
+          expect(Exit.isFailure(exit)).toBe(true)
+          if (Exit.isFailure(exit)) {
+            expect(Cause.squash(exit.cause)).toBeInstanceOf(Permission.DeniedError)
+          }
+          expect(yield* AllowEverythingPermission.effect({ enable: false })).toBe(true)
+        }),
+      { git: true },
+    ),
+  )
+})
+
+describe("isAllowEverythingConfig", () => {
+  test("recognises the object form", () => {
+    expect(isAllowEverythingConfig({ "*": { "*": "allow" } })).toBe(true)
+  })
+  test("recognises the scalar shorthand", () => {
+    expect(isAllowEverythingConfig({ "*": "allow" })).toBe(true)
+  })
+  test("rejects the disabled null form", () => {
+    expect(isAllowEverythingConfig({ "*": { "*": null } })).toBe(false)
+  })
+  test("rejects partial grants and non-objects", () => {
+    expect(isAllowEverythingConfig({ bash: "allow" })).toBe(false)
+    expect(isAllowEverythingConfig({ "*": { bash: "allow" } })).toBe(false)
+    expect(isAllowEverythingConfig(undefined)).toBe(false)
+    expect(isAllowEverythingConfig(null)).toBe(false)
+  })
 })

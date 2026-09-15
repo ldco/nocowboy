@@ -17,6 +17,7 @@ import { zod } from "@nocowboy/core/effect-zod"
 import { evaluate as evalRule } from "./evaluate"
 import { PermissionID } from "./schema"
 import { ConfigProtection } from "@/nocowboy/permission/config-paths"
+import { isAllowEverythingConfig } from "@/nocowboy/permission/allow-everything-config"
 import { drainCovered } from "@/nocowboy/permission/drain"
 import { ReadPermission } from "@/nocowboy/permission/read"
 import { ExternalDirectoryPermission } from "@/nocowboy/permission/external-directory"
@@ -227,18 +228,41 @@ export const layer = Layer.effect(
 
       const isProtected = ConfigProtection.isRequest(request)
 
+      // Global "allow everything" (YOLO) is consulted lazily — only when a
+      // prompt would otherwise be shown — so the common allowed path stays free
+      // of config I/O. Read fresh from config so the grant is honoured in every
+      // instance/worktree and survives restarts; it must not depend on
+      // per-instance rule ordering (see isAllowEverythingConfig).
+      let allowEverything: boolean | undefined
+      const yoloAllows = Effect.fnUntraced(function* () {
+        if (allowEverything === undefined) {
+          const global = yield* config.get()
+          allowEverything = isAllowEverythingConfig(global.permission)
+        }
+        return allowEverything
+      })
+
       for (const pattern of request.patterns) {
-        const rule = resolve(request.permission, pattern, ruleset, approved, local)
-        log.info("evaluated", { permission: request.permission, pattern, action: rule })
+        // Hard invariants are never overridden by YOLO: an explicit deny or an
+        // external-directory veto still wins.
         if (veto(request.permission, pattern, hardRuleset)) {
           return yield* new DeniedError({ ruleset: subset(request.permission, hardRuleset ?? []) })
         }
+        const rule = resolve(request.permission, pattern, ruleset, approved, local)
         if (rule.action === "deny") {
           return yield* new DeniedError({
             ruleset: subset(request.permission, ruleset),
           })
         }
-        if (rule.action === "allow" && !isProtected) continue
+        if (rule.action === "allow" && !isProtected) {
+          log.info("evaluated", { permission: request.permission, pattern, action: rule })
+          continue
+        }
+        if (!isProtected && (yield* yoloAllows())) {
+          log.info("evaluated", { permission: request.permission, pattern, action: { action: "allow", via: "yolo" } })
+          continue
+        }
+        log.info("evaluated", { permission: request.permission, pattern, action: rule })
         needsAsk = true
       }
 

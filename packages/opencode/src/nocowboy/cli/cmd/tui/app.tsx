@@ -21,6 +21,7 @@ import { DialogAlert } from "@tui/ui/dialog-alert"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { Link } from "@tui/ui/link"
 import { isNocowboyError, showNocowboyErrorToast } from "@/nocowboy/errors"
+import { isAllowEverythingConfig as isAllowEverything } from "@/nocowboy/permission/allow-everything-config"
 import { initializeTUIDependencies } from "@nocowboy/gateway/tui"
 import { DialogProcessList } from "@/nocowboy/cli/cmd/tui/component/dialog-process-list"
 import { useIndexingWarnings } from "@/nocowboy/cli/cmd/tui/indexing-warning"
@@ -51,14 +52,6 @@ export const APP_NAME = "NoCowboy"
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
-
-export function isAllowEverything(permission: unknown): boolean {
-  if (typeof permission !== "object" || permission === null) return false
-  const wildcard = (permission as Record<string, unknown>)["*"]
-  if (typeof wildcard === "string") return wildcard === "allow"
-  if (typeof wildcard === "object" && wildcard !== null) return (wildcard as Record<string, unknown>)["*"] === "allow"
-  return false
-}
 
 // ---------------------------------------------------------------------------
 // Session effects
