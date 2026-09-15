@@ -1315,7 +1315,7 @@ it.live(
 // surfaces as a "No context found for instance" die before the queue behavior
 // can be exercised. The Kilo queue semantics (in-flight stream drains, second
 // LLM request ends with the queued user message) are covered end-to-end in
-// packages/opencode/test/kilocode/session-prompt-queue.test.ts — keep this
+// packages/opencode/test/nocowboy/session-prompt-queue.test.ts — keep this
 // upstream scaffold skipped so future OpenCode merges remain friction-free.
 it.live.skip(
   "prompt submitted during an active run is included in the next LLM input",

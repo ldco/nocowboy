@@ -2058,7 +2058,7 @@ describe("SessionNs.getUsage", () => {
   })
 
   // Tests for Anthropic Messages / OpenAI Responses / Vercel AI Gateway cost extraction
-  // live in test/kilocode/provider-cost.test.ts (kilocode_change).
+  // live in test/nocowboy/provider-cost.test.ts (kilocode_change).
   // kilocode_change end
 
   test.each(["@ai-sdk/anthropic", "@ai-sdk/amazon-bedrock", "@ai-sdk/google-vertex/anthropic"])(

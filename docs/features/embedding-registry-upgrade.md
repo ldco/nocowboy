@@ -15,7 +15,7 @@
 ## Key files
 
 - `packages/nocowboy-indexing/src/indexing/model-registry.ts` — профиль `openrouter`
-- `packages/nocowboy-indexing/test/kilocode/indexing/model-registry.test.ts` — покрытие (включая `getDefaultModelId`)
+- `packages/nocowboy-indexing/test/nocowboy/indexing/model-registry.test.ts` — покрытие (включая `getDefaultModelId`)
 
 ## Verification
 

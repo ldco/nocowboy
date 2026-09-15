@@ -3,7 +3,7 @@ import { mockEmbeddingsCreate, openAIMockFactory, setOpenAIConstructorHook } fro
 
 mock.module("openai", openAIMockFactory)
 
-import { KiloEmbedder, KILO_INDEXING_FEATURE } from "../../../../src/indexing/embedders/kilo"
+import { KiloEmbedder, NOCOWBOY_INDEXING_FEATURE } from "../../../../src/indexing/embedders/kilo"
 
 describe("KiloEmbedder", () => {
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe("KiloEmbedder", () => {
     })
 
     const embedder = new KiloEmbedder({
-      apiKey: "kilo-token",
+      apiKey: "test-token",
       organizationId: "org_123",
       modelId: "mistralai/mistral-embed-2312",
     })
@@ -29,9 +29,9 @@ describe("KiloEmbedder", () => {
 
     expect(seen[0]).toEqual({
       baseURL: "https://api.kilo.ai/api/gateway/",
-      apiKey: "kilo-token",
+      apiKey: "test-token",
       defaultHeaders: {
-        "X-NOCOWBOY-FEATURE": KILO_INDEXING_FEATURE,
+        "X-NOCOWBOY-FEATURE": NOCOWBOY_INDEXING_FEATURE,
         "X-NOCOWBOY-ORGANIZATIONID": "org_123",
       },
     })
@@ -47,7 +47,7 @@ describe("KiloEmbedder", () => {
     setOpenAIConstructorHook((cfg) => seen.push(cfg))
 
     new KiloEmbedder({
-      apiKey: "kilo-token",
+      apiKey: "test-token",
       baseUrl: "https://example.test/api/openrouter/",
       modelId: "mistralai/mistral-embed-2312",
     })

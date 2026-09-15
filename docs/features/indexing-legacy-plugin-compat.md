@@ -25,7 +25,7 @@
 
 - `packages/nocowboy-indexing/src/detect.ts` — `LEGACY_PACKAGE_NAMES`, `canonicalPackageName()`
 - `packages/nocowboy-indexing/src/indexing/embedders/kilo.ts` — `resolveNoCowboyGatewayBaseUrl({ baseURL: input.baseUrl })`, импорт констант из `api/constants`
-- `packages/nocowboy-indexing/test/kilocode/indexing/embedders/kilo.test.ts` — покрытие заголовков
+- `packages/nocowboy-indexing/test/nocowboy/indexing/embedders/kilo.test.ts` — покрытие заголовков
 
 ## Verification
 

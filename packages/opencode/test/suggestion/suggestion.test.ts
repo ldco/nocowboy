@@ -1,2 +1,2 @@
 // kilocode_change - new file
-// Moved to test/kilocode/suggestion/suggestion.test.ts.
+// Moved to test/nocowboy/suggestion/suggestion.test.ts.

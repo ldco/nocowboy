@@ -31,8 +31,8 @@ after 3 retries: Connection to embedding service failed (timeout)».
 - `packages/nocowboy-indexing/src/indexing/constants/index.ts` — `LOCAL_EMBEDDER_PROVIDERS`, `LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD`, `getDefaultBatchSegmentThreshold()`
 - `packages/nocowboy-indexing/src/indexing/processors/scanner.ts` — `isBatchSizeRelatedError()`, пошаговый `processBatch` с shrink-on-timeout
 - `packages/nocowboy-indexing/src/indexing/service-factory.ts` — провайдер-aware дефолт `config.embeddingBatchSize ?? getDefaultBatchSegmentThreshold(provider)`
-- `packages/nocowboy-indexing/test/kilocode/indexing/processors/scanner.test.ts` — покрытие shrink-on-timeout
-- `packages/nocowboy-indexing/test/kilocode/indexing/service-factory.test.ts` — покрытие провайдер-aware порога
+- `packages/nocowboy-indexing/test/nocowboy/indexing/processors/scanner.test.ts` — покрытие shrink-on-timeout
+- `packages/nocowboy-indexing/test/nocowboy/indexing/service-factory.test.ts` — покрытие провайдер-aware порога
 
 ## Verification
 

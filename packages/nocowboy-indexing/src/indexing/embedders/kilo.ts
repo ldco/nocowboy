@@ -7,7 +7,7 @@ import { OpenAICompatibleEmbedder } from "./openai-compatible"
 
 const log = Log.create({ service: "embedder-kilo" })
 
-export const KILO_INDEXING_FEATURE = "managed-indexing"
+export const NOCOWBOY_INDEXING_FEATURE = "managed-indexing"
 
 export class KiloEmbedder implements IEmbedder {
   private readonly embedder: OpenAICompatibleEmbedder
@@ -25,7 +25,7 @@ export class KiloEmbedder implements IEmbedder {
     if (!input.modelId) throw new Error("Kilo embedding model is required.")
     this.model = input.modelId
     const headers: Record<string, string> = {
-      [HEADER_FEATURE]: KILO_INDEXING_FEATURE,
+      [HEADER_FEATURE]: NOCOWBOY_INDEXING_FEATURE,
       ...(input.organizationId ? { [HEADER_NOCOWBOY_ORGANIZATIONID]: input.organizationId } : {}),
     }
 
