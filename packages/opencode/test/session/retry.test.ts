@@ -6,6 +6,10 @@ import { Effect, Layer, Schedule, Schema } from "effect"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { SessionRetry } from "../../src/session/retry"
 import { MessageV2 } from "../../src/session/message-v2"
+import {
+  streamIdleFailureMessage,
+  STREAM_IDLE_RETRY_MESSAGE,
+} from "../../src/nocowboy/session/stream-idle"
 import { ProviderID } from "../../src/provider/schema"
 import { SessionID } from "../../src/session/schema"
 import { SessionStatus } from "../../src/session/status"
@@ -170,6 +174,23 @@ describe("session.retry.retryable", () => {
     }).toObject()
 
     expect(SessionRetry.retryable(error, retryProvider)).toBeUndefined()
+  })
+
+  // nocowboy_change — a stalled provider must not kill the session.
+  test("retries a stalled provider instead of halting the session", () => {
+    const error = wrap(streamIdleFailureMessage(300_000))
+    expect(SessionRetry.retryable(error, retryProvider)).toEqual({ message: STREAM_IDLE_RETRY_MESSAGE })
+  })
+
+  test("retries an aborted stalled stream regardless of the wrapper", () => {
+    const error = Schema.decodeUnknownSync(MessageV2.APIError.Schema)(
+      new MessageV2.APIError({
+        message: streamIdleFailureMessage(60_000),
+        isRetryable: false,
+      }).toObject(),
+    )
+
+    expect(SessionRetry.retryable(error, retryProvider)).toEqual({ message: STREAM_IDLE_RETRY_MESSAGE })
   })
 
   test("retries 500 errors even when isRetryable is false", () => {

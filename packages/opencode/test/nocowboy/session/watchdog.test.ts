@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   subagentMaxRuntimeMs,
   subagentStallTimeoutMs,
+  streamFirstEventTimeoutMs,
   streamIdleTimeoutMs,
   toolHeartbeatIntervalMs,
 } from "@/nocowboy/session/watchdog"
@@ -12,6 +13,7 @@ const config = { experimental: {} } as Parameters<typeof streamIdleTimeoutMs>[0]
 describe("watchdog timeout resolution", () => {
   test("falls back to defaults", () => {
     expect(streamIdleTimeoutMs({ flags, config })).toBe(300_000)
+    expect(streamFirstEventTimeoutMs({ flags, config })).toBe(600_000)
     expect(subagentStallTimeoutMs({ flags, config })).toBe(600_000)
     expect(subagentMaxRuntimeMs({ flags, config })).toBe(0)
   })

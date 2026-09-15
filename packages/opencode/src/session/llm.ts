@@ -44,7 +44,7 @@ import { getActiveOrg } from "@/nocowboy/session-export/eligibility"
 import { USER_AGENT } from "@/installation"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import { streamIdleTimeoutMs } from "@/nocowboy/session/watchdog"
+import { streamFirstEventTimeoutMs, streamIdleTimeoutMs } from "@/nocowboy/session/watchdog"
 import { withIdleTimeout } from "@/nocowboy/session/stream-idle"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
@@ -586,9 +586,16 @@ const live: Layer.Layer<
             // nocowboy_change — fail a silently stalled provider instead of
             // hanging the session forever. Applied to the raw SSE async
             // iterable (see stream-idle.ts), not to the Effect stream.
-            const idleMs = streamIdleTimeoutMs({ flags, config: yield* config.get() })
+            // Two budgets: time-to-first-event is generous (prefill of a huge
+            // prompt is legitimately slow on any provider — killing it caused
+            // false-positive stalls), while mid-stream silence stays tight.
+            const cfg = yield* config.get()
+            const idleMs = streamIdleTimeoutMs({ flags, config: cfg })
+            const firstEventMs = streamFirstEventTimeoutMs({ flags, config: cfg })
             const fullStream =
-              idleMs > 0 ? withIdleTimeout(result.fullStream, idleMs, ctrl) : result.fullStream
+              idleMs > 0 || firstEventMs > 0
+                ? withIdleTimeout(result.fullStream, idleMs, ctrl, firstEventMs)
+                : result.fullStream
 
             return Stream.fromAsyncIterable(fullStream, (e) => (e instanceof Error ? e : new Error(String(e))))
           }),

@@ -2,6 +2,7 @@ import type { NamedError } from "@nocowboy/core/util/error"
 import { Cause, Clock, Duration, Effect, Schedule } from "effect"
 import { MessageV2 } from "./message-v2"
 import { isNocowboyError } from "@/nocowboy/errors"
+import { isStreamIdleFailure, STREAM_IDLE_RETRY_MESSAGE } from "@/nocowboy/session/stream-idle"
 import { SessionNetwork } from "./network"
 import { iife } from "@/util/iife"
 import { isRecord } from "@/util/record"
@@ -67,6 +68,15 @@ export function delay(attempt: number, error?: MessageV2.APIError) {
 export function retryable(error: Err, _provider?: string): Retryable | undefined {
   // context overflow errors should not be retried
   if (MessageV2.ContextOverflowError.isInstance(error)) return undefined
+
+  // A silently stalled provider (headers delivered, then no SSE event for the
+  // whole idle window) is transient: the stream-idle watchdog aborted the
+  // request, so re-issue it instead of halting the session. Checked before the
+  // APIError branch because the stall arrives as a plain NamedError.Unknown and
+  // must be recognized regardless of how the provider wraps it.
+  const stallMessage = isRecord(error.data) ? error.data.message : undefined
+  if (isStreamIdleFailure(stallMessage)) return { message: STREAM_IDLE_RETRY_MESSAGE }
+
   if (MessageV2.APIError.isInstance(error)) {
     const status = error.data.statusCode
     if (isNocowboyError(error)) return undefined

@@ -8,6 +8,7 @@ import type { Config } from "@/config/config"
 import type { RuntimeFlags } from "@/effect/runtime-flags"
 
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
+export const DEFAULT_STREAM_FIRST_EVENT_TIMEOUT_MS = 600_000
 export const DEFAULT_SUBAGENT_STALL_TIMEOUT_MS = 600_000
 export const DEFAULT_SUBAGENT_MAX_RUNTIME_MS = 0
 
@@ -15,6 +16,20 @@ type Sources = { flags: RuntimeFlags.Info; config: Config.Info }
 
 export function streamIdleTimeoutMs({ flags, config }: Sources) {
   return flags.streamIdleTimeoutMs ?? config.experimental?.stream_idle_timeout_ms ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS
+}
+
+/**
+ * Time-to-first-event budget. Separate from the between-events idle timeout:
+ * a huge prompt can legitimately prefill for minutes before the first token,
+ * and killing that aborts healthy requests on any provider. Never allowed
+ * below the idle budget (see llm.ts).
+ */
+export function streamFirstEventTimeoutMs({ flags, config }: Sources) {
+  return (
+    flags.streamFirstEventTimeoutMs ??
+    config.experimental?.stream_first_event_timeout_ms ??
+    DEFAULT_STREAM_FIRST_EVENT_TIMEOUT_MS
+  )
 }
 
 export function subagentStallTimeoutMs({ flags, config }: Sources) {

@@ -58,6 +58,7 @@ export class Service extends ConfigService.Service<Service>()("@nocowboy/Runtime
   bashDefaultTimeoutMs: positiveInteger("NOCOWBOY_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS"),
   // nocowboy_change — subagent hang watchdog env overrides (0 = disabled)
   streamIdleTimeoutMs: nonNegativeInteger("NOCOWBOY_STREAM_IDLE_TIMEOUT_MS"),
+  streamFirstEventTimeoutMs: nonNegativeInteger("NOCOWBOY_STREAM_FIRST_EVENT_TIMEOUT_MS"),
   subagentStallTimeoutMs: nonNegativeInteger("NOCOWBOY_SUBAGENT_STALL_TIMEOUT_MS"),
   subagentMaxRuntimeMs: nonNegativeInteger("NOCOWBOY_SUBAGENT_MAX_RUNTIME_MS"),
   client: Config.string("NOCOWBOY_CLIENT").pipe(Config.withDefault("cli")),

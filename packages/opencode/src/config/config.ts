@@ -381,6 +381,10 @@ export const Info = Schema.Struct({
         description:
           "Abort an LLM stream when no event arrives within this many milliseconds. Prevents a silently stalled provider from hanging forever. Set to 0 to disable. Default: 300000 (5 minutes).",
       }),
+      stream_first_event_timeout_ms: Schema.optional(NonNegativeInt).annotate({
+        description:
+          "Abort an LLM stream when the provider sends NO first event within this many milliseconds (time-to-first-event). Separate from stream_idle_timeout_ms: a large prompt can legitimately prefill for minutes before the first token, and killing that aborts healthy requests. Set to 0 to disable the first-event budget. Default: 600000 (10 minutes).",
+      }),
       subagent_stall_timeout_ms: Schema.optional(NonNegativeInt).annotate({
         description:
           "Cancel a subagent that produces no progress (no stream events, no tool completion) for this many milliseconds, and report the stall to the parent. Set to 0 to disable. Default: 600000 (10 minutes).",
