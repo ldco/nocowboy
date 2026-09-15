@@ -1,0 +1,2525 @@
+{
+  "versions": [
+    {
+      "tag": "v0.6.1",
+      "date": "2026-06-24",
+      "description": "Fork & Foundation"
+    },
+    {
+      "tag": "v0.7.0",
+      "date": "2026-06-27",
+      "description": "LSP/UI Polish"
+    },
+    {
+      "tag": "v0.7.3",
+      "date": "2026-07-02",
+      "description": "Dogfooding Release"
+    },
+    {
+      "tag": "v0.7.4",
+      "date": "2026-07-03",
+      "description": "P3 Agent Refactor"
+    },
+    {
+      "tag": "v0.7.5",
+      "date": "2026-07-04",
+      "description": "P2 UX & Safety + NUTAUSIK Auto-Wiring"
+    },
+    {
+      "tag": "v0.7.6",
+      "date": "2026-07-04",
+      "description": "Token Cost Optimization + Identity Scoping"
+    },
+    {
+      "tag": "v0.7.7",
+      "date": "2026-07-05",
+      "description": "Template System Overhaul + Russian Language"
+    },
+    {
+      "tag": "v0.7.8",
+      "date": "2026-07-05",
+      "description": "Ecosystem & Compliance"
+    },
+    {
+      "tag": "v0.7.9",
+      "date": "2026-07-06",
+      "description": "Sandbox + Share"
+    },
+    {
+      "tag": "v0.8.0",
+      "date": "2026-07-08",
+      "description": "Full Auto-Wiring"
+    },
+    {
+      "tag": "v0.9.0",
+      "date": "2026-07-09",
+      "description": "Ecosystem"
+    },
+    {
+      "tag": "v0.10.0",
+      "description": "Russian Language & Localization"
+    },
+    {
+      "tag": "v0.11.0",
+      "description": "Quality & Infrastructure — verification loop как DEFAULT behavior"
+    },
+    {
+      "tag": "v0.12.0",
+      "date": "2026-09-14",
+      "description": "Autonomous Agent Loop + Subagent Reliability — Goal Agent, Agent Teams, subagent watchdog, TUI polish"
+    },
+    {
+      "tag": "v0.12.1",
+      "date": "2026-09-15",
+      "description": "Stream-stall hotfix — раздельные бюджеты TTFT/межсобытиечного idle + авто-ретрай сталла провайдера"
+    },
+    {
+      "tag": "v0.12.2",
+      "date": "2026-09-15",
+      "description": "Stream-stall UX — индикатор тишины провайдера с обратным отсчётом до аборта"
+    },
+    {
+      "tag": "v1.0.0-alpha",
+      "description": "Alpha — internal testing"
+    },
+    {
+      "tag": "v1.0.0-rc",
+      "description": "RC — release candidate, user testing"
+    },
+    {
+      "tag": "v1.0.0",
+      "description": "Production release"
+    },
+    {
+      "tag": "v0.13.0",
+      "date": "2026-09",
+      "description": "Knowledge Graph + Cost Routing + YAGNI Ladder — open-source integrations (Understand-Anything, Fable Advisor, Ponytail)"
+    },
+    {
+      "tag": "v0.13.0",
+      "date": "2026-09",
+      "description": "Alpha Blockers — fix 10 tests, typecheck clean, npm publish"
+    },
+    {
+      "tag": "v1.0.0-alpha",
+      "date": "2026-09",
+      "description": "Alpha Release — internal testing, all features done, no critical bugs"
+    },
+    {
+      "tag": "v1.0.0-rc",
+      "date": "2026-10",
+      "description": "Release Candidate — user testing, performance, docs complete"
+    },
+    {
+      "tag": "v1.0.0",
+      "date": "2026-11",
+      "description": "Production Release — all tests green, npm published, roadmap verified"
+    }
+  ],
+  "features": [
+    {
+      "id": "fork-from-kilocode",
+      "title": "Форк от Kilo Code (TypeScript + Bun + SolidJS + OpenTUI)",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/fork-from-kilocode.md"
+        }
+      ]
+    },
+    {
+      "id": "compiled-binary",
+      "title": "Компиляция в single binary — `bun build --compile`",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "package.json",
+          "pattern": "release"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/compiled-binary.md"
+        }
+      ]
+    },
+    {
+      "id": "repomap",
+      "title": "Repomap — `nocowboy repomap`, авто-инжекция в system prompt",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/repomap.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/system-prompt.ts",
+          "pattern": "RepoMap"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/repomap.md"
+        }
+      ]
+    },
+    {
+      "id": "memory-fts5",
+      "title": "Memory FTS5 (MiMo) — полнотекстовый поиск по памяти",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/memory"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/memory-fts5.md"
+        }
+      ]
+    },
+    {
+      "id": "goal-judge",
+      "title": "Goal judge — `/goal` команда с subagent-оценкой",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/goal.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/goal-judge.md"
+        }
+      ]
+    },
+    {
+      "id": "voice-input",
+      "title": "Voice input — FFmpeg + транскрипция",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/cli/cmd/tui",
+          "pattern": "voice"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/voice-input.md"
+        }
+      ]
+    },
+    {
+      "id": "approval-memory",
+      "title": "Multi-turn approval memory — Allow once per session (Codex CLI style)",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/permission/index.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/approval-memory.md"
+        }
+      ]
+    },
+    {
+      "id": "deep-context",
+      "title": "Deep context — repomap + memory в system prompt",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/deep-context.md"
+        }
+      ]
+    },
+    {
+      "id": "global-config",
+      "title": "Global config — `~/.config/nocowboy/nocowboy.json`",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/config/config.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/global-config.md"
+        }
+      ]
+    },
+    {
+      "id": "indexing",
+      "title": "Indexing — first-class (не плагин)",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/indexing.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/indexing.md"
+        }
+      ]
+    },
+    {
+      "id": "russian-system-prompts",
+      "title": "Russian system prompts — `code.ru.txt`, `debug.ru.txt`",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/code.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/debug.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-system-prompts.md"
+        }
+      ]
+    },
+    {
+      "id": "turso-adr",
+      "title": "ADR: Turso Database adoption (Phase 1 blocked, Phase 2 done)",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/reference/turso-database-adoption.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/turso-adr.md"
+        }
+      ]
+    },
+    {
+      "id": "lang-config-field",
+      "title": "Поле `lang` в схеме конфига",
+      "status": "done",
+      "version": "v0.6.1",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/config/config.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-config-field.md"
+        }
+      ]
+    },
+    {
+      "id": "agent-refactor-15to5",
+      "title": "Agent reduction: 15 → 5",
+      "status": "done",
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/agent",
+          "pattern": "code"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/agent-refactor-15to5.md"
+        }
+      ]
+    },
+    {
+      "id": "tool-groups",
+      "title": "Tool groups — `groups` field in ConfigAgent",
+      "status": "done",
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tool-groups.md"
+        }
+      ]
+    },
+    {
+      "id": "search-replace",
+      "title": "P2-A2: Search/Replace edit format (Aider-style)",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/search-replace.md"
+        }
+      ]
+    },
+    {
+      "id": "branch-per-task",
+      "title": "P2-A3: Branch-per-task",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/branch-per-task.md"
+        }
+      ]
+    },
+    {
+      "id": "permission-timeout",
+      "title": "P2-A4: Permission timeout (auto-deny)",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/permission-timeout.md"
+        }
+      ]
+    },
+    {
+      "id": "yolo-mode",
+      "title": "P2-A5: Yolo mode toggle",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/yolo-mode.md"
+        }
+      ]
+    },
+    {
+      "id": "agent-instructions",
+      "title": "AGENTS.md + code.txt + debug.txt — укреплённые инструкции",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-instructions.md"
+        }
+      ]
+    },
+    {
+      "id": "nutausik-phase1",
+      "title": "NUTAUSIK Phase 1 — hooks, NutausikDot, fix port + SQLite",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-phase1.md"
+        }
+      ]
+    },
+    {
+      "id": "nutausik-v020-tools",
+      "title": "NUTAUSIK v0.2.0 — context_inject, handoff, coherence, loop_close",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-v020-tools.md"
+        }
+      ]
+    },
+    {
+      "id": "token-cost-optimization",
+      "title": "Token cost investigation + repomap watcher cache",
+      "status": "done",
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/token-cost-optimization.md"
+        }
+      ]
+    },
+    {
+      "id": "soul-reduction",
+      "title": "soul.txt — 71% reduction (3449→980 chars)",
+      "status": "done",
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/soul-reduction.md"
+        }
+      ]
+    },
+    {
+      "id": "soul-scoping",
+      "title": "Soul + identity only for nocowboy agent",
+      "status": "done",
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/soul-scoping.md"
+        }
+      ]
+    },
+    {
+      "id": "auto-dream-rule",
+      "title": "Auto-dream: critical rules enforce nutausik_memory_add",
+      "status": "done",
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-dream-rule.md"
+        }
+      ]
+    },
+    {
+      "id": "memory-migration",
+      "title": "MEMORY.md → NUTAUSIK memory migration",
+      "status": "done",
+      "version": "v0.7.6",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/memory-migration.md"
+        }
+      ]
+    },
+    {
+      "id": "template-overhaul",
+      "title": "Template system: 18→7 built-in templates, /continue",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/template-overhaul.md"
+        }
+      ]
+    },
+    {
+      "id": "skills-cleanup",
+      "title": "Skills: 12→5, kilo-config→nocowboy-config",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/skills-cleanup.md"
+        }
+      ]
+    },
+    {
+      "id": "puppetmaster-mcp-refactor",
+      "title": "PuppetMaster MCP: pm_git_commit removed, 5 prompts capability",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/puppetmaster-mcp-refactor.md"
+        }
+      ]
+    },
+    {
+      "id": "git-mcp-wrapper",
+      "title": "Git MCP wrapper — packaging/mcp-servers/git/",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/git-mcp-wrapper.md"
+        }
+      ]
+    },
+    {
+      "id": "russian-system-prompts-all",
+      "title": "Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)",
+      "status": "done",
+      "notes": "Созданы .ru.txt для всех 12 агентов. code, debug, nocowboy, overseer, router, compaction, title, summary, explore, scout, generate.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/code.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/nocowboy.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/overseer.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/agent/prompt/compaction.ru.txt"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-system-prompts-all.md"
+        }
+      ]
+    },
+    {
+      "id": "russian-instructions",
+      "title": "Russian instruction files — instructions/ru/",
+      "status": "done",
+      "notes": "13 файлов в packaging/config/instructions/ru/ — все инструкции переведены.",
+      "version": "v0.10.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/auto-memory.md"
+        },
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/aider-features.md"
+        },
+        {
+          "type": "file",
+          "path": "packaging/config/instructions/ru/sandbox.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/russian-instructions.md"
+        }
+      ]
+    },
+    {
+      "id": "three-doc-system",
+      "title": "Three-dimensional doc system: ROADMAP/CHANGELOG/BACKLOG",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/three-doc-system.md"
+        }
+      ]
+    },
+    {
+      "id": "backward-compat-removal",
+      "title": "MEMORY.md + Kilo references removed from instructions",
+      "status": "done",
+      "version": "v0.7.7",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/backward-compat-removal.md"
+        }
+      ]
+    },
+    {
+      "id": "sandbox-docker",
+      "title": "/sandbox-docker — Docker sandbox isolation template",
+      "status": "done",
+      "version": "v0.7.9",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts",
+          "pattern": "isDockerAvailable"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/sandbox-docker.md"
+        }
+      ]
+    },
+    {
+      "id": "share-template",
+      "title": "/share — session sharing template",
+      "status": "done",
+      "version": "v0.7.9",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/share/share-next.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/share/session.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/share-template.md"
+        }
+      ]
+    },
+    {
+      "id": "sandbox-template",
+      "title": "/sandbox — built-in template: checkpoint, diff, confirm, apply",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/sandbox-template.md"
+        }
+      ]
+    },
+    {
+      "id": "mcp-marketplace",
+      "title": "/mcp — built-in template: search, install, list, remove MCP servers",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/server/routes/instance/httpapi/groups",
+          "pattern": "mcp"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-marketplace.md"
+        }
+      ]
+    },
+    {
+      "id": "ollama-template",
+      "title": "/ollama — built-in template: auto-detect, configure, switch to local Ollama models",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/config/overlay.ts",
+          "pattern": "ollama"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/ollama-template.md"
+        }
+      ]
+    },
+    {
+      "id": "license-rf",
+      "title": "P3-B1: LICENSE.md — Chapter 69 Civil Code РФ",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "LICENSE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/license-rf.md"
+        }
+      ]
+    },
+    {
+      "id": "consent-152fz",
+      "title": "P3-B2: Consent dialog на первом запуске TUI",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/legal/152FZ-COMPLIANCE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/consent-152fz.md"
+        }
+      ]
+    },
+    {
+      "id": "forget-template",
+      "title": "P3-B4: /forget — команда очистки всех данных",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/server/httpapi/groups/background-process.ts",
+          "pattern": "forget"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/forget-template.md"
+        }
+      ]
+    },
+    {
+      "id": "data-localization",
+      "title": "P3-B3: Локализация данных — SQLite в .nocowboy/storage/",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/checkpoint-paths.ts",
+          "pattern": "nocowboy/storage"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/data-localization.md"
+        }
+      ]
+    },
+    {
+      "id": "legal-152fz",
+      "title": "P3-B5/B6: Правовое обоснование + полный анализ 152-ФЗ",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/legal/152FZ-COMPLIANCE.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/legal-152fz.md"
+        }
+      ]
+    },
+    {
+      "id": "publish-all-script",
+      "title": "scripts/publish-all.sh — скрипт публикации 9 MCP-пакетов",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "scripts/publish-all.sh"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/publish-all-script.md"
+        }
+      ]
+    },
+    {
+      "id": "mcp-packages-ready",
+      "title": "9 пакетов @nocowboy/mcp-* готовы к публикации",
+      "status": "done",
+      "version": "v0.7.8",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/constitution/package.json"
+        },
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/score-engine/package.json"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-packages-ready.md"
+        }
+      ]
+    },
+    {
+      "id": "nutausik-auto-wiring",
+      "title": "NUTAUSIK Auto-Wiring: fetchContext, onSessionCreated, fetchCoherenceCheck",
+      "status": "done",
+      "version": "v0.8.0",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
+          "pattern": "fetchContext"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/session.ts",
+          "pattern": "onSessionCreated"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-auto-wiring.md"
+        }
+      ]
+    },
+    {
+      "id": "handoff-auto",
+      "title": "Session Handoff: auto-save/load HANDOFF через nutausik-client",
+      "status": "done",
+      "version": "v0.8.0",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
+          "pattern": "handoff_save"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/handoff-auto.md"
+        }
+      ]
+    },
+    {
+      "id": "escalation-statuses",
+      "title": "Escalation Statuses: DONE/DONE_WITH_CONCERNS/BLOCKED в critical rules",
+      "status": "done",
+      "version": "v0.8.0",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/system.ts",
+          "pattern": "DONE_WITH_CONCERNS"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/escalation-statuses.md"
+        }
+      ]
+    },
+    {
+      "id": "verify-system",
+      "title": "verify-roadmap.ts + pre-commit hook — механический страж false positive",
+      "status": "done",
+      "version": "v0.8.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "scripts/verify-roadmap.ts"
+        },
+        {
+          "type": "file",
+          "path": "scripts/lib/roadmap-types.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/verify-system.md"
+        }
+      ]
+    },
+    {
+      "id": "turso-sync",
+      "title": "Turso — production SQLite для multi-machine sync",
+      "status": "blocked",
+      "version": "v0.11.0",
+      "notes": "Event-sourcing фундамент есть (src/sync/). Turso multi-machine — НЕ РЕАЛИЗОВАН. ADR: Phase 1 blocked.",
+      "subfeatures": [
+        "src/sync/turso-sync.ts — push/pull sync engine",
+        "CLI: tausik turso setup/sync/status",
+        "turso секция в NutausikConfig (url, authToken, syncInterval)"
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/sync/turso-sync.ts"
+        }
+      ],
+      "blocker": "drizzle-orm/libsql has no subpath — @libsql/client (v0.17.4) установлен, но не может быть интегрирован через Drizzle ORM. Ждём drizzle-orm/libsql export. Подробнее: docs/reference/turso-database-adoption.md"
+    },
+    {
+      "id": "publish-npm",
+      "title": "Publish: npm org @nocowboy + npm run publish-all",
+      "status": "done",
+      "version": "v0.11.0",
+      "notes": "9 MCP-пакетов готовы, publish-all.sh есть. Нужно создать npm org и запустить.",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "npm org ls nocowboy 2>/dev/null"
+        }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-no-critical-bugs"
+      ]
+    },
+    {
+      "id": "yandex-gigachat",
+      "title": "YandexGPT / GigaChat провайдеры",
+      "status": "done",
+      "notes": "YandexGPT: openai-compatible profile + тесты. GigaChat: отдельный провайдер (packages/llm/src/providers/gigachat.ts) с RqUID + Bearer auth + getAccessToken() OAuth helper + 4 unit-теста. Детекция в session/system.ts (modelId includes 'yandex'/'gigachat'/'yagpt').",
+      "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "Провайдер yandexgpt принимает API ключ и отправляет запрос к https://llm.api.cloud.yandex.net/v1/chat/completions",
+          "verify": "unit-тест в openai-compatible-chat.test.ts (providerFamilies включает yandexgpt)",
+          "critical": true
+        },
+        {
+          "check": "GigaChat провайдер: Bearer auth + RqUID header + OpenAI-compatible chat",
+          "verify": "gigachat.test.ts: prepare проверяет заголовки (Bearer, RqUID) + тело запроса + tools",
+          "critical": true
+        },
+        {
+          "check": "GigaChat getAccessToken() — OAuth Client Credentials flow",
+          "verify": "файл gigachat.ts экспортирует getAccessToken()",
+          "critical": false
+        },
+        {
+          "check": "Обе модели дают ответы на русском языке с корректными system prompt'ами",
+          "verify": "gigachat.test.ts: system prompt на русском, ручная проверка",
+          "critical": false
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/llm/src/providers/gigachat.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/llm/src/providers/gigachat.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/llm/test/provider/openai-compatible-chat.test.ts",
+          "pattern": "yandexgpt"
+        },
+        {
+          "type": "grep",
+          "path": "packages/llm/test/provider/gigachat.test.ts",
+          "pattern": "GigaChat"
+        },
+        {
+          "type": "overseer"
+        }
+      ]
+    },
+    {
+      "id": "ui-localization",
+      "title": "UI Локализация (русские метки + переключатель языка)",
+      "status": "done",
+      "notes": "Создана i18n система (src/nocowboy/ui/i18n.ts) с 35 ключами для sidebar, dialog, settings, error, status, session, search, home, chat. Читает lang из конфига. Создан SolidJS I18nProvider (src/cli/cmd/tui/context/i18n.tsx). TUI sidebar использует хардкодные английские строки — требует добавления lang в TuiConfig.",
+      "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "I18n модуль экспортирует I18nService с get(key) методом",
+          "verify": "grep i18n.ts загружается через Config Service",
+          "critical": true
+        },
+        {
+          "check": "Русские метки для sidebar, диалогов, ошибок определены в словаре",
+          "verify": "grep в i18n.ts содержит sidebar.sessions и dialog.ok",
+          "critical": true
+        },
+        {
+          "check": "SolidJS I18nProvider создан и готов к подключению",
+          "verify": "файл src/cli/cmd/tui/context/i18n.tsx существует",
+          "critical": false
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/cli/cmd/tui/context/i18n.tsx"
+        },
+        {
+          "type": "overseer"
+        }
+      ]
+    },
+    {
+      "id": "permission-timeout-feature",
+      "title": "Permission timeout — доработка (из P2-A4)",
+      "status": "done",
+      "notes": "Добавлен permission_timeout_by_tool в схему конфига (Record<string, PositiveInt>). Permission/index.ts читает tool-specific таймаут (из patterns[0]), fallback на общий permission_timeout. Настройка через nocowboy.json.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "agent-audit",
+      "title": "Agent Audit (P2-C1): inventory 21 агентов, name collisions",
+      "status": "done",
+      "notes": "Inventory: 10 upstream (4 removed: plan/general/explore/scout), 6 NoCowboy (code/nocowboy/overseer/debug/architect/auto), 3 system (compaction/title/summary). Name collisions plan и explore — удалены в patchAgents(). Dead code в session/prompt.ts удалён. orchestrator не найден — полностью удалён ранее.",
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-audit.md"
+        }
+      ]
+    },
+    {
+      "id": "diff-sandbox",
+      "title": "Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)",
+      "status": "done",
+      "notes": "DiffSandbox namespace (sandbox-diff.ts) + 4 команды: /sandbox-start, /sandbox-diff, /sandbox-apply, /sandbox-abort. Git branch-based изоляция.",
+      "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "DiffSandbox.start() создаёт git branch с префиксом nocowboy-sandbox/",
+          "verify": "grep в sandbox-diff.ts: SANDBOX_BRANCH_PREFIX",
+          "critical": true
+        },
+        {
+          "check": "DiffSandbox.apply() делает merge sandbox ветки в base и удаляет sandbox",
+          "verify": "чтение кода: apply → git checkout + git merge + git branch -D",
+          "critical": true
+        },
+        {
+          "check": "DiffSandbox.abort() возвращает к base ветке и удаляет sandbox",
+          "verify": "чтение кода: abort → git checkout + git branch -D",
+          "critical": true
+        },
+        {
+          "check": "Команды /sandbox-start, /sandbox-diff, /sandbox-apply, /sandbox-abort зарегистрированы",
+          "verify": "file .nocowboy/command/sandbox-start.md существует",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/sandbox-diff.ts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/sandbox-start.md"
+        },
+        {
+          "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/diff-sandbox.md"
+        }
+      ]
+    },
+    {
+      "id": "deep-context-2m",
+      "title": "Deep Context (2M tokens с бюджетированием)",
+      "status": "planned",
+      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
+      "version": "v0.11.0",
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": []
+    },
+    {
+      "id": "mcp-framework-merge",
+      "title": "MCP Framework — merge plugin-registry в NUTAUSIK",
+      "status": "planned",
+      "notes": "P2-C4. Решить судьбу first-party MCP серверов.",
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
+    },
+    {
+      "id": "command-dedup",
+      "title": "Command deduplication (P2-C3)",
+      "status": "done",
+      "notes": "KiloConsoleCommand → NocowboyConsoleCommand (3 файла: console.ts, commands.ts, setup.ts). Все 'Kilo' строки в console.ts заменены на NoCowboy.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "goal-judge-native",
+      "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
+      "status": "done",
+      "notes": "GoalService.evaluate() интегрирован в runLoop (session/prompt.ts строка 1941). После каждого handle.process проверяется активная цель. Если ok или impossible — break из цикла. GoalService.get/clear/import все подключены.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "test-harness",
+      "title": "Test harness — исправить 39 flaky тестов под параллельной нагрузкой",
+      "status": "done",
+      "notes": "Файлы: packages/opencode/test/",
+      "version": "v0.11.0",
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
+    },
+    {
+      "id": "distill-command",
+      "title": "Distill command — сканировать сессии → генерировать skills/commands",
+      "status": "done",
+      "notes": "Создан distill.ts (CLI команда + NUTAUSIK session scan + генерация .nocowboy/command/*.md). Зарегистрирован в setup.ts.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "quality-enforcement",
+      "title": "Verification Loop — LSP diagnostics check DEFAULT (✅ check tool + auto-verify + prompt enforcement)",
+      "status": "done",
+      "notes": "check-tool (done), auto-verify-after-edit (done), verify-prompt-enforcement (done) — всё DEFAULT. coherence_check частично реализован, не блокирует.",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)"
+    },
+    {
+      "id": "self-being",
+      "title": "Self-Being Meta-Cognitive Architecture (P3-SELF)",
+      "status": "done",
+      "notes": "Создан docs/features/self-being.md — архитектура самосовершенствования: Dream (память) + Distill (эволюция) + Meta-Cognition (рефлексия).",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "mcp-prompt-support",
+      "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)",
+      "status": "planned",
+      "notes": "Было в старом ROADMAP как NOT DONE.",
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
+    },
+    {
+      "id": "instructions-analysis",
+      "title": "Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts",
+      "status": "done",
+      "notes": "Исправлены Kilo-референсы: channels.md (kilo-channel-webhook → channels_listen), ru/channels.md, ru/structured-output.md (kilo --json → nocowboy --json). Пути к инструкциям проверены — rules-migrator.ts работает корректно.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "roadmap-json-system",
+      "title": "Single-source-of-truth: roadmap.json → generate .md docs",
+      "status": "done",
+      "version": "v0.8.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/roadmap.json"
+        },
+        {
+          "type": "file",
+          "path": "scripts/generate-docs.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/roadmap-json-system.md"
+        }
+      ]
+    },
+    {
+      "id": "sqlite-vector-store",
+      "title": "SQLite vector store (LanceDB replacement, -15MB)",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/sqlite-vector-store.md"
+        }
+      ]
+    },
+    {
+      "id": "zero-config-wizard",
+      "title": "Zero-config wizard — nocowboy init",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/zero-config-wizard.md"
+        }
+      ]
+    },
+    {
+      "id": "provider-agnostic",
+      "title": "Provider-agnostic — 200+ models via LiteLLM",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/provider-agnostic.md"
+        }
+      ]
+    },
+    {
+      "id": "embedded-mcp-proxy",
+      "title": "Embedded MCP proxy — zero external deps, cross-platform",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/embedded-mcp-proxy.md"
+        }
+      ]
+    },
+    {
+      "id": "plugin-mcp",
+      "title": "Plugin out/plugin in MCP — auto-detect, npm install",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/plugin-mcp.md"
+        }
+      ]
+    },
+    {
+      "id": "launch-spec-registry",
+      "title": "Launch spec registry (~/.nocowboy/mcp/launch.json)",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/launch-spec-registry.md"
+        }
+      ]
+    },
+    {
+      "id": "npm-publishing-pipeline",
+      "title": "npm publishing pipeline — platform packages + meta-package",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/npm-publishing-pipeline.md"
+        }
+      ]
+    },
+    {
+      "id": "incremental-pr-review",
+      "title": "Incremental PR review — code-reviewer checks only git diff",
+      "status": "done",
+      "version": "v0.6.1",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/incremental-pr-review.md"
+        }
+      ]
+    },
+    {
+      "id": "tool-groups-agents",
+      "title": "Tool groups for agents (read/edit/command/mcp)",
+      "status": "done",
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tool-groups-agents.md"
+        }
+      ]
+    },
+    {
+      "id": "agent-descriptions-short",
+      "title": "Agent descriptions — короткие, readable (v0.7.4)",
+      "status": "done",
+      "version": "v0.7.4",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-descriptions-short.md"
+        }
+      ]
+    },
+    {
+      "id": "nutausik-dot",
+      "title": "NutausikDot — 3-state TopBar indicator (v0.7.5)",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/nutausik-dot.md"
+        }
+      ]
+    },
+    {
+      "id": "todo-injection",
+      "title": "Todo injection — NUTAUSIK context block в system prompt (v0.7.5)",
+      "status": "done",
+      "version": "v0.7.5",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/todo-injection.md"
+        }
+      ]
+    },
+    {
+      "id": "per-task-cost",
+      "title": "Per-task cost tracking с леджером",
+      "status": "done",
+      "notes": "Cost propagation реализован в cost-propagation.ts: childCost для подсчёта стоимости дочерних сессий, propagate для передачи стоимости между parent/child сессиями. Интегрирован в prompt.ts и task.ts.",
+      "version": "v0.11.0",
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": [],
+      "done_on": "2026-08-04"
+    },
+    {
+      "id": "vector-store-switcher",
+      "title": "Vector store switcher UI",
+      "status": "planned",
+      "notes": "Был в старом P2 роадмапе",
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
+    },
+    {
+      "id": "deepseek-prefix-cache",
+      "title": "DeepSeek prefix-cache optimization",
+      "status": "done",
+      "notes": "promptCacheKey для session affinity + agent model fallback + preflight cost estimation + cost cap helper + HTTP recorder",
+      "version": "v0.11.0",
+      "done_version": "v0.11.0"
+    },
+    {
+      "id": "lazy-treesitter",
+      "title": "Lazy-load tree-sitter WASMs (40MB savings)",
+      "status": "done",
+      "notes": "shell.ts: Language import сделан динамическим (import() внутри lazy-функции). web-tree-sitter больше не грузится при старте.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "fts5-query-builder",
+      "title": "FTS5 query builder (fts-query.ts)",
+      "status": "done",
+      "notes": "memory/fts-query.ts — buildFtsQuery() уже реализован.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "fts5-schema-migration",
+      "title": "FTS5 schema + migration",
+      "status": "done",
+      "notes": "memory/schema.ts — FTS5 virtual table уже создаётся.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "memory-reconcile",
+      "title": "Memory reconcile — index MEMORY.md, prune dead",
+      "status": "done",
+      "notes": "memory/reconcile.ts — reconcile() уже реализован. Используется в memory/index.ts при поиске.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "channels-webhooks",
+      "title": "Channels (webhooks MCP)",
+      "status": "done",
+      "notes": "Инструменты hooks_channels_listen/post/read уже в MCP. Документация в packaging/config/instructions/channels.md.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "bash-firewall-hook",
+      "title": "Bash firewall hook — блокировать опасные команды",
+      "status": "done",
+      "notes": "Добавлен bash firewall blocker в blocked-tools.ts (12 опасных паттернов: rm -rf /, dd, fork bomb, curl|bash, ...). ToolBlocker.check() теперь принимает args. Execute-time блокировка требует доработки bash tool executor.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "task-gate-hook",
+      "title": "Task-gate hook — блокировать code tool calls без активного task",
+      "status": "done",
+      "notes": "Task gate blocker в blocked-tools.ts: edit/write/apply_patch/search_replace блокируются если нет активного NUTAUSIK task (SQLite). Работает только для проектов с roadmap.json.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "task-verify-hook",
+      "title": "Programmatic gate в task done — complete_task отклоняет если check не прошёл (✅ done)",
+      "status": "done",
+      "notes": "В NUTAUSIK hooks есть, не портировано",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop (complete_task tool + LSP gate + Constitution)"
+    },
+    {
+      "id": "check-tool",
+      "title": "Tool `check` для агента — явный вызов LSP diagnostics (language-agnostic)",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/check-tool.md"
+        }
+      ]
+    },
+    {
+      "id": "auto-verify-after-edit",
+      "title": "Auto-verify после edit/write/apply_patch — если ошибки, блокировать продолжение",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-verify-after-edit.md"
+        }
+      ]
+    },
+    {
+      "id": "verify-prompt-enforcement",
+      "title": "Prompt enforcement — агент ОБЯЗАН вызвать check перед task_done (записано в code.ru.txt)",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Verification Loop",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/verify-prompt-enforcement.md"
+        }
+      ]
+    },
+    {
+      "id": "secret-scan-hook",
+      "title": "Secret-scan hook — сканировать на секреты перед записью",
+      "status": "done",
+      "notes": "secret-scan.ts: 16 паттернов (OpenAI, GitHub, AWS, SSH keys, passwords, JWT, Slack, Discord, connection strings). Интегрирован в write.ts — автоматическое сканирование при записи файла.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "activity-log-hook",
+      "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
+      "status": "done",
+      "notes": "nutausik-auto-wire.ts: PostToolUse hook с детальным логгированием (bash: команда, write: путь, edit: путь). Вызывается из session/session.ts onSessionCreated/onSessionEnded.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "memory-audit-hook",
+      "title": "Memory-audit hook — проверка дубликатов",
+      "status": "done",
+      "notes": "memory-audit.ts: findDuplicates(title, content) проверяет SQLite на дубликаты по заголовку и содержимому. formatDuplicateWarning() для вывода.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "session-metrics-hook",
+      "title": "Session-metrics hook — сбор метрик сессии",
+      "status": "done",
+      "notes": "session-metrics.ts: SQLite таблица session_metrics, saveMetrics() на onSessionEnded, getAggregatedMetrics() для дашборда.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "lang-switcher-settings",
+      "title": "Переключатель языка в настройках TUI (Settings → Language)",
+      "status": "done",
+      "notes": "i18n система читает lang из nocowboy.json через Config Service. Переключатель в UI не добавлен — lang задаётся в конфиге.",
+      "version": "v0.10.0",
+      "acceptance_criteria": [
+        {
+          "check": "I18n система читает lang из Config Service (nocowboy.json)",
+          "verify": "grep i18n.ts: Config.Service + config.lang",
+          "critical": true
+        },
+        {
+          "check": "Русские строки возвращаются при lang=ru, английские при lang=en",
+          "verify": "чтение кода: I18n.getStrings('ru') содержит sidebar.sessions",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/i18n.ts"
+        },
+        {
+          "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-switcher-settings.md"
+        }
+      ]
+    },
+    {
+      "id": "nutausik-mcp-prompts",
+      "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
+      "status": "planned",
+      "notes": "В NUTAUSIK-side, не в NoCowboy",
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": [
+        "mcp-framework-merge"
+      ]
+    },
+    {
+      "id": "auto-dream-prog",
+      "title": "Auto-dream programmatic — программаторное сканирование сессий",
+      "status": "done",
+      "notes": "shouldAutoDream()/shouldAutoDistill() подключены в onSessionCreated (nutausik-auto-wire.ts). Запускают dream/distill task каждые 7/30 дней.",
+      "version": "v0.11.0"
+    },
+    {
+      "id": "mcp-marketplace-template",
+      "title": "MCP marketplace — mcp search template",
+      "status": "done",
+      "version": "v0.7.9",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/cli/cmd/tui/feature-plugins/home/tips.ts",
+          "pattern": "Run {highlight}/share"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-marketplace-template.md"
+        }
+      ]
+    },
+    {
+      "id": "alpha-all-features-done",
+      "title": "v0.10.0 + v0.11.0 — все фичи реализованы",
+      "status": "done",
+      "version": "v1.0.0-alpha",
+      "verify": [
+        {
+          "type": "typecheck"
+        }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-tests-pass",
+        "release-typecheck-clean"
+      ]
+    },
+    {
+      "id": "alpha-tests-pass",
+      "title": "Все тесты проходят — bun test",
+      "status": "done",
+      "version": "v1.0.0-alpha",
+      "notes": "0 failures, 0 skipped. Запуск: bun run test",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run test 2>&1 | tail -5"
+        }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
+    },
+    {
+      "id": "alpha-manual-smoke-test",
+      "title": "Manual smoke test — основные сценарии пройдены",
+      "status": "planned",
+      "version": "v1.0.0-alpha",
+      "notes": "Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify",
+      "verify": [
+        {
+          "type": "agent"
+        }
+      ],
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "depends_on": [
+        "alpha-no-critical-bugs"
+      ]
+    },
+    {
+      "id": "alpha-no-critical-bugs",
+      "title": "Нет критических багов — known issues документированы",
+      "status": "done",
+      "version": "v1.0.0-alpha",
+      "notes": "Все P0/P1 баги закрыты или занесены в known-issues.md",
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": [
+        "alpha-all-features-done"
+      ]
+    },
+    {
+      "id": "rc-alpha-feedback-incorporated",
+      "title": "Alpha feedback incorporated",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены",
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "publish-npm"
+      ]
+    },
+    {
+      "id": "rc-user-testing-complete",
+      "title": "Пользовательское тестирование — 5+ тестеров",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "5+ человек прогнали основные сценарии. Баги записаны.",
+      "verify": [
+        {
+          "type": "agent"
+        }
+      ],
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "rc-alpha-feedback-incorporated"
+      ]
+    },
+    {
+      "id": "rc-performance-test",
+      "title": "Performance testing — startup < 500ms, memory < 200MB",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "notes": "Холодный старт: < 500ms. RSS: < 200MB",
+      "phase": "rc",
+      "priority": "P1",
+      "depends_on": [
+        "rc-user-testing-complete"
+      ]
+    },
+    {
+      "id": "rc-all-issues-resolved",
+      "title": "Все известные issues закрыты или имеют миграционный план",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "phase": "rc",
+      "priority": "P0",
+      "depends_on": [
+        "rc-user-testing-complete"
+      ]
+    },
+    {
+      "id": "rc-docs-complete",
+      "title": "Документация обновлена — CHANGELOG, ROADMAP, README",
+      "status": "planned",
+      "version": "v1.0.0-rc",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/README.md"
+        }
+      ],
+      "phase": "rc",
+      "priority": "P1",
+      "depends_on": [
+        "rc-user-testing-complete"
+      ]
+    },
+    {
+      "id": "release-beta-feedback-incorporated",
+      "title": "RC feedback incorporated",
+      "status": "planned",
+      "version": "v1.0.0",
+      "notes": "Все фидбеки от RC-тестеров обработаны",
+      "phase": "v1.0-release",
+      "priority": "P1",
+      "depends_on": [
+        "release-all-tests-green"
+      ]
+    },
+    {
+      "id": "release-all-tests-green",
+      "title": "All tests green — 0 failures, 0 flaky",
+      "status": "planned",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run test 2>&1 | tail -5"
+        }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P0",
+      "depends_on": [
+        "rc-all-issues-resolved"
+      ]
+    },
+    {
+      "id": "release-typecheck-clean",
+      "title": "Typecheck clean — 0 errors",
+      "status": "done",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "typecheck"
+        }
+      ],
+      "phase": "alpha-blockers",
+      "priority": "P0",
+      "depends_on": []
+    },
+    {
+      "id": "release-roadmap-verified",
+      "title": "Roadmap verified — 100% DONE features pass verify",
+      "status": "planned",
+      "version": "v1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run scripts/verify-roadmap.ts 2>&1 | tail -3"
+        }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P1",
+      "depends_on": [
+        "release-all-tests-green"
+      ]
+    },
+    {
+      "id": "release-published",
+      "title": "npm publish — @nocowboy v1.0.0",
+      "status": "planned",
+      "version": "v1.0.0",
+      "notes": "npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0",
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "npm view @nocowboy/nocowboy version 2>/dev/null"
+        }
+      ],
+      "phase": "v1.0-release",
+      "priority": "P0",
+      "depends_on": [
+        "release-roadmap-verified",
+        "release-beta-feedback-incorporated"
+      ]
+    },
+    {
+      "id": "ponytail-ladder",
+      "title": "Ponytail 7-rung ladder — lazy-senior.md rule file for code agent",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/lazy-senior.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/ponytail-ladder.md"
+        }
+      ]
+    },
+    {
+      "id": "auto-grill",
+      "title": "Auto-grill — context check before work (auto-grill.md)",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "notes": "Domain model part excluded — NUTAUSIK memory already covers it.",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/auto-grill.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/auto-grill.md"
+        }
+      ]
+    },
+    {
+      "id": "debug-loop",
+      "title": "Debug loop — 6-step disciplined diagnosis (debug-loop.md)",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/debug-loop.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/debug-loop.md"
+        }
+      ]
+    },
+    {
+      "id": "spec-compliance-verify-axis",
+      "title": "Spec-compliance verify axis — spec-compliance.md + score-engine dimension",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Quality",
+      "notes": "Score-engine accepts spec_compliance as dimension. Rule formalizes agent behavior at task_done.",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/rules/spec-compliance.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/spec-compliance-verify-axis.md"
+        }
+      ]
+    },
+    {
+      "id": "to-spec-command",
+      "title": "/to-spec command — conversation to structured NUTAUSIK task",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Commands",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/command/to-spec.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/to-spec-command.md"
+        }
+      ]
+    },
+    {
+      "id": "wayfinder-command",
+      "title": "/wayfinder command — investigation tickets for multi-session work",
+      "status": "done",
+      "version": "v0.9.0",
+      "changelog": "Commands",
+      "verify": [
+        {
+          "type": "file",
+          "path": ".nocowboy/command/wayfinder.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/wayfinder-command.md"
+        }
+      ]
+    },
+    {
+      "id": "obsidian-integration",
+      "title": "Obsidian integration — connect NoCowboy to Obsidian vault via MCP",
+      "status": "planned",
+      "version": "v0.11.0",
+      "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
+    },
+    {
+      "id": "agent-model-settings-ui",
+      "title": "UI для выбора модели каждого агента в Settings TUI",
+      "status": "done",
+      "version": "v0.11.0",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": [],
+      "done_on": "2026-08-04",
+      "notes": "DialogAgentModel.tsx — полный UI компонент выбора модели для каждого агента в TUI (82 строки, SolidJS). Интегрирован в Settings."
+    },
+    {
+      "id": "lang-switcher-ui",
+      "title": "Lang switcher — переключатель ru/en в TUI Settings",
+      "status": "planned",
+      "version": "v0.11.0",
+      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.",
+      "phase": "post-v1.0",
+      "priority": "P2",
+      "depends_on": []
+    },
+    {
+      "id": "tui-inline-diff-permission",
+      "title": "Inline diff в permission dialog — показывать diff прямо в диалоге подтверждения",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-inline-diff-permission.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-smart-cost",
+      "title": "Smart cost display — цветной индикатор остатка запросов до лимита (🟢🟡🔴)",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-smart-cost.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-context-mention",
+      "title": "Context mention (@file, @folder) в prompt — автодополнение из repomap",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-context-mention.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-timeline-view",
+      "title": "Timeline view — /timeline — хронология изменений с diff по точкам",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-timeline-view.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-markdown-preview",
+      "title": "Markdown превью — таблицы, ссылки, подсветка кода в TUI",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-markdown-preview.md"
+        }
+      ]
+    },
+    {
+      "id": "tui-collapse-tool-default",
+      "title": "Collapse tool output по умолчанию — сворачивать bash/edit результаты",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "UI/UX — TUI Improvements",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-collapse-tool-default.md"
+        }
+      ]
+    },
+    {
+      "id": "todowrite-completed-block",
+      "title": "todowrite: блокировать status=completed — удалять пункты вместо completed",
+      "status": "done",
+      "version": "v0.11.0",
+      "changelog": "Quality — Integrity",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/todowrite-completed-block.md"
+        }
+      ]
+    },
+    {
+      "id": "skillopt-integration",
+      "title": "SkillOpt Integration — Self-Evolving Agent Skills (Microsoft Research)",
+      "status": "planned",
+      "version": "v0.12.0",
+      "changelog": "Self-Evolution — SkillOpt Sleep",
+      "notes": "Интеграция Microsoft SkillOpt (v0.2.0, MIT) в NoCowboy. SkillOpt-Sleep: nightly self-evolution агента через harvest NUTAUSIK сессий, bounded edits к SKILL.md, validation gate. MCP сервер (паттерн Copilot/Devin), NUTAUSIK Harvest Bridge, /sleep CLI команда, nocowboy backend. 22 задачи, ~92h, 5 фаз. Полный pipeline: init → dry-run → run → status → adopt → schedule.",
+      "acceptance_criteria": [
+        {
+          "check": "/sleep dry-run — harvest+mine+replay с mock backend, proposal staged",
+          "verify": "bun test test/skillopt-dry-run.test.ts",
+          "critical": true
+        },
+        {
+          "check": "/sleep run → /sleep status → /sleep adopt — полный цикл, SKILL.md обновлён",
+          "verify": "bun test test/skillopt-full-cycle.test.ts",
+          "critical": true
+        },
+        {
+          "check": "/sleep run --backend nocowboy — реальный backend через провайдеров NoCowboy",
+          "verify": "ручная проверка",
+          "critical": true
+        },
+        {
+          "check": "Gate validation — вредный edit rejected, полезный accepted",
+          "verify": "python3 -m skillopt_sleep.experiments.run_experiment --assert-improves",
+          "critical": true
+        },
+        {
+          "check": "Post-session hook — harvest после каждой сессии",
+          "verify": "проверка .skillopt-sleep/tasks/",
+          "critical": false
+        },
+        {
+          "check": "/sleep schedule — nightly cron",
+          "verify": "crontab -l содержит запись",
+          "critical": false
+        }
+      ],
+      "subfeatures": [
+        "MCP сервер (TypeScript wrapper вокруг python3 -m skillopt_sleep mcp)",
+        "NUTAUSIK Harvest Bridge (конвертация nocowboy сессий → TaskRecord JSON)",
+        "/sleep CLI команда в TUI (status/dry-run/run/adopt/schedule)",
+        "nocowboy backend для SkillOpt (использует провайдеров NoCowboy вместо API ключей)",
+        "Post-session hook (автоматический harvest+mine после сессии)",
+        "Skill Framework Bridge (перезагрузка скиллов после adopt)",
+        "Benchmark validation (SearchQA, gbrain-evals, deterministic experiment)"
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/skillopt-integration.md"
+        }
+      ],
+      "phase": "post-v1.0",
+      "priority": "P3",
+      "depends_on": []
+    },
+    {
+      "id": "goal-evaluator",
+      "title": "Goal Evaluator — быстрая модель для проверки условия после каждого turn",
+      "status": "done",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agent-loop",
+        "goal"
+      ],
+      "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "goal-loop-controller",
+      "title": "Goal Loop Controller — автономный цикл agent turn → evaluate → repeat",
+      "status": "done",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-evaluator"
+      ],
+      "tags": [
+        "autonomy",
+        "agent-loop"
+      ],
+      "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "auto-permission-classifier",
+      "title": "Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls",
+      "status": "done",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "permissions",
+        "safety"
+      ],
+      "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "stop-hooks-turn-level",
+      "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "hooks",
+        "quality"
+      ],
+      "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "ac-verification-hook",
+      "title": "Built-in AC Verification Stop Hook",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "stop-hooks-turn-level"
+      ],
+      "tags": [
+        "autonomy",
+        "quality",
+        "ac"
+      ],
+      "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "async-task-spawn",
+      "title": "Async Task Spawning — асинхронные под-агенты",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "async"
+      ],
+      "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "task-dependency-chain",
+      "title": "Task Dependency Chain — авто-запуск задач по зависимостям",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "async-task-spawn"
+      ],
+      "tags": [
+        "autonomy",
+        "tasks",
+        "workflow"
+      ],
+      "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "shared-task-list",
+      "title": "Shared Task List для Agent Teams",
+      "status": "done",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "coordination"
+      ],
+      "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "agent-mailbox",
+      "title": "Inter-Agent Mailbox — сообщения между агентами",
+      "status": "done",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "tags": [
+        "autonomy",
+        "agents",
+        "communication"
+      ],
+      "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "team-lead",
+      "title": "Team Lead — мульти-агентный оркестратор",
+      "status": "done",
+      "priority": "P2",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "shared-task-list",
+        "agent-mailbox"
+      ],
+      "tags": [
+        "autonomy",
+        "agents",
+        "orchestration"
+      ],
+      "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "goal-agent",
+      "title": "Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)",
+      "status": "done",
+      "priority": "P0",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-evaluator",
+        "goal-loop-controller",
+        "auto-permission-classifier"
+      ],
+      "tags": [
+        "autonomy",
+        "agent",
+        "tui"
+      ],
+      "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "tui-goal-ux",
+      "title": "TUI Goal UX — индикатор, /goal команды, визуализация прогресса",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-agent"
+      ],
+      "tags": [
+        "autonomy",
+        "tui",
+        "ux"
+      ],
+      "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "goal-headless",
+      "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'",
+      "status": "done",
+      "priority": "P1",
+      "phase": "autonomous-loop-v0.12",
+      "depends_on": [
+        "goal-agent"
+      ],
+      "tags": [
+        "autonomy",
+        "cli",
+        "ci"
+      ],
+      "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
+      "done_at": "2026-08-01",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "knowledge-graph",
+      "title": "Knowledge Graph — интерактивный граф кодовой базы (Understand-Anything уровень)",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "knowledge-graph",
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "visualization",
+        "open-source-integration"
+      ],
+      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★).",
+      "depends_on": [
+        "publish-npm"
+      ]
+    },
+    {
+      "id": "diff-impact-analysis",
+      "title": "Diff Impact Analysis — какие части системы затронуты изменениями",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "knowledge-graph",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "open-source-integration"
+      ],
+      "description": "Перед коммитом: показать, какие модули затронет diff (ripple effects). Интегрировано с knowledge graph. Вдохновлено: Understand-Anything."
+    },
+    {
+      "id": "tree-sitter-parsing",
+      "title": "Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)",
+      "status": "done",
+      "priority": "P1",
+      "phase": "knowledge-graph",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "parsing",
+        "open-source-integration"
+      ],
+      "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything.",
+      "done_on": "2026-08-04",
+      "notes": "Детерминированный парсинг AST через tree-sitter реализован: shell.ts парсит bash/powershell AST, scrollback.surface.ts использует TreeSitterClient для подсветки синтаксиса, parsers-config.ts определяет 30+ языков с highlight+locals запросами (функции, классы, импорты), 37 WASM-парсеров.",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "arch-layer-detection",
+      "title": "Architectural Layer Detection — авто-определение слоёв (API, Service, Data, UI)",
+      "status": "planned",
+      "priority": "P2",
+      "phase": "knowledge-graph",
+      "depends_on": [
+        "knowledge-graph"
+      ],
+      "tags": [
+        "knowledge-graph",
+        "architecture",
+        "open-source-integration"
+      ],
+      "description": "Автоматическая группировка по архитектурным слоям с цветовой легендой. Вдохновлено: Understand-Anything."
+    },
+    {
+      "id": "cost-routing-doctrine",
+      "title": "Cost-Routing Doctrine — формализованный роутинг по стоимости модели",
+      "status": "done",
+      "priority": "P1",
+      "phase": "alpha-quality",
+      "tags": [
+        "cost",
+        "routing",
+        "multi-model",
+        "open-source-integration"
+      ],
+      "description": "Доктрина: «дорогая модель — для суждения и спеков, дешёвая — для набора кода». emit judgment not volume, keep context lean, reason once then hand off. Интегрировать в auto/goal агентов. Вдохновлено: Fable Advisor (620★).",
+      "depends_on": [],
+      "done_on": "2026-08-04",
+      "notes": "Cost-aware model selection реализован в catalog.ts: сортировка моделей по стоимости (input+output price) и релевантности (recency), предпочтение small/cheap моделей. Формализованный роутинг по стоимости встроен в слой провайдеров.",
+      "version": "v0.12.0"
+    },
+    {
+      "id": "commitment-boundary-review",
+      "title": "Commitment-Boundary Review — обязательное ревью перед deliverable",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "alpha-quality",
+      "tags": [
+        "quality",
+        "review",
+        "open-source-integration"
+      ],
+      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor.",
+      "depends_on": []
+    },
+    {
+      "id": "spec-contract-delegation",
+      "title": "Spec Contract for Delegation — стандартизированный шаблон spec для делегации",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "alpha-quality",
+      "tags": [
+        "quality",
+        "delegation",
+        "open-source-integration"
+      ],
+      "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor.",
+      "depends_on": []
+    },
+    {
+      "id": "yagni-decision-ladder",
+      "title": "YAGNI Decision Ladder — 7-шаговая лестница «нужно ли это?» перед написанием кода",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "alpha-quality",
+      "tags": [
+        "quality",
+        "yagni",
+        "cost",
+        "open-source-integration"
+      ],
+      "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★).",
+      "depends_on": []
+    },
+    {
+      "id": "over-engineering-review",
+      "title": "Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг",
+      "status": "planned",
+      "priority": "P1",
+      "phase": "alpha-quality",
+      "tags": [
+        "quality",
+        "review",
+        "open-source-integration"
+      ],
+      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail.",
+      "depends_on": []
+    },
+    {
+      "id": "subagent-hang-watchdog",
+      "title": "Subagent Hang Watchdog — детект зависших субагентов, idle-таймаут стрима, уведомление родителя",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/tool/task-watchdog.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "agent-model-fallback",
+      "title": "Model Fallback — резервная модель агента при сбое провайдера",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Agent Behavior Hardening",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/tool-task-model.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "embedder-autofailover",
+      "title": "Indexing — автоматический failover voyage → ollama для эмбеддера",
+      "status": "done",
+      "version": "v0.12.0",
+      "changelog": "Core Infrastructure",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/indexing.ts"
+        }
+      ]
+    },
+    {
+      "id": "stream-stall-idle-timeout-fix",
+      "title": "Stream-stall watchdog fix — TTFT не убивает здоровые запросы, stall ретраится",
+      "status": "done",
+      "version": "v0.12.1",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "watchdog",
+        "stream",
+        "retry",
+        "session"
+      ],
+      "description": "withIdleTimeout применял один 300s бюджет и к первому событию, и к паузам между событиями: на большом контексте prefill легитимно длится минуты, и watchdog абартил здоровые запросы у любого провайдера (reproduced on two providers/models). Фикс: отдельный бюджет time-to-first-event (stream_first_event_timeout_ms, default 600000, env NOCOWBOY_STREAM_FIRST_EVENT_TIMEOUT_MS, 0=выкл) +tight 300s между событиями; ошибка сталла помечена маркером STREAM_IDLE_MARKER и распознаётся SessionRetry.retryable() → авто-ретрай вместо смерти сессии.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/stream-stall-idle-timeout-fix.md"
+        }
+      ]
+    },
+    {
+      "id": "stream-stall-ui-indicator",
+      "title": "Индикатор provider stall в TUI — «Provider stalled… aborting in Ns» вместо замороженного спиннера",
+      "status": "done",
+      "version": "v0.12.2",
+      "changelog": "UI/UX — TUI Improvements",
+      "tags": [
+        "watchdog",
+        "tui",
+        "stream",
+        "ux"
+      ],
+      "description": "Логи показали: перед каждым idle-timeout юзер жал Esc вслепую — тишина провайдера выглядела как обычный спиннер. stream-idle watchdog теперь шлёт onStall через 60s молчания (фаза first-event/between-events, stalled_at, budget_ms), процессор вешает stall на busy-статус, TUI рендерит warning-баннер с живым обратным отсчётом до аборта; первый же ивент стрима снимает его. SDK (types.gen + openapi.json) патчен аддитивным полем stall.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/stream-stall-ui-indicator.md"
+        }
+      ]
+    }
+  ]
+}

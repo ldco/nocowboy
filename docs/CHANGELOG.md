@@ -365,13 +365,12 @@
 - **DONE** Индикатор provider stall в TUI — «Provider stalled… aborting in Ns» вместо замороженного спиннера
   `verify:file docs/features/stream-stall-ui-indicator.md`
 
-## v1.0.0-alpha — Alpha — internal testing
+## v0.13.0 — Alpha hardening — stream-stall watchdog (0.12.1/0.12.2) + API-эмбеддер OpenRouter для индексации (2026-09-15)
 
-- **DONE** v0.10.0 + v0.11.0 — все фичи реализованы
-  `verify:typecheck`
-- **DONE** Все тесты проходят — bun test
-  `verify:cmd bun run test 2>&1 | tail -5`
-- **DONE** Нет критических багов — known issues документированы
+### Core Infrastructure
+
+- **DONE** Индексация через API-эмбеддер OpenRouter вместо заблокированного Voyage и CPU-Ollama
+  `verify:file docs/features/embedder-openrouter-api.md`
 
 ## v1.0.0-alpha — Alpha Release — internal testing, all features done, no critical bugs (2026-09)
 
@@ -380,11 +379,6 @@
 - **DONE** Все тесты проходят — bun test
   `verify:cmd bun run test 2>&1 | tail -5`
 - **DONE** Нет критических багов — known issues документированы
-
-## v1.0.0 — Production release
-
-- **DONE** Typecheck clean — 0 errors
-  `verify:typecheck`
 
 ## v1.0.0 — Production Release — all tests green, npm published, roadmap verified (2026-11)
 

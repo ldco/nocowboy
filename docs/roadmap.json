@@ -79,26 +79,9 @@
       "description": "Stream-stall UX — индикатор тишины провайдера с обратным отсчётом до аборта"
     },
     {
-      "tag": "v1.0.0-alpha",
-      "description": "Alpha — internal testing"
-    },
-    {
-      "tag": "v1.0.0-rc",
-      "description": "RC — release candidate, user testing"
-    },
-    {
-      "tag": "v1.0.0",
-      "description": "Production release"
-    },
-    {
       "tag": "v0.13.0",
-      "date": "2026-09",
-      "description": "Knowledge Graph + Cost Routing + YAGNI Ladder — open-source integrations (Understand-Anything, Fable Advisor, Ponytail)"
-    },
-    {
-      "tag": "v0.13.0",
-      "date": "2026-09",
-      "description": "Alpha Blockers — fix 10 tests, typecheck clean, npm publish"
+      "date": "2026-09-15",
+      "description": "Alpha hardening — stream-stall watchdog (0.12.1/0.12.2) + API-эмбеддер OpenRouter для индексации"
     },
     {
       "tag": "v1.0.0-alpha",
@@ -2518,6 +2501,28 @@
         {
           "type": "file",
           "path": "docs/features/stream-stall-ui-indicator.md"
+        }
+      ]
+    },
+    {
+      "id": "embedder-openrouter-api",
+      "title": "Индексация через API-эмбеддер OpenRouter вместо заблокированного Voyage и CPU-Ollama",
+      "status": "done",
+      "version": "v0.13.0",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "indexing",
+        "embeddings",
+        "openrouter",
+        "ollama",
+        "voyage"
+      ],
+      "description": "Voyage API недоступен с этого контура (403 HTML даже без ключа — блок на периметре), локальная Ollama стоит CPU-only сборкой (нет libggml-cuda): батч 60 сегментов = 104s при таймауте 120s → 'Failed to process batch after 3 retries'. Переключили indexing на API-эмбеддер OpenRouter (provider=openrouter, model=openai/text-embedding-3-small, dim 1536) — модель уже в реестре, ключ живёт в auth.json. Проверено живыми вызовами: text-embedding-3-small 200/1536, gemini-embedding-001 200/3072, qwen3-embedding-8b 200/4096, mistral codestral-embed 200/1536. Локальный путь (voyage+ollama) убран из конфига — CPU/GPU не участвуют. Старый несовместимый индекс (365MB, 1024-dim) удалён.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/embedder-openrouter-api.md"
         }
       ]
     }
