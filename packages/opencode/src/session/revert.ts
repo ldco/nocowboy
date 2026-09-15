@@ -9,6 +9,7 @@ import { MessageV2 } from "./message-v2"
 import { SessionID, MessageID, PartID } from "./schema"
 import { SessionRunState } from "./run-state"
 import { SessionSummary } from "./summary"
+import { NoCowboySessionRevert } from "@/nocowboy/session/revert" // nocowboy_change - T0.8 atomic reverts
 
 const log = Log.create({ service: "session.revert" })
 
@@ -71,13 +72,18 @@ export const layer = Layer.effect(
       if (!rev) return session
 
       rev.snapshot = session.revert?.snapshot ?? (yield* snap.track())
-      if (session.revert?.snapshot) yield* snap.restore(session.revert.snapshot)
+      // nocowboy_change start - do not mutate files without a durable compensation snapshot (T0.8)
+      if (patches.some((patch) => patch.files.length > 0) && !rev.snapshot) {
+        return yield* Effect.die(new Error("Cannot rewind files because the current workspace snapshot is unavailable"))
+      }
+      if (session.revert?.snapshot) yield* NoCowboySessionRevert.restore(snap, session.revert.snapshot)
+      // nocowboy_change end
 
       // reflects changes being undone (files on disk still have AI modifications)
       const range = all.filter((msg) => msg.info.id >= rev.messageID)
       const diffs = yield* summary.computeDiff({ messages: range })
 
-      yield* snap.revert(patches)
+      yield* NoCowboySessionRevert.apply(snap, patches, rev.snapshot) // nocowboy_change - T0.8
       if (rev.snapshot) rev.diff = yield* snap.diff(rev.snapshot)
       yield* storage.write(["session_diff", input.sessionID], diffs).pipe(Effect.ignore)
       yield* bus.publish(Session.Event.Diff, { sessionID: input.sessionID, diff: diffs })
@@ -105,7 +111,7 @@ export const layer = Layer.effect(
       yield* state.assertNotBusy(input.sessionID)
       const session = yield* sessions.get(input.sessionID).pipe(Effect.orDie)
       if (!session.revert) return session
-      if (session.revert.snapshot) yield* snap.restore(session.revert.snapshot)
+      if (session.revert.snapshot) yield* NoCowboySessionRevert.restore(snap, session.revert.snapshot) // nocowboy_change - T0.8
       yield* sessions.clearRevert(input.sessionID)
       return yield* sessions.get(input.sessionID).pipe(Effect.orDie)
     })

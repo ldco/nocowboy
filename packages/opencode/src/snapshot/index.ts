@@ -195,7 +195,8 @@ export const layer: Layer.Layer<Service, never, Requirements> =
 
           const exists = (file: string) => fs.exists(file).pipe(Effect.orDie)
           const read = (file: string) => fs.readFileString(file).pipe(Effect.catch(() => Effect.succeed("")))
-          const remove = (file: string) => fs.remove(file).pipe(Effect.catch(() => Effect.void))
+          // nocowboy_change - restoration must fail if deletion fails (T0.8)
+          const remove = (file: string) => fs.remove(file, { force: true }).pipe(Effect.orDie)
           const locked = <A, R>(fx: Effect.Effect<A, never, R>) =>
             lock(state.gitdir).withPermits(1)(flock.withLock(fx, `snapshot:${state.gitdir}`).pipe(Effect.orDie))
 
@@ -440,13 +441,14 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                     exitCode: checkout.code,
                     stderr: checkout.stderr,
                   })
-                  return
+                  return yield* Effect.die(new Error(`Failed to restore snapshot ${snapshot}`)) // nocowboy_change - T0.8
                 }
                 log.error("failed to restore snapshot", {
                   snapshot,
                   exitCode: result.code,
                   stderr: result.stderr,
                 })
+                return yield* Effect.die(new Error(`Failed to restore snapshot ${snapshot}`)) // nocowboy_change - T0.8
               }),
             )
           })
@@ -454,6 +456,14 @@ export const layer: Layer.Layer<Service, never, Requirements> =
           const revert = Effect.fnUntraced(function* (patches: Patch[]) {
             return yield* locked(
               Effect.gen(function* () {
+                // nocowboy_change start - validate every checkpoint before mutating workspace files (T0.8)
+                for (const hash of new Set(patches.filter((item) => item.files.length > 0).map((item) => item.hash))) {
+                  const tree = yield* git([...core, ...args(["cat-file", "-e", `${hash}^{tree}`])], {
+                    cwd: state.worktree,
+                  })
+                  if (tree.code !== 0) return yield* Effect.die(new Error(`Snapshot ${hash} is unavailable`))
+                }
+                // nocowboy_change end
                 const ops: { hash: string; file: string; rel: string }[] = []
                 const seen = new Set<string>()
                 for (const item of patches) {
@@ -477,10 +487,20 @@ export const layer: Layer.Layer<Service, never, Requirements> =
                   const tree = yield* git([...core, ...args(["ls-tree", op.hash, "--", op.rel])], {
                     cwd: state.worktree,
                   })
-                  if (tree.code === 0 && tree.text.trim()) {
-                    log.info("file existed in snapshot but checkout failed, keeping", { file: op.file, hash: op.hash })
-                    return
+                  // nocowboy_change start - never report success for a file Git could not restore (T0.8)
+                  if (tree.code !== 0) {
+                    return yield* Effect.die(new Error(`Snapshot ${op.hash} is unavailable`))
                   }
+                  if (tree.text.trim()) {
+                    log.error("file existed in snapshot but checkout failed", {
+                      file: op.file,
+                      hash: op.hash,
+                      exitCode: result.code,
+                      stderr: result.stderr,
+                    })
+                    return yield* Effect.die(new Error(`Failed to restore ${op.file} from snapshot ${op.hash}`))
+                  }
+                  // nocowboy_change end
                   log.info("file did not exist in snapshot, deleting", { file: op.file, hash: op.hash })
                   yield* remove(op.file)
                 })
