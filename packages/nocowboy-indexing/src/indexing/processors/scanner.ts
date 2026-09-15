@@ -31,6 +31,17 @@ import type { IndexingTelemetryMeta, IndexingTelemetryMode, IndexingTelemetryRep
 
 const log = Log.create({ service: "indexing-scanner" })
 
+/**
+ * A timeout/deadline failure is a function of how much work was sent in a single
+ * request, not of the embedder being dead. Splitting the batch is the correct
+ * remedy, so these errors are treated differently from connection/auth errors.
+ */
+function isBatchSizeRelatedError(error: Error | null): boolean {
+  if (!error) return false
+  const message = error.message.toLowerCase()
+  return message.includes("timeout") || message.includes("timed out") || message.includes("deadline")
+}
+
 export class DirectoryScanner implements IDirectoryScanner {
   private _cancelled = false
   private batchSegmentThreshold: number
@@ -535,68 +546,85 @@ export class DirectoryScanner implements IDirectoryScanner {
 
     log.debug(`Starting to process batch of ${batchBlocks.length} blocks in workspace ${scanWorkspace}`)
 
+    // RATIONALE: A timeout means the request carried too much work for a
+    // (possibly local, CPU-bound) embedder — it does not mean the embedder is
+    // dead. Instead of failing the whole batch after N identical retries we halve
+    // the sub-batch and keep going, down to a single segment. The reduced size is
+    // remembered on the scanner so subsequent flushes accumulate smaller batches
+    // too, instead of re-discovering the timeout on every batch.
+    let offset = 0
+    let size = batchBlocks.length
     let attempts = 0
-    let success = false
+    let sameSizeRetries = 0
+    let deletionsDone = false
     let lastError: Error | null = null
 
-    while (attempts < this.maxBatchRetries && !success) {
+    while (offset < batchBlocks.length && !this._cancelled) {
       attempts++
 
-      if (this._cancelled) return
+      const end = Math.min(offset + size, batchBlocks.length)
+      const blocks = batchBlocks.slice(offset, end)
+      const texts = batchTexts.slice(offset, end)
 
-      log.debug(`Processing batch attempt ${attempts}/${this.maxBatchRetries} for ${batchBlocks.length} blocks`)
+      log.debug(
+        `Processing batch attempt ${attempts} for ${blocks.length} blocks (offset ${offset}/${batchBlocks.length})`,
+      )
 
       try {
         // --- Deletion Step ---
-        log.debug("Starting deletion step for modified files")
-        const uniqueFilePaths = [
-          ...new Set(
-            batchFileInfos
-              .filter((info) => !info.isNew) // Only modified files (not new)
-              .map((info) => info.filePath),
-          ),
-        ]
-        log.debug(`Identified ${uniqueFilePaths.length} modified files to delete points for`)
+        // Modified files are deleted once, before the first upsert, and not
+        // repeated for every retry of the same batch.
+        if (!deletionsDone) {
+          const uniqueFilePaths = [
+            ...new Set(
+              batchFileInfos
+                .filter((info) => !info.isNew) // Only modified files (not new)
+                .map((info) => info.filePath),
+            ),
+          ]
+          log.debug(`Identified ${uniqueFilePaths.length} modified files to delete points for`)
 
-        if (uniqueFilePaths.length > 0) {
-          try {
-            await this.vectorStore.deletePointsByMultipleFilePaths(uniqueFilePaths)
-            log.debug(`Successfully deleted points for ${uniqueFilePaths.length} files`)
-          } catch (deleteError: any) {
-            const errorStatus = deleteError?.status || deleteError?.response?.status || deleteError?.statusCode
-            const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError)
+          if (uniqueFilePaths.length > 0) {
+            try {
+              await this.vectorStore.deletePointsByMultipleFilePaths(uniqueFilePaths)
+              log.debug(`Successfully deleted points for ${uniqueFilePaths.length} files`)
+            } catch (deleteError: any) {
+              const errorStatus = deleteError?.status || deleteError?.response?.status || deleteError?.statusCode
+              const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError)
 
-            log.error(
-              `Failed to delete points for ${uniqueFilePaths.length} files before upsert in workspace ${scanWorkspace}`,
-              {
-                error: sanitizeErrorMessage(errorMessage),
-                stack: deleteError instanceof Error ? sanitizeErrorMessage(deleteError.stack || "") : undefined,
-                location: "processBatch:deletePointsByMultipleFilePaths",
-                fileCount: uniqueFilePaths.length,
-                errorStatus,
-              },
-            )
+              log.error(
+                `Failed to delete points for ${uniqueFilePaths.length} files before upsert in workspace ${scanWorkspace}`,
+                {
+                  error: sanitizeErrorMessage(errorMessage),
+                  stack: deleteError instanceof Error ? sanitizeErrorMessage(deleteError.stack || "") : undefined,
+                  location: "processBatch:deletePointsByMultipleFilePaths",
+                  fileCount: uniqueFilePaths.length,
+                  errorStatus,
+                },
+              )
 
-            // Re-throw with workspace context
-            throw new Error(
-              `Failed to delete points for ${uniqueFilePaths.length} files. Workspace: ${scanWorkspace}. ${errorMessage}`,
-              { cause: deleteError },
-            )
+              // Re-throw with workspace context
+              throw new Error(
+                `Failed to delete points for ${uniqueFilePaths.length} files. Workspace: ${scanWorkspace}. ${errorMessage}`,
+                { cause: deleteError },
+              )
+            }
           }
+          deletionsDone = true
         }
         // --- End Deletion Step ---
 
         // Create embeddings for batch
         if (this._cancelled) return
 
-        log.debug(`Creating embeddings for ${batchTexts.length} texts`)
+        log.debug(`Creating embeddings for ${texts.length} texts`)
 
-        const { embeddings } = await this.embedder.createEmbeddings(batchTexts)
+        const { embeddings } = await this.embedder.createEmbeddings(texts)
         log.debug(`Successfully created ${embeddings.length} embeddings`)
 
         // Prepare points for Qdrant
         log.debug("Preparing points for Qdrant upsert")
-        const points = batchBlocks.map((block, index) => {
+        const points = blocks.map((block, index) => {
           const vector = embeddings[index]
           if (!vector) {
             throw new Error(`Missing embedding for block at index ${index}`)
@@ -629,10 +657,9 @@ export class DirectoryScanner implements IDirectoryScanner {
 
         await this.vectorStore.upsertPoints(points)
         log.debug("Completed Qdrant upsert")
-        onFilesIndexed?.(batchFileInfos.length)
 
-        success = true
-        log.debug(`Successfully processed batch of ${batchBlocks.length} blocks after ${attempts} attempt(s)`)
+        offset = end
+        sameSizeRetries = 0
       } catch (error) {
         lastError = error as Error
         log.error(`Error processing batch (attempt ${attempts}) in workspace ${scanWorkspace}`, {
@@ -640,28 +667,58 @@ export class DirectoryScanner implements IDirectoryScanner {
           stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
           location: "processBatch:retry",
           attemptNumber: attempts,
-          batchSize: batchBlocks.length,
+          batchSize: blocks.length,
         })
 
-        if (attempts < this.maxBatchRetries) {
-          this.emitRetry(mode, attempts, batchBlocks.length, error)
-          const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempts - 1)
+        // A timeout while more than one segment was in flight => the request was
+        // too large. Send less work instead of failing the whole scan.
+        if (isBatchSizeRelatedError(lastError) && size > 1) {
+          const failedSize = size
+          size = Math.max(1, Math.floor(size / 2))
+          sameSizeRetries = 0
+          if (size < this.batchSegmentThreshold) {
+            log.warn(
+              `Embedder timed out on ${failedSize} segments; shrinking batch threshold from ` +
+                `${this.batchSegmentThreshold} to ${size} for the rest of the scan`,
+              { workspacePath: scanWorkspace },
+            )
+            this.batchSegmentThreshold = size
+          }
+          this.emitRetry(mode, attempts, failedSize, error)
+          continue
+        }
+
+        // Same-size retries for transient (non-size) failures, and for a single
+        // segment that still times out — there is nothing left to split.
+        if (sameSizeRetries + 1 < this.maxBatchRetries) {
+          sameSizeRetries++
+          this.emitRetry(mode, sameSizeRetries, blocks.length, error)
+          const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, sameSizeRetries - 1)
           log.debug(`Retrying batch in ${delay}ms`)
           await new Promise((resolve) => setTimeout(resolve, delay))
+          continue
         }
+
+        break
       }
     }
 
-    if (!success && lastError) {
-      log.error(`Failed to process batch after ${this.maxBatchRetries} attempts`)
-      this.emitError(mode, "scanner:processBatch", lastError, this.maxBatchRetries)
-      onBatchFailed?.()
-      if (onError) {
-        // Preserve the original error message from embedders which now have detailed messages
-        const errorMessage = lastError.message || "Unknown error"
+    if (offset >= batchBlocks.length) {
+      onFilesIndexed?.(batchFileInfos.length)
+      log.debug(`Successfully processed batch of ${batchBlocks.length} blocks in ${attempts} attempt(s)`)
+      return
+    }
 
-        onError(new Error(`Failed to process batch after ${this.maxBatchRetries} retries: ${errorMessage}`))
-      }
+    if (this._cancelled) return
+
+    log.error(`Failed to process batch after ${attempts} attempts`)
+    this.emitError(mode, "scanner:processBatch", lastError, attempts)
+    onBatchFailed?.()
+    if (onError) {
+      // Preserve the original error message from embedders which now have detailed messages
+      const errorMessage = lastError?.message || "Unknown error"
+
+      onError(new Error(`Failed to process batch after ${attempts} attempts: ${errorMessage}`))
     }
   }
 }

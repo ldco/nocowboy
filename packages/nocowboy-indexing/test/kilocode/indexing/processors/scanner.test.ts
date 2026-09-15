@@ -171,6 +171,53 @@ class RetryStore extends Store {
   }
 }
 
+/**
+ * Emulates a local, CPU-bound embedder: any request carrying more than one
+ * segment hits the request timeout, while small requests are cheap enough to
+ * succeed. A dead embedder would fail at every size.
+ */
+class SlowEmbedder implements IEmbedder {
+  public readonly calls: number[] = []
+
+  public async createEmbeddings(texts: string[]): Promise<{ embeddings: number[][] }> {
+    this.calls.push(texts.length)
+    if (texts.length > 1) {
+      throw new Error("Connection to embedding service failed (timeout)")
+    }
+    return { embeddings: texts.map(() => [0.1]) }
+  }
+
+  public async validateConfiguration(): Promise<{ valid: boolean; error?: string }> {
+    return { valid: true }
+  }
+
+  public get embedderInfo() {
+    return { name: "ollama" as const }
+  }
+}
+
+/**
+ * Emulates a genuinely dead embedder: it fails at every request size with a
+ * connection error (not a timeout), so splitting the batch cannot help and the
+ * scan must still fail.
+ */
+class DeadEmbedder implements IEmbedder {
+  public readonly calls: number[] = []
+
+  public async createEmbeddings(texts: string[]): Promise<{ embeddings: number[][] }> {
+    this.calls.push(texts.length)
+    throw new Error("Connection to embedding service failed (ECONNREFUSED)")
+  }
+
+  public async validateConfiguration(): Promise<{ valid: boolean; error?: string }> {
+    return { valid: false, error: "Connection refused" }
+  }
+
+  public get embedderInfo() {
+    return { name: "ollama" as const }
+  }
+}
+
 describe("DirectoryScanner", () => {
   test("uses seeded baseline hashes to index only worktree changes", async () => {
     const root = await mkdtemp(join(tmpdir(), "scanner-test-"))
@@ -344,5 +391,90 @@ describe("DirectoryScanner", () => {
     expect(retry?.attempt).toBe(1)
     expect(retry?.maxRetries).toBe(2)
     expect(retry?.error).toContain("[REDACTED_PATH]")
+  })
+
+  test("shrinks the batch on embedder timeout and completes the scan", async () => {
+    const root = await mkdtemp(join(tmpdir(), "scanner-test-"))
+    const cacheDir = await mkdtemp(join(tmpdir(), "scanner-cache-"))
+    const file = join(root, "main.ts")
+    const content = "export const value = 2\n"
+    await Bun.write(file, content)
+
+    const hash = createHash("sha256").update(content).digest("hex")
+    const cache = new CacheManager(cacheDir, root)
+    await cache.initialize()
+
+    const emb = new SlowEmbedder()
+    const store = new Store()
+    const errors: Error[] = []
+    const events: IndexingTelemetryEvent[] = []
+    const scan = new DirectoryScanner(
+      emb,
+      store,
+      new ManyParser(),
+      cache,
+      ignore(),
+      3,
+      3,
+      (event) => events.push(event),
+      {
+        provider: "ollama",
+        vectorStore: "lancedb",
+        modelId: "nomic-embed-text",
+      },
+    )
+
+    const result = await scan.scanDirectory(root, (error) => errors.push(error), undefined, undefined, "full")
+
+    // A slow embedder must not fail the scan: the 3-segment batch times out once,
+    // is halved to a single segment, and every segment is indexed afterwards.
+    expect(errors).toEqual([])
+    expect(result.stats.processed).toBe(1)
+    expect(store.points).toBe(3)
+    expect(emb.calls).toEqual([3, 1, 1, 1])
+    expect(cache.getHash(file)).toBe(hash)
+
+    // The reduced size is remembered for the rest of the scan instead of being
+    // re-discovered on every batch.
+    expect((scan as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(1)
+
+    const retry = events.find((event) => event.type === "batch_retry")
+    expect(retry).toBeDefined()
+    expect(retry?.batchSize).toBe(3)
+  })
+
+  test("fails the scan when the embedder is dead at every batch size", async () => {
+    const root = await mkdtemp(join(tmpdir(), "scanner-test-"))
+    const cacheDir = await mkdtemp(join(tmpdir(), "scanner-cache-"))
+    const file = join(root, "main.ts")
+    await Bun.write(file, "export const value = 2\n")
+
+    const cache = new CacheManager(cacheDir, root)
+    await cache.initialize()
+
+    const emb = new DeadEmbedder()
+    const store = new Store()
+    const errors: Error[] = []
+    const scan = new DirectoryScanner(emb, store, new ManyParser(), cache, ignore(), 3, 3)
+
+    const result = await scan.scanDirectory(
+      root,
+      (error) => errors.push(error),
+      undefined,
+      undefined,
+      "full",
+    )
+
+    // Splitting cannot rescue a connection error: the batch must fail and the
+    // files must not be marked as indexed.
+    expect(errors).toHaveLength(1)
+    expect(errors[0]?.message).toContain("Failed to process batch after 3 attempts")
+    expect(emb.calls).toEqual([3, 3, 3])
+    expect(store.points).toBe(0)
+    expect(result.stats.processed).toBe(1)
+    expect(cache.getHash(file)).toBeUndefined()
+
+    // Non-timeout failures must not shrink the batch threshold.
+    expect((scan as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(3)
   })
 })

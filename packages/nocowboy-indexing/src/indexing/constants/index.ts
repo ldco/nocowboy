@@ -44,6 +44,32 @@ export const INITIAL_RETRY_DELAY_MS = 500
 export const PARSING_CONCURRENCY = 10
 export const MAX_PENDING_BATCHES = 20 // Maximum number of batches to accumulate before waiting
 
+/**
+ * Local embedders run on the user's machine (Ollama on CPU) and embed far slower
+ * per segment than hosted APIs. A measured CPU-only run took ~104s for a
+ * 60-segment batch, which collides with the 120s request timeout and makes a slow
+ * but alive embedder look dead.
+ *
+ * Chosen remedy — bound the work per request, do not stretch the timeout:
+ * capping the batch makes each request deterministic and finishes well inside a
+ * flat budget on any hardware, while scaling the timeout only postpones the
+ * failure and lets a genuinely wedged service hang the scan for minutes. Actual
+ * throughput on fast local GPUs is unaffected in practice (a handful of extra
+ * HTTP round-trips to localhost). Explicit user configuration
+ * (indexing.embeddingBatchSize) always wins over this default.
+ *
+ * This is the first line of defence; the scanner additionally halves a batch that
+ * still times out (see DirectoryScanner.processBatch).
+ */
+export const LOCAL_EMBEDDER_PROVIDERS = ["ollama"] as const
+export const LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD = 20
+
+export function getDefaultBatchSegmentThreshold(provider: string): number {
+  return (LOCAL_EMBEDDER_PROVIDERS as readonly string[]).includes(provider)
+    ? LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD
+    : BATCH_SEGMENT_THRESHOLD
+}
+
 /**Manager Recovery */
 export const MAX_MANAGER_RECOVERY_ATTEMPTS = 3
 export const INITIAL_MANAGER_RECOVERY_DELAY_MS = 500

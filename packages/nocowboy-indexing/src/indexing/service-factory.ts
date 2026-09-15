@@ -23,10 +23,10 @@ import type { CodeIndexConfigManager } from "./config-manager"
 import type { CacheManager } from "./cache-manager"
 import type { IndexingTelemetryMeta, IndexingTelemetryReporter } from "./interfaces/telemetry"
 import {
-  BATCH_SEGMENT_THRESHOLD,
   DEFAULT_VECTOR_STORE,
   OLLAMA_EMBEDDER_REQUEST_TIMEOUT_MS,
   REMOTE_EMBEDDER_VALIDATION_TIMEOUT_MS,
+  getDefaultBatchSegmentThreshold,
 } from "./constants"
 import { Log } from "../util/log"
 
@@ -231,7 +231,7 @@ export class CodeIndexServiceFactory {
       parser,
       this.cacheManager,
       ignoreInstance,
-      config.embeddingBatchSize,
+      config.embeddingBatchSize ?? getDefaultBatchSegmentThreshold(config.embedderProvider),
       config.scannerMaxBatchRetries,
       this.onTelemetry,
       meta,
@@ -252,7 +252,7 @@ export class CodeIndexServiceFactory {
       embedder,
       vectorStore,
       ignoreInstance,
-      config.embeddingBatchSize,
+      config.embeddingBatchSize ?? getDefaultBatchSegmentThreshold(config.embedderProvider),
       config.scannerMaxBatchRetries,
       this.onTelemetry,
       meta,

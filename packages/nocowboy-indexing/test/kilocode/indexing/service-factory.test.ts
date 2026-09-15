@@ -1,11 +1,14 @@
 import { describe, expect, test, mock, beforeEach } from "bun:test"
 import path from "path"
+import ignore from "ignore"
 import { mockEmbeddingsCreate, openAIMockFactory, setOpenAIConstructorHook } from "./embedders/__helpers__/openai-mock"
 
 mock.module("openai", openAIMockFactory)
 import { CodeIndexServiceFactory } from "../../../src/indexing/service-factory"
 import { CodeIndexConfigManager } from "../../../src/indexing/config-manager"
 import { CacheManager } from "../../../src/indexing/cache-manager"
+import type { ICodeParser, IVectorStore } from "../../../src/indexing/interfaces"
+import { BATCH_SEGMENT_THRESHOLD, LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD } from "../../../src/indexing/constants"
 
 const workspacePath = "/tmp/ws"
 const cacheDirectory = "/tmp/cache"
@@ -220,5 +223,63 @@ describe("CodeIndexServiceFactory", () => {
       encoding_format: "base64",
       dimensions: 1024,
     })
+  })
+
+  test("gives local embedders a smaller default batch size than hosted ones", () => {
+    // AC1: a local (CPU-only) embedder must never be asked for more than 24
+    // segments per request — a measured 60-segment Ollama batch took ~104s
+    // against a 120s budget, which made a slow-but-alive embedder look dead.
+    expect(LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD).toBeLessThanOrEqual(24)
+    expect(LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD).toBeLessThan(BATCH_SEGMENT_THRESHOLD)
+
+    const local = createFactory({
+      embedderProvider: "ollama",
+      openAiKey: undefined,
+      ollamaBaseUrl: "http://localhost:11434",
+      modelId: "nomic-embed-text",
+    })
+    const hosted = createFactory({ embedderProvider: "openai", openAiKey: "sk-test" })
+    const localScanner = local.createDirectoryScanner(
+      local.createEmbedder(),
+      {} as IVectorStore,
+      {} as ICodeParser,
+      ignore(),
+    )
+    const localWatcher = local.createFileWatcher(local.createEmbedder(), {} as IVectorStore, {} as CacheManager, ignore())
+    const hostedScanner = hosted.createDirectoryScanner(
+      hosted.createEmbedder(),
+      {} as IVectorStore,
+      {} as ICodeParser,
+      ignore(),
+    )
+
+    expect((localScanner as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(
+      LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD,
+    )
+    expect((localWatcher as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(
+      LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD,
+    )
+    expect((hostedScanner as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(
+      BATCH_SEGMENT_THRESHOLD,
+    )
+  })
+
+  test("lets an explicit embeddingBatchSize win over the provider default", () => {
+    const factory = createFactory({
+      embedderProvider: "ollama",
+      openAiKey: undefined,
+      ollamaBaseUrl: "http://localhost:11434",
+      modelId: "nomic-embed-text",
+      embeddingBatchSize: 7,
+    })
+
+    const scanner = factory.createDirectoryScanner(
+      factory.createEmbedder(),
+      {} as IVectorStore,
+      {} as ICodeParser,
+      ignore(),
+    )
+
+    expect((scanner as unknown as { batchSegmentThreshold: number }).batchSegmentThreshold).toBe(7)
   })
 })
