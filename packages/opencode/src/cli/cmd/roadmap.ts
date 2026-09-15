@@ -7,13 +7,26 @@ import { execSync, spawnSync } from "child_process"
 import { cmd } from "./cmd"
 import { UI } from "../ui"
 
-/** Detect project root: look for docs/roadmap.json upward from cwd, or use git root. */
+/** True when a roadmap.json exists at `dir` and declares at least one feature. */
+function hasFeatures(dir: string): boolean {
+  try {
+    const raw = readFileSync(join(dir, "docs", "roadmap.json"), "utf-8")
+    const data = JSON.parse(raw) as { features?: unknown[] }
+    return Array.isArray(data.features) && data.features.length > 0
+  } catch {
+    return false
+  }
+}
+
+/** Detect project root: prefer the roadmap that actually has features.
+ *
+ * A stale empty `docs/roadmap.json` template (e.g. left inside a package
+ * directory) must never shadow the real roadmap — that silently turns the
+ * whole verification step into a no-op. */
 function detectProjectRoot(): string {
-  // 1. Try current dir
   const cwd = process.cwd()
-  if (existsSync(join(cwd, "docs", "roadmap.json"))) return cwd
-  
-  // 2. Try from git root
+  const candidates: string[] = [cwd]
+
   try {
     const gitRoot = execSync("git rev-parse --show-toplevel", {
       encoding: "utf-8",
@@ -23,22 +36,33 @@ function detectProjectRoot(): string {
       // outside git — don't leak that message to the user's terminal.
       stdio: ["ignore", "pipe", "ignore"],
     }).trim()
-    if (existsSync(join(gitRoot, "docs", "roadmap.json"))) return gitRoot
-    // Use git root anyway - user can create roadmap there
-    return gitRoot
+    candidates.push(gitRoot, dirname(cwd), dirname(dirname(cwd)))
   } catch {
-    // 3. Try opencode parent (when running from packages/opencode/)
-    const parent = dirname(cwd) // packages/
-    const grandparent = dirname(parent) // app root
-    if (existsSync(join(grandparent, "docs", "roadmap.json"))) return grandparent
-    if (existsSync(join(parent, "docs", "roadmap.json"))) return parent
+    candidates.push(dirname(cwd), dirname(dirname(cwd)))
   }
-  return cwd
+
+  const unique = [...new Set(candidates)]
+  // 1. The first candidate whose roadmap actually has features.
+  for (const dir of unique) if (hasFeatures(dir)) return dir
+  // 2. Otherwise the first candidate that has a roadmap at all.
+  for (const dir of unique) if (existsSync(join(dir, "docs", "roadmap.json"))) return dir
+  return unique[0] ?? cwd
 }
 
 const PROJECT_ROOT = detectProjectRoot()
 const DATA_PATH = join(PROJECT_ROOT, "docs", "roadmap.json")
 const ATTESTATIONS_DIR = join(PROJECT_ROOT, "docs", "attestations")
+
+/** The workspace package that holds the harness source (`packages/opencode` in
+ *  this repo, `packages/nocowboy` in some downstream NoCowboy layouts). */
+function detectPackageDir(): string {
+  for (const name of ["opencode", "nocowboy"]) {
+    const dir = join(PROJECT_ROOT, "packages", name)
+    if (existsSync(join(dir, "package.json"))) return dir
+  }
+  return join(PROJECT_ROOT, "packages", "opencode")
+}
+const PACKAGE_DIR = detectPackageDir()
 
 // ── Schema (inline, not from scripts/lib to keep it portable) ──────────────
 
@@ -57,7 +81,7 @@ function loadRoadmap(): RoadmapData | null {
 }
 
 function resolvePath(ref: string): string {
-  if (ref.startsWith("src/")) return join(PROJECT_ROOT, "packages", "nocowboy", "src", ref.slice(4))
+  if (ref.startsWith("src/")) return join(PACKAGE_DIR, "src", ref.slice(4))
   if (ref.startsWith("packages/") || ref.startsWith("scripts/") || ref.startsWith("docs/") || ref.startsWith(".nocowboy/")) return join(PROJECT_ROOT, ref)
   return join(PROJECT_ROOT, ref)
 }
@@ -156,6 +180,18 @@ function safeWriteGenerated(path: string, content: string): void {
 }
 
 function generateDocs(): boolean {
+  // When the project ships its own generator (this repo does), delegate to it so
+  // the CLI and the repo can never produce conflicting formats.
+  const repoGenerator = join(PROJECT_ROOT, "scripts", "generate-docs.ts")
+  if (existsSync(repoGenerator)) {
+    const result = runCmd(`bun run "${repoGenerator}"`)
+    if (result.ok) {
+      process.stdout.write(result.out + EOL)
+      return true
+    }
+    process.stderr.write(`⚠️  ${repoGenerator} failed, falling back to the built-in generator${EOL}`)
+  }
+
   const data = loadRoadmap()
   if (!data) {
     process.stderr.write(`❌ Not found: ${DATA_PATH}. Run \`nocowboy roadmap init\` first.${EOL}`)
@@ -259,16 +295,14 @@ function checkGrep(path: string, pattern: string): string | null {
 function checkTest(path: string): string | null {
   const resolved = resolvePath(path)
   if (!existsSync(resolved)) return `test not found: ${resolved}`
-  const pkgDir = join(PROJECT_ROOT, "packages", "nocowboy")
-  const rel = resolved.startsWith(pkgDir) ? resolved.slice(pkgDir.length + 1) : resolved
-  const result = runCmd(`bun test "${rel}" 2>&1 | tail -10`, pkgDir)
+  const rel = resolved.startsWith(PACKAGE_DIR) ? resolved.slice(PACKAGE_DIR.length + 1) : resolved
+  const result = runCmd(`bun test "${rel}" 2>&1 | tail -10`, PACKAGE_DIR)
   return result.ok ? null : `test failed:\n${result.out}`
 }
 
 function checkTypecheck(): string | null {
-  const pkgDir = join(PROJECT_ROOT, "packages", "nocowboy")
-  if (!existsSync(pkgDir)) return null // not a NoCowboy project
-  const result = runCmd("bun run typecheck 2>&1 | tail -10", pkgDir)
+  if (!existsSync(PACKAGE_DIR)) return null // not a NoCowboy project
+  const result = runCmd("bun run typecheck 2>&1 | tail -10", PACKAGE_DIR)
   return result.ok ? null : result.out
 }
 
@@ -318,6 +352,15 @@ function checkCmd(command: string): string | null {
 }
 
 function verifyRoadmap(): number {
+  // Delegate to the project's own verifier when present for the same reason as
+  // generateDocs: one format, one implementation.
+  const repoVerifier = join(PROJECT_ROOT, "scripts", "verify-roadmap.ts")
+  if (existsSync(repoVerifier)) {
+    const result = runCmd(`bun run "${repoVerifier}"`)
+    if (result.out) process.stdout.write(result.out + EOL)
+    return result.ok ? 0 : 1
+  }
+
   const data = loadRoadmap()
   if (!data) {
     process.stdout.write(`No roadmap.json found at ${DATA_PATH} — skipping verification.${EOL}`)
@@ -326,7 +369,7 @@ function verifyRoadmap(): number {
 
   const doneFeatures = data.features.filter(f => f.status === "done" && f.verify && f.verify.length > 0)
   if (doneFeatures.length === 0) {
-    process.stdout.write("No DONE features with verify directives to check.${EOL}")
+    process.stdout.write(`No DONE features with verify directives to check.${EOL}`)
     return 0
   }
 

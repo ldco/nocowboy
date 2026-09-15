@@ -15,18 +15,19 @@ if [ -f "$ROOT/packages/opencode/package.json" ]; then
 fi
 
 # ── Roadmap verification ──
-# Priority: dev source (latest) → standalone scripts → global nocowboy (may lag)
+# Priority: repo-local scripts (the format this repo's docs use) → dev source → global
 
-if [ -f "$ROOT/packages/opencode/src/index.ts" ] && command -v bun &>/dev/null; then
-  # NoCowboy dev project: use source tree (always latest)
-  cd "$ROOT"
-  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap generate 2>/dev/null || true
-  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap verify
-elif [ -f "$ROOT/scripts/verify-roadmap.ts" ] && command -v bun &>/dev/null; then
-  # Fallback: standalone scripts
+if [ -f "$ROOT/scripts/verify-roadmap.ts" ] && command -v bun &>/dev/null; then
+  # This repo ships its own generators/verifier; they are the source of truth
+  # for the docs/ format.
   cd "$ROOT"
   bun run "$ROOT/scripts/generate-docs.ts" 2>/dev/null || true
   bun run "$ROOT/scripts/verify-roadmap.ts"
+elif [ -f "$ROOT/packages/opencode/src/index.ts" ] && command -v bun &>/dev/null; then
+  # NoCowboy dev project without repo-local scripts: use source tree
+  cd "$ROOT"
+  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap generate 2>/dev/null || true
+  bun run --cwd "$ROOT/packages/opencode" src/index.ts roadmap verify
 elif command -v nocowboy &>/dev/null; then
   # Fallback: globally installed nocowboy
   cd "$ROOT"

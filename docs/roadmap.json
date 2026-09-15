@@ -166,19 +166,16 @@
     {
       "id": "memory-fts5",
       "title": "Memory FTS5 (MiMo) — полнотекстовый поиск по памяти",
-      "status": "done",
+      "status": "abandoned",
       "version": "v0.6.1",
       "changelog": "Core Infrastructure",
       "verify": [
         {
           "type": "file",
-          "path": "packages/opencode/src/nocowboy/memory"
-        },
-        {
-          "type": "file",
           "path": "docs/features/memory-fts5.md"
         }
-      ]
+      ],
+      "notes": "Superseded: the in-harness memory store (src/nocowboy/memory/*) was dead code with zero importers and has been removed (see docs/analysis/indexing-vs-nutausik.md). Full-text memory search is provided by NUTAUSIK (fts_tasks/fts_memory/fts_decisions)."
     },
     {
       "id": "goal-judge",

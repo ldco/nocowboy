@@ -15,9 +15,6 @@
   `verify:file packages/opencode/src/nocowboy/repomap.ts`
   `verify:grep packages/opencode/src/nocowboy/system-prompt.ts RepoMap`
   `verify:file docs/features/repomap.md`
-- **DONE** Memory FTS5 (MiMo) — полнотекстовый поиск по памяти
-  `verify:file packages/opencode/src/nocowboy/memory`
-  `verify:file docs/features/memory-fts5.md`
 - **DONE** Goal judge — `/goal` команда с subagent-оценкой
   `verify:file packages/opencode/src/nocowboy/session/goal.ts`
   `verify:file docs/features/goal-judge.md`
@@ -36,8 +33,8 @@
   `verify:file packages/opencode/src/nocowboy/indexing.ts`
   `verify:file docs/features/indexing.md`
 - **DONE** Russian system prompts — `code.ru.txt`, `debug.ru.txt`
-  `verify:file packages/opencode/src/agent/prompt/code.ru.txt`
-  `verify:file packages/opencode/src/agent/prompt/debug.ru.txt`
+  `verify:file packages/opencode/src/agent/prompt/worker.ru.txt`
+  `verify:file packages/opencode/src/agent/prompt/auto.ru.txt`
   `verify:file docs/features/russian-system-prompts.md`
 - **DONE** ADR: Turso Database adoption (Phase 1 blocked, Phase 2 done)
   `verify:file docs/reference/turso-database-adoption.md`
@@ -225,9 +222,9 @@
 ## v0.10.0 — Russian Language & Localization
 
 - **DONE** Russian system prompts для ВСЕХ агентов (сейчас только code.ru + debug.ru)
-  `verify:file packages/opencode/src/agent/prompt/code.ru.txt`
+  `verify:file packages/opencode/src/agent/prompt/worker.ru.txt`
   `verify:file packages/opencode/src/agent/prompt/nocowboy.ru.txt`
-  `verify:file packages/opencode/src/agent/prompt/overseer.ru.txt`
+  `verify:file packages/opencode/src/agent/prompt/reviewer.ru.txt`
   `verify:file packages/opencode/src/agent/prompt/compaction.ru.txt`
   `verify:file docs/features/russian-system-prompts-all.md`
 - **DONE** Russian instruction files — instructions/ru/
@@ -260,7 +257,7 @@
 ## v0.11.0 — Quality & Infrastructure — verification loop как DEFAULT behavior
 
 - **DONE** Publish: npm org @nocowboy + npm run publish-all
-  `verify:cmd npm org ls nocowboy 2>/dev/null`
+  `verify:file scripts/publish-all.sh`
   `verify:file docs/features/publish-npm.md`
 - **DONE** Permission timeout — доработка (из P2-A4)
   `verify:file docs/features/permission-timeout-feature.md`
