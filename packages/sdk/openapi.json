@@ -15692,6 +15692,28 @@
               "type": {
                 "type": "string",
                 "enum": ["busy"]
+              },
+              "stall": {
+                "type": "object",
+                "properties": {
+                  "phase": {
+                    "type": "string",
+                    "enum": ["first-event", "between-events"]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "stalled_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "budget_ms": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": ["phase", "message", "stalled_at", "budget_ms"],
+                "additionalProperties": false
               }
             },
             "required": ["type"],

@@ -126,4 +126,47 @@ describe("withIdleTimeout", () => {
     expect(String(error)).not.toContain("no first event")
     expect(ctrl.signal.aborted).toBe(true)
   })
+
+  // nocowboy_change — UX telemetry: stalls must be observable so the TUI can
+  // show a countdown instead of a frozen spinner.
+  test("observes silence once the warn threshold passes and clears on resume", async () => {
+    const ctrl = new AbortController()
+    const stalls: unknown[] = []
+    let clears = 0
+    async function* slowStart(): AsyncIterable<number> {
+      await sleep(260) // > warnMs = min(60_000, 500/2) = 250
+      yield 1
+    }
+
+    const out = await collect(withIdleTimeout(slowStart(), 500, ctrl, 500, (i) => stalls.push(i), () => clears++))
+
+    expect(out).toEqual([1])
+    expect(stalls).toHaveLength(1)
+    const info = stalls[0] as { phase: string; budgetMs: number; stalledAt: number; message: string }
+    expect(info.phase).toBe("first-event")
+    expect(info.budgetMs).toBe(500)
+    expect(info.stalledAt).toBeGreaterThan(0)
+    expect(info.message).toContain("first token")
+    expect(clears).toBe(1)
+    expect(ctrl.signal.aborted).toBe(false)
+  })
+
+  test("warns per-gap with the right phase and stays silent for fast streams", async () => {
+    const ctrl = new AbortController()
+    const phases: string[] = []
+    async function* gap(): AsyncIterable<number> {
+      yield 1
+      await sleep(260) // between-events gap > warnMs
+      yield 2
+    }
+
+    const out = await collect(withIdleTimeout(gap(), 500, ctrl, 500, (i) => phases.push(i.phase)))
+    expect(out).toEqual([1, 2])
+    // first event is immediate → no first-event warning; the gap warns once.
+    expect(phases).toEqual(["between-events"])
+
+    const fast = await collect(withIdleTimeout(slow(), 500, new AbortController(), 500, () => phases.push("fast")))
+    expect(fast).toEqual([1, 2, 3])
+    expect(phases).toEqual(["between-events"]) // no extra warnings from the fast stream
+  })
 })

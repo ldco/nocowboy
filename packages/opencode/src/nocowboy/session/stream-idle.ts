@@ -38,6 +38,31 @@ export function streamIdleFailureMessage(idleMs: number, beforeFirstEvent = fals
     : `${STREAM_IDLE_MARKER}: no event for ${idleMs}ms. The provider appears to have stalled.`
 }
 
+// ── Stall telemetry (UX) ───────────────────────────────────────────────────
+//
+// Before this existed the TUI showed a normal spinner while the provider was
+// silent, so a stall looked identical to "still thinking". Users pressed Esc
+// blind, seconds before the watchdog aborted. After `STALL_WARN_MS` of silence
+// (capped at half the budget) the observer fires once per gap with a live
+// countdown payload; the first arriving event clears it.
+
+export type StallPhase = "first-event" | "between-events"
+
+export type StallInfo = {
+  phase: StallPhase
+  message: string
+  /** epoch ms when the current silence started */
+  stalledAt: number
+  /** total ms the watchdog tolerates before aborting this gap */
+  budgetMs: number
+}
+
+export const STALL_WARN_MS = 60_000
+
+export function stallWarningMessage(phase: StallPhase): string {
+  return phase === "first-event" ? "Provider is slow to respond — waiting for first token" : "Provider stopped responding"
+}
+
 /**
  * Yields the values of `source`, but fails with a timeout error (and aborts the
  * request) if the next value takes too long to arrive. Two budgets:
@@ -51,12 +76,15 @@ export function streamIdleFailureMessage(idleMs: number, beforeFirstEvent = fals
  *    value.
  *
  * A budget of `<= 0` disables that phase; both disabled returns `source`.
+ * `onStall`/`onStallClear` observe silence for UX telemetry (see above).
  */
 export function withIdleTimeout<T>(
   source: AsyncIterable<T>,
   idleMs: number,
   abort: AbortController,
   firstEventMs = idleMs,
+  onStall?: (info: StallInfo) => void,
+  onStallClear?: () => void,
 ): AsyncIterable<T> {
   if (idleMs <= 0 && firstEventMs <= 0) return source
 
@@ -68,30 +96,48 @@ export function withIdleTimeout<T>(
         cancel = () => resolve({ done: true, value: undefined as never })
       })
       let seenEvent = false
+      let stallWarned = false
 
       return {
         async next(): Promise<IteratorResult<T>> {
           const budget = seenEvent ? idleMs : firstEventMs
+          const phase: StallPhase = seenEvent ? "between-events" : "first-event"
           if (budget <= 0) {
             const result = await Promise.race([iterator.next(), cancelled])
             if (!result.done) seenEvent = true
             return result
           }
 
+          const startedAt = Date.now()
           let timer: ReturnType<typeof setTimeout> | undefined
+          let warnTimer: ReturnType<typeof setTimeout> | undefined
           const idle = new Promise<never>((_, reject) => {
             timer = setTimeout(() => {
               abort.abort()
               reject(new Error(streamIdleFailureMessage(budget, !seenEvent)))
             }, budget)
           })
+          if (onStall) {
+            const warnMs = Math.min(STALL_WARN_MS, Math.floor(budget / 2))
+            warnTimer = setTimeout(() => {
+              stallWarned = true
+              onStall({ phase, message: stallWarningMessage(phase), stalledAt: startedAt, budgetMs: budget })
+            }, warnMs)
+          }
 
           try {
             const result = await Promise.race([iterator.next(), idle, cancelled])
-            if (!result.done) seenEvent = true
+            if (!result.done) {
+              seenEvent = true
+              if (stallWarned) {
+                stallWarned = false
+                onStallClear?.()
+              }
+            }
             return result
           } finally {
             if (timer !== undefined) clearTimeout(timer)
+            if (warnTimer !== undefined) clearTimeout(warnTimer)
           }
         },
         async return(value?: unknown): Promise<IteratorResult<T>> {

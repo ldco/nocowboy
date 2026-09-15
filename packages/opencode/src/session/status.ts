@@ -28,6 +28,18 @@ export const Info = Schema.Union([
   }),
   Schema.Struct({
     type: Schema.Literal("busy"),
+    // nocowboy_change — provider stall telemetry. The stream-idle watchdog
+    // attaches this while the provider is silent, so the TUI can show a live
+    // countdown instead of a frozen spinner (users pressed Esc blind, right
+    // before the watchdog aborted the request).
+    stall: Schema.optional(
+      Schema.Struct({
+        phase: Schema.Literals(["first-event", "between-events"]),
+        message: Schema.String,
+        stalled_at: NonNegativeInt,
+        budget_ms: NonNegativeInt,
+      }),
+    ),
   }),
   Schema.Struct({
     type: Schema.Literal("offline"),

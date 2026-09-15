@@ -1742,6 +1742,34 @@ flexShrink={0}
                         </Show>
                       )
                     })()}
+                    {/* nocowboy_change start — provider stall countdown: silent
+                        streams used to look like a frozen spinner, so the
+                        watchdog abort felt random */}
+                    {(() => {
+                      const stall = createMemo(() => {
+                        const s = status()
+                        if (s.type !== "busy") return
+                        return s.stall
+                      })
+                      const [remaining, setRemaining] = createSignal(0)
+                      onMount(() => {
+                        const timer = setInterval(() => {
+                          const st = stall()
+                          if (st) setRemaining(Math.max(0, Math.round((st.stalled_at + st.budget_ms - Date.now()) / 1000)))
+                        }, 1000)
+                        onCleanup(() => clearInterval(timer))
+                      })
+                      return (
+                        <Show when={stall()}>
+                          <box>
+                            <text fg={theme.warning}>
+                              {(stall()?.message ?? "") + ` — aborting in ${remaining()}s`}
+                            </text>
+                          </box>
+                        </Show>
+                      )
+                    })()}
+                    {/* nocowboy_change end */}
                   </box>
                 </box>
                 <text

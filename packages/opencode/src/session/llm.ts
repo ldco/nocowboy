@@ -45,7 +45,7 @@ import { USER_AGENT } from "@/installation"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { streamFirstEventTimeoutMs, streamIdleTimeoutMs } from "@/nocowboy/session/watchdog"
-import { withIdleTimeout } from "@/nocowboy/session/stream-idle"
+import { withIdleTimeout, type StallInfo } from "@/nocowboy/session/stream-idle"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
 
@@ -97,6 +97,9 @@ export type StreamInput = {
   retries?: number
   toolChoice?: "auto" | "required" | "none"
   preflight?: boolean
+  // nocowboy_change — provider stall telemetry (nocowboy/session/stream-idle.ts)
+  onStall?: (info: StallInfo) => void
+  onStallClear?: () => void
 }
 
 export type StreamRequest = StreamInput & {
@@ -594,7 +597,7 @@ const live: Layer.Layer<
             const firstEventMs = streamFirstEventTimeoutMs({ flags, config: cfg })
             const fullStream =
               idleMs > 0 || firstEventMs > 0
-                ? withIdleTimeout(result.fullStream, idleMs, ctrl, firstEventMs)
+                ? withIdleTimeout(result.fullStream, idleMs, ctrl, firstEventMs, input.onStall, input.onStallClear)
                 : result.fullStream
 
             return Stream.fromAsyncIterable(fullStream, (e) => (e instanceof Error ? e : new Error(String(e))))

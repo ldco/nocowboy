@@ -414,6 +414,12 @@ export type SessionStatus =
     }
   | {
       type: "busy";
+      stall?: {
+        phase: "first-event" | "between-events";
+        message: string;
+        stalled_at: number;
+        budget_ms: number;
+      };
     }
   | {
       type: "offline";

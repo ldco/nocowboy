@@ -3,6 +3,8 @@ import * as Stream from "effect/Stream"
 import { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
+import { EffectBridge } from "@/effect/bridge"
+import type { StallInfo } from "@/nocowboy/session/stream-idle"
 import { Permission } from "@/permission"
 import { Plugin } from "@/plugin"
 import { Snapshot } from "@/snapshot"
@@ -859,9 +861,33 @@ export const layer = Layer.effect(
             ctx.currentText = undefined
             ctx.reasoningMap = {}
             ctx.step = { reasoning: false, text: false, tool: false }
+
+            // nocowboy_change — surface provider stalls in the UI. The idle
+            // watchdog fires these from a raw JS timer, so status.set is
+            // bridged back into the Effect runtime. onStall attaches a
+            // countdown to the busy status; onStallClear removes it once the
+            // stream resumes. Without this a stall looked like a frozen
+            // spinner and the watchdog abort felt random.
+            const bridge = yield* EffectBridge.make()
+            const onStall = (info: StallInfo) =>
+              bridge.fork(
+                status.set(ctx.sessionID, {
+                  type: "busy",
+                  stall: {
+                    phase: info.phase,
+                    message: info.message,
+                    stalled_at: info.stalledAt,
+                    budget_ms: info.budgetMs,
+                  },
+                }),
+              )
+            const onStallClear = () => bridge.fork(status.set(ctx.sessionID, { type: "busy" }))
+
             const stream = llm.stream({
               ...streamInput,
               preflight: !ctx.assistantMessage.summary,
+              onStall,
+              onStallClear,
             })
 
             // The stream idle timeout lives at the provider layer
