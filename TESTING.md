@@ -28,7 +28,7 @@ rm -f /tmp/kilo-serve.pid /tmp/kilo-serve.log
 
 Testing local backend fixes against a real running server, talking to it over HTTP the same way the VS Code extension, TUI, and `kilo run --attach` do — but without any of those clients. Every request is a `curl` the agent can copy-paste.
 
-For in-process tests (no socket, fastest loop) see `packages/opencode/test/kilocode/server/permission-allow-everything.test.ts` for the `Server.Default().app.request(...)` pattern. That's the right tool inside the `packages/opencode/` test suite; this doc is for out-of-process HTTP testing.
+For in-process tests (no socket, fastest loop) see `packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts` for the `Server.Default().app.request(...)` pattern. That's the right tool inside the `packages/opencode/` test suite; this doc is for out-of-process HTTP testing.
 
 ## 2. `kilo serve` vs `bun dev serve` — important
 
