@@ -241,10 +241,12 @@
   `verify:grep packages/llm/test/provider/openai-compatible-chat.test.ts yandexgpt`
   `verify:grep packages/llm/test/provider/gigachat.test.ts GigaChat`
   
+  `verify:file docs/features/yandex-gigachat.md`
 - **DONE** UI Локализация (русские метки + переключатель языка)
   `verify:file packages/opencode/src/nocowboy/ui/i18n.ts`
   `verify:file packages/opencode/src/cli/cmd/tui/context/i18n.tsx`
   
+  `verify:file docs/features/ui-localization.md`
 - **DONE** Diff Sandbox — изоляция AI-изменений до принятия (Plandex-style)
   `verify:file packages/opencode/src/nocowboy/sandbox-diff.ts`
   `verify:file .nocowboy/command/sandbox-start.md`
@@ -259,38 +261,62 @@
 
 - **DONE** Publish: npm org @nocowboy + npm run publish-all
   `verify:cmd npm org ls nocowboy 2>/dev/null`
+  `verify:file docs/features/publish-npm.md`
 - **DONE** Permission timeout — доработка (из P2-A4)
+  `verify:file docs/features/permission-timeout-feature.md`
 - **DONE** Agent Audit (P2-C1): inventory 21 агентов, name collisions
   `verify:file docs/features/agent-audit.md`
 - **DONE** Command deduplication (P2-C3)
+  `verify:file docs/features/command-dedup.md`
 - **DONE** Goal judge — интегрировать в agent stop loop (Effect-native)
+  `verify:file docs/features/goal-judge-native.md`
 - **DONE** Test harness — исправить 39 flaky тестов под параллельной нагрузкой
+  `verify:file docs/features/test-harness.md`
 - **DONE** Distill command — сканировать сессии → генерировать skills/commands
+  `verify:file docs/features/distill-command.md`
 - **DONE** Self-Being Meta-Cognitive Architecture (P3-SELF)
 - **DONE** Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts
+  `verify:file docs/features/instructions-analysis.md`
 - **DONE** Per-task cost tracking с леджером
+  `verify:file docs/features/per-task-cost.md`
 - **DONE** DeepSeek prefix-cache optimization
+  `verify:file docs/features/deepseek-prefix-cache.md`
 - **DONE** Lazy-load tree-sitter WASMs (40MB savings)
+  `verify:file docs/features/lazy-treesitter.md`
 - **DONE** FTS5 query builder (fts-query.ts)
+  `verify:file docs/features/fts5-query-builder.md`
 - **DONE** FTS5 schema + migration
+  `verify:file docs/features/fts5-schema-migration.md`
 - **DONE** Memory reconcile — index MEMORY.md, prune dead
+  `verify:file docs/features/memory-reconcile.md`
 - **DONE** Channels (webhooks MCP)
+  `verify:file docs/features/channels-webhooks.md`
 - **DONE** Bash firewall hook — блокировать опасные команды
+  `verify:file docs/features/bash-firewall-hook.md`
 - **DONE** Task-gate hook — блокировать code tool calls без активного task
+  `verify:file docs/features/task-gate-hook.md`
 - **DONE** Secret-scan hook — сканировать на секреты перед записью
+  `verify:file docs/features/secret-scan-hook.md`
 - **DONE** Activity logging hook — PostToolUse для Write/Edit/Bash
+  `verify:file docs/features/activity-log-hook.md`
 - **DONE** Memory-audit hook — проверка дубликатов
+  `verify:file docs/features/memory-audit-hook.md`
 - **DONE** Session-metrics hook — сбор метрик сессии
+  `verify:file docs/features/session-metrics-hook.md`
 - **DONE** Auto-dream programmatic — программаторное сканирование сессий
+  `verify:file docs/features/auto-dream-prog.md`
 - **DONE** UI для выбора модели каждого агента в Settings TUI
+  `verify:file docs/features/agent-model-settings-ui.md`
 
 ### Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)
 
 - **DONE** Verification Loop — LSP diagnostics check DEFAULT (✅ check tool + auto-verify + prompt enforcement)
+  `verify:file docs/features/quality-enforcement.md`
 
 ### Quality — Verification Loop (complete_task tool + LSP gate + Constitution)
 
 - **DONE** Programmatic gate в task done — complete_task отклоняет если check не прошёл (✅ done)
+  `verify:file docs/features/task-verify-hook.md`
 
 ### Quality — Verification Loop
 
@@ -324,32 +350,50 @@
   `verify:file docs/features/tui-collapse-tool-default.md`
 
 - **DONE** Goal Evaluator — быстрая модель для проверки условия после каждого turn
+  `verify:file docs/features/goal-evaluator.md`
 - **DONE** Goal Loop Controller — автономный цикл agent turn → evaluate → repeat
+  `verify:file docs/features/goal-loop-controller.md`
 - **DONE** Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls
+  `verify:file docs/features/auto-permission-classifier.md`
 - **DONE** Turn-level Stop Hooks — блокировка завершения turn до проверки
+  `verify:file docs/features/stop-hooks-turn-level.md`
 - **DONE** Built-in AC Verification Stop Hook
+  `verify:file docs/features/ac-verification-hook.md`
 - **DONE** Async Task Spawning — асинхронные под-агенты
+  `verify:file docs/features/async-task-spawn.md`
 - **DONE** Task Dependency Chain — авто-запуск задач по зависимостям
+  `verify:file docs/features/task-dependency-chain.md`
 - **DONE** Shared Task List для Agent Teams
+  `verify:file docs/features/shared-task-list.md`
 - **DONE** Inter-Agent Mailbox — сообщения между агентами
+  `verify:file docs/features/agent-mailbox.md`
 - **DONE** Team Lead — мульти-агентный оркестратор
+  `verify:file docs/features/team-lead.md`
 - **DONE** Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)
+  `verify:file docs/features/goal-agent.md`
 - **DONE** TUI Goal UX — индикатор, /goal команды, визуализация прогресса
+  `verify:file docs/features/tui-goal-ux.md`
 - **DONE** Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'
+  `verify:file docs/features/goal-headless.md`
 - **DONE** Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)
+  `verify:file docs/features/tree-sitter-parsing.md`
 - **DONE** Cost-Routing Doctrine — формализованный роутинг по стоимости модели
+  `verify:file docs/features/cost-routing-doctrine.md`
 
 ### Agent Behavior Hardening
 
 - **DONE** Subagent Hang Watchdog — детект зависших субагентов, idle-таймаут стрима, уведомление родителя
   `verify:file packages/opencode/test/tool/task-watchdog.test.ts`
+  `verify:file docs/features/subagent-hang-watchdog.md`
 - **DONE** Model Fallback — резервная модель агента при сбое провайдера
   `verify:file packages/opencode/test/nocowboy/tool-task-model.test.ts`
+  `verify:file docs/features/agent-model-fallback.md`
 
 ### Core Infrastructure
 
 - **DONE** Indexing — автоматический failover voyage → ollama для эмбеддера
   `verify:file packages/opencode/src/nocowboy/indexing.ts`
+  `verify:file docs/features/embedder-autofailover.md`
 
 ## v0.12.1 — Stream-stall hotfix — раздельные бюджеты TTFT/межсобытиечного idle + авто-ретрай сталла провайдера (2026-09-15)
 
@@ -383,15 +427,48 @@
 - **DONE** Индексация — легаси-идентификаторы kilo-indexing канонизируются, KiloEmbedder уважает explicit baseUrl
   `verify:file docs/features/indexing-legacy-plugin-compat.md`
 
+## v0.14.0 — Security Hardening & Upstream Harvest (2026-09-15)
+
+### Security
+
+- **DONE** Безопасность — доверительная граница конфигов: untrusted project config не резолвит {env:}/{file:}
+  `verify:file packages/opencode/src/nocowboy/config/variable.ts`
+  `verify:grep packages/opencode/src/config/variable.ts trusted`
+  `verify:test packages/opencode/test/nocowboy/config/config.test.ts`
+  `verify:file docs/features/config-trust-boundary.md`
+- **DONE** Надёжность — финальные сообщения сессии не теряются при выходе (flush ingest на shutdown)
+  `verify:grep packages/opencode/src/nocowboy-sessions/ingest-queue.ts drain`
+  `verify:test packages/opencode/test/nocowboy/sessions/ingest-queue.test.ts`
+  `verify:file docs/features/session-ingest-shutdown-flush.md`
+- **DONE** Безопасность — read-only bash-запреты родителя не блокируют делегированных субагентов
+  `verify:file packages/opencode/src/nocowboy/tool/task.ts`
+  `verify:test packages/opencode/test/nocowboy/tool/task-inherited.test.ts`
+  `verify:file docs/features/subagent-bash-permission-inheritance.md`
+- **DONE** Процесс — hard fork Kilo Code: аудит релизов v7.4–v7.7 и дисциплина точечного порта
+  `verify:file docs/adr/002-upstream-sync-strategy.md`
+  `verify:file docs/reference/upstream-port-list.md`
+  `verify:file docs/features/upstream-hard-fork-harvest.md`
+- **DONE** Безопасность — ресинк lockfile: закрыто 23 из 29 уязвимых транзитивных зависимостей
+  `verify:grep package.json brace-expansion`
+  `verify:file bun.lock`
+  `verify:file docs/features/dependency-security-resync.md`
+- **DONE** Надёжность — task-инструмент возвращает реальный ответ субагента вместо пустого результата
+  `verify:grep packages/opencode/src/tool/task.ts synthetic`
+  `verify:file docs/features/empty-task-result-return.md`
+
 ## v1.0.0-alpha — Alpha Release — internal testing, all features done, no critical bugs (2026-09)
 
 - **DONE** v0.10.0 + v0.11.0 — все фичи реализованы
   `verify:typecheck`
+  `verify:file docs/features/alpha-all-features-done.md`
 - **DONE** Все тесты проходят — bun test
   `verify:cmd bun run test 2>&1 | tail -5`
+  `verify:file docs/features/alpha-tests-pass.md`
 - **DONE** Нет критических багов — known issues документированы
+  `verify:file docs/features/alpha-no-critical-bugs.md`
 
 ## v1.0.0 — Production Release — all tests green, npm published, roadmap verified (2026-11)
 
 - **DONE** Typecheck clean — 0 errors
   `verify:typecheck`
+  `verify:file docs/features/release-typecheck-clean.md`

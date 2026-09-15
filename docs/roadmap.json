@@ -102,6 +102,11 @@
       "tag": "v1.0.0",
       "date": "2026-11",
       "description": "Production Release — all tests green, npm published, roadmap verified"
+    },
+    {
+      "tag": "v0.14.0",
+      "date": "2026-09-15",
+      "description": "Security Hardening & Upstream Harvest"
     }
   ],
   "features": [
@@ -942,6 +947,10 @@
         {
           "type": "cmd",
           "command": "npm org ls nocowboy 2>/dev/null"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/publish-npm.md"
         }
       ],
       "phase": "alpha-blockers",
@@ -999,6 +1008,10 @@
         },
         {
           "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/yandex-gigachat.md"
         }
       ]
     },
@@ -1036,6 +1049,10 @@
         },
         {
           "type": "overseer"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/ui-localization.md"
         }
       ]
     },
@@ -1044,7 +1061,13 @@
       "title": "Permission timeout — доработка (из P2-A4)",
       "status": "done",
       "notes": "Добавлен permission_timeout_by_tool в схему конфига (Record<string, PositiveInt>). Permission/index.ts читает tool-specific таймаут (из patterns[0]), fallback на общий permission_timeout. Настройка через nocowboy.json.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/permission-timeout-feature.md"
+        }
+      ]
     },
     {
       "id": "agent-audit",
@@ -1130,14 +1153,26 @@
       "title": "Command deduplication (P2-C3)",
       "status": "done",
       "notes": "KiloConsoleCommand → NocowboyConsoleCommand (3 файла: console.ts, commands.ts, setup.ts). Все 'Kilo' строки в console.ts заменены на NoCowboy.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/command-dedup.md"
+        }
+      ]
     },
     {
       "id": "goal-judge-native",
       "title": "Goal judge — интегрировать в agent stop loop (Effect-native)",
       "status": "done",
       "notes": "GoalService.evaluate() интегрирован в runLoop (session/prompt.ts строка 1941). После каждого handle.process проверяется активная цель. Если ok или impossible — break из цикла. GoalService.get/clear/import все подключены.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/goal-judge-native.md"
+        }
+      ]
     },
     {
       "id": "test-harness",
@@ -1147,14 +1182,26 @@
       "version": "v0.11.0",
       "phase": "alpha-blockers",
       "priority": "P0",
-      "depends_on": []
+      "depends_on": [],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/test-harness.md"
+        }
+      ]
     },
     {
       "id": "distill-command",
       "title": "Distill command — сканировать сессии → генерировать skills/commands",
       "status": "done",
       "notes": "Создан distill.ts (CLI команда + NUTAUSIK session scan + генерация .nocowboy/command/*.md). Зарегистрирован в setup.ts.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/distill-command.md"
+        }
+      ]
     },
     {
       "id": "quality-enforcement",
@@ -1162,7 +1209,13 @@
       "status": "done",
       "notes": "check-tool (done), auto-verify-after-edit (done), verify-prompt-enforcement (done) — всё DEFAULT. coherence_check частично реализован, не блокирует.",
       "version": "v0.11.0",
-      "changelog": "Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)"
+      "changelog": "Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/quality-enforcement.md"
+        }
+      ]
     },
     {
       "id": "self-being",
@@ -1186,7 +1239,13 @@
       "title": "Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts",
       "status": "done",
       "notes": "Исправлены Kilo-референсы: channels.md (kilo-channel-webhook → channels_listen), ru/channels.md, ru/structured-output.md (kilo --json → nocowboy --json). Пути к инструкциям проверены — rules-migrator.ts работает корректно.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/instructions-analysis.md"
+        }
+      ]
     },
     {
       "id": "roadmap-json-system",
@@ -1361,7 +1420,13 @@
       "phase": "alpha-quality",
       "priority": "P1",
       "depends_on": [],
-      "done_on": "2026-08-04"
+      "done_on": "2026-08-04",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/per-task-cost.md"
+        }
+      ]
     },
     {
       "id": "vector-store-switcher",
@@ -1379,56 +1444,104 @@
       "status": "done",
       "notes": "promptCacheKey для session affinity + agent model fallback + preflight cost estimation + cost cap helper + HTTP recorder",
       "version": "v0.11.0",
-      "done_version": "v0.11.0"
+      "done_version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/deepseek-prefix-cache.md"
+        }
+      ]
     },
     {
       "id": "lazy-treesitter",
       "title": "Lazy-load tree-sitter WASMs (40MB savings)",
       "status": "done",
       "notes": "shell.ts: Language import сделан динамическим (import() внутри lazy-функции). web-tree-sitter больше не грузится при старте.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/lazy-treesitter.md"
+        }
+      ]
     },
     {
       "id": "fts5-query-builder",
       "title": "FTS5 query builder (fts-query.ts)",
       "status": "done",
       "notes": "memory/fts-query.ts — buildFtsQuery() уже реализован.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/fts5-query-builder.md"
+        }
+      ]
     },
     {
       "id": "fts5-schema-migration",
       "title": "FTS5 schema + migration",
       "status": "done",
       "notes": "memory/schema.ts — FTS5 virtual table уже создаётся.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/fts5-schema-migration.md"
+        }
+      ]
     },
     {
       "id": "memory-reconcile",
       "title": "Memory reconcile — index MEMORY.md, prune dead",
       "status": "done",
       "notes": "memory/reconcile.ts — reconcile() уже реализован. Используется в memory/index.ts при поиске.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/memory-reconcile.md"
+        }
+      ]
     },
     {
       "id": "channels-webhooks",
       "title": "Channels (webhooks MCP)",
       "status": "done",
       "notes": "Инструменты hooks_channels_listen/post/read уже в MCP. Документация в packaging/config/instructions/channels.md.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/channels-webhooks.md"
+        }
+      ]
     },
     {
       "id": "bash-firewall-hook",
       "title": "Bash firewall hook — блокировать опасные команды",
       "status": "done",
       "notes": "Добавлен bash firewall blocker в blocked-tools.ts (12 опасных паттернов: rm -rf /, dd, fork bomb, curl|bash, ...). ToolBlocker.check() теперь принимает args. Execute-time блокировка требует доработки bash tool executor.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/bash-firewall-hook.md"
+        }
+      ]
     },
     {
       "id": "task-gate-hook",
       "title": "Task-gate hook — блокировать code tool calls без активного task",
       "status": "done",
       "notes": "Task gate blocker в blocked-tools.ts: edit/write/apply_patch/search_replace блокируются если нет активного NUTAUSIK task (SQLite). Работает только для проектов с roadmap.json.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/task-gate-hook.md"
+        }
+      ]
     },
     {
       "id": "task-verify-hook",
@@ -1436,7 +1549,13 @@
       "status": "done",
       "notes": "В NUTAUSIK hooks есть, не портировано",
       "version": "v0.11.0",
-      "changelog": "Quality — Verification Loop (complete_task tool + LSP gate + Constitution)"
+      "changelog": "Quality — Verification Loop (complete_task tool + LSP gate + Constitution)",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/task-verify-hook.md"
+        }
+      ]
     },
     {
       "id": "check-tool",
@@ -1482,28 +1601,52 @@
       "title": "Secret-scan hook — сканировать на секреты перед записью",
       "status": "done",
       "notes": "secret-scan.ts: 16 паттернов (OpenAI, GitHub, AWS, SSH keys, passwords, JWT, Slack, Discord, connection strings). Интегрирован в write.ts — автоматическое сканирование при записи файла.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/secret-scan-hook.md"
+        }
+      ]
     },
     {
       "id": "activity-log-hook",
       "title": "Activity logging hook — PostToolUse для Write/Edit/Bash",
       "status": "done",
       "notes": "nutausik-auto-wire.ts: PostToolUse hook с детальным логгированием (bash: команда, write: путь, edit: путь). Вызывается из session/session.ts onSessionCreated/onSessionEnded.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/activity-log-hook.md"
+        }
+      ]
     },
     {
       "id": "memory-audit-hook",
       "title": "Memory-audit hook — проверка дубликатов",
       "status": "done",
       "notes": "memory-audit.ts: findDuplicates(title, content) проверяет SQLite на дубликаты по заголовку и содержимому. formatDuplicateWarning() для вывода.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/memory-audit-hook.md"
+        }
+      ]
     },
     {
       "id": "session-metrics-hook",
       "title": "Session-metrics hook — сбор метрик сессии",
       "status": "done",
       "notes": "session-metrics.ts: SQLite таблица session_metrics, saveMetrics() на onSessionEnded, getAggregatedMetrics() для дашборда.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/session-metrics-hook.md"
+        }
+      ]
     },
     {
       "id": "lang-switcher-settings",
@@ -1554,7 +1697,13 @@
       "title": "Auto-dream programmatic — программаторное сканирование сессий",
       "status": "done",
       "notes": "shouldAutoDream()/shouldAutoDistill() подключены в onSessionCreated (nutausik-auto-wire.ts). Запускают dream/distill task каждые 7/30 дней.",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-dream-prog.md"
+        }
+      ]
     },
     {
       "id": "mcp-marketplace-template",
@@ -1581,6 +1730,10 @@
       "verify": [
         {
           "type": "typecheck"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/alpha-all-features-done.md"
         }
       ],
       "phase": "alpha-blockers",
@@ -1600,6 +1753,10 @@
         {
           "type": "cmd",
           "command": "bun run test 2>&1 | tail -5"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/alpha-tests-pass.md"
         }
       ],
       "phase": "alpha-blockers",
@@ -1633,6 +1790,12 @@
       "priority": "P0",
       "depends_on": [
         "alpha-all-features-done"
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/alpha-no-critical-bugs.md"
+        }
       ]
     },
     {
@@ -1741,6 +1904,10 @@
       "verify": [
         {
           "type": "typecheck"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/release-typecheck-clean.md"
         }
       ],
       "phase": "alpha-blockers",
@@ -1906,7 +2073,13 @@
       "priority": "P2",
       "depends_on": [],
       "done_on": "2026-08-04",
-      "notes": "DialogAgentModel.tsx — полный UI компонент выбора модели для каждого агента в TUI (82 строки, SolidJS). Интегрирован в Settings."
+      "notes": "DialogAgentModel.tsx — полный UI компонент выбора модели для каждого агента в TUI (82 строки, SolidJS). Интегрирован в Settings.",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-model-settings-ui.md"
+        }
+      ]
     },
     {
       "id": "lang-switcher-ui",
@@ -2080,7 +2253,13 @@
       ],
       "description": "Отдельная flash-модель, которая после каждого turn проверяет, выполнено ли условие цели. Аналог /goal в Claude Code.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/goal-evaluator.md"
+        }
+      ]
     },
     {
       "id": "goal-loop-controller",
@@ -2097,7 +2276,13 @@
       ],
       "description": "Контроллер автономного выполнения: запускает turn, вызывает evaluator, решает continue/done. Счётчик turns, обработка прерываний, TUI-индикатор.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/goal-loop-controller.md"
+        }
+      ]
     },
     {
       "id": "auto-permission-classifier",
@@ -2112,7 +2297,13 @@
       ],
       "description": "SAFE (авто-одобрение: read/grep/test) / CAUTION (с аудитом: write/commit) / BLOCK (запрос: rm -rf, force push). Замена бинарного YOLO.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/auto-permission-classifier.md"
+        }
+      ]
     },
     {
       "id": "stop-hooks-turn-level",
@@ -2127,7 +2318,13 @@
       ],
       "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/stop-hooks-turn-level.md"
+        }
+      ]
     },
     {
       "id": "ac-verification-hook",
@@ -2145,7 +2342,13 @@
       ],
       "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/ac-verification-hook.md"
+        }
+      ]
     },
     {
       "id": "async-task-spawn",
@@ -2160,7 +2363,13 @@
       ],
       "description": "task tool с async:true. Под-агент в отдельной сессии, статус в NUTAUSIK. Родитель продолжает работу параллельно. TaskCompleted событие.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/async-task-spawn.md"
+        }
+      ]
     },
     {
       "id": "task-dependency-chain",
@@ -2178,7 +2387,13 @@
       ],
       "description": "Задачи с depends_on. При COMPLETED родительской → авто-запуск дочерней. Архитектор→code→overseer цепочка без участия человека.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/task-dependency-chain.md"
+        }
+      ]
     },
     {
       "id": "shared-task-list",
@@ -2193,7 +2408,13 @@
       ],
       "description": "Файловая система задач с блокировками. ~/.nocowboy/teams/{id}/tasks/. Статусы: pending/claimed/in_progress/completed/failed. Self-claim.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/shared-task-list.md"
+        }
+      ]
     },
     {
       "id": "agent-mailbox",
@@ -2208,7 +2429,13 @@
       ],
       "description": "JSON inbox для каждого агента. SendMessage tool. Валидация записей, авто-очистка битых.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/agent-mailbox.md"
+        }
+      ]
     },
     {
       "id": "team-lead",
@@ -2227,7 +2454,13 @@
       ],
       "description": "Оркестратор: разбивает задачу, создаёт под-задачи, назначает агентов, синтезирует результаты. Мониторинг прогресса.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/team-lead.md"
+        }
+      ]
     },
     {
       "id": "goal-agent",
@@ -2247,7 +2480,13 @@
       ],
       "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/goal-agent.md"
+        }
+      ]
     },
     {
       "id": "tui-goal-ux",
@@ -2265,7 +2504,13 @@
       ],
       "description": "Индикатор в статус-баре: ◎ goal [turn 7/20]. /goal status, /goal clear. Визуализация прогресса по turns. Цветовая индикация: 🟢 achieved, 🟡 in progress, 🔴 stuck.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tui-goal-ux.md"
+        }
+      ]
     },
     {
       "id": "goal-headless",
@@ -2283,7 +2528,13 @@
       ],
       "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
       "done_at": "2026-08-01",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/goal-headless.md"
+        }
+      ]
     },
     {
       "id": "knowledge-graph",
@@ -2335,7 +2586,13 @@
       "description": "Заменить grep-based анализ на Tree-sitter AST-парсинг для детерминированного извлечения структуры. Импорты, экспорты, сигнатуры, call sites. Кеширование для инкрементальных обновлений. Вдохновлено: Understand-Anything.",
       "done_on": "2026-08-04",
       "notes": "Детерминированный парсинг AST через tree-sitter реализован: shell.ts парсит bash/powershell AST, scrollback.surface.ts использует TreeSitterClient для подсветки синтаксиса, parsers-config.ts определяет 30+ языков с highlight+locals запросами (функции, классы, импорты), 37 WASM-парсеров.",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/tree-sitter-parsing.md"
+        }
+      ]
     },
     {
       "id": "arch-layer-detection",
@@ -2369,7 +2626,13 @@
       "depends_on": [],
       "done_on": "2026-08-04",
       "notes": "Cost-aware model selection реализован в catalog.ts: сортировка моделей по стоимости (input+output price) и релевантности (recency), предпочтение small/cheap моделей. Формализованный роутинг по стоимости встроен в слой провайдеров.",
-      "version": "v0.12.0"
+      "version": "v0.12.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/cost-routing-doctrine.md"
+        }
+      ]
     },
     {
       "id": "commitment-boundary-review",
@@ -2438,6 +2701,10 @@
         {
           "type": "file",
           "path": "packages/opencode/test/tool/task-watchdog.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/subagent-hang-watchdog.md"
         }
       ]
     },
@@ -2451,6 +2718,10 @@
         {
           "type": "file",
           "path": "packages/opencode/test/nocowboy/tool-task-model.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/agent-model-fallback.md"
         }
       ]
     },
@@ -2464,6 +2735,10 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/indexing.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/embedder-autofailover.md"
         }
       ]
     },
@@ -2594,6 +2869,187 @@
         {
           "type": "file",
           "path": "docs/features/indexing-legacy-plugin-compat.md"
+        }
+      ]
+    },
+    {
+      "id": "config-trust-boundary",
+      "title": "Безопасность — доверительная граница конфигов: untrusted project config не резолвит {env:}/{file:}",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "security",
+        "config",
+        "exfiltration",
+        "upstream-port",
+        "t0.3"
+      ],
+      "description": "Портирован upstream b793bf788f + 032f3bb. Проектный конфиг и markdown больше не могут резолвить {env:...} (утечка секретов через provider apiKey/baseURL) и читать файлы вне проекта: {file:} проходит через ConfigVariableGuard, который ограничивает untrusted-чтение корнем проекта и отклоняет абсолютные пути, ~/, symlink-escape; серверные credential-env (NOCOWBOY_SERVER_PASSWORD/USERNAME) заблокированы даже для доверенных источников. Trust проброшен через config.ts, agent.ts, command.ts, markdown.ts, overlay.ts, tui.ts, skill discovery, instruction loader и workflows migrator. Регрессионные тесты на env-reject, scope-confinement и server-credential block.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/config/variable.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/variable.ts",
+          "pattern": "trusted"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/config/config.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/config-trust-boundary.md"
+        }
+      ]
+    },
+    {
+      "id": "session-ingest-shutdown-flush",
+      "title": "Надёжность — финальные сообщения сессии не теряются при выходе (flush ingest на shutdown)",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "reliability",
+        "sessions",
+        "data-loss",
+        "upstream-port",
+        "t0.7"
+      ],
+      "description": "Портирован upstream b2735bf. Очередь share-ingest копит события за debounce ~1с, и при выходе процесса накопленное (включая финальные сообщения закрывающейся сессии) терялось. Добавлены IngestQueue.drain() и once-guarded Sessions.drainIngestForShutdown(), вызываемый в serve/web/worker до disposeAllInstances; TurnClose теперь сбрасывает терминальный батч немедленно.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy-sessions/ingest-queue.ts",
+          "pattern": "drain"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/sessions/ingest-queue.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/session-ingest-shutdown-flush.md"
+        }
+      ]
+    },
+    {
+      "id": "subagent-bash-permission-inheritance",
+      "title": "Безопасность — read-only bash-запреты родителя не блокируют делегированных субагентов",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "security",
+        "permission",
+        "subagents",
+        "upstream-port",
+        "t0.10"
+      ],
+      "description": "Портирован upstream 3a99f36. KiloTask.inherited проецировал edit/bash/MCP-правила вызывающего агента на субагента, из-за чего readOnlyBash-allowlist read-only родителя (\"*\": deny, \"git *\": deny) блокировал writable субагента фантомными запретами. Теперь наследуются только deny-правила и только edit/notebook_edit/notebook_execute + MCP.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/tool/task.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tool/task-inherited.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/subagent-bash-permission-inheritance.md"
+        }
+      ]
+    },
+    {
+      "id": "upstream-hard-fork-harvest",
+      "title": "Процесс — hard fork Kilo Code: аудит релизов v7.4–v7.7 и дисциплина точечного порта",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "upstream",
+        "process",
+        "adr",
+        "fork"
+      ],
+      "description": "Решение по апстриму зафиксировано в ADR-002 (hard fork; апстрим — источник патчей, не цель мержа; селективный cherry-pick / targeted manual port, никогда через kilocode_change-маркер) и ADR-003 (ежемесячный аудит релизов + немедленный порт security/data-loss). Аудит v7.4.0–v7.7.1 и постового хвоста v7.3.x в docs/upstream-sync-audit.md; приоритизированный список портов в docs/reference/upstream-port-list.md с журналом статусов.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/adr/002-upstream-sync-strategy.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/reference/upstream-port-list.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/upstream-hard-fork-harvest.md"
+        }
+      ]
+    },
+    {
+      "id": "dependency-security-resync",
+      "title": "Безопасность — ресинк lockfile: закрыто 23 из 29 уязвимых транзитивных зависимостей",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "security",
+        "deps",
+        "supply-chain"
+      ],
+      "description": "bun audit находил 29 уязвимых транзитивных пакетов из-за устаревшего lockfile. Lockfile пересоздан, catalog-пины обновлены (hono 4.13.7, dompurify 3.4.15, vite 7.3.5, @hey-api/openapi-ts 0.97.3) и добавлены root overrides (minimatch/brace-expansion, @opentelemetry/core, undici, diff, esbuild, mermaid). Осталось 6 (@babel/core — нет релиза с фиксом в 7.x; остальные транзитивные вне досягаемости bun override) — tracked отдельно.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "package.json",
+          "pattern": "brace-expansion"
+        },
+        {
+          "type": "file",
+          "path": "bun.lock"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/dependency-security-resync.md"
+        }
+      ]
+    },
+    {
+      "id": "empty-task-result-return",
+      "title": "Надёжность — task-инструмент возвращает реальный ответ субагента вместо пустого результата",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "reliability",
+        "task",
+        "subagents",
+        "upstream-port",
+        "t0.1"
+      ],
+      "description": "Портирован upstream bf7848cb48. Экстрактор ответа субагента пропускал synthetic/ignored/пустые части, из-за чего ревьюер получал пустой <task_result>; фоновые задачи больше не перезатирают непустой результат пустым.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/task.ts",
+          "pattern": "synthetic"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/empty-task-result-return.md"
         }
       ]
     }

@@ -69,3 +69,20 @@ Kilo Swarm shared board (`board_post`/`board_read`), `kilo-gateway`, `kilo-telem
 3. **Post-fork v7.3.x sandbox-confinement tail (T0.4).** Symlink-escape, project-root write confinement, session-weakening prevention, and Linux network restriction shipped in v7.3.63 — all absent from our tree (23 675 commits behind that tag). This is the largest single security gap.
 
 (Also: `minimatch` 10.2.5→10.2.6 ReDoS is a one-line dep bump — T0.2 — do it in the same PR as T0.1.)
+
+---
+
+## Port log
+
+| Item | Status | Commit | Notes |
+|---|---|---|---|
+| T0.1 empty `<task_result>` | ✅ done | `92e1ecd83f` | `tool/task.ts` returns the subagent's real answer. |
+| T0.2 minimatch / brace-expansion ReDoS | ✅ done | `01efd1e012` | Root cause is `brace-expansion` (advisory ≥2.0.0 <2.1.3), not minimatch. Direct deps bumped to 10.2.6 / 5.0.9; root overrides added. |
+| T0.3 config credential/file exfil | ✅ done | `d2e69a0b2b` | Ported `b793bf788f` + `032f3bb`: trust flag threaded through config/agent/command/markdown/overlay/tui/skill/instruction/workflows; `ConfigVariableGuard` confines untrusted `{file:}` to the project root and blocks server-credential `{env:}`. Regression tests added. |
+| T0.7 transcript flush on exit | ✅ done | `e56482a0d0` | Ported `b2735bf` onto our ingest queue: `IngestQueue.drain()`, once-guarded `Sessions.drainIngestForShutdown()` wired into serve/web/worker, terminal batch flushed on session close. |
+| T0.9 Ask/Plan catch-all mutation | ✅ N/A | — | We have no `ask`/`plan` agents (removed in the P3 agent refactor). Our read-only agents (`architect`) merge their restrictive rules **last** so a global `permission.bash/edit` allow cannot widen them; `planner`/`reviewer` are edit-denied via defaults. Re-check if ask/plan are reintroduced. |
+| T0.10 subagent phantom bash denies | ✅ done | `37889c07f9` | Ported `3a99f36`: `KiloTask.inherited` no longer projects the caller's `bash` denials onto the subagent (only deny rules, and only edit/notebook_edit/notebook_execute + MCP). Regression tests added. |
+
+| T0.6 PTY credential leak | ✅ done (pre-existing) | — | Our PTY layer already deletes `NOCOWBOY_SERVER_PASSWORD`/`NOCOWBOY_SERVER_USERNAME` from the spawned environment (`src/pty/index.ts`), so the leak upstream fixed was never present here. |
+
+Remaining Tier-0: **T0.4** (v7.3.63 sandbox confinement tail — large, needs its own pass), **T0.5** (PowerShell `--` permission bypass), **T0.8** (checkpoint restore data-loss). Tracked in task `port-upstream-tier-0-security-fixes-t0-3-t0-10-mu2qs099`.
