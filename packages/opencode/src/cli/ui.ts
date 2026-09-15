@@ -1,11 +1,22 @@
 import { EOL } from "os"
-import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
 import { tui } from "../nocowboy/cli/logo"
 
 const wordmark = [...tui()]
 
-export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
+// nocowboy_change start - plain Error instead of an effect `Schema.TaggedErrorClass`. Importing
+// `effect` for this marker class alone pulled ~120 modules into the eager graph of every
+// invocation (including `nocowboy --version` and the TUI thread, which both import this file).
+// The only consumer, cli/error.ts, matches the marker through NamedError.hasName("UICancelledError"),
+// so keeping `name` intact preserves the behaviour.
+export class CancelledError extends Error {
+  override readonly name = "UICancelledError"
+
+  constructor() {
+    super("UICancelledError")
+  }
+}
+// nocowboy_change end
 
 export const Style = {
   TEXT_HIGHLIGHT: "\x1b[96m",

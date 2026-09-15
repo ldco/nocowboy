@@ -187,63 +187,52 @@ describe("NoCowboy CLI customizations are wired into index.ts", () => {
 
   test("index.ts invokes the NoCowboyCli integration points", async () => {
     // These thin call-sites are the only wiring between upstream index.ts and the NoCowboy
-    // customizations in setup.ts. If a future upstream merge drops them, every NoCowboy command
-    // and the telemetry/lifecycle hooks silently disappear, exactly the regression this guards.
+    // customizations in setup.ts. If a future upstream merge drops them, the telemetry/lifecycle
+    // hooks silently disappear, exactly the regression this guards.
     const index = await file(INDEX)
-    expect(index).toContain("NocowboyCli.register(")
     expect(index).toContain("NocowboyCli.bootstrap(")
     expect(index).toContain("NocowboyCli.shutdown(")
+  })
+
+  test("index.ts registers commands through the lazy registry", async () => {
+    // Commands used to be imported statically and registered with `.command(XxxCommand)`. That
+    // eager graph was the reason `nocowboy --version` took seconds, so registration now goes
+    // through src/cli/registry.ts and must stay that way.
+    const index = await file(INDEX)
+    expect(index).toContain("Commands.detect(")
+    expect(index).toContain("Commands.load(")
+    expect(index).not.toMatch(/^\s*\.command\((\w+Command)\)/m)
   })
 
   test("registers the local NoCowboy Console instead of the upstream account console", async () => {
     const index = await file(INDEX)
     const setup = await file(SETUP)
-    expect(setup).toContain("NocowboyConsoleCommand")
+    expect(setup).not.toContain(".command(ConsoleCommand)")
     expect(index).not.toContain(".command(ConsoleCommand)")
   })
 
-  test("every .command() in index.ts has an entry in the commands array", async () => {
-    const index = await file(INDEX)
-    const barrel = await file(BARREL)
+  test("lazy registry resolves every barrel command", async () => {
+    // The barrel (src/nocowboy/commands.ts) is the source of truth for help/docs; the registry is
+    // what actually runs. Drift between them means a documented command that cannot be invoked.
+    const { commands } = await import("../../src/nocowboy/commands")
+    const registry = await import("../../src/cli/registry")
 
-    // Match uncommented .command(XxxCommand) calls in index.ts
-    const registered = [...index.matchAll(/^\s*\.command\((\w+)\)/gm)].map((m) => m[1]!)
-    expect(registered.length).toBeGreaterThan(0)
+    // login  - upstream account console, intentionally not registered
+    // completion - yargs built-in via `.completion(...)`
+    // help   - handled inline in index.ts because it closes over the yargs root
+    const except = new Set(["login", "completion", "help"])
+    const missing: string[] = []
 
-    // Extract identifiers inside the exported commands = [...] array, not just anywhere in the file
-    const arrayMatch = barrel.match(/export const commands\s*=\s*\[([\s\S]*?)\]/)
-    expect(arrayMatch).toBeTruthy()
-    const entries = [...arrayMatch![1]!.matchAll(/\b(\w+Command)\b/g)].map((m) => m[1]!)
+    for (const command of commands as { command?: string }[]) {
+      const name = String(command.command ?? "").split(" ")[0]
+      if (!name || except.has(name)) continue
+      if (name === "$0") {
+        expect(await registry.loadDefault()).toBeTruthy()
+        continue
+      }
+      if (!(await registry.load(name))) missing.push(name)
+    }
 
-    const missing = registered.filter((name) => !entries.includes(name))
-    expect(missing).toEqual([])
-  })
-
-  test("every barrel command is registered in index.ts or setup.ts", async () => {
-    // Reverse direction of the test above: every source-of-truth command must actually be
-    // runnable. The merge dropped `daemon`/`profile`/`remote`/`config` from index.ts while the
-    // barrel still listed them, this catches that.
-    const index = await file(INDEX)
-    const setup = await file(SETUP)
-    const barrel = await file(BARREL)
-
-    const registered = new Set(
-      [...index.matchAll(/\.command\((\w+)\)/g), ...setup.matchAll(/\.command\((\w+)\)/g)].map((m) => m[1]!),
-    )
-
-    const arrayMatch = barrel.match(/export const commands\s*=\s*\[([\s\S]*?)\]/)
-    expect(arrayMatch).toBeTruthy()
-    // Strip comments first, the array body contains a comment mentioning `AuthCommand`.
-    const body = arrayMatch![1]!.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
-    const entries = [...body.matchAll(/\b(\w+Command)\b/g)].map((m) => m[1]!)
-
-    // Not registered as a bare `.command(Ident)`:
-    //  ConsoleCommand    - replaced by NocowboyConsoleCommand
-    //  CompletionCommand - provided by yargs `.completion(...)`
-    //  HelpCommand       - registered via createHelpCommand(() => cli)
-    //  (DevSetup/DevAlias enter the array via `...dev`, so they aren't scraped here)
-    const except = new Set(["ConsoleCommand", "CompletionCommand", "HelpCommand"])
-    const missing = entries.filter((name) => !except.has(name) && !registered.has(name))
     expect(missing).toEqual([])
   })
 })

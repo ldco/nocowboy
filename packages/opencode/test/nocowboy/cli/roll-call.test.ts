@@ -142,31 +142,38 @@ describe("formatMarkdown", () => {
 })
 
 describe("handle", () => {
-  test("does not print progress before markdown output", async () => {
-    const logs: string[] = []
-    const print = console.log
-    const code = process.exitCode
+  test(
+    "does not print progress before markdown output",
+    async () => {
+      const logs: string[] = []
+      const print = console.log
+      const code = process.exitCode
 
-    console.log = (msg?: unknown) => {
-      logs.push(String(msg))
-    }
+      console.log = (msg?: unknown) => {
+        logs.push(String(msg))
+      }
 
-    try {
-      await handle({
-        prompt: "Hello",
-        timeout: 1,
-        filter: "test",
-        parallel: 1,
-        output: "md",
-        verbose: true,
-        quiet: false,
-        list: async () => ({}),
-      })
-    } finally {
-      console.log = print
-      process.exitCode = code
-    }
+      try {
+        await handle({
+          prompt: "Hello",
+          timeout: 1,
+          filter: "test",
+          parallel: 1,
+          output: "md",
+          verbose: true,
+          quiet: false,
+          list: async () => ({}),
+        })
+      } finally {
+        console.log = print
+        process.exitCode = code
+      }
 
-    expect(logs).toEqual([formatMarkdown([])])
-  })
+      expect(logs).toEqual([formatMarkdown([])])
+    },
+    // handle() bootstraps an instance for process.cwd() before filtering models; on a slow or
+    // network-mounted working tree that warm-up alone can exceed bun's 5s default and the test
+    // times out with an empty log instead of exercising the assertion.
+    30000,
+  )
 })

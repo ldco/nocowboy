@@ -1,47 +1,15 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { RunCommand } from "./cli/cmd/run"
-import { InitCommand } from "./cli/cmd/init"
-import { RepoMapCommand } from "./cli/cmd/repomap"
-import { RoadmapCommand } from "./cli/cmd/roadmap"
-import { GenerateCommand } from "./cli/cmd/generate"
 import * as Log from "@nocowboy/core/util/log"
-// import { ConsoleCommand } from "./cli/cmd/account"
-import { ProvidersCommand } from "./cli/cmd/providers"
-import { AgentCommand } from "./cli/cmd/agent"
-import { UpgradeCommand } from "./cli/cmd/upgrade"
-import { UninstallCommand } from "./cli/cmd/uninstall"
-import { ModelsCommand } from "./cli/cmd/models"
-import { UI } from "./cli/ui"
-import { Installation } from "./installation"
 import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { NamedError } from "@nocowboy/core/util/error"
 import { FormatError } from "./cli/error"
-import { ServeCommand } from "./cli/cmd/serve"
-import { Filesystem } from "@/util/filesystem"
-import { DebugCommand } from "./cli/cmd/debug"
-import { StatsCommand } from "./cli/cmd/stats"
-import { McpCommand } from "./cli/cmd/mcp"
-import { GithubCommand } from "./cli/cmd/github"
-import { ExportCommand } from "./cli/cmd/export"
-import { ImportCommand } from "./cli/cmd/import"
-import { AttachCommand } from "./cli/cmd/tui/attach"
-import { TuiThreadCommand } from "./cli/cmd/tui/thread"
-import { AcpCommand } from "./cli/cmd/acp"
-import { EOL } from "os"
-import { WebCommand } from "./cli/cmd/web"
-import { PrCommand } from "./cli/cmd/pr"
-import { SessionCommand } from "./cli/cmd/session"
-import { DbCommand } from "./cli/cmd/db"
-import { JsonMigration } from "@/storage/json-migration"
-import { Database } from "@/storage/db"
+import { UI } from "./cli/ui"
 import { errorMessage } from "./util/error"
-import { PluginCommand } from "./cli/cmd/plug"
-import { Heap } from "./cli/heap"
-import { drizzle } from "drizzle-orm/bun-sqlite"
+import { isRecord } from "./util/record"
 import { ensureProcessMetadata } from "@nocowboy/core/util/opencode-process"
-import { isRecord } from "@/util/record"
-import { NocowboyCli } from "@/nocowboy/cli/setup"
+import { EOL } from "os"
+import * as Commands from "./cli/registry"
 
 const processMetadata = ensureProcessMetadata("main")
 
@@ -69,6 +37,18 @@ function show(out: string) {
   process.stderr.write(out)
 }
 
+// Set by the middleware once the heavy bootstrap (telemetry, auth, database) has run, so a
+// short-lived `--version`/`--help` never pays for shutdown work that has nothing to tear down.
+let bootstrapped = false
+
+// nocowboy_change start - read the invocation before building the parser. `--help` is answered
+// from the registry stubs and the middleware bails out, so asking for help never boots telemetry,
+// auth or the database; `--version` never reaches the middleware at all.
+const requested = Commands.detect(args)
+const wantsHelp = args.includes("-h") || args.includes("--help")
+const wantsVersion = !wantsHelp && (args.includes("-v") || args.includes("--version"))
+// nocowboy_change end
+
 let cli = yargs(args)
   .parserConfiguration({ "populate--": true })
   .scriptName("nocowboy")
@@ -91,10 +71,17 @@ let cli = yargs(args)
     type: "boolean",
   })
   .middleware(async (opts) => {
+    // yargs runs the middleware before printing help, but there is nothing to bootstrap in order
+    // to print a command list — and booting telemetry/auth/database costs ~1 s.
+    if (wantsHelp) return
+
     if (opts.pure) {
       process.env.NOCOWBOY_PURE = "1"
     }
 
+    // nocowboy_change - the bootstrap dependencies are imported lazily so that commands that
+    // never reach this middleware (--version, --help) do not load the config/database graph.
+    const { Installation } = await import("./installation")
     await Log.init({
       print: process.argv.includes("--print-logs"),
       dev: Installation.isLocal(),
@@ -105,6 +92,7 @@ let cli = yargs(args)
       })(),
     })
 
+    const { Heap } = await import("./cli/heap")
     Heap.start()
 
     process.env.AGENT = "1"
@@ -118,14 +106,20 @@ let cli = yargs(args)
       run_id: processMetadata.runID,
     })
 
+    const { NocowboyCli } = await import("./nocowboy/cli/setup")
     await NocowboyCli.bootstrap()
+    bootstrapped = true
 
+    const { Database } = await import("./storage/db")
+    const { Filesystem } = await import("./util/filesystem")
     // nocowboy_change - the marker must be the channel-aware database path. The old
     // hardcoded "nocowboy.db" only matches prod/latest channels; dev/local use
     // "nocowboy-<channel>.db", so the one-time JSON migration never found its marker and
     // re-ran on every startup.
     const marker = Database.getPath()
     if (!(await Filesystem.exists(marker))) {
+      const { JsonMigration } = await import("./storage/json-migration")
+      const { drizzle } = await import("drizzle-orm/bun-sqlite")
       const tty = process.stderr.isTTY
       process.stderr.write("Performing one time database migration, may take a few minutes..." + EOL)
       const width = 36
@@ -163,34 +157,36 @@ let cli = yargs(args)
   })
   .usage("")
   .completion("completion", "generate shell completion script")
-  .command(AcpCommand)
-  .command(McpCommand)
-  .command(RepoMapCommand)
-  .command(InitCommand)
-  .command(TuiThreadCommand)
-  .command(AttachCommand)
-  .command(RunCommand)
-  .command(GenerateCommand)
-  .command(DebugCommand)
-  .command(ProvidersCommand)
-  .command(AgentCommand)
-  .command(UpgradeCommand)
-  .command(UninstallCommand)
-  .command(ServeCommand)
-  .command(WebCommand)
-  .command(ModelsCommand)
-  .command(StatsCommand)
-  .command(ExportCommand)
-  .command(ImportCommand)
-  .command(GithubCommand)
-  .command(PrCommand)
-  .command(SessionCommand)
-  .command(PluginCommand)
-  .command(DbCommand)
 
-cli = NocowboyCli.register(cli)
-cli = cli
-  .command(RoadmapCommand)
+// nocowboy_change start - register only the command this invocation actually runs. The
+// previous entrypoint statically imported every command module, so `nocowboy --version` and the
+// default TUI both paid for the whole ~1400-module eager graph (serve, debug, github, mcp...).
+// detect() reads the command name straight from argv, which keeps yargs out of the decision.
+//
+// The command list for `--help` comes from the registry's stubs, so printing it does not import
+// every command module; the default TUI command is real because its options belong in the help.
+async function registerCommandList() {
+  for (const module of Commands.stubs()) cli = cli.command(module)
+  cli = cli.command(await Commands.loadDefault())
+}
+
+if (requested === "help") {
+  const { createHelpCommand } = await import("./nocowboy/help-command")
+  await registerCommandList()
+  cli = cli.command(createHelpCommand(() => cli))
+} else if (requested && Commands.isBuiltin(requested)) {
+  // yargs owns this command (`.completion(...)`); there is no module to load.
+} else if (requested) {
+  const module = await Commands.load(requested)
+  if (module) cli = cli.command(module)
+  else await registerCommandList()
+} else if (wantsHelp) {
+  await registerCommandList()
+} else if (!wantsVersion) {
+  cli = cli.command(await Commands.loadDefault())
+}
+// nocowboy_change end
+
 cli = cli
   .fail((msg, err) => {
     if (
@@ -207,7 +203,7 @@ cli = cli
   .strict()
 
 try {
-  if (args.includes("-h") || args.includes("--help")) {
+  if (wantsHelp) {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
       if (err) throw err
       if (!out) return
@@ -257,7 +253,10 @@ try {
   }
   process.exitCode = 1
 } finally {
-  await NocowboyCli.shutdown()
+  if (bootstrapped) {
+    const { NocowboyCli } = await import("./nocowboy/cli/setup")
+    await NocowboyCli.shutdown()
+  }
 
   // Some subprocesses don't react properly to SIGTERM and similar signals.
   // Most notably, some docker-container-based MCP servers don't handle such signals unless

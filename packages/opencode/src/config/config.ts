@@ -848,28 +848,57 @@ export const layer = Layer.effect(
 
           yield* ensureGitignore(dir).pipe(Effect.orDie)
 
-          const dep = yield* npmSvc
-            .install(dir, {
-              add: [
-                {
-                  name: "@nocowboy/plugin",
-                  version: InstallationLocal ? undefined : InstallationVersion,
-                },
-              ],
-            })
-            .pipe(
-              Effect.exit,
-              Effect.tap((exit) =>
-                Exit.isFailure(exit)
-                  ? Effect.sync(() => {
+          // nocowboy_change start - `@nocowboy/plugin` is a workspace package that is not
+          // published to the registry yet, so this install answers 404 on every launch (once per
+          // config dir) and every launch paid for the round trip again. Remember the failure per
+          // version in the cache dir and skip retries until the version changes, which is also
+          // when a published package would first become installable.
+          const pluginVersion = InstallationLocal ? "latest" : InstallationVersion
+          const pluginFailures = path.join(Global.Path.cache, "plugin-install-failed.json")
+          const readPluginFailures = async (): Promise<Record<string, string>> => {
+            try {
+              return JSON.parse(await fsNode.readFile(pluginFailures, "utf8")) as Record<string, string>
+            } catch {
+              return {}
+            }
+          }
+
+          const failed = yield* Effect.promise(readPluginFailures)
+          if (failed[dir] !== pluginVersion) {
+            const dep = yield* npmSvc
+              .install(dir, {
+                add: [
+                  {
+                    name: "@nocowboy/plugin",
+                    version: InstallationLocal ? undefined : InstallationVersion,
+                  },
+                ],
+              })
+              .pipe(
+                Effect.exit,
+                Effect.tap((exit) =>
+                  Effect.promise(async () => {
+                    const state = await readPluginFailures()
+                    if (Exit.isFailure(exit)) {
                       log.warn("background dependency install failed", { dir, error: String(exit.cause) })
-                    })
-                  : Effect.void,
-              ),
-              Effect.asVoid,
-              Effect.forkDetach,
-            )
-          deps.push(dep)
+                      state[dir] = pluginVersion
+                    } else {
+                      delete state[dir]
+                    }
+                    try {
+                      await fsNode.mkdir(path.dirname(pluginFailures), { recursive: true })
+                      await fsNode.writeFile(pluginFailures, JSON.stringify(state), "utf8")
+                    } catch {
+                      // Best-effort cache only; a failure here must never break config load.
+                    }
+                  }),
+                ),
+                Effect.asVoid,
+                Effect.forkDetach,
+              )
+            deps.push(dep)
+          }
+          // nocowboy_change end
 
           // nocowboy_change start - thread config trust + project scopes into markdown loads
           result.command = mergeDeep(

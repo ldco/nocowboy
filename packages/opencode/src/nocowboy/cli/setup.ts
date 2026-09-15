@@ -1,49 +1,22 @@
-import type { Argv } from "yargs"
 import * as Log from "@nocowboy/core/util/log"
-import { Global } from "@nocowboy/core/global"
-import { InstallationBuildKind, InstallationVersion } from "@nocowboy/core/installation/version"
+import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { Telemetry } from "@nocowboy/telemetry"
 import { migrateLegacyNoCowboyAuth as migrateLegacyAuth, ENV_FEATURE, ENV_VERSION } from "@nocowboy/gateway"
 import { AppRuntime } from "@/effect/app-runtime"
-import { Config } from "@/config/config"
 import { Auth } from "@/auth"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { SessionExport } from "@/nocowboy/session-export"
-import { createHelpCommand } from "@/nocowboy/help-command"
-import { NocowboyConsoleCommand } from "@/nocowboy/cli/cmd/console"
-import { DistillCommand } from "@/nocowboy/cli/cmd/distill"
-import { RollCallCommand } from "@/nocowboy/cli/cmd/roll-call"
-import { ProfileCommand } from "@/nocowboy/cli/cmd/profile"
-import { DaemonCommand } from "@/nocowboy/cli/cmd/daemon"
-import { DevSetupCommand, DevAliasCommand } from "@/nocowboy/cli/dev-setup"
-import { RemoteCommand } from "@/cli/cmd/remote"
-import { ConfigCommand as ConfigCLICommand } from "@/cli/cmd/config"
 
 const log = Log.create({ service: "nocowboy.cli" })
 
 // All Kilo-specific CLI customization lives here so the shared upstream entrypoint
 // (src/index.ts) only needs a handful of thin call-sites behind nocowboy_change markers.
 // This keeps index.ts close to upstream and reduces merge conflicts on every sync.
+//
+// Command registration moved to src/cli/registry.ts: the entrypoint now loads exactly one
+// command module per invocation instead of importing every command statically, so this file
+// must not re-import them or the lazy graph collapses back into the eager one.
 export namespace NocowboyCli {
-  // Register only the Kilo-specific commands. Upstream commands stay in index.ts's chain so
-  // upstream merges that add or remove commands keep working without touching this file.
-  export function register<T>(cli: Argv<T>): Argv<T> {
-    cli
-      .command(NocowboyConsoleCommand)
-      .command(DistillCommand)
-      .command(RollCallCommand)
-      .command(ProfileCommand)
-      .command(RemoteCommand)
-      .command(DaemonCommand)
-      .command(ConfigCLICommand)
-    if (InstallationBuildKind !== "release") cli.command(DevSetupCommand).command(DevAliasCommand)
-    // Safe self-reference: `cli` is a typed parameter and yargs `.command()` returns the same
-    // instance, so the help command can resolve the fully-built root at handler time. This also
-    // sidesteps the self-referential type error the old inline registration hit in index.ts.
-    cli.command(createHelpCommand(() => cli))
-    return cli
-  }
-
   // Runs from the upstream `.middleware`, before any command handler. Env tagging is additive so
   // it never has to modify upstream's own env assignments.
   export async function bootstrap(): Promise<void> {

@@ -275,19 +275,30 @@ for (const item of targets) {
     conditions: ["browser"],
     tsconfig: "./tsconfig.json",
     plugins: [plugin],
+    // nocowboy_change start - a compiled binary parses every module in its bundle, not just the
+    // ones it executes: a 4505-module binary costs ~1.4 s before main() runs, while a 187-module
+    // one costs ~30 ms. Minifying shrinks the embedded JS by ~57 MB and cut `--version` from
+    // ~1.7 s to ~1.4 s. Stack traces lose local names; keep that in mind when debugging releases.
+    minify: true,
+    // nocowboy_change end
     // nocowboy_change start - skip sourcemaps for release builds (each .js.map adds ~50 MB per target → ~600 MB total)
     sourcemap: Script.release ? "none" : "external",
     // nocowboy_change end
     external: ["node-gyp", ...LanceDBRuntime.external], // nocowboy_change
     format: "esm",
-    // nocowboy_change start - disable code-splitting to avoid a Bun 1.3.14 codegen bug.
-    // With splitting:true Bun emits cross-chunk re-exports like `import{vn as G9}` whose
-    // binding isn't top-level, so the compiled binary crashes at startup on the baseline
-    // target: "SyntaxError: Exported binding 'G9' needs to refer to a top-level declared
-    // variable." (Bun oven-sh/bun#25621, #5344, #7265; also opencode#23349). Fixed upstream
-    // in Bun#26089, post-1.3.14. Splitting only deduped shared code between the entrypoints;
-    // turning it off inlines per entrypoint and produces a valid binary.
-    splitting: false,
+    // nocowboy_change start - code-splitting restores fast startup.
+    // A compiled binary pays for every module in its bundle: with splitting off, the whole
+    // 4505-module graph was inlined into one chunk and `nocowboy --version` took ~1.4 s. With
+    // splitting on, only the entrypoint chunk is parsed up front and the rest is loaded from
+    // bunfs on demand — measured 0.29 s for `--version` on linux-x64.
+    //
+    // Upstream comment that used to live here: with splitting:true Bun 1.3.14 emitted cross-chunk
+    // re-exports like `import{vn as G9}` whose binding isn't top-level, crashing the baseline
+    // target with "Exported binding 'G9' needs to refer to a top-level declared variable"
+    // (oven-sh/bun#25621, #5344, #7265; opencode#23349 — fixed in Bun#26089, post-1.3.14).
+    // The shipped targets here are linux-x64 (avx2) and darwin-arm64, which build and smoke-test
+    // clean on 1.3.14; the baseline/musl variants are excluded by `targets` above.
+    splitting: true,
     // nocowboy_change end
     compile: {
       autoloadBunfig: false,
@@ -440,15 +451,24 @@ if (Script.release) {
 
     // Attempt to update the user's local binary
     if (key.includes("linux")) {
+      const homeBin = path.join(process.env["HOME"]!, ".nocowboy", "bin", "nocowboy")
+      const src = path.resolve(binDir, "nocowboy")
+      // A running NoCowboy TUI keeps the installed ELF mapped, so copying over it in
+      // place fails with ETXTBSY. Stage the new binary next to the target and rename()
+      // over it: rename(2) only swaps the directory entry, the live process keeps the
+      // old inode, and the next launch picks up the new binary.
+      const staged = `${homeBin}.new-${process.pid}`
       try {
-        const homeBin = path.join(process.env["HOME"]!, ".nocowboy", "bin", "nocowboy")
-        const src = path.resolve(binDir, "nocowboy")
-        await $`cp ${src} ${homeBin}`.nothrow()
+        await fs.promises.mkdir(path.dirname(homeBin), { recursive: true })
+        await fs.promises.copyFile(src, staged)
+        await fs.promises.chmod(staged, 0o755)
+        await fs.promises.rename(staged, homeBin)
         console.log(`  ✅ Updated ${homeBin}`)
-      } catch {
-        console.log(`  ⚠️  Could not update ~/.nocowboy/bin/nocowboy — file is busy.`)
-        console.log(`     Close all NoCowboy TUI instances and run:`)
-        console.log(`     cp ${path.resolve(binDir, "nocowboy")} ~/.nocowboy/bin/nocowboy`)
+      } catch (err) {
+        await fs.promises.rm(staged, { force: true })
+        console.error(`  ❌ Could not update ${homeBin}`)
+        console.error(`     ${err instanceof Error ? err.message : String(err)}`)
+        console.error(`     Install manually: cp ${src} ${homeBin}`)
       }
     }
   }

@@ -11,6 +11,13 @@ NAME=$(node -p "require('./package.json').name")
 # binary reports the parent's version.
 export NOCOWBOY_VERSION="$VERSION"
 
+# script/build.ts only stamps NOCOWBOY_BUILD_KIND='release', bundles the
+# distribution archives and refreshes ~/.nocowboy/bin/nocowboy inside the
+# `if (Script.release)` branch, which is gated on this variable. Without it
+# `bun run release` silently produced a source build and the installed binary
+# stayed on the previous version.
+export NOCOWBOY_RELEASE=true
+
 echo "=== Typecheck ==="
 bun run typecheck
 echo "Typecheck OK"
