@@ -92,7 +92,9 @@ describe("Kilo auto-compaction threshold", () => {
     const mdl = model({ context: 200_000, output: 100_000 })
 
     expect(usable({ cfg: conf, model: mdl, outputTokenMax: 8_000 })).toBe(192_000)
-    expect(isOverflow({ cfg: conf, model: mdl, tokens: tokens(180_000), outputTokenMax: 8_000 })).toBe(false)
+    // Compaction now defaults to 80% of the window (160_000), which is below 180_000 even though
+    // the usable window is 192_000. The default threshold is what bounds token burn.
+    expect(isOverflow({ cfg: conf, model: mdl, tokens: tokens(180_000), outputTokenMax: 8_000 })).toBe(true)
   })
 
   test("uses a higher configured output ceiling for overflow capacity", () => {
@@ -221,7 +223,9 @@ describe("NoCowboy preflight compaction", () => {
     ).toBe(false)
   })
 
-  test("does not preflight compact without an explicit percentage", () => {
+  // Was "does not preflight compact without an explicit percentage". Preflight compaction now runs
+  // by default at the 80% threshold, which is what keeps the re-sent context (and cache_read) bounded.
+  test("preflights at the default threshold without an explicit percentage", () => {
     const conf = cfg({})
     const mdl = model({ context: 200_000, output: 32_000 })
     const messages = [{ role: "user" as const, content: "x".repeat(600_000) }]
@@ -234,7 +238,7 @@ describe("NoCowboy preflight compaction", () => {
         messages,
         tools: {},
       }),
-    ).toBe(false)
+    ).toBe(true)
   })
 
   test("does not preflight compact when automatic compaction is disabled", () => {

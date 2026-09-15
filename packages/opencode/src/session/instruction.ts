@@ -98,11 +98,15 @@ export const layer: Layer.Layer<
       const trusted = ConfigProtection.isAbsolute(filepath)
       const ctx = yield* InstanceState.context
       const root = ctx.worktree === "/" ? ctx.directory : ctx.worktree
+      // Untrusted project instruction files may not resolve {env:}/{file:}; substitution rejects
+      // those outright. Fail soft here so a project AGENTS.md that references an env var or an
+      // out-of-scope file does not take the whole instruction set down with it — the reference is
+      // left literal and nothing leaks.
       return yield* Effect.promise(() =>
         KilocodeInstruction.content(content, filepath, {
           trusted,
           fileScope: trusted ? undefined : { root, source: filepath },
-        }),
+        }).catch(() => content),
       )
     })
     // nocowboy_change end

@@ -43,7 +43,9 @@ const write = (filepath: string, content: string) =>
   })
 
 describe("instruction markdown substitutions", () => {
-  it.live("applies file and env substitutions to nearby AGENTS.md", () =>
+  // A project AGENTS.md is untrusted config: its {env:}/{file:} references must not resolve. The
+  // instruction still loads (fail soft) so one bad reference cannot drop the whole instruction set.
+  it.live("leaves project AGENTS.md substitutions literal and still loads the instructions", () =>
     provideTmpdirInstance((dir) =>
       Effect.gen(function* () {
         process.env.KILO_INSTRUCTION_TEST = "env content"
@@ -58,10 +60,12 @@ describe("instruction markdown substitutions", () => {
         const results = yield* svc.resolve([], path.join(dir, "subdir", "nested", "file.ts"), MessageID.ascending())
 
         expect(results).toHaveLength(1)
-        expect(results[0].content).toContain("file content")
-        expect(results[0].content).toContain("env content")
-        expect(results[0].content).not.toContain("{file:")
-        expect(results[0].content).not.toContain("{env:")
+        expect(results[0].content).toContain("# Instructions")
+        expect(results[0].content).not.toContain("file content")
+        expect(results[0].content).not.toContain("env content")
+        // the unresolved references are left literal rather than silently emptied
+        expect(results[0].content).toContain("{file:guide.md}")
+        expect(results[0].content).toContain("{env:KILO_INSTRUCTION_TEST}")
         delete process.env.KILO_INSTRUCTION_TEST
       }).pipe(Effect.provide(layer(dir))),
     ),
