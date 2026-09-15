@@ -123,10 +123,47 @@ registerBalanceProvider({
   },
 })
 
+registerBalanceProvider({
+  id: "openrouter",
+  // OpenRouter is a router: the active provider must be openrouter regardless of
+  // which upstream model (e.g. deepseek/*) is selected, so match on the provider
+  // id only.
+  match: (pid) => pid.toLowerCase() === "openrouter",
+  label: "OpenRouter",
+  fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
+    try {
+      const base = baseURL?.trim() ? baseURL.replace(/\/+$/, "") : undefined
+      // The OpenAI-compatible base is https://openrouter.ai/api/v1; tolerate a
+      // custom base that already points at the API root.
+      const url = base
+        ? base.endsWith("/api/v1") || base.endsWith("/v1")
+          ? `${base}/credits`
+          : `${base}/api/v1/credits`
+        : "https://openrouter.ai/api/v1/credits"
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        tls: { rejectUnauthorized: false },
+      } as any)
+      if (!res.ok) {
+        appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER status=${res.status}\n`)
+        return 0
+      }
+      const raw = await res.text()
+      appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER raw=${raw.substring(0, 500)}\n`)
+      const data = JSON.parse(raw) as { data?: { total_credits?: number; total_usage?: number } }
+      const credits = data.data?.total_credits ?? 0
+      const usage = data.data?.total_usage ?? 0
+      return Math.max(0, credits - usage)
+    } catch (e: any) {
+      appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER err=${e?.message}\n`)
+      return 0
+    }
+  },
+})
+
 // ---------------------------------------------------------------------------
 // Cache (in-memory, 5-minute TTL)
 // ---------------------------------------------------------------------------
-
 const cacheTTL = 5 * 60 * 1000 // 5 minutes
 
 const balanceCache = new Map<string, { value: number; ts: number }>()
@@ -261,9 +298,15 @@ export function getBalanceColor(balance: number, thresholds?: BalanceThresholds)
 
 /**
  * Find a registered provider descriptor that matches the given providerID or modelID.
+ *
+ * A direct provider-id match always wins over a model-name match, so a routed
+ * provider such as OpenRouter reports its own balance even when it serves a
+ * model (e.g. deepseek/*) that another descriptor would otherwise claim.
  * Returns null if no balance provider supports this combination.
  */
 export function findBalanceDescriptor(providerID: string, modelID: string): BalanceProviderDescriptor | null {
+  const direct = registry.find((bp) => bp.id === providerID)
+  if (direct) return direct
   return registry.find((bp) => bp.match(providerID, modelID)) ?? null
 }
 

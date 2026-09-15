@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   findBalanceDescriptor,
   findBalanceProvider,
+  fetchBalance,
   getBalanceColor,
   clearBalanceCache,
   getBalanceProviders,
@@ -125,11 +126,12 @@ describe("provider-balance", () => {
   })
 
   describe("registry", () => {
-    test("has DeepSeek and Kimi registered", () => {
+    test("has DeepSeek, Kimi and OpenRouter registered", () => {
       const providers = getBalanceProviders()
       const ids = providers.map((p) => p.id)
       expect(ids).toContain("deepseek")
       expect(ids).toContain("kimi")
+      expect(ids).toContain("openrouter")
     })
 
     test("clearBalanceCache does not throw", () => {
@@ -188,6 +190,46 @@ describe("provider-balance", () => {
       const info = getPeakPricing(d)
       expect(info.isPeak).toBe(true)
       expect(info.secondsUntilChange).toBe(2 * 3600)
+    })
+  })
+
+  describe("openrouter", () => {
+    test("a direct provider id beats a model-name match", () => {
+      const desc = findBalanceDescriptor("openrouter", "deepseek/deepseek-chat")
+      expect(desc).not.toBeNull()
+      expect(desc!.id).toBe("openrouter")
+    })
+
+    test("model-name fallback still works for unknown providers", () => {
+      expect(findBalanceDescriptor("custom-provider", "deepseek-v4-pro")?.id).toBe("deepseek")
+    })
+
+    test("fetchBalance computes credits minus usage", async () => {
+      const original = globalThis.fetch
+      let calledURL = ""
+      globalThis.fetch = (async (url: string | URL | Request) => {
+        calledURL = String(url)
+        return new Response(JSON.stringify({ data: { total_credits: 25, total_usage: 7.5 } }), { status: 200 })
+      }) as unknown as typeof fetch
+      try {
+        clearBalanceCache()
+        const value = await fetchBalance("openrouter", "sk-or-test-key-0001")
+        expect(value).toBe(17.5)
+        expect(calledURL).toBe("https://openrouter.ai/api/v1/credits")
+      } finally {
+        globalThis.fetch = original
+      }
+    })
+
+    test("fetchBalance returns 0 when the credit response is an error", async () => {
+      const original = globalThis.fetch
+      globalThis.fetch = (async () => new Response("nope", { status: 401 })) as unknown as typeof fetch
+      try {
+        clearBalanceCache()
+        expect(await fetchBalance("openrouter", "sk-or-test-key-0002")).toBe(0)
+      } finally {
+        globalThis.fetch = original
+      }
     })
   })
 })
