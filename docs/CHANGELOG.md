@@ -358,6 +358,13 @@
 - **DONE** Stream-stall watchdog fix — TTFT не убивает здоровые запросы, stall ретраится
   `verify:file docs/features/stream-stall-idle-timeout-fix.md`
 
+## v0.12.2 — Stream-stall UX — индикатор тишины провайдера с обратным отсчётом до аборта (2026-09-15)
+
+### UI/UX — TUI Improvements
+
+- **DONE** Индикатор provider stall в TUI — «Provider stalled… aborting in Ns» вместо замороженного спиннера
+  `verify:file docs/features/stream-stall-ui-indicator.md`
+
 ## v1.0.0-alpha — Alpha — internal testing
 
 - **DONE** v0.10.0 + v0.11.0 — все фичи реализованы

@@ -74,6 +74,11 @@
       "description": "Stream-stall hotfix — раздельные бюджеты TTFT/межсобытиечного idle + авто-ретрай сталла провайдера"
     },
     {
+      "tag": "v0.12.2",
+      "date": "2026-09-15",
+      "description": "Stream-stall UX — индикатор тишины провайдера с обратным отсчётом до аборта"
+    },
+    {
       "tag": "v1.0.0-alpha",
       "description": "Alpha — internal testing"
     },
@@ -2492,6 +2497,27 @@
         {
           "type": "file",
           "path": "docs/features/stream-stall-idle-timeout-fix.md"
+        }
+      ]
+    },
+    {
+      "id": "stream-stall-ui-indicator",
+      "title": "Индикатор provider stall в TUI — «Provider stalled… aborting in Ns» вместо замороженного спиннера",
+      "status": "done",
+      "version": "v0.12.2",
+      "changelog": "UI/UX — TUI Improvements",
+      "tags": [
+        "watchdog",
+        "tui",
+        "stream",
+        "ux"
+      ],
+      "description": "Логи показали: перед каждым idle-timeout юзер жал Esc вслепую — тишина провайдера выглядела как обычный спиннер. stream-idle watchdog теперь шлёт onStall через 60s молчания (фаза first-event/between-events, stalled_at, budget_ms), процессор вешает stall на busy-статус, TUI рендерит warning-баннер с живым обратным отсчётом до аборта; первый же ивент стрима снимает его. SDK (types.gen + openapi.json) патчен аддитивным полем stall.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/stream-stall-ui-indicator.md"
         }
       ]
     }
