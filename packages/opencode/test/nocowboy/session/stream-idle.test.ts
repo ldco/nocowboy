@@ -169,4 +169,40 @@ describe("withIdleTimeout", () => {
     expect(fast).toEqual([1, 2, 3])
     expect(phases).toEqual(["between-events"]) // no extra warnings from the fast stream
   })
+
+  // Regression: a blocking tool (question/permission) waits for the user, not the provider. The idle
+  // watchdog used to abort the turn after the default 300s, so the user's answer arrived after the
+  // turn had already been aborted (measured 2026-09-15).
+  test("re-arms instead of aborting while a tool is busy", async () => {
+    const ctrl = new AbortController()
+    let busy = true
+    const iterator = withIdleTimeout(
+      silent(),
+      50,
+      ctrl,
+      50,
+      undefined,
+      undefined,
+      () => busy,
+    )[Symbol.asyncIterator]()
+
+    const first = await iterator.next()
+    expect(first.value).toBe(1)
+
+    const pending = iterator.next()
+    await sleep(200) // several idle budgets elapse while the tool is busy
+    expect(ctrl.signal.aborted).toBe(false)
+
+    busy = false
+    await expect(pending).rejects.toThrow("idle timeout")
+    expect(ctrl.signal.aborted).toBe(true)
+  })
+
+  test("still aborts on idle when no tool is busy", async () => {
+    const ctrl = new AbortController()
+    await expect(collect(withIdleTimeout(silent(), 50, ctrl, 50, undefined, undefined, () => false))).rejects.toThrow(
+      "idle timeout",
+    )
+    expect(ctrl.signal.aborted).toBe(true)
+  })
 })

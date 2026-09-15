@@ -100,6 +100,9 @@ export type StreamInput = {
   // nocowboy_change — provider stall telemetry (nocowboy/session/stream-idle.ts)
   onStall?: (info: StallInfo) => void
   onStallClear?: () => void
+  // nocowboy_change — true while a tool the model is blocked on is still running, so the idle
+  // watchdog does not abort a turn that is legitimately waiting for the user (question/permission).
+  toolBusy?: () => boolean
 }
 
 export type StreamRequest = StreamInput & {
@@ -597,7 +600,15 @@ const live: Layer.Layer<
             const firstEventMs = streamFirstEventTimeoutMs({ flags, config: cfg })
             const fullStream =
               idleMs > 0 || firstEventMs > 0
-                ? withIdleTimeout(result.fullStream, idleMs, ctrl, firstEventMs, input.onStall, input.onStallClear)
+                ? withIdleTimeout(
+                    result.fullStream,
+                    idleMs,
+                    ctrl,
+                    firstEventMs,
+                    input.onStall,
+                    input.onStallClear,
+                    input.toolBusy,
+                  )
                 : result.fullStream
 
             return Stream.fromAsyncIterable(fullStream, (e) => (e instanceof Error ? e : new Error(String(e))))

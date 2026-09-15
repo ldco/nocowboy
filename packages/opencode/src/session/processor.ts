@@ -24,6 +24,7 @@ import { NoCowboySessionProcessor, type ReviewTelemetry } from "@/nocowboy/sessi
 import { NoCowboySessionOverflow } from "@/nocowboy/session/overflow"
 import { Suggestion } from "@/nocowboy/suggestion"
 import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
+import { ToolBusy } from "@/nocowboy/session/tool-busy" // nocowboy_change - idle watchdog vs in-flight tools
 import { errorMessage } from "@/util/error"
 import * as Log from "@nocowboy/core/util/log"
 import { isRecord } from "@/util/record"
@@ -888,6 +889,9 @@ export const layer = Layer.effect(
               preflight: !ctx.assistantMessage.summary,
               onStall,
               onStallClear,
+              // nocowboy_change - do not let the idle watchdog abort while a tool is in flight
+              // (e.g. `question` waiting for the user); the wait is ours, not the provider's.
+              toolBusy: () => ToolBusy.isBusy(ctx.sessionID),
             })
 
             // The stream idle timeout lives at the provider layer

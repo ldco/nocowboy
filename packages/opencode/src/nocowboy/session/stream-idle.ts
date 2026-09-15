@@ -85,6 +85,12 @@ export function withIdleTimeout<T>(
   firstEventMs = idleMs,
   onStall?: (info: StallInfo) => void,
   onStallClear?: () => void,
+  // nocowboy_change - true while a tool the model is blocked on is still running (e.g. `question`
+  // waiting for the user, or a permission prompt). The provider is not stalling in that case: the
+  // wait is ours, so the idle budget must not abort a healthy turn. Measured 2026-09-15: a 300s
+  // default silently killed every turn that asked a question, and the user's answers arrived after
+  // the turn had already been aborted.
+  isToolBusy?: () => boolean,
 ): AsyncIterable<T> {
   if (idleMs <= 0 && firstEventMs <= 0) return source
 
@@ -112,10 +118,19 @@ export function withIdleTimeout<T>(
           let timer: ReturnType<typeof setTimeout> | undefined
           let warnTimer: ReturnType<typeof setTimeout> | undefined
           const idle = new Promise<never>((_, reject) => {
-            timer = setTimeout(() => {
-              abort.abort()
-              reject(new Error(streamIdleFailureMessage(budget, !seenEvent)))
-            }, budget)
+            // Re-arm while a blocking tool is running instead of aborting: the wait belongs to the
+            // user, not to the provider, so it must not consume the idle budget.
+            const arm = () => {
+              timer = setTimeout(() => {
+                if (isToolBusy?.()) {
+                  arm()
+                  return
+                }
+                abort.abort()
+                reject(new Error(streamIdleFailureMessage(budget, !seenEvent)))
+              }, budget)
+            }
+            arm()
           })
           if (onStall) {
             const warnMs = Math.min(STALL_WARN_MS, Math.floor(budget / 2))

@@ -6,6 +6,7 @@ import { NoCowboySessionMessageOrder } from "@/nocowboy/session/message-order"
 import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
 import { NoCowboySession } from "@/nocowboy/session"
 import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
+import { ToolBusy } from "@/nocowboy/session/tool-busy" // nocowboy_change - idle watchdog vs in-flight tools
 import { subagentStallTimeoutMs, toolHeartbeatIntervalMs } from "@/nocowboy/session/watchdog" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService } from "@/nocowboy/session/goal"
@@ -510,6 +511,9 @@ export const layer = Layer.effect(
           description: item.description,
           inputSchema: jsonSchema(schema),
           execute(args, options) {
+            // nocowboy_change - mark the session busy for the tool's lifetime so the idle watchdog
+            // does not abort a turn that is legitimately waiting (question/permission).
+            ToolBusy.enter(input.session.id)
             return run.promise(
               Effect.gen(function* () {
                 const ctx = context(args, options)
@@ -537,7 +541,10 @@ export const layer = Layer.effect(
                   yield* input.processor.completeToolCall(options.toolCallId, output)
                 }
                 return output
-              }).pipe(withToolHeartbeat(input.session.id)),
+              }).pipe(
+                withToolHeartbeat(input.session.id),
+                Effect.ensuring(Effect.sync(() => ToolBusy.leave(input.session.id))), // nocowboy_change
+              ),
             )
           },
         })
@@ -550,8 +557,10 @@ export const layer = Layer.effect(
         const schema = yield* Effect.promise(() => Promise.resolve(asSchema(item.inputSchema).jsonSchema))
         const transformed = ProviderTransform.schema(input.model, schema)
         item.inputSchema = jsonSchema(transformed)
-        item.execute = (args, opts) =>
-          run.promise(
+        item.execute = (args, opts) => {
+          // nocowboy_change - same busy marking as the built-in tools above
+          ToolBusy.enter(input.session.id)
+          return run.promise(
             Effect.gen(function* () {
               const ctx = context(args, opts)
               yield* plugin.trigger(
@@ -625,8 +634,12 @@ export const layer = Layer.effect(
                 yield* input.processor.completeToolCall(opts.toolCallId, output)
               }
               return output
-            }).pipe(withToolHeartbeat(input.session.id)),
+            }).pipe(
+              withToolHeartbeat(input.session.id),
+              Effect.ensuring(Effect.sync(() => ToolBusy.leave(input.session.id))), // nocowboy_change
+            ),
           )
+        }
         tools[key] = item
       }
 
