@@ -13,6 +13,7 @@ import { AppRuntime } from "@/effect/app-runtime"
 import { ensureProcessMetadata } from "@nocowboy/core/util/opencode-process"
 import { Effect } from "effect"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
+import { Sessions } from "@/nocowboy-sessions/sessions" // nocowboy_change - T0.7 shutdown drain
 
 ensureProcessMetadata("worker")
 
@@ -91,6 +92,8 @@ export const rpc = {
   async shutdown() {
     Log.Default.info("worker shutting down")
 
+    // nocowboy_change - drain ingest before dispose so GlobalBus/remote stay live (T0.7)
+    await Sessions.drainIngestForShutdown()
     await InstanceRuntime.disposeAllInstances()
     if (server) await server.stop(true)
     // exit naturally. Without this, the active onmessage handle keeps the

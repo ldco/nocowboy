@@ -311,9 +311,17 @@ export namespace IngestQueue {
       enqueue(sessionId, data, "overwrite", due)
     }
 
+    // nocowboy_change - shutdown drain: flush every session that still has queued items immediately so
+    // the final messages of a closing session are not lost when the process exits (upstream b2735bf).
+    async function drain() {
+      const sessionIds = Array.from(queue.keys())
+      await Promise.all(sessionIds.map((sessionId) => flush(sessionId)))
+    }
+
     return {
       sync,
       flush,
+      drain,
     } as const
   }
 }

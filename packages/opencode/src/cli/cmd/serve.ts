@@ -4,6 +4,7 @@ import { effectCmd } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { InstanceRuntime } from "../../project/instance-runtime"
+import { Sessions } from "../../nocowboy-sessions/sessions" // nocowboy_change - T0.7 shutdown drain
 
 export const ServeCommand = effectCmd({
   command: "serve",
@@ -26,6 +27,8 @@ export const ServeCommand = effectCmd({
         new Promise<void>((resolve) => {
           const shutdown = async () => {
             try {
+              // nocowboy_change - flush pending session ingest before tearing instances down
+              await Sessions.drainIngestForShutdown()
               await InstanceRuntime.disposeAllInstances()
               await server.stop(true)
             } finally {

@@ -215,6 +215,20 @@ export namespace Sessions {
     },
   })
 
+  // nocowboy_change start - once-per-process shutdown drain around the session ingest queue.
+  // Overlapping shutdown paths (serve signals, worker RPC) must not double-flush, and a drain
+  // failure must never block the rest of shutdown (upstream b2735bf).
+  let ingestDrained: Promise<void> | undefined
+  export function drainIngestForShutdown() {
+    if (!ingestDrained) {
+      ingestDrained = ingest.drain().catch((error) => {
+        log.error("session ingest drain failed", { error })
+      })
+    }
+    return ingestDrained
+  }
+  // nocowboy_change end
+
   const remoteEnabled = process.env["NOCOWBOY_REMOTE"] === "1"
   let remote: { conn: RemoteWS.Connection; sender: RemoteSender.Sender } | undefined
   let enabling: Promise<void> | undefined
@@ -308,9 +322,14 @@ export namespace Sessions {
           yield* watch(Session.Event.TurnOpen, (evt) =>
             ingest.sync(evt.properties.sessionID, [{ type: "session_open", data: {} }]),
           )
-          yield* watch(Session.Event.TurnClose, (evt) =>
-            ingest.sync(evt.properties.sessionID, [{ type: "session_close", data: { reason: evt.properties.reason } }]),
-          )
+          // nocowboy_change start - flush the terminal batch as soon as a session closes instead of
+          // waiting for the ~1s debounce window (upstream b2735bf)
+          yield* watch(Session.Event.TurnClose, async (evt) => {
+            const sessionID = evt.properties.sessionID
+            await ingest.sync(sessionID, [{ type: "session_close", data: { reason: evt.properties.reason } }])
+            await ingest.flush(sessionID)
+          })
+          // nocowboy_change end
 
           const sync = (evt: { properties: { sessionID: string } }) => {
             const sessionID = evt.properties.sessionID

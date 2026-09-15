@@ -399,4 +399,33 @@ describe("share ingest queue", () => {
     expect(urls.length).toBe(1)
     expect(urls[0]).toBe("https://ingest.test/ingest?v=1")
   })
+
+  // nocowboy_change - T0.7: shutdown drain must flush pending sessions without waiting for the debounce
+  test("drain flushes pending sessions immediately", async () => {
+    const calls: unknown[] = []
+    const sched = scheduler(() => clock.now)
+
+    const q = IngestQueue.create({
+      now: () => clock.now,
+      setTimeout: sched.setTimeout,
+      clearTimeout: sched.clearTimeout,
+      log: { error: () => {} },
+      getShare: async () => ({ ingestPath: "/ingest" }),
+      getClient: async () => ({
+        url: "https://ingest.test",
+        fetch: async (_input, init) => {
+          calls.push(JSON.parse((init?.body as string) ?? "{}"))
+          return new Response("{}", { status: 200 })
+        },
+      }),
+    })
+
+    await q.sync("s1", [{ type: "session", data: { id: "s1", v: 1 } as any }])
+    await q.sync("s2", [{ type: "session", data: { id: "s2", v: 1 } as any }])
+    // Nothing flushed yet — both sessions are still inside the debounce window.
+    expect(calls.length).toBe(0)
+
+    await q.drain()
+    expect(calls.length).toBe(2)
+  })
 })
