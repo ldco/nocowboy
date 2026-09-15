@@ -35,9 +35,16 @@ export namespace NoCowboySessionOverflow {
     return total || tokens.total || 0
   }
 
+  // nocowboy_change start - without a configured threshold, compaction only fired at the very edge of
+  // the context window (limit() returned the full usable window), so a session could grow to ~240k
+  // tokens per turn before ever compacting. Default to 80% of the window so the context is reined in
+  // while there is still headroom, which is what actually bounds cache_read. Measured 2026-09-15:
+  // 5.70B cache_read across 265 sessions with only 6 compactions ever fired.
+  const DEFAULT_THRESHOLD_PERCENT = 80
+
   export function limit(input: { cfg: Config.Info; model: Provider.Model; usable: number }) {
-    const percent = input.cfg.compaction?.threshold_percent
-    if (typeof percent !== "number") return input.usable
+    const configured = input.cfg.compaction?.threshold_percent
+    const percent = typeof configured === "number" ? configured : DEFAULT_THRESHOLD_PERCENT
 
     const context = input.model.limit.input || input.model.limit.context
     if (context === 0) return input.usable
@@ -45,6 +52,7 @@ export namespace NoCowboySessionOverflow {
     const cap = Math.floor(context * (percent / 100))
     return Math.min(input.usable, cap)
   }
+  // nocowboy_change end
 
   export function measure(input: Payload) {
     let extra = 0
@@ -78,11 +86,9 @@ export namespace NoCowboySessionOverflow {
   }
 
   export function enabled(input: { cfg: Config.Info; model: Provider.Model }) {
-    return (
-      input.cfg.compaction?.auto !== false &&
-      typeof input.cfg.compaction?.threshold_percent === "number" &&
-      input.model.limit.context !== 0
-    )
+    // nocowboy_change - no longer require an explicit threshold_percent: limit() now defaults to 80%
+    // of the window, so preflight compaction is on for every auto-compaction model.
+    return input.cfg.compaction?.auto !== false && input.model.limit.context !== 0
   }
 
   export function shouldCompact(
