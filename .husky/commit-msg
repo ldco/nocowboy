@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+# ── Pipeline integrity check ──
+# Если commit message содержит ID фичи (например "publish-npm"),
+# проверяем что для неё есть spec. Если нет — блокируем.
+#
+# nocowboy_change — этот контроль перенесён сюда из pre-commit: git НЕ пишет
+# .git/COMMIT_EDITMSG до запуска pre-commit (при `commit -m` там лежит
+# сообщение ПРОШЛОГО коммита), поэтому проверка в pre-commit сканировала
+# устаревший текст и блокировала невиновные коммиты. commit-msg получает
+# актуальное сообщение в $1 — здесь контроль корректен по построению.
+MSG_FILE="$1"
+BLOCK_MISSING=""
+if [ -f "$ROOT/docs/roadmap.json" ] && [ -f "$MSG_FILE" ]; then
+  for feat_id in $(python3 -c "
+import json, sys, re
+msg = open(sys.argv[1]).read()
+ids = re.findall(r'[a-z][a-z0-9_-]{3,50}', msg)
+with open(sys.argv[2]) as f:
+    data = json.load(f)
+existing = {f['id'] for f in data['features']}
+for id_ in ids:
+    if id_ in existing:
+        print(id_)
+" "$MSG_FILE" "$ROOT/docs/roadmap.json" 2>/dev/null); do
+    SPEC="$ROOT/.nocowboy/specs/$feat_id.md"
+    if [ ! -f "$SPEC" ]; then
+      BLOCK_MISSING="$feat_id"
+      break
+    fi
+  done
+  if [ -n "$BLOCK_MISSING" ]; then
+    echo ""
+    echo "❌ BLOCKED: commit references feature '$BLOCK_MISSING' but spec is missing"
+    echo "   Create spec: task(architect, 'write spec for $BLOCK_MISSING')"
+    echo "   Or remove feature ID from commit message."
+    echo ""
+    exit 1
+  fi
+fi

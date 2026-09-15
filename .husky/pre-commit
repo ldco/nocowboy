@@ -3,40 +3,10 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 
-# ── Pipeline integrity check (ДО typecheck) ──
-# Если commit message содержит ID фичи (например "publish-npm"),
-# проверяем что для неё есть spec. Если нет — блокируем.
-COMMIT_MSG_FILE=".git/COMMIT_EDITMSG"
-BLOCK_MISSING=""
-if [ -f "$ROOT/docs/roadmap.json" ] && [ -f "$COMMIT_MSG_FILE" ]; then
-  COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
-  for feat_id in $(python3 -c "
-import json, sys, re
-# extract potential feature IDs from commit message
-msg = open('$COMMIT_MSG_FILE').read()
-ids = re.findall(r'[a-z][a-z0-9_-]{3,50}', msg)
-with open('$ROOT/docs/roadmap.json') as f:
-    data = json.load(f)
-existing = {f['id'] for f in data['features']}
-for id_ in ids:
-    if id_ in existing:
-        print(id_)
-" 2>&1); do
-    SPEC="$ROOT/.nocowboy/specs/$feat_id.md"
-    if [ ! -f "$SPEC" ]; then
-      BLOCK_MISSING="$feat_id"
-      break
-    fi
-  done
-  if [ -n "$BLOCK_MISSING" ]; then
-    echo ""
-    echo "❌ BLOCKED: commit references feature '$BLOCK_MISSING' but spec is missing"
-    echo "   Create spec: task(architect, 'write spec for $BLOCK_MISSING')"
-    echo "   Or remove feature ID from commit message."
-    echo ""
-    exit 1
-  fi
-fi
+# ── Pipeline integrity check ──
+# Перенесён в .husky/commit-msg: git не пишет COMMIT_EDITMSG до pre-commit,
+# поэтому при `commit -m` здесь читалось сообщение ПРОШЛОГО коммита и
+# невиновные коммиты блокировались (проверка по feature-ID из сообщения).
 
 # ── Typecheck (non-fatal — pre-existing plugin errors may fail) ──
 if [ -f "$ROOT/packages/opencode/package.json" ]; then
