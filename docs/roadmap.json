@@ -2999,7 +2999,7 @@
     },
     {
       "id": "dependency-security-resync",
-      "title": "Безопасность — ресинк lockfile: закрыто 23 из 29 уязвимых транзитивных зависимостей",
+      "title": "Безопасность — ресинк зависимостей: 29 уязвимостей → 1 low",
       "status": "done",
       "version": "v0.14.0",
       "changelog": "Security",
@@ -3008,7 +3008,7 @@
         "deps",
         "supply-chain"
       ],
-      "description": "bun audit находил 29 уязвимых транзитивных пакетов из-за устаревшего lockfile. Lockfile пересоздан, catalog-пины обновлены (hono 4.13.7, dompurify 3.4.15, vite 7.3.5, @hey-api/openapi-ts 0.97.3) и добавлены root overrides (minimatch/brace-expansion, @opentelemetry/core, undici, diff, esbuild, mermaid). Осталось 6 (@babel/core — нет релиза с фиксом в 7.x; остальные транзитивные вне досягаемости bun override) — tracked отдельно.",
+      "description": "bun audit находил 29 уязвимых транзитивных пакетов из-за устаревшего lockfile. Закрыто 28: lockfile пересоздан, catalog-пины обновлены (hono, dompurify, vite, @hey-api/openapi-ts), родители @actions/core 3.0.1 / @actions/github 9.1.1 подняли undici, и добавлены root overrides (minimatch/brace-expansion, esbuild, @opentelemetry/core, diff, @babel/core, js-yaml, mermaid). Осталась одна low (@ai-sdk/provider-utils < 4.0.33) — тянется независимо ~20 пакетами @ai-sdk/*, закрывается только их синхронным апдейтом, поэтому остаётся отслеживаемой, а не форсируется тип-ломающим глобальным override.",
       "done_at": "2026-09-15",
       "verify": [
         {
@@ -3050,6 +3050,121 @@
         {
           "type": "file",
           "path": "docs/features/empty-task-result-return.md"
+        }
+      ]
+    },
+    {
+      "id": "atomic-session-revert",
+      "title": "Надёжность — откат сессии атомарен: нет половинчатого состояния при неудачном checkpoint",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "reliability",
+        "session",
+        "data-loss",
+        "upstream-port",
+        "t0.8"
+      ],
+      "description": "Портирован upstream 16f8e7e. Если checkpoint не восстанавливался полностью, диалог и рабочее дерево оставались в половинчатом состоянии: restore логировал ошибку и возвращался, а revert() сообщал об успехе для файлов, которые Git не смог восстановить. Теперь NoCowboySessionRevert.apply пере-восстанавливает baseline и всё равно пробрасывает ошибку, restore удаляет добавленные после checkpoint файлы, а snapshot валидирует каждый checkpoint (cat-file -e <hash>^{tree}) до мутации файлов и падает вместо тихого успеха.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/revert.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/snapshot/index.ts",
+          "pattern": "is unavailable"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/atomic-session-revert.md"
+        }
+      ]
+    },
+    {
+      "id": "db-readonly-recovery",
+      "title": "Надёжность — восстановление после read-only файлов БД на старте",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "reliability",
+        "storage",
+        "data-loss",
+        "upstream-port"
+      ],
+      "description": "Портирован upstream 0fe46ec. Стартовая PRAGMA wal_checkpoint(PASSIVE) требует записи в БД и WAL-сайдкары; случайный read-only файл убивал процесс непрозрачной ошибкой «attempt to write a readonly database». DbPreflight сам восстанавливает права для файлов, принадлежащих nocowboy, иначе называет точный файл для починки. Вызывается из storage/db.ts перед открытием БД.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/core/src/nocowboy/db-preflight.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/core/test/nocowboy/db-preflight.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/db-readonly-recovery.md"
+        }
+      ]
+    },
+    {
+      "id": "config-schema-injection-jsonc",
+      "title": "Надёжность — инъекция $schema через jsonc-parser: без перезаписи файла на каждом чтении",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "reliability",
+        "config",
+        "data-loss",
+        "upstream-port"
+      ],
+      "description": "Портирован upstream 0d830cb. $schema добавлялся регуляркой, которая перезаписывала файл на каждом чтении и портила comment-first JSONC. Теперь используется jsonc-parser modify/applyEdits с getInsertionIndex: $schema встаёт первым свойством и файл пишется только если текст реально изменился.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "getInsertionIndex"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/config-schema-injection-jsonc.md"
+        }
+      ]
+    },
+    {
+      "id": "context-compaction-default-threshold",
+      "title": "Производительность — компактификация контекста на 80% окна по умолчанию (снижение token burn)",
+      "status": "done",
+      "version": "v0.14.0",
+      "changelog": "Security",
+      "tags": [
+        "performance",
+        "tokens",
+        "compaction"
+      ],
+      "description": "Замер 2026-15-09: 265 сессий сожгли 5.70 млрд cache_read ($102.80), компактификация срабатывала всего 6 раз. Причина: limit() возвращал всё usable-окно, если threshold_percent не задан, а enabled() требовал явный порог — preflight-компактификация была выключена. Теперь limit() по умолчанию 80% окна модели, а enabled() не требует явного порога. Это ограничивает размер переотправляемого контекста — главный драйвер cache_read.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/overflow.ts",
+          "pattern": "DEFAULT_THRESHOLD_PERCENT"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session/overflow.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/context-compaction-default-threshold.md"
         }
       ]
     }

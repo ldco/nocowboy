@@ -448,13 +448,28 @@
   `verify:file docs/adr/002-upstream-sync-strategy.md`
   `verify:file docs/reference/upstream-port-list.md`
   `verify:file docs/features/upstream-hard-fork-harvest.md`
-- **DONE** Безопасность — ресинк lockfile: закрыто 23 из 29 уязвимых транзитивных зависимостей
+- **DONE** Безопасность — ресинк зависимостей: 29 уязвимостей → 1 low
   `verify:grep package.json brace-expansion`
   `verify:file bun.lock`
   `verify:file docs/features/dependency-security-resync.md`
 - **DONE** Надёжность — task-инструмент возвращает реальный ответ субагента вместо пустого результата
   `verify:grep packages/opencode/src/tool/task.ts synthetic`
   `verify:file docs/features/empty-task-result-return.md`
+- **DONE** Надёжность — откат сессии атомарен: нет половинчатого состояния при неудачном checkpoint
+  `verify:file packages/opencode/src/nocowboy/session/revert.ts`
+  `verify:grep packages/opencode/src/snapshot/index.ts is unavailable`
+  `verify:file docs/features/atomic-session-revert.md`
+- **DONE** Надёжность — восстановление после read-only файлов БД на старте
+  `verify:file packages/core/src/nocowboy/db-preflight.ts`
+  `verify:test packages/core/test/nocowboy/db-preflight.test.ts`
+  `verify:file docs/features/db-readonly-recovery.md`
+- **DONE** Надёжность — инъекция $schema через jsonc-parser: без перезаписи файла на каждом чтении
+  `verify:grep packages/opencode/src/config/config.ts getInsertionIndex`
+  `verify:file docs/features/config-schema-injection-jsonc.md`
+- **DONE** Производительность — компактификация контекста на 80% окна по умолчанию (снижение token burn)
+  `verify:grep packages/opencode/src/nocowboy/session/overflow.ts DEFAULT_THRESHOLD_PERCENT`
+  `verify:test packages/opencode/test/nocowboy/session/overflow.test.ts`
+  `verify:file docs/features/context-compaction-default-threshold.md`
 
 ## v1.0.0-alpha — Alpha Release — internal testing, all features done, no critical bugs (2026-09)
 
