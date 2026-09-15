@@ -248,6 +248,20 @@ export const Info = Schema.Struct({
     description:
       "Default agent to use when none is specified. Must be a primary agent. Falls back to 'code' if not set or if the specified agent is invalid.",
   }),
+  review: Schema.optional(
+    Schema.Struct({
+      cascade: Schema.optional(
+        Schema.Struct({
+          enabled: Schema.optional(Schema.Boolean),
+          map: Schema.optional(Schema.Record(Schema.String, ConfigModelID)),
+          second_phase: Schema.optional(Schema.NullOr(Schema.String)),
+        }),
+      ),
+    }),
+  ).annotate({
+    description:
+      "Cross-model review cascade: pick the reviewer model from the author model family and optionally run a second review phase.",
+  }),
   username: Schema.optional(Schema.String).annotate({
     description: "Custom username to display in conversations instead of system username",
   }),

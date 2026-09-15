@@ -9,6 +9,7 @@ import type { Session } from "../../session/session"
 import type { Agent } from "../../agent/agent"
 import type { Config } from "../../config/config"
 import { Provider } from "../../provider/provider"
+import { resolveReviewCascade } from "../review/cascade"
 import z from "zod"
 
 const log = Log.create({ service: "kilocode-task-model" })
@@ -134,7 +135,7 @@ export namespace KiloTask {
   export const resolveModel = Effect.fn("KiloTask.resolveModel")(function* (input: {
     name: string
     agent: Pick<Agent.Info, "model" | "variant" | "fallbackModel">
-    config: Pick<Config.Info, "subagent_model" | "subagent_variant" | "subagent_variant_overrides">
+    config: Pick<Config.Info, "subagent_model" | "subagent_variant" | "subagent_variant_overrides" | "review">
     parent: Model
     variant?: string
     provider: Provider.Interface
@@ -146,6 +147,21 @@ export namespace KiloTask {
       input.provider
         .getModel(model.providerID, model.modelID)
         .pipe(Effect.catchTag("ProviderModelNotFoundError", () => Effect.succeed(undefined)))
+
+    // Cross-model review cascade: when the reviewer subagent is spawned, pick a
+    // reviewer from the author's model family (config-driven) instead of the
+    // static agent model. The optional second phase is returned so the caller can
+    // run it after the first review.
+    const cascade =
+      input.name === "reviewer"
+        ? resolveReviewCascade({ config: input.config.review?.cascade, author: input.parent })
+        : {}
+    const cascadePrimary: Model | undefined = cascade.primary
+      ? { providerID: ProviderID.make(cascade.primary.providerID), modelID: ModelID.make(cascade.primary.modelID) }
+      : undefined
+    const cascadeSecondary: Model | undefined = cascade.secondary
+      ? { providerID: ProviderID.make(cascade.secondary.providerID), modelID: ModelID.make(cascade.secondary.modelID) }
+      : undefined
 
     // Resolve one candidate to a concrete { model, variant }, or undefined when
     // the model is not available in the registry (so the chain moves on).
@@ -164,6 +180,7 @@ export namespace KiloTask {
       })
 
     const choices: Array<Choice | undefined> = [
+      cascadePrimary ? { model: cascadePrimary, direct: true } : undefined,
       state
         ? {
             model: { providerID: state.providerID, modelID: state.modelID },
@@ -191,7 +208,7 @@ export namespace KiloTask {
       const sameParent =
         primary.model.providerID === input.parent.providerID && primary.model.modelID === input.parent.modelID
       const fallback = next ?? (sameParent ? undefined : { model: input.parent, variant: input.variant })
-      return { model: primary.model, variant: primary.variant, fallback }
+      return { model: primary.model, variant: primary.variant, fallback, second: cascadeSecondary }
     }
 
     // No candidate resolved. An explicitly configured agent model is honored
@@ -199,13 +216,14 @@ export namespace KiloTask {
     // configured above — that keeps misconfigured agents visible instead of
     // silently swapping the model behind the user's back.
     if (explicitUnavailable) {
-      return { model: explicitUnavailable.model, variant: explicitUnavailable.variant, fallback: undefined }
+      return { model: explicitUnavailable.model, variant: explicitUnavailable.variant, fallback: undefined, second: cascadeSecondary }
     }
 
     const value = override(input.parent)
-    if (!value) return { model: input.parent, variant: input.variant, fallback: undefined }
+    if (!value)
+      return { model: input.parent, variant: input.variant, fallback: undefined, second: cascadeSecondary }
     const full = yield* lookup(input.parent)
     const variant = full?.variants?.[value] ? value : input.variant
-    return { model: input.parent, variant, fallback: undefined }
+    return { model: input.parent, variant, fallback: undefined, second: cascadeSecondary }
   })
 }

@@ -25,6 +25,7 @@ import {
   subagentStallTimeoutMs,
 } from "../nocowboy/session/watchdog" // nocowboy_change
 import { errorMessage } from "@/util/error"
+import { secondPhasePrompt } from "@/nocowboy/review/cascade"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Cause, Duration, Effect, Exit, Option, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
@@ -254,9 +255,13 @@ export const TaskTool = Tool.define(
       const runCancel = yield* EffectBridge.make()
 
       const runTask = Effect.fn("TaskTool.runTask")(function* () {
-        const attempt = (target: { providerID: ProviderID; modelID: ModelID }, targetVariant?: string) =>
+        const attempt = (
+          target: { providerID: ProviderID; modelID: ModelID },
+          targetVariant?: string,
+          prompt = params.prompt,
+        ) =>
           Effect.gen(function* () {
-            const parts = yield* ops.resolvePromptParts(params.prompt)
+            const parts = yield* ops.resolvePromptParts(prompt)
             NoCowboySessionProcessor.markReviewTelemetry(parts, params.command)
             const result = yield* ops.prompt({
               messageID: MessageID.ascending(),
@@ -290,12 +295,31 @@ export const TaskTool = Tool.define(
             // kilocode_change end
           })
 
-        return yield* attempt(model, variant).pipe(
+        const first = yield* attempt(model, variant).pipe(
           Effect.catchCause((cause) => {
             if (!fallback || !isModelUnavailableError(Cause.squash(cause))) return Effect.failCause(cause)
             return attempt(fallback.model, fallback.variant)
           }),
         )
+
+        // Cross-model review cascade, phase 2: let a different model verify the
+        // first review. Failures here degrade to the first review instead of
+        // failing the whole task.
+        const second = selected.second
+        if (!second) return first
+        const secondReview = yield* attempt(second, undefined, secondPhasePrompt(params.prompt, first)).pipe(
+          Effect.catchCause(() => Effect.succeed("")),
+        )
+        if (!secondReview) return first
+        return [
+          `## Review phase 1 — ${model.providerID}/${model.modelID}`,
+          "",
+          first,
+          "",
+          `## Review phase 2 — ${second.providerID}/${second.modelID}`,
+          "",
+          secondReview,
+        ].join("\n")
       })
 
       // nocowboy_change — subagent hang watchdog.
