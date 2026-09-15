@@ -31,8 +31,8 @@ describe("KiloEmbedder", () => {
       baseURL: "https://api.kilo.ai/api/gateway/",
       apiKey: "kilo-token",
       defaultHeaders: {
-        "X-KILOCODE-FEATURE": KILO_INDEXING_FEATURE,
-        "X-KILOCODE-ORGANIZATIONID": "org_123",
+        "X-NOCOWBOY-FEATURE": KILO_INDEXING_FEATURE,
+        "X-NOCOWBOY-ORGANIZATIONID": "org_123",
       },
     })
     expect(mockEmbeddingsCreate).toHaveBeenCalledWith({

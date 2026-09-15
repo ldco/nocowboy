@@ -6,6 +6,18 @@ type Candidate = string | readonly [string, ...unknown[]]
 const names = new Set<string>(INDEXING_PLUGIN_NAMES)
 const pathRx = /^[A-Za-z]:[\\/]/
 
+// RATIONALE: The package was renamed from the legacy scoped name to
+// @nocowboy/indexing. A user (or a persisted config) that still references the
+// legacy scoped specifier must keep getting indexing, so both the plain package
+// specifier and any node_modules path resolve to the canonical name.
+const LEGACY_PACKAGE_NAMES: Record<string, string> = {
+  "@kilocode/kilo-indexing": "@nocowboy/indexing",
+}
+
+function canonicalPackageName(value: string): string {
+  return LEGACY_PACKAGE_NAMES[value] ?? value
+}
+
 export function normalizePluginName(value: string): string {
   if (!value) return ""
   if (value.startsWith("file://")) {
@@ -42,7 +54,7 @@ function stripVersion(value: string): string {
 }
 
 function normalizePackage(value: string): string {
-  return stripVersion(value)
+  return canonicalPackageName(stripVersion(value))
 }
 
 function isPathSpecifier(value: string): boolean {
@@ -68,9 +80,9 @@ function normalizePath(value: string): string {
     const head = parts[idx + 1]
     if (head?.startsWith("@")) {
       const tail = parts[idx + 2]
-      if (tail) return `${head}/${tail}`
+      if (tail) return canonicalPackageName(`${head}/${tail}`)
     }
-    if (head) return head
+    if (head) return canonicalPackageName(head)
   }
 
   const scoped = parts.findIndex((part, i) => part === "@kilocode" && parts[i + 1] === "kilo-indexing")
@@ -78,6 +90,9 @@ function normalizePath(value: string): string {
 
   const workspace = parts.findIndex((part, i) => part === "packages" && parts[i + 1] === "kilo-indexing")
   if (workspace >= 0) return "@nocowboy/indexing"
+
+  const modernWorkspace = parts.findIndex((part, i) => part === "packages" && parts[i + 1] === "nocowboy-indexing")
+  if (modernWorkspace >= 0) return "@nocowboy/indexing"
 
   return stem(value)
 }

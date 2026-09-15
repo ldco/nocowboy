@@ -1,5 +1,5 @@
 import { resolveNoCowboyGatewayBaseUrl } from "@nocowboy/gateway"
-import { HEADER_FEATURE, HEADER_NOCOWBOY_ORGANIZATIONID } from "@nocowboy/gateway"
+import { HEADER_FEATURE, HEADER_NOCOWBOY_ORGANIZATIONID } from "@nocowboy/gateway/api/constants"
 import { MAX_ITEM_TOKENS } from "../constants"
 import type { EmbedderInfo, EmbeddingResponse, IEmbedder } from "../interfaces/embedder"
 import { Log } from "../../util/log"
@@ -30,7 +30,10 @@ export class KiloEmbedder implements IEmbedder {
     }
 
     this.embedder = new OpenAICompatibleEmbedder(
-      resolveNoCowboyGatewayBaseUrl() ?? "",
+      // An explicit baseUrl wins; otherwise the gateway base URL is derived from
+      // the environment/token. resolveNoCowboyGatewayBaseUrl applies the canonical
+      // /api/gateway/ route normalisation in both cases.
+      resolveNoCowboyGatewayBaseUrl({ baseURL: input.baseUrl }),
       input.apiKey,
       this.model,
       MAX_ITEM_TOKENS,
