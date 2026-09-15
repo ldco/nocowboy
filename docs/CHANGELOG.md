@@ -372,6 +372,17 @@
 - **DONE** Индексация через API-эмбеддер OpenRouter вместо заблокированного Voyage и CPU-Ollama
   `verify:file docs/features/embedder-openrouter-api.md`
 
+## v0.13.1 — Indexing hardening — provider-aware batch + shrink-on-timeout для медленных локальных эмбеддеров, реестр эмбеддингов расширен (gemini-embedding-001/qwen3-embedding-8b), легаси-идентификаторы kilo-indexing снова распознаются (2026-09-15)
+
+### Core Infrastructure
+
+- **DONE** Индексация — provider-aware batch и shrink-on-timeout для медленных локальных эмбеддеров
+  `verify:file docs/features/indexing-slow-embedder-hardening.md`
+- **DONE** Реестр эмбеддингов — google/gemini-embedding-001 и qwen/qwen3-embedding-8b в профиле openrouter
+  `verify:file docs/features/embedding-registry-upgrade.md`
+- **DONE** Индексация — легаси-идентификаторы kilo-indexing канонизируются, KiloEmbedder уважает explicit baseUrl
+  `verify:file docs/features/indexing-legacy-plugin-compat.md`
+
 ## v1.0.0-alpha — Alpha Release — internal testing, all features done, no critical bugs (2026-09)
 
 - **DONE** v0.10.0 + v0.11.0 — все фичи реализованы

@@ -84,6 +84,11 @@
       "description": "Alpha hardening — stream-stall watchdog (0.12.1/0.12.2) + API-эмбеддер OpenRouter для индексации"
     },
     {
+      "tag": "v0.13.1",
+      "date": "2026-09-15",
+      "description": "Indexing hardening — provider-aware batch + shrink-on-timeout для медленных локальных эмбеддеров, реестр эмбеддингов расширен (gemini-embedding-001/qwen3-embedding-8b), легаси-идентификаторы kilo-indexing снова распознаются"
+    },
+    {
       "tag": "v1.0.0-alpha",
       "date": "2026-09",
       "description": "Alpha Release — internal testing, all features done, no critical bugs"
@@ -2523,6 +2528,72 @@
         {
           "type": "file",
           "path": "docs/features/embedder-openrouter-api.md"
+        }
+      ]
+    },
+    {
+      "id": "indexing-slow-embedder-hardening",
+      "title": "Индексация — provider-aware batch и shrink-on-timeout для медленных локальных эмбеддеров",
+      "status": "done",
+      "version": "v0.13.1",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "indexing",
+        "embeddings",
+        "ollama",
+        "batch",
+        "timeout",
+        "resilience"
+      ],
+      "description": "CPU-only Ollama живая, но медленная: замеренный прогон — 104s на батч из 60 сегментов при таймауте запроса 120s, из-за чего батч выглядел мёртвым и скан падал после 3 ретраев (64/2529 файлов). Фикс из двух ступеней: (1) провайдер-aware дефолт — локальные эмбеддеры (ollama) получают LOCAL_EMBEDDER_BATCH_SEGMENT_THRESHOLD=20 сегментов на батч вместо общего порога, явный indexing.embeddingBatchSize пользователя всегда побеждает; (2) shrink-on-timeout — батч, упавший по timeout/timed out/deadline, делится вдвое и продолжается с того же смещения вплоть до одного сегмента, уменьшенный порог запоминается на сканере до конца скана, а не-таймаутные (connection/auth) ошибки по-прежнему проваливают батч после scannerMaxBatchRetries. Удаление изменённых файлов выполняется один раз перед первым upsert вместо повторения на каждом ретрае.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/indexing-slow-embedder-hardening.md"
+        }
+      ]
+    },
+    {
+      "id": "embedding-registry-upgrade",
+      "title": "Реестр эмбеддингов — google/gemini-embedding-001 и qwen/qwen3-embedding-8b в профиле openrouter",
+      "status": "done",
+      "version": "v0.13.1",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "indexing",
+        "embeddings",
+        "registry",
+        "openrouter"
+      ],
+      "description": "Профиль openrouter в реестре моделей эмбеддингов получил google/gemini-embedding-001 (dim 3072, scoreThreshold 0.35) и qwen/qwen3-embedding-8b (dim 4096, scoreThreshold 0.35). Обе выбираются через indexing.model — размерность и порог подтягиваются из реестра автоматически, вручную указывать dimension не нужно.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/embedding-registry-upgrade.md"
+        }
+      ]
+    },
+    {
+      "id": "indexing-legacy-plugin-compat",
+      "title": "Индексация — легаси-идентификаторы kilo-indexing канонизируются, KiloEmbedder уважает explicit baseUrl",
+      "status": "done",
+      "version": "v0.13.1",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "indexing",
+        "plugin",
+        "legacy",
+        "gateway",
+        "headers"
+      ],
+      "description": "Пакет переименован в @nocowboy/indexing, но пользователь со старым specifier'ом должен продолжать получать индексацию: kilo-indexing и @kilocode/kilo-indexing, а также node_modules-пути и packages/kilo-indexing канонизируются обратно в @nocowboy/indexing (LEGACY_PACKAGE_NAMES + canonicalPackageName в detect.ts). KiloEmbedder теперь уважает явный baseUrl — раньше он отбрасывался в пользу resolveNoCowboyGatewayBaseUrl() из env/token; explicit baseUrl побеждает, нормализация канонического /api/gateway/-роута применяется в обоих случаях. HEADER_FEATURE/HEADER_NOCOWBOY_ORGANIZATIONID импортируются из @nocowboy/gateway/api/constants, а не из корневого barrel'а, который реэкспортирует lowercase-заглушку (x-feature).",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/indexing-legacy-plugin-compat.md"
         }
       ]
     }
