@@ -7,7 +7,9 @@ import { Octokit } from "@octokit/rest"
 import { graphql } from "@octokit/graphql"
 import * as core from "@actions/core"
 import * as github from "@actions/github"
-import type { Context } from "@actions/github/lib/context"
+// nocowboy_change - @actions/github v9 no longer exposes ./lib/context in its exports map;
+// derive the Context type from the exported `context` value instead.
+type Context = typeof github.context
 import type {
   IssueCommentEvent,
   IssuesEvent,
