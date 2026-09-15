@@ -7,7 +7,8 @@ import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 import { Session } from "@/session/session"
-import { MessageID, SessionID } from "@/session/schema"
+import { MessageID, PartID, SessionID } from "@/session/schema"
+import { ModelID, ProviderID } from "@/provider/schema" // kilocode_change
 import { SessionStatus } from "@/session/status"
 import { TaskStatusTool } from "@/tool/task_status"
 import { Truncate } from "@/tool/truncate"
@@ -122,6 +123,69 @@ describe("tool.task_status", () => {
         .pipe(Effect.exit)
 
       expect(exit._tag).toBe("Failure")
+    }),
+  )
+  // kilocode_change end
+
+  // kilocode_change start - regression for #13469: with no local background job the tool reads the
+  // child session's last assistant message, so a trailing synthetic/ignored empty text part (the
+  // memory marker) must not mask the real answer.
+  it.instance("reads the real answer past a trailing synthetic empty text part", () =>
+    Effect.gen(function* () {
+      const sessions = yield* Session.Service
+      const tool = yield* TaskStatusTool
+      const def = yield* tool.init()
+      const chat = yield* sessions.create({})
+      const task = yield* sessions.create({ parentID: chat.id })
+      const messageID = MessageID.ascending()
+
+      yield* sessions.updateMessage({
+        id: messageID,
+        role: "assistant",
+        parentID: MessageID.ascending(),
+        sessionID: task.id,
+        mode: "general",
+        agent: "general",
+        cost: 0,
+        path: { cwd: "/tmp", root: "/tmp" },
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        modelID: ModelID.make("test-model"),
+        providerID: ProviderID.make("test"),
+        time: { created: Date.now() },
+        finish: "stop",
+      })
+      yield* sessions.updatePart({
+        id: PartID.ascending(),
+        messageID,
+        sessionID: task.id,
+        type: "text",
+        text: "the actual answer",
+      })
+      yield* sessions.updatePart({
+        id: PartID.ascending(),
+        messageID,
+        sessionID: task.id,
+        type: "text",
+        text: "",
+        synthetic: true,
+        ignored: true,
+      })
+
+      const result = yield* def.execute(
+        { task_id: task.id, wait: false },
+        {
+          sessionID: chat.id,
+          messageID: MessageID.ascending(),
+          agent: "build",
+          abort: new AbortController().signal,
+          messages: [],
+          metadata: () => Effect.void,
+          ask: () => Effect.void,
+        },
+      )
+
+      expect(result.metadata.state).toBe("completed")
+      expect(result.output).toContain("<task_result>\nthe actual answer\n</task_result>")
     }),
   )
   // kilocode_change end

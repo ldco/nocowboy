@@ -278,7 +278,16 @@ export const TaskTool = Tool.define(
             if (result.info.role === "assistant" && result.info.error) {
               return yield* Effect.fail(new Error(errorMessage(result.info.error)))
             }
-            return result.parts.findLast((item) => item.type === "text")?.text ?? ""
+            // kilocode_change start - ignore synthetic/ignored/empty text parts (e.g. the memory
+            // marker appended after the answer) when picking the task result. Without this the
+            // parent agent receives an empty <task_result> and the subagent answer is lost.
+            // Ported from KiloCode upstream bf7848cb48 (v7.5.6, #13493), fixes #13469.
+            return (
+              result.parts
+                .filter((item): item is MessageV2.TextPart => item.type === "text")
+                .findLast((item) => !item.synthetic && !item.ignored && item.text.length > 0)?.text ?? ""
+            )
+            // kilocode_change end
           })
 
         return yield* attempt(model, variant).pipe(

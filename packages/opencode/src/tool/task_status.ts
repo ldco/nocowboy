@@ -57,7 +57,15 @@ function errorText(error: NonNullable<MessageV2.Assistant["error"]>) {
 
 function inspectMessage(message: MessageV2.WithParts): InspectResult | undefined {
   if (message.info.role !== "assistant") return
-  const text = message.parts.findLast((part) => part.type === "text")?.text ?? ""
+  // kilocode_change start - same extractor rule as the task tool: skip synthetic/ignored/empty
+  // text parts (e.g. the memory marker) so a trailing empty part cannot mask the real answer
+  // for a task we no longer hold a local background job for. Ported from KiloCode upstream
+  // bf7848cb48 (v7.5.6, #13493), fixes #13469.
+  const text =
+    message.parts
+      .filter((part): part is MessageV2.TextPart => part.type === "text")
+      .findLast((part) => !part.synthetic && !part.ignored && part.text.length > 0)?.text ?? ""
+  // kilocode_change end
   if (message.info.error) return { state: "error", text: text || errorText(message.info.error) }
   if (message.info.finish && !["tool-calls", "unknown"].includes(message.info.finish))
     return { state: "completed", text }
