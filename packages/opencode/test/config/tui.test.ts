@@ -676,7 +676,31 @@ it.instance("does not derive tui path from NOCOWBOY_CONFIG", () =>
   ),
 )
 
-it.instance("applies env and file substitutions in tui.json", () =>
+it.instance("applies env and file substitutions in global tui.json", () =>
+  withCleanState(
+    withEnv(
+      "TUI_THEME_TEST",
+      "env-theme",
+      Effect.gen(function* () {
+        const fs = yield* AppFileSystem.Service
+        const test = yield* TestInstance
+        // Global config is trusted, so {env:}/{file:} references resolve.
+        yield* fs.writeFileString(path.join(Global.Path.config, "keybind.txt"), "ctrl+q")
+        yield* fs.writeJson(path.join(Global.Path.config, "tui.json"), {
+          theme: "{env:TUI_THEME_TEST}",
+          keybinds: { app_exit: "{file:keybind.txt}" },
+        })
+
+        const config = yield* getTuiConfig(test.directory)
+        expect(config.theme).toBe("env-theme")
+        expect(config.keybinds.get("app.exit")?.[0]?.key).toBe("ctrl+q")
+      }),
+    ),
+  ),
+)
+
+// Upstream b793bf788f: project tui config is untrusted and must not resolve {env:}/{file:}.
+it.instance("does not substitute env or file references in untrusted project tui.json", () =>
   withCleanState(
     withEnv(
       "TUI_THEME_TEST",
@@ -691,8 +715,8 @@ it.instance("applies env and file substitutions in tui.json", () =>
         })
 
         const config = yield* getTuiConfig(test.directory)
-        expect(config.theme).toBe("env-theme")
-        expect(config.keybinds.get("app.exit")?.[0]?.key).toBe("ctrl+q")
+        expect(config.theme).not.toBe("env-theme")
+        expect(config.keybinds.get("app.exit")?.[0]?.key).not.toBe("ctrl+q")
       }),
     ),
   ),
@@ -703,9 +727,10 @@ it.instance("applies file substitutions when first identical token is in a comme
     Effect.gen(function* () {
       const fs = yield* AppFileSystem.Service
       const test = yield* TestInstance
-      yield* fs.writeFileString(path.join(test.directory, "theme.txt"), "resolved-theme")
+      // Global config is trusted, so the second (uncommented) reference resolves.
+      yield* fs.writeFileString(path.join(Global.Path.config, "theme.txt"), "resolved-theme")
       yield* fs.writeFileString(
-        path.join(test.directory, "tui.jsonc"),
+        path.join(Global.Path.config, "tui.jsonc"),
         `{
   // "theme": "{file:theme.txt}",
   "theme": "{file:theme.txt}"

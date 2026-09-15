@@ -73,7 +73,10 @@ export interface Interface {
 
 export function make(input: Partial<Interface> = {}): Interface {
   return {
-    home: Path.home,
+    // nocowboy_change - read lazily so tests can rebind KILO_TEST_HOME after the layer is built
+    get home() {
+      return input.home ?? Path.home
+    },
     data: Path.data,
     cache: Path.cache,
     config: Flag.NOCOWBOY_CONFIG_DIR ?? Path.config,

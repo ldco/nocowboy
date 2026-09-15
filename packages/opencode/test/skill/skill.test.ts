@@ -12,6 +12,20 @@ import { provideInstance, provideTmpdirInstance, tmpdir } from "../fixture/fixtu
 import { testEffect } from "../lib/effect"
 import path from "path"
 import fs from "fs/promises"
+import os from "os"
+import { afterAll } from "bun:test"
+
+// nocowboy_change - isolate the real HOME so externally-installed skills (~/.agents/skills,
+// ~/.config/nocowboy/skills) do not leak into discovery assertions. Tests that need a specific
+// home wrap themselves in withHome().
+const isolatedHome = await fs.mkdtemp(path.join(os.tmpdir(), "nocowboy-skill-home-"))
+const previousHome = process.env.KILO_TEST_HOME
+process.env.KILO_TEST_HOME = isolatedHome
+afterAll(async () => {
+  if (previousHome === undefined) delete process.env.KILO_TEST_HOME
+  else process.env.KILO_TEST_HOME = previousHome
+  await fs.rm(isolatedHome, { recursive: true, force: true })
+})
 
 const node = CrossSpawnSpawner.defaultLayer
 

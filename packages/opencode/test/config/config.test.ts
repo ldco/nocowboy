@@ -527,7 +527,8 @@ test("prefers .nocowboy directory config over legacy .kilo", async () => {
 })
 // kilocode_change end
 
-test("handles environment variable substitution", async () => {
+// Upstream b793bf788f: project config is untrusted, so {env:} is not substituted.
+test("does not substitute env variables in project config", async () => {
   const originalEnv = process.env["TEST_VAR"]
   process.env["TEST_VAR"] = "test-user"
 
@@ -544,7 +545,7 @@ test("handles environment variable substitution", async () => {
       directory: tmp.path,
       fn: async (ctx) => {
         const config = await load(ctx)
-        expect(config.username).toBe("test-user")
+        expect(config.username).not.toBe("test-user")
       },
     })
   } finally {
@@ -556,7 +557,8 @@ test("handles environment variable substitution", async () => {
   }
 })
 
-test("preserves env variables when adding $schema to config", async () => {
+// Upstream b793bf788f: project config is untrusted, so {env:...} is rejected instead of resolved.
+test("does not resolve env variables from untrusted project config", async () => {
   const originalEnv = process.env["PRESERVE_VAR"]
   process.env["PRESERVE_VAR"] = "secret_value"
 
@@ -576,13 +578,14 @@ test("preserves env variables when adding $schema to config", async () => {
       directory: tmp.path,
       fn: async (ctx) => {
         const config = await load(ctx)
-        expect(config.username).toBe("secret_value")
+        // Untrusted project config must not resolve env references.
+        expect(config.username).not.toBe("secret_value")
 
-        // Read the file to verify the env variable was preserved
+        // The token is preserved on disk and never replaced with the secret. Because substitution is
+        // rejected before parsing, the $schema auto-add never runs for this file either.
         const content = await Filesystem.readText(path.join(tmp.path, "nocowboy.json"))
         expect(content).toContain("{env:PRESERVE_VAR}")
         expect(content).not.toContain("secret_value")
-        expect(content).toContain("$schema")
       },
     })
   } finally {
