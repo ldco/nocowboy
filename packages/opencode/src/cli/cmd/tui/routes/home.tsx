@@ -14,6 +14,7 @@ import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { YoloButton } from "@/nocowboy/components/yolo-button"
 import { PasteButton } from "@/nocowboy/components/paste-button"
+import { AttachButton } from "@/nocowboy/components/attach-button"
 import { useEditorContext } from "@tui/context/editor"
 
 let once = false
@@ -98,6 +99,7 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
+                    <AttachButton />
                     <PasteButton />
                     <YoloButton />
                     <text

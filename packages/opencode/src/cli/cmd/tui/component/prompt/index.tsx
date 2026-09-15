@@ -31,6 +31,7 @@ import { computePromptTraits } from "./traits"
 import { assign } from "./part"
 import { usePromptStash } from "./stash"
 import { DialogStash } from "../dialog-stash"
+import { DialogFilePicker } from "@/nocowboy/components/dialog-file-picker"
 import { type AutocompleteRef, Autocomplete } from "./autocomplete"
 import { useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import * as Editor from "@tui/util/editor"
@@ -465,6 +466,21 @@ export function Prompt(props: PromptProps) {
           if (content?.mime === "text/plain") {
             await pasteInputText(content.data)
           }
+        },
+      },
+      {
+        title: "Attach file",
+        name: "prompt.attach",
+        category: "Prompt",
+        slashName: "attach",
+        run: async () => {
+          dialog.replace(() => (
+            <DialogFilePicker
+              onPick={(filepath) => {
+                void attachPath(filepath)
+              }}
+            />
+          ))
         },
       },
       {
@@ -1396,6 +1412,37 @@ export function Prompt(props: PromptProps) {
       }),
     )
     return
+  }
+
+  async function attachPath(filepath: string) {
+    const filename = path.basename(filepath)
+    const mime = await Filesystem.mimeType(filepath).catch(() => undefined)
+    if (mime && (mime.startsWith("image/") || mime === "application/pdf")) {
+      const content = await Filesystem.readArrayBuffer(filepath)
+        .then((buffer) => Buffer.from(buffer).toString("base64"))
+        .catch(() => undefined)
+      if (content) {
+        await pasteAttachment({ filename, filepath, mime, content })
+        return
+      }
+    }
+    const text = await Filesystem.readText(filepath).catch(() => undefined)
+    if (text === undefined) return
+    const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+    const lineCount = (normalized.match(/\n/g)?.length ?? 0) + 1
+    if (
+      (lineCount >= 5 || normalized.length > 800) &&
+      kv.get("paste_summary_enabled", !sync.data.config.experimental?.disable_paste_summary)
+    ) {
+      pasteText(normalized, `[File: ${filename}]`)
+      return
+    }
+    input.insertText(normalized)
+    setTimeout(() => {
+      if (!input || input.isDestroyed) return
+      input.getLayoutNode().markDirty()
+      renderer.requestRender()
+    }, 0)
   }
 
   function clearPrompt() {
