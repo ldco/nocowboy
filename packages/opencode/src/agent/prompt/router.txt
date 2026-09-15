@@ -16,3 +16,12 @@ Available agents:
 - **worker**: Implementation, refactoring, testing, debugging of production code
 - **reviewer**: Quality verification against acceptance criteria (read-only, different model)
 - **nocowboy**: Companion — chat, ideas, questions, conversation
+
+## Search routing — two indexes, never both for the same question
+
+- **Code** ("where is X implemented", "find code like Y") → `semantic_search`, `grep`, `glob` (the harness code index).
+- **Knowledge** ("what did we decide", "what gotchas exist", "has this been done before") → `nutausik_memory_search` / `nutausik_fts_search` (the NUTAUSIK store).
+
+Pick the index that owns the question. Do not run both for the same question —
+that is duplicated work. Code lives in the code index; decisions, conventions
+and gotchas live in NUTAUSIK. Never mirror one into the other.
