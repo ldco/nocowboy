@@ -12,6 +12,7 @@ import { Auth } from "../../../src/auth"
 import { Config } from "../../../src/config/config"
 import { ConfigMarkdown } from "../../../src/config/markdown"
 import { ConfigParse } from "../../../src/config/parse"
+import { ConfigVariable } from "../../../src/config/variable"
 import { Env } from "../../../src/env"
 import { KiloIndexing } from "../../../src/nocowboy/indexing"
 import { NoCowboyConfig } from "../../../src/nocowboy/config/config"
@@ -97,10 +98,82 @@ describe("markdown substitutions", () => {
       },
     })
 
-    const md = await ConfigMarkdown.parse(path.join(tmp.path, "SKILL.md"))
+    const md = await ConfigMarkdown.parse(path.join(tmp.path, "SKILL.md"), { trusted: true })
 
     expect(md.content).toContain("file content")
     expect(md.content).toContain("env content")
+  })
+})
+
+// Upstream b793bf788f / 032f3bb: untrusted project config must not resolve env references, and file
+// references must be confined to the project scope. Regression guard for the credential/file exfil gap.
+describe("config substitution trust boundary", () => {
+  test("rejects {env:} references in untrusted project config", async () => {
+    await expect(
+      ConfigVariable.substitute({ text: "{env:HOME}", type: "path", path: "/tmp/nocowboy.json", trusted: false }),
+    ).rejects.toThrow()
+  })
+
+  test("rejects {file:} references without a project scope", async () => {
+    await expect(
+      ConfigVariable.substitute({ text: "{file:body.md}", type: "path", path: "/tmp/nocowboy.json", trusted: false }),
+    ).rejects.toThrow()
+  })
+
+  test("blocks server credential env references even in trusted config", async () => {
+    await expect(
+      ConfigVariable.substitute({
+        text: "{env:NOCOWBOY_SERVER_PASSWORD}",
+        type: "path",
+        path: "/tmp/nocowboy.json",
+        trusted: true,
+      }),
+    ).rejects.toThrow()
+  })
+
+  test("resolves {env:} in trusted config", async () => {
+    process.env.KILO_MD_TEST = "env content"
+    const out = await ConfigVariable.substitute({
+      text: "{env:KILO_MD_TEST}",
+      type: "path",
+      path: "/tmp/nocowboy.json",
+      trusted: true,
+    })
+    expect(out).toBe("env content")
+  })
+
+  test("confines untrusted {file:} to the project scope", async () => {
+    await using root = await tmpdir({
+      init: async (dir) => {
+        await Filesystem.write(path.join(dir, "inside.md"), "inside content")
+      },
+    })
+    await using outside = await tmpdir({
+      init: async (dir) => {
+        await Filesystem.write(path.join(dir, "secret.md"), "TOP SECRET")
+      },
+    })
+    const cfgPath = path.join(root.path, "nocowboy.json")
+    const fileScope = { root: root.path, source: cfgPath }
+
+    const ok = await ConfigVariable.substitute({
+      text: "{file:inside.md}",
+      type: "path",
+      path: cfgPath,
+      trusted: false,
+      fileScope,
+    })
+    expect(ok).toContain("inside content")
+
+    await expect(
+      ConfigVariable.substitute({
+        text: `{file:${path.join(outside.path, "secret.md")}}`,
+        type: "path",
+        path: cfgPath,
+        trusted: false,
+        fileScope,
+      }),
+    ).rejects.toThrow()
   })
 })
 

@@ -16,6 +16,9 @@ import * as Log from "@nocowboy/core/util/log"
 import { Discovery } from "./discovery"
 import { BUILTIN_SKILLS } from "../nocowboy/skills/builtin"
 import { isRecord } from "@/util/record"
+// nocowboy_change start - classify global config dirs as trusted for markdown substitution
+import { ConfigProtection } from "@/nocowboy/permission/config-paths"
+// nocowboy_change end
 
 const log = Log.create({ service: "skill" })
 const CLAUDE_EXTERNAL_DIR = ".claude"
@@ -71,15 +74,24 @@ type State = {
   dirs: Set<string>
 }
 
+// nocowboy_change start - carry per-skill trust + project root so untrusted project markdown cannot
+// resolve {env:} or read files outside the project scope (upstream b793bf788f / 032f3bb)
+type SkillMatch = {
+  path: string
+  root: string
+  trusted: boolean
+}
+
 type DiscoveryState = {
-  matches: string[]
+  matches: SkillMatch[]
   dirs: string[]
 }
 
 type ScanState = {
-  matches: Set<string>
+  matches: Map<string, { root: string; trusted: boolean }>
   dirs: Set<string>
 }
+// nocowboy_change end
 
 export interface Interface {
   readonly get: (name: string) => Effect.Effect<Info | undefined>
@@ -88,16 +100,21 @@ export interface Interface {
   readonly available: (agent?: Agent.Info) => Effect.Effect<Info[]>
 }
 
-const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.Interface) {
+// nocowboy_change - SkillMatch carries trust + root (upstream 032f3bb)
+const add = Effect.fnUntraced(function* (state: State, match: SkillMatch, bus: Bus.Interface) {
   const md = yield* Effect.tryPromise({
-    try: () => ConfigMarkdown.parse(match),
+    try: () =>
+      ConfigMarkdown.parse(match.path, {
+        trusted: match.trusted,
+        fileScope: match.trusted ? undefined : { root: match.root, source: match.path },
+      }),
     catch: (err) => err,
   }).pipe(
     Effect.catch(
       Effect.fnUntraced(function* (err) {
         const message = ConfigMarkdown.FrontmatterError.isInstance(err)
           ? err.data.message
-          : `Failed to parse skill ${match}`
+          : `Failed to parse skill ${match.path}`
         const { Session } = yield* Effect.promise(() => import("@/session/session"))
         yield* bus.publish(Session.Event.Error, { error: new NamedError.Unknown({ message }).toObject() })
         log.error("failed to load skill", { skill: match, err })
@@ -118,12 +135,12 @@ const add = Effect.fnUntraced(function* (state: State, match: string, bus: Bus.I
     })
   }
 
-  state.dirs.add(path.dirname(match))
+  state.dirs.add(path.dirname(match.path))
   state.skills[md.data.name] = {
     name: md.data.name,
     description: md.data.description,
     category: extractCategory(md.data),
-    location: match,
+    location: match.path,
     content: md.content,
   }
 })
@@ -153,7 +170,9 @@ const scan = Effect.fnUntraced(function* (
   )
 
   for (const match of matches) {
-    state.matches.add(match)
+    // nocowboy_change - global scopes / global config dirs are trusted; project scopes are not
+    const trusted = opts?.scope ? opts.scope === "global" : ConfigProtection.isAbsolute(root)
+    state.matches.set(match, { root, trusted })
     state.dirs.add(path.dirname(match))
   }
 })
@@ -168,7 +187,7 @@ const discoverSkills = Effect.fnUntraced(function* (
   directory: string,
   worktree: string,
 ) {
-  const state: ScanState = { matches: new Set(), dirs: new Set() }
+  const state: ScanState = { matches: new Map(), dirs: new Set() }
 
   const externalDirs: string[] = []
   if (!disableExternalSkills) {
@@ -215,7 +234,7 @@ const discoverSkills = Effect.fnUntraced(function* (
   }
 
   return {
-    matches: Array.from(state.matches),
+    matches: Array.from(state.matches, ([match, meta]) => ({ path: match, ...meta })),
     dirs: Array.from(state.dirs),
   }
 })

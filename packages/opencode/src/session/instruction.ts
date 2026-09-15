@@ -9,6 +9,9 @@ import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { Global } from "@nocowboy/core/global"
 import { KilocodeInstruction } from "@/nocowboy/session/instruction"
+// nocowboy_change start - trust boundary for instruction-file substitution (upstream 032f3bb)
+import { ConfigProtection } from "@/nocowboy/permission/config-paths"
+// nocowboy_change end
 import type { MessageV2 } from "./message-v2"
 import type { MessageID } from "./schema"
 
@@ -88,10 +91,21 @@ export const layer: Layer.Layer<
       return yield* fs.globUp(instruction, root, root).pipe(Effect.catch(() => Effect.succeed([] as string[])))
     })
 
+    // nocowboy_change start - user-owned (global config) instruction files may resolve {env:}/{file:};
+    // project instruction files are confined to the worktree so a malicious repo cannot exfiltrate secrets
     const read = Effect.fnUntraced(function* (filepath: string) {
       const content = yield* fs.readFileString(filepath).pipe(Effect.catch(() => Effect.succeed("")))
-      return yield* Effect.promise(() => KilocodeInstruction.content(content, filepath))
+      const trusted = ConfigProtection.isAbsolute(filepath)
+      const ctx = yield* InstanceState.context
+      const root = ctx.worktree === "/" ? ctx.directory : ctx.worktree
+      return yield* Effect.promise(() =>
+        KilocodeInstruction.content(content, filepath, {
+          trusted,
+          fileScope: trusted ? undefined : { root, source: filepath },
+        }),
+      )
     })
+    // nocowboy_change end
 
     const fetch = Effect.fnUntraced(function* (url: string) {
       const res = yield* http.execute(HttpClientRequest.get(url)).pipe(

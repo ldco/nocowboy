@@ -72,7 +72,15 @@ export namespace ConfigValidation {
 
     let md: Awaited<ReturnType<typeof ConfigMarkdown.parse>>
     try {
-      md = await ConfigMarkdown.parse(filepath)
+      // nocowboy_change - global (user-owned) config may resolve {env:}/{file:}; project markdown is
+      // confined to the project root (upstream b793bf788f / 032f3bb)
+      const trusted = path.isAbsolute(filepath) && ConfigProtection.isAbsolute(filepath)
+      const ctx = Instance.current
+      const root = ctx.worktree === "/" ? ctx.directory : ctx.worktree
+      md = await ConfigMarkdown.parse(filepath, {
+        trusted,
+        fileScope: trusted ? undefined : { root, source: filepath },
+      })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const msg = ConfigMarkdown.FrontmatterError.isInstance(e)

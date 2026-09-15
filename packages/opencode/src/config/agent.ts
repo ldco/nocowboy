@@ -138,7 +138,15 @@ export const Info = AgentSchema.pipe(
 ).annotate({ identifier: "AgentConfig" })
 export type Info = Schema.Schema.Type<typeof Info>
 
-export async function load(dir: string, warnings?: Warning[]) {
+// nocowboy_change start - trusted gates {env:}; fileScope confines untrusted agent prompt {file:} reads
+export async function load(
+  dir: string,
+  warnings?: Warning[],
+  trusted = false,
+  fileScope?: ConfigVariable.FileScope,
+  sourceScope?: ConfigVariable.FileScope,
+) {
+  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{agent,agents}/**/*.md", {
     cwd: dir,
@@ -146,7 +154,9 @@ export async function load(dir: string, warnings?: Warning[]) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch(async (err) => {
+    // nocowboy_change start
+    const md = await ConfigMarkdown.parse(item, { trusted, fileScope, sourceScope }).catch(async (err) => {
+      // nocowboy_change end
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse agent ${item}`
@@ -202,7 +212,15 @@ export async function load(dir: string, warnings?: Warning[]) {
   return result
 }
 
-export async function loadMode(dir: string, warnings?: Warning[]) {
+// nocowboy_change start
+export async function loadMode(
+  dir: string,
+  warnings?: Warning[],
+  trusted = false,
+  fileScope?: ConfigVariable.FileScope,
+  sourceScope?: ConfigVariable.FileScope,
+) {
+  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{mode,modes}/*.md", {
     cwd: dir,
@@ -210,7 +228,9 @@ export async function loadMode(dir: string, warnings?: Warning[]) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch(async (err) => {
+    // nocowboy_change start
+    const md = await ConfigMarkdown.parse(item, { trusted, fileScope, sourceScope }).catch(async (err) => {
+      // nocowboy_change end
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse mode ${item}`

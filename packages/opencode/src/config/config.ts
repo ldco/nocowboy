@@ -93,11 +93,13 @@ const { caught: caughtWarning } = NoCowboyConfig
 async function substituteWellKnownRemoteConfig(input: { value: unknown; dir: string; source: string }) {
   if (!isRecord(input.value) || typeof input.value.url !== "string") return
 
+  // nocowboy_change - well-known org config is a trusted source (upstream b793bf788f)
   const url = await ConfigVariable.substitute({
     text: input.value.url,
     type: "virtual",
     dir: input.dir,
     source: input.source,
+    trusted: true,
   })
   const headers = isRecord(input.value.headers)
     ? Object.fromEntries(
@@ -111,11 +113,13 @@ async function substituteWellKnownRemoteConfig(input: { value: unknown; dir: str
                 type: "virtual",
                 dir: input.dir,
                 source: input.source,
+                trusted: true,
               }),
             ]),
         ),
       )
     : undefined
+  // nocowboy_change end
 
   return { url, headers }
 }
@@ -505,11 +509,17 @@ export const layer = Layer.effect(
     const loadConfig = Effect.fnUntraced(function* (
       text: string,
       options: { path: string } | { dir: string; source: string },
+      // nocowboy_change start - trusted allows {env:}; fileScope confines untrusted {file:} reads to a root
+      trusted?: boolean,
+      fileScope?: ConfigVariable.FileScope,
+      // nocowboy_change end
     ) {
       const source = "path" in options ? options.path : options.source
       const expanded = yield* Effect.promise(() =>
         ConfigVariable.substitute(
-          "path" in options ? { text, type: "path", path: options.path } : { text, type: "virtual", ...options },
+          "path" in options // nocowboy_change
+            ? { text, type: "path", path: options.path, trusted, fileScope }
+            : { text, type: "virtual", ...options, trusted, fileScope },
         ),
       )
       const parsed = ConfigParse.jsonc(expanded, source)
@@ -525,11 +535,15 @@ export const layer = Layer.effect(
       return data
     })
 
-    const loadFile = Effect.fnUntraced(function* (filepath: string) {
+    const loadFile = Effect.fnUntraced(function* (
+      filepath: string,
+      trusted?: boolean, // nocowboy_change
+      fileScope?: ConfigVariable.FileScope, // nocowboy_change
+    ) {
       log.info("loading", { path: filepath })
       const text = yield* readConfigFile(filepath)
       if (!text) return {} as Info
-      return yield* loadConfig(text, { path: filepath })
+      return yield* loadConfig(text, { path: filepath }, trusted, fileScope) // nocowboy_change
     })
 
     let globalStamp = ""
@@ -548,9 +562,10 @@ export const layer = Layer.effect(
             .pipe(Effect.catch(() => Effect.void))
         }
       }
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json")))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.json")))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.jsonc")))
+      // nocowboy_change - global config is user-owned and trusted to resolve {file:}/{env:} tokens
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json"), true))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.json"), true))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "nocowboy.jsonc"), true))
 
       const legacy = path.join(Global.Path.config, "config")
       if (existsSync(legacy)) {
@@ -625,6 +640,9 @@ export const layer = Layer.effect(
     const loadInstanceState = Effect.fn("Config.loadInstanceState")(
       function* (ctx: InstanceContext) {
         const warnings: Warning[] = []
+        // nocowboy_change - untrusted project config may only read files inside this root
+        // (worktree, or directory for non-git projects). Ported from upstream b793bf788f.
+        const projectRoot = ctx.worktree === "/" ? ctx.directory : ctx.worktree
         const auth = yield* authSvc.all().pipe(Effect.orDie)
 
         let result: Info = {}
@@ -748,7 +766,8 @@ export const layer = Layer.effect(
         if (Flag.NOCOWBOY_CONFIG) {
           yield* merge(
             Flag.NOCOWBOY_CONFIG,
-            yield* loadFile(Flag.NOCOWBOY_CONFIG).pipe(
+            // nocowboy_change - NOCOWBOY_CONFIG is an explicit user-provided path, trusted for {file:}/{env:}
+            yield* loadFile(Flag.NOCOWBOY_CONFIG, true).pipe(
               Effect.catchDefect((err: unknown) => {
                 caughtWarning(warnings, Flag.NOCOWBOY_CONFIG!, err)
                 return Effect.succeed({} as Info)
@@ -763,7 +782,8 @@ export const layer = Layer.effect(
             for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.project.worktree).pipe(Effect.orDie)) {
               yield* merge(
                 file,
-                yield* loadFile(file).pipe(
+                // nocowboy_change - project config is untrusted: {env:} rejected, {file:} confined to projectRoot
+                yield* loadFile(file, false, { root: projectRoot, source: file }).pipe(
                   Effect.catchDefect((err: unknown) => {
                     caughtWarning(warnings, file, err)
                     return Effect.succeed({} as Info)
@@ -788,18 +808,28 @@ export const layer = Layer.effect(
         const deps: Fiber.Fiber<void, never>[] = []
 
         for (const dir of unique(directories)) {
+          // nocowboy_change start - trust {file:}/{env:} only for global-scoped or explicit config dirs,
+          // never project ones; untrusted dirs confine {file:} reads to projectRoot (upstream b793bf788f)
+          const dirScope = yield* pluginScopeForSource(dir)
+          const dirTrusted = dir === Flag.NOCOWBOY_CONFIG_DIR || dirScope === "global"
+          const dirFileScope = dirTrusted ? undefined : { root: projectRoot, source: dir }
+          const dirSourceScope = dirTrusted ? undefined : { root: projectRoot, source: dir }
+          // nocowboy_change end
           if (NoCowboyConfig.isConfigDir(dir, Flag.NOCOWBOY_CONFIG_DIR)) {
             for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
               const source = path.join(dir, file)
               log.debug(`loading config from ${source}`)
+              // nocowboy_change - untrusted config dirs confine {file:} reads to projectRoot
+              const fileScope = dirTrusted ? undefined : { root: projectRoot, source }
               yield* merge(
                 source,
-                yield* loadFile(source).pipe(
+                yield* loadFile(source, dirTrusted, fileScope).pipe(
                   Effect.catchDefect((err: unknown) => {
                     caughtWarning(warnings, source, err)
                     return Effect.succeed({} as Info)
                   }),
                 ),
+                dirScope, // nocowboy_change
               )
               result.agent ??= {}
               result.mode ??= {}
@@ -832,12 +862,20 @@ export const layer = Layer.effect(
             )
           deps.push(dep)
 
+          // nocowboy_change start - thread config trust + project scopes into markdown loads
           result.command = mergeDeep(
             result.command ?? {},
-            yield* Effect.promise(() => ConfigCommand.load(dir, warnings)),
+            yield* Effect.promise(() => ConfigCommand.load(dir, warnings, dirTrusted, dirFileScope, dirSourceScope)),
           )
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.load(dir, warnings)))
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.loadMode(dir, warnings)))
+          result.agent = mergeDeep(
+            result.agent ?? {},
+            yield* Effect.promise(() => ConfigAgent.load(dir, warnings, dirTrusted, dirFileScope, dirSourceScope)),
+          )
+          result.agent = mergeDeep(
+            result.agent ?? {},
+            yield* Effect.promise(() => ConfigAgent.loadMode(dir, warnings, dirTrusted, dirFileScope, dirSourceScope)),
+          )
+          // nocowboy_change end
           // Auto-discovered plugins under `.opencode/plugin(s)` are already local files, so ConfigPlugin.load
           // returns normalized Specs and we only need to attach origin metadata here.
           const list = yield* Effect.promise(() => ConfigPlugin.load(dir))
@@ -848,10 +886,14 @@ export const layer = Layer.effect(
           const source = "NOCOWBOY_CONFIG_CONTENT"
           yield* merge(
             source,
-            yield* loadConfig(process.env.NOCOWBOY_CONFIG_CONTENT, {
-              dir: ctx.directory,
-              source,
-            }).pipe(
+            yield* loadConfig(
+              process.env.NOCOWBOY_CONFIG_CONTENT,
+              {
+                dir: ctx.directory,
+                source,
+              },
+              true, // nocowboy_change - user-provided content, trusted for {file:}/{env:}
+            ).pipe(
               Effect.tap(() => Effect.sync(() => log.debug("loaded custom config from NOCOWBOY_CONFIG_CONTENT"))),
               Effect.catchDefect((err: unknown) => {
                 caughtWarning(warnings, source, err)
@@ -881,10 +923,14 @@ export const layer = Layer.effect(
 
             if (Option.isSome(configOpt)) {
               const source = `${url}/api/config`
-              const next = yield* loadConfig(JSON.stringify(configOpt.value), {
-                dir: path.dirname(source),
-                source,
-              })
+              const next = yield* loadConfig(
+                JSON.stringify(configOpt.value),
+                {
+                  dir: path.dirname(source),
+                  source,
+                },
+                true, // nocowboy_change - console-managed org config is a trusted source
+              )
               for (const providerID of Object.keys(next.provider ?? {})) {
                 consoleManagedProviders.add(providerID)
               }
@@ -905,7 +951,8 @@ export const layer = Layer.effect(
         if (existsSync(managedDir)) {
           for (const file of NoCowboyConfig.ALL_CONFIG_FILES) {
             const source = path.join(managedDir, file)
-            yield* merge(source, yield* loadFile(source), "global")
+            // nocowboy_change - MDM/enterprise-managed config is a trusted source
+            yield* merge(source, yield* loadFile(source, true), "global")
           }
         }
 
@@ -914,10 +961,14 @@ export const layer = Layer.effect(
         if (managed) {
           yield* merge(
             managed.source,
-            yield* loadConfig(managed.text, {
-              dir: path.dirname(managed.source),
-              source: managed.source,
-            }),
+            yield* loadConfig(
+              managed.text,
+              {
+                dir: path.dirname(managed.source),
+                source: managed.source,
+              },
+              true, // nocowboy_change - MDM-managed preferences are a trusted source
+            ),
             "global",
           )
         }

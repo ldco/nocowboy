@@ -52,12 +52,22 @@ export namespace WorkflowsMigrator {
     return undefined
   }
 
-  async function loadWorkflowsFromDir(dir: string, source: "global" | "project"): Promise<NoCowboyWorkflow[]> {
+  // nocowboy_change - global workflows are user-owned (trusted); project workflows are confined to the
+  // project root so they cannot resolve {env:} or read host files (upstream 032f3bb)
+  async function loadWorkflowsFromDir(
+    dir: string,
+    source: "global" | "project",
+    root?: string,
+  ): Promise<NoCowboyWorkflow[]> {
     if (!(await Filesystem.isDir(dir))) return []
     const files = await findWorkflowFiles(dir)
     const workflows: NoCowboyWorkflow[] = []
+    const trusted = source === "global"
     for (const file of files) {
-      const content = await NoCowboyMarkdown.substitute(await fs.readFile(file, "utf-8"), file)
+      const content = await NoCowboyMarkdown.substitute(await fs.readFile(file, "utf-8"), file, {
+        trusted,
+        fileScope: trusted || !root ? undefined : { root, source: file },
+      })
       workflows.push({
         name: extractNameFromFilename(file),
         path: file,
@@ -84,7 +94,7 @@ export namespace WorkflowsMigrator {
 
     // 3. Project workflows (.nocowboy/workflows/ and .nocowboy/workflows/)
     for (const dir of KILO_WORKFLOWS_DIRS) {
-      workflows.push(...(await loadWorkflowsFromDir(path.join(projectDir, dir), "project")))
+      workflows.push(...(await loadWorkflowsFromDir(path.join(projectDir, dir), "project", projectDir)))
     }
 
     return workflows

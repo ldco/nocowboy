@@ -66,17 +66,22 @@ export function fallbackSanitization(content: string): string {
   return content.replace(frontmatter, () => processed)
 }
 
-export async function parse(filePath: string) {
-  const template = await Filesystem.readText(filePath)
+// nocowboy_change start - ported from upstream KiloCode 032f3bb (v7.4.7): accept source trust and
+// confine untrusted markdown source reads to a project scope.
+export async function parse(filePath: string, options: NoCowboyMarkdown.Options) {
+  const template = options.trusted
+    ? await Filesystem.readText(filePath)
+    : await NoCowboyMarkdown.read(filePath, options)
+  // nocowboy_change end
 
   try {
     const md = matter(template)
-    md.content = await NoCowboyMarkdown.substitute(md.content, filePath)
+    md.content = await NoCowboyMarkdown.substitute(md.content, filePath, options)
     return md
   } catch {
     try {
       const md = matter(fallbackSanitization(template))
-      md.content = await NoCowboyMarkdown.substitute(md.content, filePath)
+      md.content = await NoCowboyMarkdown.substitute(md.content, filePath, options)
       return md
     } catch (err) {
       throw new FrontmatterError(

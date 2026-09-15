@@ -10,6 +10,7 @@ import { Bus } from "@/bus"
 import { NamedError } from "@nocowboy/core/util/error"
 import { NoCowboyConfig } from "@/nocowboy/config/config"
 import type { Warning } from "./config"
+import type { ConfigVariable } from "./variable"
 
 const log = Log.create({ service: "config" })
 
@@ -25,7 +26,14 @@ export type Info = Schema.Schema.Type<typeof Info>
 
 const decodeInfo = Schema.decodeUnknownExit(Info)
 
-export async function load(dir: string, warnings?: Warning[]) {
+export async function load(
+  dir: string,
+  warnings?: Warning[],
+  trusted = false,
+  fileScope?: ConfigVariable.FileScope,
+  sourceScope?: ConfigVariable.FileScope,
+) {
+  // nocowboy_change end
   const result: Record<string, Info> = {}
   for (const item of await Glob.scan("{command,commands}/**/*.md", {
     cwd: dir,
@@ -33,7 +41,9 @@ export async function load(dir: string, warnings?: Warning[]) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch(async (err) => {
+    // nocowboy_change start
+    const md = await ConfigMarkdown.parse(item, { trusted, fileScope, sourceScope }).catch(async (err) => {
+      // nocowboy_change end
       const message = ConfigMarkdown.FrontmatterError.isInstance(err)
         ? err.data.message
         : `Failed to parse command ${item}`

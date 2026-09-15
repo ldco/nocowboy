@@ -112,10 +112,11 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       return config
     })
 
-  const load = (text: string, configFilepath: string): Effect.Effect<Info> =>
+  // nocowboy_change - trusted gates {env:}/{file:}: only global/explicit tui config may resolve them
+  const load = (text: string, configFilepath: string, trusted: boolean): Effect.Effect<Info> =>
     Effect.gen(function* () {
       const expanded = yield* Effect.promise(() =>
-        ConfigVariable.substitute({ text, type: "path", path: configFilepath, missing: "empty" }),
+        ConfigVariable.substitute({ text, type: "path", path: configFilepath, missing: "empty", trusted }),
       )
       const data = ConfigParse.jsonc(expanded, configFilepath)
       if (!isRecord(data)) return {} as Info
@@ -149,7 +150,8 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       ),
     )
 
-  const loadFile = (filepath: string): Effect.Effect<Info> =>
+  // nocowboy_change - trusted param (upstream b793bf788f)
+  const loadFile = (filepath: string, trusted: boolean): Effect.Effect<Info> =>
     Effect.gen(function* () {
       // Silent-swallow non-NotFound read errors (perms, EISDIR, IO) → log + skip.
       // Matches how parse/schema/plugin failures in load() are handled — every
@@ -169,12 +171,13 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
       )
       if (!text) return {} as Info
       log.info("loading tui config", { path: filepath })
-      return yield* load(text, filepath)
+      return yield* load(text, filepath, trusted)
     })
 
-  const mergeFile = (acc: Acc, file: string) =>
+  // nocowboy_change - trusted param
+  const mergeFile = (acc: Acc, file: string, trusted: boolean) =>
     Effect.gen(function* () {
-      const data = yield* loadFile(file)
+      const data = yield* loadFile(file, trusted)
       if (Object.keys(data).length) {
         appliedOrder += 1
         log.info("applying tui config", { path: file, order: appliedOrder })
@@ -205,19 +208,19 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
 
   // 1. Global tui config (lowest precedence).
   for (const file of ConfigPaths.fileInDirectory(Global.Path.config, "tui")) {
-    yield* mergeFile(acc, file)
+    yield* mergeFile(acc, file, true) // nocowboy_change - global config is trusted
   }
 
-  // 2. Explicit KILO_TUI_CONFIG override, if set.
+  // 2. Explicit NOCOWBOY_TUI_CONFIG override, if set.
   if (Flag.NOCOWBOY_TUI_CONFIG) {
     const configFile = Flag.NOCOWBOY_TUI_CONFIG
-    yield* mergeFile(acc, configFile)
+    yield* mergeFile(acc, configFile, true) // nocowboy_change - explicit user-provided path is trusted
     log.debug("loaded custom tui config", { path: configFile })
   }
 
   // 3. Project tui files, applied root-first so the closest file wins.
   for (const file of projectFiles) {
-    yield* mergeFile(acc, file)
+    yield* mergeFile(acc, file, false) // nocowboy_change - project config is untrusted
   }
 
   // 4. `.opencode` directories (and KILO_CONFIG_DIR) discovered while
@@ -229,9 +232,10 @@ const loadState = Effect.fn("TuiConfig.loadState")(function* (ctx: { directory: 
   )
 
   for (const dir of dirs) {
-    // if (!dir.endsWith(".opencode") && dir !== Flag.NOCOWBOY_CONFIG_DIR) continue
+    // nocowboy_change - trust global (home/NOCOWBOY_CONFIG_DIR) dirs like config.ts; in-repo dirs stay untrusted
+    const trusted = pluginScope(dir, ctx) === "global"
     for (const file of ConfigPaths.fileInDirectory(dir, "tui")) {
-      yield* mergeFile(acc, file)
+      yield* mergeFile(acc, file, trusted)
     }
   }
 

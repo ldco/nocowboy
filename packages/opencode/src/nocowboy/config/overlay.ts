@@ -138,8 +138,9 @@ export namespace NoCowboyConfigOverlay {
   }
 
   export async function resolve(input: Input): Promise<Result> {
-    const local = await withAgents(await project(input), await projectDirs(input))
-    const global = await withAgents(input.global, globalDirs())
+    // nocowboy_change - project agents are untrusted; global agents are user-owned and trusted (upstream b793bf788f)
+    const local = await withAgents(await project(input), await projectDirs(input), false)
+    const global = await withAgents(input.global, globalDirs(), true)
     const targets = {
       global: globalTarget(),
       project: await projectTarget(input),
@@ -190,19 +191,21 @@ export namespace NoCowboyConfigOverlay {
     ]
   }
 
-  async function withAgents(input: Config.Info, dirs: string[]): Promise<Config.Info> {
+  // nocowboy_change - trusted gates {env:} and confines untrusted agent prompt {file:} reads
+  async function withAgents(input: Config.Info, dirs: string[], trusted: boolean): Promise<Config.Info> {
     const [dir, ...rest] = dirs
     if (!dir) return input
-    if (!existsSync(dir)) return withAgents(input, rest)
-    const agent = await ConfigAgent.load(dir)
+    if (!existsSync(dir)) return withAgents(input, rest, trusted)
+    const agent = await ConfigAgent.load(dir, undefined, trusted)
     const mode = await ConfigAgent.loadMode(dir)
     const next = NoCowboyConfig.mergeConfig(NoCowboyConfig.mergeConfig(input, { agent }), { agent: mode })
-    return withAgents(next, rest)
+    return withAgents(next, rest, trusted)
   }
 
   async function load(file: string): Promise<Config.Info> {
     const text = await Bun.file(file).text()
-    const expanded = await ConfigVariable.substitute({ text, type: "path", path: file })
+    // nocowboy_change - overlay reads project config files; {file:}/{env:} references are untrusted here
+    const expanded = await ConfigVariable.substitute({ text, type: "path", path: file, trusted: false })
     const parsed = ConfigParse.jsonc(expanded, file)
     if (!isRecord(parsed)) return {}
     return ConfigParse.schema(Config.Info, parsed, file) as Config.Info
