@@ -20,7 +20,6 @@ import * as Truncate from "./truncate"
 import { Plugin } from "@/plugin"
 import { normalizeUrls } from "@/nocowboy/util/url"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
-import { unparsed } from "@/nocowboy/tool/shell-unparsed" // nocowboy_change - T0.5 fail closed on unparsed commands
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ShellPrompt, type Parameters } from "./shell/prompt"
@@ -433,14 +432,6 @@ export const ShellTool = Tool.define(
           scan.always.add(BashArity.prefix(tokens).join(" ") + " *")
         }
       }
-
-      // nocowboy_change start - fail closed on commands the grammar failed to parse (#12326)
-      const lost = unparsed(root, nodes.length)
-      if (lost.length > 0) scan.access = "unknown"
-      for (const pattern of lost) {
-        scan.patterns.add(pattern)
-      }
-      // nocowboy_change end
 
       return scan
     })
