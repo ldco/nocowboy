@@ -61,8 +61,14 @@ export namespace KiloTask {
     const rules = Permission.merge(input.caller.permission ?? [], input.session.permission ?? [])
     const prefixes = Object.keys(input.mcp ?? {}).map((k) => k.replace(/[^a-zA-Z0-9_-]/g, "_") + "_")
     const isMcp = (p: string) => prefixes.some((prefix) => p.startsWith(prefix))
+    // nocowboy_change - T0.10 (upstream 3a99f36): broad bash denies are deliberately NOT inherited
+    // from the calling agent. A read-only/delegating agent carries a readOnlyBash allowlist whose deny
+    // rules ("*", "git *") only shape that allowlist; projecting them onto a writable subagent caps
+    // commands its own config allows (e.g. `git status`) with phantom deny rules. Only edit/notebook
+    // and MCP denials stay hard ceilings; the subagent's own bash policy governs bash.
+    const mutation = new Set(["edit", "notebook_edit", "notebook_execute"])
     return rules.filter(
-      (r: Permission.Rule) => r.permission === "edit" || r.permission === "bash" || isMcp(r.permission),
+      (r: Permission.Rule) => r.action === "deny" && (mutation.has(r.permission) || isMcp(r.permission)),
     )
   }
 
