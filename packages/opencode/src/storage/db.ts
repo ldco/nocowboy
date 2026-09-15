@@ -5,6 +5,7 @@ export * from "drizzle-orm"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { LocalContext } from "@/util/local-context"
 import { Global } from "@nocowboy/core/global"
+import { DbPreflight } from "@nocowboy/core/nocowboy/db-preflight" // nocowboy_change - T0.8 batch
 import * as Log from "@nocowboy/core/util/log"
 import { NamedError } from "@nocowboy/core/util/error"
 import path from "path"
@@ -107,6 +108,9 @@ export const Client = Object.assign(
 
     const dbPath = getPath(flags)
     log.info("opening database", { path: dbPath })
+    // nocowboy_change - actionable error (and self-heal for nocowboy-owned files) instead of an
+    // opaque wal_checkpoint crash on read-only db files (upstream 0fe46ec, T0.8 batch)
+    DbPreflight.assertWritable(dbPath, Global.Path.data)
 
     const db = init(dbPath)
 

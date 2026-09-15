@@ -528,9 +528,18 @@ export const layer = Layer.effect(
 
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
       if (!data.$schema) {
+        // nocowboy_change start - ported from upstream 0d830cb: inject via jsonc-parser so comment-first
+        // JSONC is not corrupted and a config already carrying a schema is never rewritten on every load
         data.$schema = "https://nocowboy.dev/config.json"
-        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://nocowboy.dev/config.json",')
-        yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
+        const edits = modify(text, ["$schema"], "https://nocowboy.dev/config.json", {
+          formattingOptions: { insertSpaces: true, tabSize: 2 },
+          getInsertionIndex: () => 0,
+        })
+        const updated = applyEdits(text, edits)
+        if (updated !== text) {
+          yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
+        }
+        // nocowboy_change end
       }
       return data
     })
