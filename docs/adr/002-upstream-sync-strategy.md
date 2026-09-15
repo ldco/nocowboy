@@ -29,7 +29,7 @@ We have since built independent systems that overlap upstream features:
 | Permission system | own permission matcher (plan/architect/code modes) | upstream permission + sandbox |
 | Worktree/snapshot | TUI-first, inherited snapshot code | Agent Manager + snapshot pre-warm |
 
-The full per-release audit is in `docs/upstream-sync-audit.md`; the prioritized port list is in `docs/reference/upstream-port-list.md`.
+The full per-release audit is in `docs/upstream-sync-audit.md`; the prioritized port list is in `docs/reference/upstream-port-list.md`. This ADR plus ADR-003 define the going-forward process; the audit below is the first pass, not a one-off.
 
 ## Decision
 

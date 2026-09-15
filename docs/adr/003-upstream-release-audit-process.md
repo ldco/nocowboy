@@ -34,8 +34,8 @@ The drift was not a decision — it was the *absence* of a decision. We independ
 | 1. Fetch | `git fetch upstream --tags` |
 | 2. Diff the tag frontier | `git tag -l "v*"` and diff against the **last-reviewed tag** recorded in this ADR |
 | 3. Read the changeset window | `git show upstream/main:packages/opencode/CHANGELOG.md` for the new range |
-| 4. Triage | classify each item against `docs/upstream/release-audit-v7.4-v7.7.md` categories: S/D → port now; BUG → port; OVERLAP → keep ours / borrow; PERF → defer; SKIP → ignore |
-| 5. Record | append the reviewed tag range to a "Reviewed frontier" table; update `docs/upstream/port-backlog.md` |
+| 4. Triage | classify each item against `docs/upstream-sync-audit.md` categories: S/D → port now; BUG → port; OVERLAP → keep ours / borrow; PERF → defer; SKIP → ignore |
+| 5. Record | append the reviewed tag range to a "Reviewed frontier" table; update `docs/reference/upstream-port-list.md` |
 
 ### Cadence
 
@@ -78,12 +78,12 @@ The markers are the **auditable ledger of divergence**. Upstream itself carries 
 | Tag range | Reviewed | Date | Result |
 |---|---|---|---|
 | v7.3.48 → v7.3.63 (post-fork tail) | ✅ | 2026-09-15 | Sandbox hardening triaged → `port-backlog.md` T0.4 |
-| v7.4.0 → v7.7.1 | ✅ | 2026-09-15 | Full audit → `docs/upstream/release-audit-v7.4-v7.7.md`; Tier 0/1 backlog |
+| v7.4.0 → v7.7.1 | ✅ | 2026-09-15 | Full audit → `docs/upstream-sync-audit.md`; Tier 0/1 backlog in `docs/reference/upstream-port-list.md` |
 
 *(Append rows here at each monthly pass.)*
 
 ## References
 
 - `docs/adr/002-upstream-sync-strategy.md` (fork strategy)
-- `docs/upstream/README.md`, `docs/upstream/release-audit-v7.4-v7.7.md`, `docs/upstream/port-backlog.md`
-- `docs/upstream-sync-audit.md`, `docs/reference/upstream-port-list.md`
+- `docs/upstream-sync-audit.md` (full per-release audit)
+- `docs/reference/upstream-port-list.md` (prioritized Tier 0/1 port list)
