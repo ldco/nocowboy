@@ -69,6 +69,11 @@
       "description": "Autonomous Agent Loop + Subagent Reliability — Goal Agent, Agent Teams, subagent watchdog, TUI polish"
     },
     {
+      "tag": "v0.12.1",
+      "date": "2026-09-15",
+      "description": "Stream-stall hotfix — раздельные бюджеты TTFT/межсобытиечного idle + авто-ретрай сталла провайдера"
+    },
+    {
       "tag": "v1.0.0-alpha",
       "description": "Alpha — internal testing"
     },
@@ -2466,6 +2471,27 @@
         {
           "type": "file",
           "path": "packages/opencode/src/nocowboy/indexing.ts"
+        }
+      ]
+    },
+    {
+      "id": "stream-stall-idle-timeout-fix",
+      "title": "Stream-stall watchdog fix — TTFT не убивает здоровые запросы, stall ретраится",
+      "status": "done",
+      "version": "v0.12.1",
+      "changelog": "Core Infrastructure",
+      "tags": [
+        "watchdog",
+        "stream",
+        "retry",
+        "session"
+      ],
+      "description": "withIdleTimeout применял один 300s бюджет и к первому событию, и к паузам между событиями: на большом контексте prefill легитимно длится минуты, и watchdog абартил здоровые запросы у любого провайдера (reproduced on two providers/models). Фикс: отдельный бюджет time-to-first-event (stream_first_event_timeout_ms, default 600000, env NOCOWBOY_STREAM_FIRST_EVENT_TIMEOUT_MS, 0=выкл) +tight 300s между событиями; ошибка сталла помечена маркером STREAM_IDLE_MARKER и распознаётся SessionRetry.retryable() → авто-ретрай вместо смерти сессии.",
+      "done_at": "2026-09-15",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/stream-stall-idle-timeout-fix.md"
         }
       ]
     }

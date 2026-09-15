@@ -351,6 +351,13 @@
 - **DONE** Indexing — автоматический failover voyage → ollama для эмбеддера
   `verify:file packages/opencode/src/nocowboy/indexing.ts`
 
+## v0.12.1 — Stream-stall hotfix — раздельные бюджеты TTFT/межсобытиечного idle + авто-ретрай сталла провайдера (2026-09-15)
+
+### Core Infrastructure
+
+- **DONE** Stream-stall watchdog fix — TTFT не убивает здоровые запросы, stall ретраится
+  `verify:file docs/features/stream-stall-idle-timeout-fix.md`
+
 ## v1.0.0-alpha — Alpha — internal testing
 
 - **DONE** v0.10.0 + v0.11.0 — все фичи реализованы
