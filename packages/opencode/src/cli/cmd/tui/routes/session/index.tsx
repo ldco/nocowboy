@@ -62,6 +62,7 @@ import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { ErrorBlock } from "@/nocowboy/components/error-display"
 import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { YoloButton } from "@/nocowboy/components/yolo-button"
+import { PasteButton } from "@/nocowboy/components/paste-button"
 // BalanceIndicator — перенесён в Info tab (sidebar/context.tsx)
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
@@ -1462,6 +1463,7 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
+                            <PasteButton />
                             <YoloButton />
                             <text
                               fg={theme.textMuted}
