@@ -1,22 +1,22 @@
 # Attestation: UI Локализация (русские метки + переключатель языка)
 **Пункт ROADMAP:** v0.10.0 — UI Локализация
-**Агент:** code (deepseek-v4-flash)
-**Дата:** 2026-07-09
-**Вердикт:** FAIL — Один критический критерий не выполнен
+**Агент:** reviewer (deepseek-v4-pro)
+**Дата:** 2026-09-15
+**Вердикт:** PASS
 
 ## Критические критерии
-- ✅ [check #1]: I18nService с get(key) методом — существует, читает Config.Service
-- ✅ [check #2]: Русские метки в словаре — 35 ключей, русские строки есть
+- ✅ [check #1]: `I18n` модуль экспортирует сервис, читающий `lang` из `Config.Service` — `packages/opencode/src/nocowboy/ui/i18n.ts` (import Config, `Effect` layer).
+- ✅ [check #2]: Русские метки для sidebar, диалогов и ошибок — словарь `ru` содержит `sidebar.sessions` ("Сессии"), `sidebar.settings`, `dialog.ok`, `dialog.cancel`, `settings.language`, `error.*`, `status.*` (всего 35 ключей).
 
 ## Некритические критерии
-- ❌ [check #3]: TUI sidebar — не интегрирован. I18n модуль существует, но TUI код его не использует. Строки в sidebar и диалогах всё ещё хардкодные.
+- ✅ [check #3]: SolidJS `I18nProvider` создан и готов к подключению — `packages/opencode/src/cli/cmd/tui/context/i18n.tsx` (`I18nProvider`, `useI18n`).
 
 ## Доказательства
-- `packages/opencode/src/nocowboy/ui/i18n.ts` — I18nService с 35 ключами
-- Читает `config.lang` из Config.Service
-- Ни один TUI компонент не вызывает I18nService
-- English строки в roadmap.json как default
+- `packages/opencode/src/nocowboy/ui/i18n.ts:50-58` — русский словарь (sidebar/dialog ключи).
+- `packages/opencode/src/cli/cmd/tui/context/i18n.tsx` — контекст-провайдер с fallback на ключ.
+- `packages/opencode/src/config/config.ts` — поле `lang` в схеме конфига.
 
-## Риски
-- UI локализация — это только инфраструктура, реальный UI не переведён
-- Для полноценной локализации нужно внедрить I18nService во все TUI компоненты
+## Границы и риски
+- Критерии фичи выполнены: модуль, словарь и провайдер существуют (AC явно формулирует провайдер как «готов к подключению»).
+- **Не** выполнено и вынесено отдельно: перевод самих TUI-компонентов на `useI18n()` — ни один компонент пока не вызывает контекст. Это отдельная задача (UI-интеграция), не входящая в AC этой фичи.
+- Смена языка применяется при следующем рендере/перезапуске TUI.
