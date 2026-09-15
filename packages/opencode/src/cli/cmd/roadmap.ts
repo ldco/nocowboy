@@ -168,8 +168,12 @@ const GENERATED_MARKER = "generated from docs/roadmap.json"
  *  If file exists and doesn't contain GENERATED_MARKER → backup to .backup.md first. */
 function safeWriteGenerated(path: string, content: string): void {
   if (existsSync(path)) {
-    const firstLines = readFileSync(path, "utf-8").trim().split("\n").slice(0, 3).join("\n")
-    if (!firstLines.includes(GENERATED_MARKER)) {
+    // Accept both our marker and the repo generator's `<!-- AUTO-GENERATED ... -->`
+    // marker (case-insensitively, anywhere in the file), so a fallback to this
+    // built-in generator never mistakes an already-generated file for a
+    // hand-written one.
+    const existing = readFileSync(path, "utf-8").toLowerCase()
+    if (!existing.includes(GENERATED_MARKER.toLowerCase())) {
       // Existing file has custom content — backup before overwriting
       const backupPath = path.replace(/\.md$/, ".backup.md")
       copyFileSync(path, backupPath)

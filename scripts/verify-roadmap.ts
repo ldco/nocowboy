@@ -23,15 +23,26 @@ const DATA_PATH = join(PROJECT_ROOT, "docs", "roadmap.json");
 const ATTESTATIONS_DIR = join(PROJECT_ROOT, "docs", "attestations");
 const PACKAGES_ROOT = join(PROJECT_ROOT, "packages");
 
-// Auto-detect source root: prefer packages/opencode/src (NoCowboy), fallback to src/ (generic)
+// Auto-detect source root. Keep this in sync with detectPackageDir() in
+// packages/opencode/src/cli/cmd/roadmap.ts so the CLI can safely delegate here
+// for both `packages/opencode` (this repo) and `packages/nocowboy` layouts.
+function detectPackageDir(root: string): string {
+  for (const name of ["opencode", "nocowboy"]) {
+    const dir = join(root, "packages", name);
+    if (existsSync(join(dir, "package.json"))) return dir;
+  }
+  return root;
+}
+
+const PACKAGE_DIR = detectPackageDir(PROJECT_ROOT);
 let SOURCE_BASE: string;
-if (existsSync(join(PROJECT_ROOT, "packages", "opencode", "src"))) {
-  SOURCE_BASE = join(PROJECT_ROOT, "packages", "opencode", "src");
+if (existsSync(join(PACKAGE_DIR, "src"))) {
+  SOURCE_BASE = join(PACKAGE_DIR, "src");
 } else {
   SOURCE_BASE = join(PROJECT_ROOT, "src");
 }
 
-let PACKAGES_OPENCODE = join(PROJECT_ROOT, "packages", "opencode");
+let PACKAGES_OPENCODE = PACKAGE_DIR;
 if (!existsSync(PACKAGES_OPENCODE)) {
   PACKAGES_OPENCODE = PROJECT_ROOT;
 }

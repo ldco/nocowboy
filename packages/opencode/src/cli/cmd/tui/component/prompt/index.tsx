@@ -102,6 +102,26 @@ const money = new Intl.NumberFormat("en-US", {
 
 const DRAFT_RETENTION_MIN_CHARS = 20
 
+/** Media attachments above this size are refused: base64 adds ~33% and the
+ *  encode runs synchronously on the TUI thread. */
+const ATTACH_MAX_BYTES = 25 * 1024 * 1024
+
+/** Shared classification for the clipboard paste and the file picker. */
+function classifyAttachment(mime: string | undefined): "svg" | "media" | "text" {
+  if (mime === "image/svg+xml") return "svg"
+  if (mime && (mime.startsWith("image/") || mime === "application/pdf")) return "media"
+  return "text"
+}
+
+/** A text body large enough to be collapsed instead of inserted verbatim. */
+function isLargeText(text: string): boolean {
+  return (text.match(/\n/g)?.length ?? 0) + 1 >= 5 || text.length > 800
+}
+
+function formatBytes(bytes: number): string {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 function randomIndex(count: number) {
   if (count <= 0) return 0
   return Math.floor(Math.random() * count)
@@ -1324,35 +1344,44 @@ export function Prompt(props: PromptProps) {
       try {
         const mime = await Filesystem.mimeType(filepath)
         const filename = path.basename(filepath)
-        if (mime === "image/svg+xml") {
+        const kind = classifyAttachment(mime)
+        if (kind === "svg") {
           const content = await Filesystem.readText(filepath).catch(() => {})
           if (content) {
             pasteText(content, `[SVG: ${filename ?? "image"}]`)
             return
           }
         }
-        if (mime.startsWith("image/") || mime === "application/pdf") {
-          const content = await Filesystem.readArrayBuffer(filepath)
-            .then((buffer) => Buffer.from(buffer).toString("base64"))
-            .catch(() => {})
-          if (content) {
-            await pasteAttachment({
-              filename,
-              filepath,
-              mime,
-              content,
+        if (kind === "media") {
+          const size = await Filesystem.size(filepath).catch(() => 0)
+          if (size > ATTACH_MAX_BYTES) {
+            toast.show({
+              variant: "error",
+              message: `${filename ?? "attachment"} is ${formatBytes(size)} — media attachments must be under ${formatBytes(ATTACH_MAX_BYTES)}`,
             })
-            return
+          } else {
+            const content = await Filesystem.readArrayBuffer(filepath)
+              .then((buffer) => Buffer.from(buffer).toString("base64"))
+              .catch(() => {})
+            if (content) {
+              await pasteAttachment({
+                filename,
+                filepath,
+                mime,
+                content,
+              })
+              return
+            }
           }
         }
       } catch {}
     }
 
-    const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
     if (
-      (lineCount >= 5 || pastedContent.length > 800) &&
+      isLargeText(pastedContent) &&
       kv.get("paste_summary_enabled", !sync.data.config.experimental?.disable_paste_summary)
     ) {
+      const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
       pasteText(pastedContent, `[Pasted ~${lineCount} lines]`)
       return
     }
@@ -1417,7 +1446,25 @@ export function Prompt(props: PromptProps) {
   async function attachPath(filepath: string) {
     const filename = path.basename(filepath)
     const mime = await Filesystem.mimeType(filepath).catch(() => undefined)
-    if (mime && (mime.startsWith("image/") || mime === "application/pdf")) {
+    const kind = classifyAttachment(mime)
+
+    if (kind === "svg") {
+      const content = await Filesystem.readText(filepath).catch(() => undefined)
+      if (content) {
+        pasteText(content, `[SVG: ${filename}]`)
+        return
+      }
+    }
+
+    if (kind === "media" && mime) {
+      const size = await Filesystem.size(filepath).catch(() => 0)
+      if (size > ATTACH_MAX_BYTES) {
+        toast.show({
+          variant: "error",
+          message: `${filename} is ${formatBytes(size)} — media attachments must be under ${formatBytes(ATTACH_MAX_BYTES)}`,
+        })
+        return
+      }
       const content = await Filesystem.readArrayBuffer(filepath)
         .then((buffer) => Buffer.from(buffer).toString("base64"))
         .catch(() => undefined)
@@ -1426,12 +1473,12 @@ export function Prompt(props: PromptProps) {
         return
       }
     }
+
     const text = await Filesystem.readText(filepath).catch(() => undefined)
     if (text === undefined) return
     const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-    const lineCount = (normalized.match(/\n/g)?.length ?? 0) + 1
     if (
-      (lineCount >= 5 || normalized.length > 800) &&
+      isLargeText(normalized.trim()) &&
       kv.get("paste_summary_enabled", !sync.data.config.experimental?.disable_paste_summary)
     ) {
       pasteText(normalized, `[File: ${filename}]`)

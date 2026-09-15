@@ -305,9 +305,14 @@ export function getBalanceColor(balance: number, thresholds?: BalanceThresholds)
  * Returns null if no balance provider supports this combination.
  */
 export function findBalanceDescriptor(providerID: string, modelID: string): BalanceProviderDescriptor | null {
-  const direct = registry.find((bp) => bp.id === providerID)
+  const direct = registry.find((bp) => sameProvider(bp.id, providerID))
   if (direct) return direct
   return registry.find((bp) => bp.match(providerID, modelID)) ?? null
+}
+
+/** Provider ids are compared case-insensitively everywhere (matches the lowercased `match()` predicates). */
+function sameProvider(a: string, b: string): boolean {
+  return a.toLowerCase() === b.toLowerCase()
 }
 
 /**
@@ -327,9 +332,9 @@ export function findBalanceProvider(
   if (!descriptor) return null
 
   // Direct match: current provider IS a known balance provider
-  if (descriptor.match(currentPID, currentModelID) && descriptor.id === currentPID) {
+  if (descriptor.match(currentPID, currentModelID) && sameProvider(descriptor.id, currentPID)) {
     for (const p of providers) {
-      if (p.id === currentPID && p.key) {
+      if (sameProvider(p.id, currentPID) && p.key) {
         return {
           providerID: p.id,
           apiKey: p.key,
@@ -341,7 +346,7 @@ export function findBalanceProvider(
   }
 
   // Model-based match: find the provider that owns this model
-  const descriptorID = descriptor.id
+  const descriptorID = descriptor.id.toLowerCase()
   for (const p of providers) {
     const lower = (p.id + (p.name ?? "")).toLowerCase()
     if (lower.includes(descriptorID) && p.key) {
@@ -368,11 +373,11 @@ export function findBalanceProvider(
 export async function fetchBalance(providerID: string, apiKey: string, baseURL?: string): Promise<number> {
   if (!apiKey) return 0
 
-  const ck = cacheKey(providerID, apiKey)
+  const ck = cacheKey(providerID.toLowerCase(), apiKey)
   const cached = cachedBalance(ck)
   if (cached !== undefined) return cached
 
-  const desc = registry.find((bp) => bp.id === providerID)
+  const desc = registry.find((bp) => sameProvider(bp.id, providerID))
   if (!desc) return 0
 
   const value = await desc.fetch(apiKey, baseURL)

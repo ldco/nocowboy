@@ -200,6 +200,12 @@ describe("provider-balance", () => {
       expect(desc!.id).toBe("openrouter")
     })
 
+    test("the direct provider id match is case-insensitive", () => {
+      const desc = findBalanceDescriptor("OpenRouter", "deepseek/deepseek-chat")
+      expect(desc).not.toBeNull()
+      expect(desc!.id).toBe("openrouter")
+    })
+
     test("model-name fallback still works for unknown providers", () => {
       expect(findBalanceDescriptor("custom-provider", "deepseek-v4-pro")?.id).toBe("deepseek")
     })

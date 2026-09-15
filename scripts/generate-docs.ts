@@ -8,7 +8,7 @@
  * Никто не редактирует .md вручную. Единственный источник — docs/roadmap.json.
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   type VerifyDef,
@@ -22,6 +22,27 @@ import {
 
 const DATA_PATH = join(import.meta.dir, "..", "docs", "roadmap.json");
 const OUTPUT_DIR = join(import.meta.dir, "..", "docs");
+
+/** Present in every generated file; its absence means the file was edited by hand. */
+const GENERATED_MARKER = "AUTO-GENERATED from docs/roadmap.json";
+
+/**
+ * Write a generated file, backing up a hand-edited one first.
+ * The pre-commit hook runs this on every commit, so a manual edit must never be
+ * silently destroyed.
+ */
+function writeGenerated(name: string, content: string): void {
+  const path = join(OUTPUT_DIR, name);
+  if (existsSync(path)) {
+    const existing = readFileSync(path, "utf-8");
+    if (!existing.includes(GENERATED_MARKER)) {
+      const backupName = name.replace(/\.md$/, ".backup.md");
+      copyFileSync(path, join(OUTPUT_DIR, backupName));
+      console.log(`⚠️  ${name} had manual edits — backed up to ${backupName}`);
+    }
+  }
+  writeFileSync(path, content, "utf-8");
+}
 
 function formatVerify(d: VerifyDef): string {
   switch (d.type) {
@@ -189,9 +210,9 @@ function main(): number {
   const changelog = generateChangelog(data);
   const backlog = generateBacklog(data);
 
-  writeFileSync(join(OUTPUT_DIR, "ROADMAP.md"), roadmap, "utf-8");
-  writeFileSync(join(OUTPUT_DIR, "CHANGELOG.md"), changelog, "utf-8");
-  writeFileSync(join(OUTPUT_DIR, "BACKLOG.md"), backlog, "utf-8");
+  writeGenerated("ROADMAP.md", roadmap);
+  writeGenerated("CHANGELOG.md", changelog);
+  writeGenerated("BACKLOG.md", backlog);
 
   const stats = {
     roadmap: roadmap.split("\n").length,
