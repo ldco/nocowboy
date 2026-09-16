@@ -2,6 +2,7 @@ import { createMemo } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
+import { t } from "@tui/context/i18n"
 
 type AgentItem = { name: string; displayName?: string; description?: string; native?: boolean; deprecated?: boolean }
 
@@ -22,7 +23,7 @@ export function DialogAgent() {
 
   return (
     <DialogSelect
-      title="Select agent"
+      title={t("agent.select")}
       current={local.agent.current()?.name ?? ""}
       options={options()}
       onSelect={(option: { value: string }) => {

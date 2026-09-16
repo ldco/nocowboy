@@ -53,6 +53,47 @@ export namespace I18n {
     | "status.enabled"
     | "status.disabled"
     | "status.unknown"
+    | "permission.title"
+    | "permission.allow"
+    | "permission.allowAlways"
+    | "permission.reject"
+    | "permission.configAlways"
+    | "skills.title"
+    | "skills.search"
+    | "mcp.title"
+    | "themes.title"
+    | "agent.select"
+    | "model.select"
+    | "model.agentTitle"
+    | "variant.select"
+    | "provider.connect"
+    | "provider.authMethod"
+    | "provider.apiKey"
+    | "provider.authCode"
+    | "session.rename"
+    | "network.stop"
+    | "network.resume"
+    | "network.stopShort"
+    | "footer.getStarted"
+    | "footer.permissionOne"
+    | "footer.permissionMany"
+    | "export.filename"
+    | "dialog.selectItem"
+    | "dialog.confirmHint"
+    | "help.actions"
+    | "console.switchOrg"
+    | "workspace.warp"
+    | "workspace.existing"
+    | "plugins.title"
+    | "plugins.install"
+    | "tag.autocomplete"
+    | "dialog.messageActions"
+    | "dialog.forkSession"
+    | "dialog.subagentActions"
+    | "dialog.stash"
+    | "question.ownAnswer"
+    | "timeline.filterFilename"
+    | "palette.title"
     | "home.welcome"
     | "chat.inputPlaceholder"
 
@@ -106,6 +147,47 @@ export namespace I18n {
     "status.enabled": "Включено",
     "status.disabled": "Выключено",
     "status.unknown": "Неизвестно",
+    "permission.title": "Требуется подтверждение",
+    "permission.allow": "Разрешить",
+    "permission.allowAlways": "Разрешить всегда",
+    "permission.reject": "Отклонить",
+    "permission.configAlways": "Правки конфигов всегда требуют подтверждения",
+    "skills.title": "Навыки",
+    "skills.search": "Поиск навыков…",
+    "mcp.title": "MCP",
+    "themes.title": "Темы",
+    "agent.select": "Выбор агента",
+    "model.select": "Выбор модели",
+    "model.agentTitle": "Модели агентов — клик, чтобы назначить",
+    "variant.select": "Выбор варианта",
+    "provider.connect": "Подключить провайдера",
+    "provider.authMethod": "Способ авторизации",
+    "provider.apiKey": "API-ключ",
+    "provider.authCode": "Код авторизации",
+    "session.rename": "Переименовать сессию",
+    "network.stop": "Esc — остановить этот ход.",
+    "network.resume": "Enter — продолжить сейчас.",
+    "network.stopShort": "Esc — остановить.",
+    "footer.getStarted": "Начните с",
+    "footer.permissionOne": "Разрешение",
+    "footer.permissionMany": "Разрешения",
+    "export.filename": "Имя файла",
+    "dialog.selectItem": "Выбрать пункт",
+    "dialog.confirmHint": "Нажмите {key} ещё раз для подтверждения",
+    "help.actions": "Нажмите {shortcut}, чтобы увидеть все действия и команды в любом контексте.",
+    "console.switchOrg": "Сменить организацию",
+    "workspace.warp": "Warp",
+    "workspace.existing": "Существующее рабочее пространство",
+    "plugins.title": "Плагины",
+    "plugins.install": "Установить плагин",
+    "tag.autocomplete": "Автодополнение",
+    "dialog.messageActions": "Действия сообщения",
+    "dialog.forkSession": "Форк сессии",
+    "dialog.subagentActions": "Действия субагента",
+    "dialog.stash": "Отложенное",
+    "question.ownAnswer": "Свой ответ",
+    "timeline.filterFilename": "Фильтр по имени файла",
+    "palette.title": "Команды",
     "home.welcome": "Добро пожаловать в NoCowboy",
     "chat.inputPlaceholder": "Введите сообщение…",
   }
@@ -151,6 +233,47 @@ export namespace I18n {
     "session.context": "Context",
     "search.placeholder": "Search sessions…",
     "search.noResults": "No results found",
+    "permission.title": "Confirmation required",
+    "permission.allow": "Allow",
+    "permission.allowAlways": "Allow always",
+    "permission.reject": "Reject",
+    "permission.configAlways": "Config edits always require confirmation",
+    "skills.title": "Skills",
+    "skills.search": "Search skills...",
+    "mcp.title": "MCPs",
+    "themes.title": "Themes",
+    "agent.select": "Select agent",
+    "model.select": "Select model",
+    "model.agentTitle": "Agent Models — click a model to assign",
+    "variant.select": "Select variant",
+    "provider.connect": "Connect a provider",
+    "provider.authMethod": "Select auth method",
+    "provider.apiKey": "API key",
+    "provider.authCode": "Authorization code",
+    "session.rename": "Rename Session",
+    "network.stop": "Press Esc to stop this turn.",
+    "network.resume": "Press Enter to resume now.",
+    "network.stopShort": "Press Esc to stop.",
+    "footer.getStarted": "Get started",
+    "footer.permissionOne": "Permission",
+    "footer.permissionMany": "Permissions",
+    "export.filename": "Enter filename",
+    "dialog.selectItem": "Select item",
+    "dialog.confirmHint": "Press {key} again to confirm",
+    "help.actions": "Press {shortcut} to see all available actions and commands in any context.",
+    "console.switchOrg": "Switch org",
+    "workspace.warp": "Warp",
+    "workspace.existing": "Existing Workspace",
+    "plugins.title": "Plugins",
+    "plugins.install": "Install plugin",
+    "tag.autocomplete": "Autocomplete",
+    "dialog.messageActions": "Message Actions",
+    "dialog.forkSession": "Fork session",
+    "dialog.subagentActions": "Subagent Actions",
+    "dialog.stash": "Stash",
+    "question.ownAnswer": "Type your own answer",
+    "timeline.filterFilename": "Filter by filename",
+    "palette.title": "Commands",
     "home.welcome": "Welcome to NoCowboy",
     "settings.providers": "Providers",
     "settings.codeIndexing": "Code Indexing",

@@ -5,6 +5,7 @@ import { fileURLToPath } from "url"
 import { DialogSelect, type DialogSelectOption } from "@tui/ui/dialog-select"
 import { Show, createEffect, createMemo, createSignal } from "solid-js"
 import { useBindings } from "../../keymap"
+import { t } from "@tui/context/i18n"
 
 const id = "internal:plugin-manager"
 
@@ -46,7 +47,7 @@ function Install(props: { api: TuiPluginApi }) {
 
   return (
     <props.api.ui.DialogPrompt
-      title="Install plugin"
+      title={t("plugins.install")}
       placeholder="npm package name"
       busy={busy()}
       busyText="Installing plugin..."
@@ -200,7 +201,7 @@ function View(props: { api: TuiPluginApi }) {
 
   return (
     <DialogSelect
-      title="Plugins"
+      title={t("plugins.title")}
       options={rows()}
       current={cur()}
       onMove={(item) => setCur(item.value)}

@@ -2,6 +2,7 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { useDialog } from "./dialog"
 import { useBindings, useCommandShortcut } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 export function DialogHelp() {
   const dialog = useDialog()
@@ -27,7 +28,7 @@ export function DialogHelp() {
       </box>
       <box paddingBottom={1}>
         <text fg={theme.textMuted}>
-          Press {commandShortcut()} to see all available actions and commands in any context.
+          {t("help.actions", { shortcut: commandShortcut() ?? "" })}
         </text>
       </box>
       <box flexDirection="row" justifyContent="flex-end" paddingBottom={1}>

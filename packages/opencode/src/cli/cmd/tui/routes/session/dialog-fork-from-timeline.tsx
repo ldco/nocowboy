@@ -8,6 +8,7 @@ import { useRoute } from "@tui/context/route"
 import { useDialog, type DialogContext } from "../../ui/dialog"
 import type { PromptInfo } from "@tui/component/prompt/history"
 import { strip } from "@tui/component/prompt/part"
+import { t } from "@tui/context/i18n"
 
 export function DialogForkFromTimeline(props: { sessionID: string; onMove: (messageID?: string) => void }) {
   const sync = useSync()
@@ -72,5 +73,5 @@ export function DialogForkFromTimeline(props: { sessionID: string; onMove: (mess
     return [fullSession, ...result.reverse()]
   })
 
-  return <DialogSelect onMove={(option) => props.onMove(option.value)} title="Fork session" options={options()} />
+  return <DialogSelect onMove={(option) => props.onMove(option.value)} title={t("dialog.forkSession")} options={options()} />
 }

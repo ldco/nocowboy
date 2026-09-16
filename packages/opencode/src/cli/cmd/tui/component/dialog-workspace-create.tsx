@@ -10,6 +10,7 @@ import { useSDK } from "../context/sdk"
 import { useToast } from "../ui/toast"
 import { DialogAlert } from "../ui/dialog-alert"
 import { DialogWorkspaceFileChanges } from "./dialog-workspace-file-changes"
+import { t } from "@tui/context/i18n"
 
 type Adapter = {
   type: string
@@ -240,7 +241,7 @@ export function DialogWorkspaceSelect(props: {
   if (!adapters()) return null
   return (
     <DialogSelect<WorkspaceSelectValue>
-      title="Warp"
+      title={t("workspace.warp")}
       skipFilter={true}
       renderFilter={false}
       options={options()}
@@ -287,7 +288,7 @@ function DialogExistingWorkspaceSelect(props: {
 
   return (
     <DialogSelect<ExistingWorkspaceSelectValue>
-      title="Existing Workspace"
+      title={t("workspace.existing")}
       options={options()}
       onSelect={(option) => {
         void props.onSelect({

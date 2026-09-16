@@ -6,6 +6,7 @@ import { useRoute } from "@tui/context/route"
 import * as Clipboard from "@tui/util/clipboard"
 import type { PromptInfo } from "@tui/component/prompt/history"
 import { strip } from "@tui/component/prompt/part"
+import { t } from "@tui/context/i18n"
 
 export function DialogMessage(props: {
   messageID: string
@@ -19,7 +20,7 @@ export function DialogMessage(props: {
 
   return (
     <DialogSelect
-      title="Message Actions"
+      title={t("dialog.messageActions")}
       options={[
         {
           title: "Revert",

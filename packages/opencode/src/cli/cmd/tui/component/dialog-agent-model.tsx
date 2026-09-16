@@ -4,6 +4,7 @@ import { useSync } from "@tui/context/sync"
 import { useSDK } from "@tui/context/sdk"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
+import { t } from "@tui/context/i18n"
 
 type AgentItem = { name: string; displayName?: string; description?: string; native?: boolean }
 
@@ -78,5 +79,5 @@ export function DialogAgentModel() {
     return result
   })
 
-  return <DialogSelect title="Agent Models — click a model to assign" options={options()} />
+  return <DialogSelect title={t("model.agentTitle")} options={options()} />
 }

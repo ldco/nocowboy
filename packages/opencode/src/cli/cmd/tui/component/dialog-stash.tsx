@@ -5,6 +5,7 @@ import { Locale } from "@/util/locale"
 import { useTheme } from "../context/theme"
 import { usePromptStash, type StashEntry } from "./prompt/stash"
 import { useCommandShortcut } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 function getRelativeTime(timestamp: number): string {
   const now = Date.now()
@@ -54,7 +55,7 @@ export function DialogStash(props: { onSelect: (entry: StashEntry) => void }) {
 
   return (
     <DialogSelect
-      title="Stash"
+      title={t("dialog.stash")}
       options={options()}
       onMove={() => {
         setToDelete(undefined)

@@ -5,6 +5,7 @@ import { useDialog } from "@tui/ui/dialog"
 import { useToast } from "@tui/ui/toast"
 import { useTheme } from "@tui/context/theme"
 import type { ExperimentalConsoleListOrgsResponse } from "@nocowboy/sdk/v2"
+import { t } from "@tui/context/i18n"
 
 type OrgOption = ExperimentalConsoleListOrgsResponse["orgs"][number]
 
@@ -99,5 +100,5 @@ export function DialogConsoleOrg() {
       }))
   })
 
-  return <DialogSelect<string | OrgOption> title="Switch org" options={options()} current={current()} />
+  return <DialogSelect<string | OrgOption> title={t("console.switchOrg")} options={options()} current={current()} />
 }

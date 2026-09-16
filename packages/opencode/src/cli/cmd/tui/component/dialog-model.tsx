@@ -12,6 +12,7 @@ import * as fuzzysort from "fuzzysort"
 import { useConnected } from "./use-connected"
 import { ModelInfoPanel } from "@/nocowboy/components/model-info-panel"
 import { FreeModelDisclosure } from "@/nocowboy/components/free-model-disclosure"
+import { t } from "@tui/context/i18n"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
@@ -191,7 +192,7 @@ export function DialogModel(props: { providerID?: string }) {
 
   const title = createMemo(() => {
     const value = provider()
-    if (!value) return "Select model"
+    if (!value) return t("model.select")
     return value.name
   })
 

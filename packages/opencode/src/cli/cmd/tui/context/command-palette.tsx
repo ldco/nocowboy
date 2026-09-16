@@ -9,6 +9,7 @@ import {
   useOpencodeKeymap,
 } from "../keymap"
 import { useTuiConfig } from "./tui-config"
+import { t } from "@tui/context/i18n"
 
 type SlashEntry = {
   display: string
@@ -155,7 +156,7 @@ function CommandPaletteDialog(props: { run(command: string): void }) {
     ]
   }
 
-  return <DialogSelect ref={(value) => (ref = value)} title="Commands" options={list()} />
+  return <DialogSelect ref={(value) => (ref = value)} title={t("palette.title")} options={list()} />
 }
 
 export function useCommandSlashes(): Accessor<readonly SlashEntry[]> {

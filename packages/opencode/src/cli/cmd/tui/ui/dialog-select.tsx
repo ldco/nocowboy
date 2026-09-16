@@ -19,6 +19,7 @@ import { Locale } from "@/util/locale"
 import { getScrollAcceleration } from "../util/scroll"
 import { useTuiConfig } from "../context/tui-config"
 import { formatKeyBindings, useBindings, useKeymapSelector } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 export interface DialogSelectProps<T> {
   title: string
@@ -306,7 +307,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
         },
         {
           name: "dialog.select.submit",
-          title: "Select item",
+          title: t("dialog.selectItem"),
           category: "Dialog",
           run: submit,
         },

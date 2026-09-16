@@ -6,6 +6,7 @@ import { useDialog, type DialogContext } from "@tui/ui/dialog"
 import { useTheme } from "@tui/context/theme"
 import type { Snapshot } from "@/snapshot"
 import type { PromptInfo } from "../../component/prompt/history"
+import { t } from "@tui/context/i18n"
 
 function formatDiff(diff: Snapshot.FileDiff): string {
   const lines: string[] = []
@@ -62,7 +63,7 @@ export function DialogTimeline(props: {
   return (
     <DialogSelect
       title={`Timeline — ${summaryLine()}`}
-      placeholder="Filter by filename"
+      placeholder={t("timeline.filterFilename")}
       options={options()}
       onMove={(option: DialogSelectOption<string>) => props.onMove(option.value)}
       actions={[

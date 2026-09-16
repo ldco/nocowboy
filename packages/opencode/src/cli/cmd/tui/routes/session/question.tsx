@@ -9,6 +9,7 @@ import { SplitBorder } from "../../component/border"
 import { useDialog } from "../../ui/dialog"
 import { useTuiConfig } from "../../context/tui-config"
 import { useBindings } from "../../keymap"
+import { t } from "@tui/context/i18n"
 
 export function QuestionPrompt(props: {
   request: QuestionRequest
@@ -428,7 +429,7 @@ export function QuestionPrompt(props: {
                           })
                         }}
                         initialValue={input()}
-                        placeholder="Type your own answer"
+                        placeholder={t("question.ownAnswer")}
                         placeholderColor={theme.textMuted}
                         minHeight={1}
                         maxHeight={6}

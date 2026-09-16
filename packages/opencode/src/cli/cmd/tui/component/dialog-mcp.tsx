@@ -6,6 +6,7 @@ import { DialogSelect, type DialogSelectRef, type DialogSelectOption } from "@tu
 import { useTheme } from "../context/theme"
 import { TextAttributes } from "@opentui/core"
 import { useSDK } from "@tui/context/sdk"
+import { t } from "@tui/context/i18n"
 
 function Status(props: { enabled: boolean; loading: boolean }) {
   const { theme } = useTheme()
@@ -74,7 +75,7 @@ export function DialogMcp() {
   return (
     <DialogSelect
       ref={setRef}
-      title="MCPs"
+      title={t("mcp.title")}
       options={options()}
       actions={actions()}
       onSelect={(_option) => {

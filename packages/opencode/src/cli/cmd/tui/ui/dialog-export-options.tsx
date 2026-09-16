@@ -4,6 +4,7 @@ import { useDialog, type DialogContext } from "./dialog"
 import { createStore } from "solid-js/store"
 import { onMount, Show } from "solid-js"
 import { useBindings } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 export type DialogExportOptionsProps = {
   defaultFilename: string
@@ -111,7 +112,7 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
             val.traits = { status: "FILENAME" }
           }}
           initialValue={props.defaultFilename}
-          placeholder="Enter filename"
+          placeholder={t("export.filename")}
           placeholderColor={theme.textMuted}
           textColor={theme.text}
           focusedTextColor={theme.text}

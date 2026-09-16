@@ -16,6 +16,7 @@ import { isConsoleManagedProvider } from "@tui/util/provider-origin"
 import * as NocowboyProvider from "@/nocowboy/cli/cmd/tui/component/dialog-provider"
 import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 const PROVIDER_PRIORITY: Record<string, number> = NocowboyProvider.PROVIDER_PRIORITY
 
@@ -110,7 +111,7 @@ export function createDialogProviderOptions() {
             async onSelect() {
               const providerID = await promptCustomProviderID()
               if (!providerID) return
-              return dialog.replace(() => <ApiMethod providerID={providerID} title="API key" custom />)
+              return dialog.replace(() => <ApiMethod providerID={providerID} title={t("provider.apiKey")} custom />)
             },
           }
         }
@@ -145,7 +146,7 @@ export function createDialogProviderOptions() {
                 dialog.replace(
                   () => (
                     <DialogSelect
-                      title="Select auth method"
+                      title={t("provider.authMethod")}
                       options={methods.map((x, index) => ({
                         title: x.label,
                         value: index,
@@ -225,7 +226,7 @@ export function createDialogProviderOptions() {
 
 export function DialogProvider() {
   const options = createDialogProviderOptions()
-  return <DialogSelect title="Connect a provider" options={options()} />
+  return <DialogSelect title={t("provider.connect")} options={options()} />
 }
 
 interface AutoMethodProps {
@@ -310,7 +311,7 @@ function CodeMethod(props: CodeMethodProps) {
   return (
     <DialogPrompt
       title={props.title}
-      placeholder="Authorization code"
+      placeholder={t("provider.authCode")}
       onConfirm={async (value) => {
         const { error } = await sdk.client.provider.oauth.callback({
           providerID: props.providerID,

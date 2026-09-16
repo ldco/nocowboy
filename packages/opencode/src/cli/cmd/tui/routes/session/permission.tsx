@@ -24,6 +24,7 @@ import { splitDiffHunks } from "@/nocowboy/tui/diff"
 import { normalizeUrls } from "@/nocowboy/util/url"
 import { useBindings, useCommandShortcut } from "../../keymap"
 import { usePathFormatter } from "../../context/path-format"
+import { t } from "@tui/context/i18n"
 
 const sessionApprovals = new Set<string>()
 function approvalKey(perm?: string, patterns?: string): string { return `${perm ?? "?"}:${patterns?.slice(0, 200) ?? "*"}` }
@@ -453,7 +454,7 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
             <box flexDirection="column" gap={0}>
               <box flexDirection="row" gap={1} flexShrink={0}>
                 <text fg={brand}>{"△"}</text>
-                <text fg={theme.text}>Требуется подтверждение</text>
+                <text fg={theme.text}>{t("permission.title")}</text>
               </box>
               <box flexDirection="row" gap={1} paddingLeft={2} flexShrink={0}>
                 <text fg={theme.textMuted} flexShrink={0}>
@@ -464,19 +465,19 @@ export function PermissionPrompt(props: { request: PermissionRequest }) {
               {/* nocowboy_change start - explain config file edits always require approval */}
               <Show when={props.request.metadata?.[ConfigProtection.DISABLE_ALWAYS_KEY]}>
                 <box paddingLeft={4} flexShrink={0}>
-                  <text fg={theme.textMuted}>Правки конфигов всегда требуют подтверждения</text>
+                  <text fg={theme.textMuted}>{t("permission.configAlways")}</text>
                 </box>
               </Show>
               </box>
           )
 
           const options: Record<string, string> = props.request.metadata?.[ConfigProtection.DISABLE_ALWAYS_KEY]
-            ? { once: "Разрешить", reject: "Отклонить" }
-            : { once: "Разрешить", always: "Разрешить всегда", reject: "Отклонить" }
+            ? { once: t("permission.allow"), reject: t("permission.reject") }
+            : { once: t("permission.allow"), always: t("permission.allowAlways"), reject: t("permission.reject") }
 
           const body = (
             <Prompt
-              title="Требуется подтверждение"
+              title={t("permission.title")}
               header={header()}
               body={current.body}
 options={options}

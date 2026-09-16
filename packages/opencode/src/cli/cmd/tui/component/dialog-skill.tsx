@@ -2,6 +2,7 @@ import { DialogSelect, type DialogSelectOption } from "@tui/ui/dialog-select"
 import { createResource, createMemo } from "solid-js"
 import { useDialog } from "@tui/ui/dialog"
 import { useSDK } from "@tui/context/sdk"
+import { t } from "@tui/context/i18n"
 
 export type DialogSkillProps = {
   onSelect: (skill: string) => void
@@ -32,5 +33,5 @@ export function DialogSkill(props: DialogSkillProps) {
     }))
   })
 
-  return <DialogSelect title="Skills" placeholder="Search skills..." options={options()} />
+  return <DialogSelect title={t("skills.title")} placeholder={t("skills.search")} options={options()} />
 }

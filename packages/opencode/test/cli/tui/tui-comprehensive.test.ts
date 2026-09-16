@@ -6,6 +6,7 @@
  */
 import { afterAll, expect, test } from "bun:test"
 import { existsSync } from "node:fs"
+import { readdir } from "node:fs/promises"
 import { resolve } from "node:path"
 
 const OVERALL_TIMEOUT = 25_000
@@ -143,10 +144,12 @@ test("B6. Theme mappings use semantic names (warning, error, success)", async ()
 
 test("B7. LSP text is wrapped in box paddingTop=1 (required for click events)", async () => {
   const f = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
-  const lspIdx = f.indexOf("<text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>")
+  // The heading label comes from the i18n dictionary now; what matters here is
+  // that the section is wrapped for click events.
+  const lspIdx = f.indexOf('{t("settings.lsp")}')
   expect(lspIdx).toBeGreaterThan(-1)
   // Check area around LSP element for box wrapper and click handler
-  const lspSection = f.substring(Math.max(0, lspIdx - 150), lspIdx + 400)
+  const lspSection = f.substring(Math.max(0, lspIdx - 200), lspIdx + 400)
   expect(lspSection).toContain("<box paddingTop={1}>")
   expect(lspSection).toContain("onMouseDown")
 })
@@ -212,6 +215,29 @@ test("B14. The prompt registers the attach and paste commands used by the button
   expect(attach).toContain('dispatchCommand("prompt.attach")')
   const paste = await readFile(resolve(SRC_ROOT, "nocowboy/components/paste-button.tsx"))
   expect(paste).toContain('dispatchCommand("prompt.paste")')
+})
+
+test("B16. No dialog title or placeholder is a hardcoded English literal", async () => {
+  // Localization is only real if new dialogs keep using the dictionary: a
+  // `title="Something"` literal would silently stay English in both languages.
+  const offenders: string[] = []
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith(".") || entry.name === "node_modules") continue
+      const full = resolve(dir, entry.name)
+      if (entry.isDirectory()) {
+        await walk(full)
+        continue
+      }
+      if (!entry.name.endsWith(".tsx")) continue
+      const text = await readFile(full)
+      for (const match of text.matchAll(/(title|placeholder)="[A-Z][^"]*"/g)) {
+        offenders.push(`${full.slice(SRC_ROOT.length + 1)}: ${match[0]}`)
+      }
+    }
+  }
+  await walk(TUI_ROOT)
+  expect(offenders).toEqual([])
 })
 
 test("B15. The sidebar mounts the language switcher and keeps no debug logging", async () => {

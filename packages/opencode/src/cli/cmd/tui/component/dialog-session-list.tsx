@@ -19,6 +19,7 @@ import { errorMessage } from "@/util/error"
 import { DialogSessionDeleteFailed } from "./dialog-session-delete-failed"
 import { WorkspaceLabel } from "./workspace-label"
 import { useCommandShortcut } from "../keymap"
+import { t } from "@tui/context/i18n"
 
 export function DialogSessionList() {
   const dialog = useDialog()
@@ -204,7 +205,7 @@ export function DialogSessionList() {
           ? () => <text fg={theme.accent}>{slot}</text>
           : undefined
       return {
-        title: isDeleting ? `Press ${deleteHint()} again to confirm` : x.title,
+        title: isDeleting ? t("dialog.confirmHint", { key: deleteHint() ?? "" }) : x.title,
         description: all && x.worktreeName ? `(${x.worktreeName})` : undefined,
         bg: isDeleting ? theme.error : undefined,
         value: x.id,
