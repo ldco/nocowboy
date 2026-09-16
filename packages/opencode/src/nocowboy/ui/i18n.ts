@@ -46,6 +46,13 @@ export namespace I18n {
     | "session.context"
     | "search.placeholder"
     | "search.noResults"
+    | "settings.providers"
+    | "settings.codeIndexing"
+    | "settings.lsp"
+    | "settings.mcpServers"
+    | "status.enabled"
+    | "status.disabled"
+    | "status.unknown"
     | "home.welcome"
     | "chat.inputPlaceholder"
 
@@ -92,6 +99,13 @@ export namespace I18n {
     "session.context": "Контекст",
     "search.placeholder": "Поиск сессий…",
     "search.noResults": "Ничего не найдено",
+    "settings.providers": "Провайдеры",
+    "settings.codeIndexing": "Индексация кода",
+    "settings.lsp": "LSP",
+    "settings.mcpServers": "MCP-серверы",
+    "status.enabled": "Включено",
+    "status.disabled": "Выключено",
+    "status.unknown": "Неизвестно",
     "home.welcome": "Добро пожаловать в NoCowboy",
     "chat.inputPlaceholder": "Введите сообщение…",
   }
@@ -138,6 +152,13 @@ export namespace I18n {
     "search.placeholder": "Search sessions…",
     "search.noResults": "No results found",
     "home.welcome": "Welcome to NoCowboy",
+    "settings.providers": "Providers",
+    "settings.codeIndexing": "Code Indexing",
+    "settings.lsp": "LSP",
+    "settings.mcpServers": "MCP Servers",
+    "status.enabled": "Enabled",
+    "status.disabled": "Disabled",
+    "status.unknown": "Unknown",
     "chat.inputPlaceholder": "Type a message…",
   }
 

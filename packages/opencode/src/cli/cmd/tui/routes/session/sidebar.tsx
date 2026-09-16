@@ -96,6 +96,8 @@ function SettingsTab() {
   const dialog = useDialog()
   const sdk = useSDK()
   const project = useProject()
+  // nocowboy_change: section labels come from the i18n dictionary
+  const t = useI18n()
   // mcpMsg removed — MCP list moved to Info tab (sidebar/mcp.tsx)
 
   useKeyboard((event: { ctrl: boolean; code?: string }) => {
@@ -163,7 +165,7 @@ function SettingsTab() {
       {/* nocowboy_change: language switcher (mirror: nocowboy/cli/cmd/tui/component/language-row) */}
       <LanguageRow />
 
-      <text attributes={TextAttributes.BOLD} fg={theme.text}>Providers</text>
+      <text attributes={TextAttributes.BOLD} fg={theme.text}>{t("settings.providers")}</text>
       <For each={connected()}>
         {(p: any) => (
           <text wrapMode="none">
@@ -175,7 +177,7 @@ function SettingsTab() {
         + Connect a provider
       </text>
       <box paddingTop={1}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>Code Indexing</text>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>{t("settings.codeIndexing")}</text>
         <text fg={indexingColor()}>
           {indexingText()}
         </text>
@@ -184,9 +186,9 @@ function SettingsTab() {
         </text>
       </box>
       <box paddingTop={1}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>LSP</text>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>{t("settings.lsp")}</text>
         <text fg={lspStatusColor()}>
-          {lspError() ? "Error" : lspEnabled() ? "Enabled" : "Disabled"}
+          {lspError() ? t("status.error") : lspEnabled() ? t("status.enabled") : t("status.disabled")}
         </text>
         <text fg={theme.textMuted} onMouseDown={() => { toggleLsp() }}>
           {lspEnabled() ? "Click to disable" : "Click to enable"}
@@ -195,7 +197,7 @@ function SettingsTab() {
 
       {/* MCP Servers section */}
       <box paddingTop={1} flexDirection="column" gap={1}>
-        <text attributes={TextAttributes.BOLD} fg={theme.text}>MCP Servers</text>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>{t("settings.mcpServers")}</text>
         <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogMcp />)}>
           + Add MCP Server
         </text>
