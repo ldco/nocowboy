@@ -141,6 +141,12 @@ export namespace I18n {
     | "autocomplete.noMatches"
     | "whichKey.noBindings"
     | "mcp.needsAuth"
+    | "sidebar.todo"
+    | "sidebar.modifiedFiles"
+    | "sidebar.context"
+    | "mcp.connected"
+    | "mcp.disabled"
+    | "mcp.needsClientId"
     | "home.welcome"
     | "chat.inputPlaceholder"
 
@@ -282,6 +288,12 @@ export namespace I18n {
     "autocomplete.noMatches": "Нет совпадений",
     "whichKey.noBindings": "Нет доступных привязок",
     "mcp.needsAuth": "Требуется авторизация",
+    "sidebar.todo": "Задачи",
+    "sidebar.modifiedFiles": "Изменённые файлы",
+    "sidebar.context": "Контекст",
+    "mcp.connected": "Подключено",
+    "mcp.disabled": "Отключено",
+    "mcp.needsClientId": "Нужен client ID",
     "home.welcome": "Добро пожаловать в NoCowboy",
     "chat.inputPlaceholder": "Введите сообщение…",
   }
@@ -415,6 +427,12 @@ export namespace I18n {
     "autocomplete.noMatches": "No matching items",
     "whichKey.noBindings": "No reachable bindings",
     "mcp.needsAuth": "Needs auth",
+    "sidebar.todo": "Todo",
+    "sidebar.modifiedFiles": "Modified Files",
+    "sidebar.context": "Context",
+    "mcp.connected": "Connected",
+    "mcp.disabled": "Disabled",
+    "mcp.needsClientId": "Needs client ID",
     "home.welcome": "Welcome to NoCowboy",
     "settings.providers": "Providers",
     "settings.codeIndexing": "Code Indexing",

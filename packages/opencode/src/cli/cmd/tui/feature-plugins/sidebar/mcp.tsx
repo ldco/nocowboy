@@ -70,13 +70,13 @@ function View(props: { api: TuiPluginApi }) {
                   </span>{" "}
                   <span style={{ fg: theme().textMuted }}>
                     <Switch fallback={item.status}>
-                      <Match when={item.status === "connected"}>Connected</Match>
+                      <Match when={item.status === "connected"}>{t("mcp.connected")}</Match>
                       <Match when={item.status === "failed"}>
                         <i>{item.error}</i>
                       </Match>
-                      <Match when={item.status === "disabled"}>Disabled</Match>
+                      <Match when={item.status === "disabled"}>{t("mcp.disabled")}</Match>
                       <Match when={item.status === "needs_auth"}>{t("mcp.needsAuth")}</Match>
-                      <Match when={item.status === "needs_client_registration"}>Needs client ID</Match>
+                      <Match when={item.status === "needs_client_registration"}>{t("mcp.needsClientId")}</Match>
                     </Switch>
                   </span>
                 </text>

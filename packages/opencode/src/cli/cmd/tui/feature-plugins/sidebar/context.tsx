@@ -14,6 +14,7 @@ import {
 } from "@/nocowboy/provider-balance"
 import { RGBA } from "@opentui/core"
 import { appendFileSync } from "node:fs"
+import { t, p } from "@tui/context/i18n"
 
 const BLOG = "/tmp/nocowboy-balance.log"
 
@@ -114,7 +115,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
         </box>
       </Show>
       <text fg={theme().text}>
-        <b>Context</b>
+        <b>{t("sidebar.context")}</b>
       </text>
       <text fg={theme().textMuted}>{state().tokens.toLocaleString()} tokens</text>
       <text fg={theme().textMuted}>{state().percent ?? 0}% used</text>

@@ -1,6 +1,7 @@
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
 import { createMemo, For, Show, createSignal } from "solid-js"
+import { t, p } from "@tui/context/i18n"
 
 const id = "internal:sidebar-files"
 
@@ -17,7 +18,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
             <text fg={theme().text}>{open() ? "▼" : "▶"}</text>
           </Show>
           <text fg={theme().text}>
-            <b>Modified Files</b>
+            <b>{t("sidebar.modifiedFiles")}</b>
           </text>
         </box>
         <Show when={list().length <= 2 || open()}>
