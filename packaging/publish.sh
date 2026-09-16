@@ -28,6 +28,16 @@ echo "Build OK"
 
 echo ""
 echo "Ready to publish ${NAME} v${VERSION}"
-echo "Run: cd $(pwd) && npm publish --access public"
+# A prerelease (1.0.0-alpha) must be published under its own dist-tag: npm
+# refuses `publish` for a prerelease without --tag, and using the default
+# `latest` would hand prerelease code to everyone running `npm i nocowboy-tui`.
+if [[ "$VERSION" == *-* ]]; then
+  NPM_TAG="${VERSION#*-}"
+  NPM_TAG="${NPM_TAG%%.*}"
+  echo "Run: cd $(pwd) && npm publish --access public --tag ${NPM_TAG}"
+  echo "     (prerelease: install with \`npm i -g ${NAME}@${NPM_TAG}\`)"
+else
+  echo "Run: cd $(pwd) && npm publish --access public"
+fi
 echo ""
 echo "Примечание: npm login должен быть выполнен заранее."
