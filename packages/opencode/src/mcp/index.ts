@@ -35,6 +35,7 @@ import open from "open"
 import { Effect, Exit, Layer, Option, Context, Schema, Stream } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
+import { Instance } from "@/nocowboy/instance"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 
@@ -168,8 +169,22 @@ function listTools(key: string, client: MCPClient, timeout: number) {
   )
 }
 
+// MCP servers that keep per-project state must be told which project a call
+// belongs to. One server process is shared by every NoCowboy instance, so
+// without this the project would be decided by whichever instance happened to
+// spawn the server first.
+const PROJECT_SCOPED_MCP = new Set(["nutausik"])
+
+function currentProjectDir(): string | undefined {
+  try {
+    return Instance.directory
+  } catch {
+    return undefined
+  }
+}
+
 // Convert MCP tool definition to AI SDK Tool type
-function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number): Tool {
+function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number, serverName?: string): Tool {
   const inputSchema = mcpTool.inputSchema
 
   // Spread first, then override type to ensure it's always "object"
@@ -180,14 +195,22 @@ function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number
     additionalProperties: false,
   }
 
+  const projectScoped = serverName !== undefined && PROJECT_SCOPED_MCP.has(serverName)
+
   return dynamicTool({
     description: mcpTool.description ?? "",
     inputSchema: jsonSchema(schema),
     execute: async (args: unknown) => {
+      let params = (args || {}) as Record<string, unknown>
+      if (projectScoped) {
+        const dir = currentProjectDir()
+        // Never override a caller that explicitly chose a project.
+        if (dir && params.projectDir === undefined) params = { ...params, projectDir: dir }
+      }
       return client.callTool(
         {
           name: mcpTool.name,
-          arguments: (args || {}) as Record<string, unknown>,
+          arguments: params,
         },
         CallToolResultSchema,
         {
@@ -712,7 +735,7 @@ export const layer = Layer.effect(
 
             const timeout = entry?.timeout ?? defaultTimeout
             for (const mcpTool of listed) {
-              result[sanitize(clientName) + "_" + sanitize(mcpTool.name)] = convertMcpTool(mcpTool, client, timeout)
+              result[sanitize(clientName) + "_" + sanitize(mcpTool.name)] = convertMcpTool(mcpTool, client, timeout, clientName)
             }
           }),
         { concurrency: "unbounded" },

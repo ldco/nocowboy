@@ -8,6 +8,7 @@
 // async (non-Effect) usage patterns or the callers are converted.
 
 import * as Log from "@nocowboy/core/util/log"
+import { Instance } from "./instance"
 
 const log = Log.create({ service: "nutausik.client" })
 
@@ -44,9 +45,21 @@ async function checkNutausikAlive(): Promise<boolean> {
   }
 }
 
+/** The project a call belongs to. The MCP server is shared by every instance,
+ *  so the project must travel with each request. */
+function currentProjectDir(): string | undefined {
+  try {
+    return Instance.directory
+  } catch {
+    return undefined
+  }
+}
+
 /** Raw JSON-RPC tool call via fetch. Returns the first content text or "". */
 function fireTool(name: string, args: Record<string, unknown> = {}): Promise<string> {
   const id = reqId++
+  const projectDir = (args.projectDir as string | undefined) ?? currentProjectDir()
+  const payload = projectDir ? { projectDir, ...args } : args
   return fetch(NUTAUSIK_MCP_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -54,7 +67,7 @@ function fireTool(name: string, args: Record<string, unknown> = {}): Promise<str
       jsonrpc: "2.0",
       id,
       method: "tools/call",
-      params: { name, arguments: args },
+      params: { name, arguments: payload },
     }),
     signal: AbortSignal.timeout(5000),
   })
