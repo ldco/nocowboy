@@ -47,11 +47,18 @@ if (!existsSync(PACKAGES_OPENCODE)) {
   PACKAGES_OPENCODE = PROJECT_ROOT;
 }
 
+/** Resolve a verify directive path. Keep in sync with resolvePath() in
+ *  packages/opencode/src/cli/cmd/roadmap.ts. */
 function resolvePath(ref: string): string {
   if (ref.startsWith("src/")) return join(SOURCE_BASE, ref.slice(4));
-  if (ref.startsWith("packages/")) return join(PROJECT_ROOT, ref);
-  if (ref.startsWith("scripts/")) return join(PROJECT_ROOT, ref);
-  if (ref.startsWith("docs/")) return join(PROJECT_ROOT, ref);
+  if (
+    ref.startsWith("packages/") ||
+    ref.startsWith("scripts/") ||
+    ref.startsWith("docs/") ||
+    ref.startsWith(".nocowboy/")
+  ) {
+    return join(PROJECT_ROOT, ref);
+  }
   return join(PROJECT_ROOT, ref);
 }
 
@@ -188,6 +195,7 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
     case "cmd": return checkCmd(v.command ?? v.path ?? "");
     case "agent": return checkAgent(feat.version ?? "unknown", feat.title);
     case "overseer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria);
+    case "reviewer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria);
     default: return `unknown verify type: ${v.type}`;
   }
 }

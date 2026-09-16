@@ -5,8 +5,10 @@
  * Single source of truth for Feature interfaces.
  */
 
-/** Valid verify directive types */
-export const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "overseer"] as const;
+/** Valid verify directive types. Keep in sync with VALID_VERIFY_TYPES in
+ *  packages/opencode/src/cli/cmd/roadmap.ts. "reviewer" is a legacy alias for
+ *  "overseer"; both are accepted so old roadmaps keep verifying. */
+export const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "overseer", "reviewer"] as const;
 export type VerifyType = typeof VALID_VERIFY_TYPES[number];
 
 /** Valid feature statuses */

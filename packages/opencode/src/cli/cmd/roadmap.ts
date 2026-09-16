@@ -72,7 +72,10 @@ interface Feature { id: string; title: string; status: string; version?: string;
 interface Version { tag: string; date?: string; description: string }
 interface RoadmapData { versions: Version[]; features: Feature[] }
 
-const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "reviewer"]
+// Keep in sync with scripts/lib/roadmap-types.ts + scripts/verify-roadmap.ts.
+// "overseer" is the canonical type used by docs/roadmap.json; "reviewer" is kept
+// as a legacy alias so older roadmaps keep verifying.
+const VALID_VERIFY_TYPES = ["file", "grep", "test", "typecheck", "cmd", "agent", "overseer", "reviewer"]
 const VALID_STATUSES = ["done", "planned", "in_progress", "backlog", "abandoned", "blocked"]
 
 function loadRoadmap(): RoadmapData | null {
@@ -315,9 +318,14 @@ function checkAgent(version: string, name: string): string | null {
   return existsSync(file) ? null : `attestation not found: ${file}`
 }
 
+/**
+ * Overseer (reviewer) attestation gate.
+ * Keep the pass/fail rules in sync with scripts/verify-roadmap.ts: a PASS verdict
+ * plus at least one ✅ per critical criterion.
+ */
 function checkOverseer(version: string, name: string, id: string, criteria: AcceptanceCriterion[] | undefined): string | null {
   const file = join(ATTESTATIONS_DIR, version, `${id}.md`)
-  if (!existsSync(file)) return `reviewer attestation not found: ${file}\n  Run reviewer agent to verify this feature first.`
+  if (!existsSync(file)) return `overseer attestation not found: ${file}\n  Run the reviewer agent to verify this feature first.`
   const content = readFileSync(file, "utf-8").trim()
   if (!content) return `attestation is empty: ${file}`
   const lines = content.split("\n")
@@ -326,12 +334,14 @@ function checkOverseer(version: string, name: string, id: string, criteria: Acce
   const hasFail = verdictLine ? /FAIL/i.test(verdictLine) : false
   const isTemplate = verdictLine && !isPass && !hasFail
   if (isTemplate) return `attestation has default verdict (not PASS/FAIL): ${file}`
-  if (!isPass) return `reviewer attestation FAILED or missing PASS verdict: ${file}`
+  if (!isPass) return `overseer attestation FAILED or missing PASS verdict: ${file}`
   if (criteria && criteria.length > 0) {
     const criticalCriteria = criteria.filter(c => c.critical)
     const passCount = (content.match(/✅/g) || []).length
-    if (passCount < criticalCriteria.length && content.includes("❌")) {
-      return `reviewer attestation has failing critical criteria: ${file}`
+    // Strict: every critical criterion needs its own ✅, regardless of whether a
+    // ❌ is also present. Matches scripts/verify-roadmap.ts.
+    if (passCount < criticalCriteria.length) {
+      return `overseer attestation has only ${passCount}/${criticalCriteria.length} passed criteria. Critical criteria require PASS.`
     }
   }
   return null
@@ -345,6 +355,7 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
     case "typecheck": return checkTypecheck()
     case "cmd": return checkCmd(v.command ?? v.path ?? "")
     case "agent": return checkAgent(feat.version ?? "unknown", feat.title)
+    case "overseer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria)
     case "reviewer": return checkOverseer(feat.version ?? "unknown", feat.title, feat.id, feat.acceptance_criteria)
     default: return `unknown verify type: ${v.type}`
   }
