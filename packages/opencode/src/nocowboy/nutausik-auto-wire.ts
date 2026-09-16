@@ -107,7 +107,7 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
         title: "Auto Dream",
         goal: DREAM_TASK,
       }).catch(() => {})
-    } catch {}
+    } catch { /* fire-and-forget */ }
   }
 
   // Auto-distill workflow detection (every 30 days)
@@ -117,7 +117,7 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
         title: "Auto Distill",
         goal: DISTILL_TASK,
       }).catch(() => {})
-    } catch {}
+    } catch { /* fire-and-forget */ }
   }
 }
 
@@ -156,5 +156,5 @@ export function onSessionEnded(sessionID: string, directory: string): void {
       inputTokens: 0,
       outputTokens: 0,
     })
-  } catch {}
+  } catch { /* fire-and-forget */ }
 }

@@ -28,7 +28,7 @@ function gitInfo() {
     const head = readFileSync(resolve(gitDir, ".git/HEAD"), "utf-8").trim()
     const m = head.match(/ref: refs\/heads\/(.+)/)
     if (m) branch = m[1] ?? ""
-  } catch {}
+  } catch { /* not a git repo → keep defaults */ }
   let ahead = 0, behind = 0, dirty = 0, untracked = 0
   try {
     const fwd = execSync(`git rev-list --count @{upstream}..HEAD 2>/dev/null || echo 0`, { cwd: gitDir, encoding: "utf-8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] })
@@ -41,7 +41,7 @@ function gitInfo() {
       if (line.startsWith("??")) untracked++
       else dirty++
     }
-  } catch {}
+  } catch { /* not a git repo → keep defaults */ }
   return { branch, ahead, behind, dirty, untracked, dir: gitDir }
 }
 

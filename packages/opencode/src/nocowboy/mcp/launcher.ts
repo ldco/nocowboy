@@ -25,14 +25,14 @@ export namespace Launcher {
       const map = JSON.parse(raw)
       const entry = map[name]
       if (entry && entry.command !== undefined) return entry.command
-    } catch {}
+    } catch { /* unreadable launch spec → fall back */ }
 
     // 2. Try installed @nocowboy/mcp-<name> packages
     try {
       const pkg = `@nocowboy/mcp-${name}`
       const bin = _require.resolve(`${pkg}/dist/index.js`)
       return `node ${bin}`
-    } catch {}
+    } catch { /* package not installed → fall back */ }
 
     // 3. Defaults (npx-based third-party servers)
     const entry = DEFAULT_LAUNCHES[name]

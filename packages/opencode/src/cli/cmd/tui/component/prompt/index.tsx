@@ -1334,7 +1334,7 @@ export function Prompt(props: PromptProps) {
       if (raw.startsWith("file://")) {
         try {
           return fileURLToPath(raw)
-        } catch {}
+        } catch { /* not a file path → paste as text */ }
       }
       if (process.platform === "win32") return raw
       return raw.replace(/\\(.)/g, "$1")
@@ -1374,7 +1374,7 @@ export function Prompt(props: PromptProps) {
             }
           }
         }
-      } catch {}
+      } catch { /* not a file path → paste as text */ }
     }
 
     if (

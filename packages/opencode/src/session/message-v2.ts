@@ -1298,7 +1298,7 @@ export function fromError(
             },
           ).toObject()
         }
-      } catch {}
+      } catch { /* unparseable provider error → generic error */ }
       return new NamedError.Unknown({ message: JSON.stringify(e) }, { cause: e }).toObject()
   }
 }

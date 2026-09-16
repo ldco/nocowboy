@@ -114,8 +114,8 @@ export namespace McpLifecycle {
     if (!pid) return
     try {
       process.kill(pid, "SIGTERM")
-      setTimeout(() => { try { process.kill(pid, "SIGKILL") } catch {} }, 3000)
-    } catch {}
+      setTimeout(() => { try { process.kill(pid, "SIGKILL") } catch { /* best-effort kill */ } }, 3000)
+    } catch { /* best-effort kill */ }
     await fsp.unlink(pf).catch(() => {})
   }
 

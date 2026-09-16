@@ -30,7 +30,7 @@ export async function migrateProjectMemory(projectID: string): Promise<void> {
   try {
     await fs.access(upper)
     return
-  } catch {}
+  } catch { /* absence is the expected signal */ }
   try {
     await fs.access(lower)
   } catch {

@@ -374,7 +374,7 @@ export function Session() {
         // (which will be non-interactive)
         try {
           await sync.bootstrap({ fatal: false })
-        } catch {}
+        } catch { /* non-fatal: the session stays visible */ }
       }
       editor.reconnect(result.data.directory)
       if (sessionID) await sync.session.sync(sessionID)

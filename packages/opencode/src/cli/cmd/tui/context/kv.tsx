@@ -41,7 +41,7 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
         console.error("Failed to read KV state", { filePath, error })
       })
       .finally(() => {
-        try { setReady(true) } catch {}
+        try { setReady(true) } catch { /* signal readiness regardless */ }
       })
 
     const result = {

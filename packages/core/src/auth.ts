@@ -120,7 +120,7 @@ export const layer = Layer.effect(
     const parseAuthContent = () => {
       try {
         return JSON.parse(process.env.KILO_AUTH_CONTENT ?? "")
-      } catch {}
+      } catch { /* malformed env → no auth content */ }
     }
 
     const load: () => Effect.Effect<Writable, AuthError> = Effect.fnUntraced(function* () {

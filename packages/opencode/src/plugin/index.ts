@@ -16,9 +16,9 @@ import { NamedError } from "@nocowboy/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
 // Dynamic import — optional external plugins, may not be installed
 let GitlabAuthPlugin: any = undefined
-try { GitlabAuthPlugin = (await import("@opencode-ai/plugin-gitlab-auth")).gitlabAuthPlugin } catch {}
+try { GitlabAuthPlugin = (await import("@opencode-ai/plugin-gitlab-auth")).gitlabAuthPlugin } catch { /* optional plugin may not be installed */ }
 let PoeAuthPlugin: any = undefined
-try { PoeAuthPlugin = (await import("@opencode-ai/plugin-poe-auth")).PoeAuthPlugin } catch {}
+try { PoeAuthPlugin = (await import("@opencode-ai/plugin-poe-auth")).PoeAuthPlugin } catch { /* optional plugin may not be installed */ }
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
 import { XaiAuthPlugin } from "./xai"

@@ -59,7 +59,7 @@ export const layer = Layer.effect(
       if (process.env.NOCOWBOY_AUTH_CONTENT) {
         try {
           return JSON.parse(process.env.NOCOWBOY_AUTH_CONTENT)
-        } catch (err) {}
+        } catch (err) { /* malformed NOCOWBOY_AUTH_CONTENT → fall back to the file */ }
       }
 
       const data = (yield* fsys.readJson(file).pipe(Effect.orElseSucceed(() => ({})))) as Record<string, unknown>

@@ -14,6 +14,13 @@ if [ -f "$ROOT/packages/opencode/package.json" ]; then
   cd "$ROOT"
 fi
 
+# ── Quality ratchet (fast, blocking) ──
+# Empty catch blocks must explain themselves; as-any may not grow.
+if [ -f "$ROOT/scripts/quality-ratchet.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  bun run "$ROOT/scripts/quality-ratchet.ts" || exit 1
+fi
+
 # ── Roadmap verification ──
 # Priority: repo-local scripts (the format this repo's docs use) → dev source → global
 

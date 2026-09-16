@@ -69,7 +69,7 @@ export function DialogAgentModel() {
                   },
                 },
               })
-            } catch {}
+            } catch { /* non-fatal: the dialog closes anyway */ }
             dialog.clear()
           },
         })

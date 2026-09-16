@@ -37,7 +37,7 @@ function fileName(url: string, filename?: string) {
     if (name) {
       return decodeURIComponent(name)
     }
-  } catch {}
+  } catch { /* not URL-encoded → use as-is */ }
 
   return url
 }

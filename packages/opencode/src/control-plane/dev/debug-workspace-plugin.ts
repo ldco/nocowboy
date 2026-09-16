@@ -16,7 +16,7 @@ async function waitForHealth(port: number) {
       if (response.ok) {
         return
       }
-    } catch {}
+    } catch { /* probe: any failure means 'not running' */ }
 
     await sleep(250)
   }

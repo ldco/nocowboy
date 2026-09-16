@@ -125,11 +125,11 @@ export const layer = Layer.effect(
     function teardown(session: Active) {
       try {
         session.process.kill()
-      } catch {}
+      } catch { /* best-effort cleanup */ }
       for (const [sub, ws] of session.subscribers.entries()) {
         try {
           if (sock(ws) === sub) ws.close()
-        } catch {}
+        } catch { /* best-effort cleanup */ }
       }
       session.subscribers.clear()
     }
