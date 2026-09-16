@@ -32,8 +32,8 @@ describe("applyBudget", () => {
     })
     expect(exit._tag).toBe("Success")
     if (exit._tag === "Success") {
-      expect(exit.value.providerID).toBe("openrouter")
-      expect(exit.value.modelID).toBe("qwen3-max")
+      expect(String(exit.value.providerID)).toBe("openrouter")
+      expect(String(exit.value.modelID)).toBe("qwen3-max")
     }
   })
 
