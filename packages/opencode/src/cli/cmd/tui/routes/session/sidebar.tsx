@@ -7,6 +7,7 @@ import { DialogPrompt } from "@tui/ui/dialog-prompt"
 import { DialogMcp } from "../../component/dialog-mcp"
 import { createMemo, createSignal, createResource, Show, For, type JSX } from "solid-js"
 import { useTheme } from "../../context/theme"
+import { useI18n } from "../../context/i18n"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
@@ -34,11 +35,12 @@ const brand = RGBA.fromInts(0xff, 0x68, 0x00)
 
 function TabBar(props: { active: SidebarTab; onSelect: (tab: SidebarTab) => void }) {
   const { theme } = useTheme()
+  const t = useI18n()
   const tabs: { key: SidebarTab; label: string }[] = [
-    { key: "info", label: "Info" },
-    { key: "history", label: "History" },
-    { key: "commands", label: "Templates" },
-    { key: "settings", label: "Settings" },
+    { key: "info", label: t("sidebar.info") },
+    { key: "history", label: t("sidebar.history") },
+    { key: "commands", label: t("sidebar.templates") },
+    { key: "settings", label: t("settings.title") },
   ]
   return (
     <box flexDirection="row" flexShrink={0} paddingBottom={1} gap={1}>

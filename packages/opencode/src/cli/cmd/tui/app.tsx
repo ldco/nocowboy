@@ -67,6 +67,8 @@ import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
+// nocowboy_change: i18n context wired to the synced config language
+import { NoCowboyI18n } from "@/nocowboy/cli/cmd/tui/context/i18n-bridge"
 import { TuiConfig } from "@/cli/cmd/tui/config/tui"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { createTuiApi } from "@/cli/cmd/tui/plugin/api"
@@ -239,6 +241,8 @@ export function tui(input: {
                         >
                           <ProjectProvider>
                             <SyncProvider>
+                              {/* nocowboy_change: provide the i18n context from the synced config language */}
+                              <NoCowboyI18n>
                               <SyncProviderV2>
                                 <ThemeProvider mode={mode}>
                                   <LocalProvider>
@@ -260,6 +264,7 @@ export function tui(input: {
                                   </LocalProvider>
                                 </ThemeProvider>
                               </SyncProviderV2>
+                              </NoCowboyI18n>
                             </SyncProvider>
                           </ProjectProvider>
                         </SDKProvider>

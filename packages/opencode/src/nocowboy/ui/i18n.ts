@@ -14,6 +14,11 @@ export namespace I18n {
     | "sidebar.yesterday"
     | "sidebar.earlier"
     | "sidebar.pinned"
+    | "sidebar.info"
+    | "sidebar.history"
+    | "sidebar.templates"
+    | "sessions.allWorktrees"
+    | "sessions.currentWorktree"
     | "dialog.ok"
     | "dialog.cancel"
     | "dialog.close"
@@ -55,6 +60,11 @@ export namespace I18n {
     "sidebar.yesterday": "Вчера",
     "sidebar.earlier": "Ранее",
     "sidebar.pinned": "Закреплённые",
+    "sidebar.info": "Инфо",
+    "sidebar.history": "История",
+    "sidebar.templates": "Шаблоны",
+    "sessions.allWorktrees": "Сессии (все worktree)",
+    "sessions.currentWorktree": "Сессии (текущий worktree)",
     "dialog.ok": "OK",
     "dialog.cancel": "Отмена",
     "dialog.close": "Закрыть",
@@ -95,6 +105,11 @@ export namespace I18n {
     "sidebar.yesterday": "Yesterday",
     "sidebar.earlier": "Earlier",
     "sidebar.pinned": "Pinned",
+    "sidebar.info": "Info",
+    "sidebar.history": "History",
+    "sidebar.templates": "Templates",
+    "sessions.allWorktrees": "Sessions (all worktrees)",
+    "sessions.currentWorktree": "Sessions (current worktree)",
     "dialog.ok": "OK",
     "dialog.cancel": "Cancel",
     "dialog.close": "Close",

@@ -6,6 +6,7 @@ import { createMemo, createResource, createSignal, onMount, type JSX } from "sol
 import { Locale } from "@/util/locale"
 import { useProject } from "@tui/context/project"
 import { useTheme } from "../context/theme"
+import { useI18n } from "../context/i18n"
 import { useSDK } from "../context/sdk"
 import { useLocal } from "../context/local"
 import { Flag } from "@nocowboy/core/flag/flag"
@@ -25,6 +26,7 @@ export function DialogSessionList() {
   const sync = useSync()
   const project = useProject()
   const { theme } = useTheme()
+  const t = useI18n()
   const sdk = useSDK()
   const local = useLocal()
   const toast = useToast()
@@ -231,7 +233,7 @@ export function DialogSessionList() {
 
   return (
     <DialogSelect
-      title={global() ? "Sessions (all worktrees)" : "Sessions (current worktree)"}
+      title={global() ? t("sessions.allWorktrees") : t("sessions.currentWorktree")}
       options={options()}
       skipFilter={true}
       current={currentSessionID()}
