@@ -23,6 +23,17 @@ import { InstanceState } from "@/effect/instance-state"
 import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
 import { GoalService } from "@/nocowboy/session/goal"
+import { Provider } from "@/provider/provider"
+import * as Log from "@nocowboy/core/util/log"
+import {
+  BudgetExceededError,
+  decideBudget,
+  describeBudget,
+  evaluateBudget,
+  type BudgetConfig,
+} from "@/nocowboy/budget"
+
+const log = Log.create({ service: "session.budget" })
 
 export namespace NoCowboySessionPrompt {
   const modes = ["architect", "planner", "reviewer"]
@@ -46,6 +57,48 @@ export namespace NoCowboySessionPrompt {
    * agent's configured model, then its `fallback_model`, then the session
    * model — so an unavailable agent model degrades instead of hard-failing.
    */
+  /**
+   * Apply the per-session cost budget to a resolved model.
+   *
+   * The session row already tracks cumulative cost and tokens, so this only
+   * needs the running totals: under the cap the model passes through, near it we
+   * log a warning, and past it we either swap in the configured cheaper model or
+   * fail the turn with `BudgetExceededError`.
+   */
+  export function applyBudget(input: {
+    model: { providerID: ProviderID; modelID: ModelID }
+    costUsd: number
+    tokens: number
+    budget?: BudgetConfig
+    available: (model: { providerID: ProviderID; modelID: ModelID }) => Effect.Effect<boolean>
+  }): Effect.Effect<{ providerID: ProviderID; modelID: ModelID }, InstanceType<typeof BudgetExceededError>> {
+    return Effect.gen(function* () {
+      const evaluation = evaluateBudget({ costUsd: input.costUsd, tokens: input.tokens, budget: input.budget })
+      const decision = decideBudget(evaluation, input.budget)
+      if (decision === "allow") return input.model
+      if (decision === "warn") {
+        log.warn(describeBudget(evaluation, input.budget))
+        return input.model
+      }
+      if (decision === "downgrade") {
+        const target = Provider.parseModel(input.budget!.downgrade_model!)
+        if (yield* input.available(target)) {
+          log.warn(`session budget exceeded — downgrading ${input.model.providerID}/${input.model.modelID} to ${target.providerID}/${target.modelID}`)
+          return { providerID: target.providerID, modelID: target.modelID }
+        }
+        log.warn(`session budget exceeded — downgrade target ${target.providerID}/${target.modelID} unavailable`)
+      }
+      return yield* Effect.fail(
+        new BudgetExceededError({
+          message: describeBudget(evaluation, input.budget),
+          kind: evaluation.kind ?? "cost",
+          spent: evaluation.spent,
+          limit: evaluation.limit,
+        }),
+      )
+    })
+  }
+
   export function resolveAgentModel(input: {
     agent: {
       model?: { providerID: ProviderID; modelID: ModelID }

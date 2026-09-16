@@ -262,6 +262,18 @@ export const Info = Schema.Struct({
     description:
       "Cross-model review cascade: pick the reviewer model from the author model family and optionally run a second review phase.",
   }),
+  budget: Schema.optional(
+    Schema.Struct({
+      max_cost_usd: Schema.optional(Schema.Finite),
+      max_tokens: Schema.optional(Schema.Finite),
+      warn_at_percent: Schema.optional(Schema.Finite),
+      on_exceed: Schema.optional(Schema.Union([Schema.Literal("abort"), Schema.Literal("downgrade")])),
+      downgrade_model: Schema.optional(ConfigModelID),
+    }),
+  ).annotate({
+    description:
+      "Per-session cost budget. Before a turn runs, compare the session's cumulative cost/tokens against these caps and warn, downgrade to a cheaper model, or abort.",
+  }),
   username: Schema.optional(Schema.String).annotate({
     description: "Custom username to display in conversations instead of system username",
   }),

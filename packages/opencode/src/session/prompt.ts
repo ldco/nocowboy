@@ -1086,14 +1086,28 @@ export const layer = Layer.effect(
           .where(eq(SessionTable.id, input.sessionID))
           .get(),
       )
-      const model = yield* NoCowboySessionPrompt.resolveAgentModel({
+      const resolveAvailable = (candidate: { providerID: ProviderID; modelID: ModelID }) =>
+        provider
+          .getModel(candidate.providerID, candidate.modelID)
+          .pipe(Effect.as(true), Effect.catchCause(() => Effect.succeed(false)))
+      const resolved = yield* NoCowboySessionPrompt.resolveAgentModel({
         agent: ag,
         explicit: input.model,
         current: () => currentModel(input.sessionID),
-        available: (candidate) =>
-          provider
-            .getModel(candidate.providerID, candidate.modelID)
-            .pipe(Effect.as(true), Effect.catchCause(() => Effect.succeed(false))),
+        available: resolveAvailable,
+      })
+      // Cost governance: the session row carries cumulative usage, so the budget
+      // is checked once per turn, before the model is used.
+      const budgetInfo = yield* sessions.get(input.sessionID)
+      const model = yield* NoCowboySessionPrompt.applyBudget({
+        model: resolved,
+        costUsd: budgetInfo.cost ?? 0,
+        tokens:
+          (budgetInfo.tokens?.input ?? 0) +
+          (budgetInfo.tokens?.output ?? 0) +
+          (budgetInfo.tokens?.reasoning ?? 0),
+        budget: (yield* config.get()).budget,
+        available: resolveAvailable,
       })
       const same = ag.model && model.providerID === ag.model.providerID && model.modelID === ag.model.modelID
       const full =
