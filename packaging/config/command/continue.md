@@ -31,6 +31,12 @@ Read the roadmap, find the first unstarted task, and continue building.
    If all tasks in the section are done, check the next section.
    If all sections in the version are done, report "v{X.Y.Z} complete."
 
+## Resuming instead
+
+If the intent is to **finish interrupted work** rather than start the next
+roadmap item, use `/resume` — it reads the durable step ledger
+(`nutausik_task_progress`) and continues from the first unfinished step.
+
 ## Rules
 
 - Do not skip tasks. Execute them in roadmap order.
