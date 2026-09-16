@@ -58,12 +58,17 @@ the misleading `!!task.plan`.
 
 ### 3. Resume driver — harness
 
-- **Interactive:** a `/resume` command (and the existing continue flow) asks
-  NUTAUSIK for tasks with an incomplete plan, shows the next step, and continues
-  from it. Resuming is idempotent: a step already marked done is never re-run.
-- **Autonomous:** persist the goal (condition, max turns, reacted count) in
-  NUTAUSIK instead of the in-memory map, keyed by task slug, so a goal survives a
-  restart and can be resumed (or explicitly reported as interrupted).
+- **Interactive (shipped):** the `/resume` command asks NUTAUSIK for the
+  interrupted task's progress and continues from `next`. Resuming is idempotent:
+  a step already marked done is never re-run.
+- **Autonomous (shipped, with a deliberate limit):** the goal (condition, turn
+  budget, turns used) is now **persisted per session** at
+  `<data>/goals/<sessionID>.json`, so it survives a restart. On the first turn
+  after a restart the loop continues toward the goal and the user gets a
+  one-line notice explaining why the session is still working.
+  **Auto-continuing with no user message is deliberately NOT enabled** — it
+  would spend tokens on launch with nobody watching. The loop resumes on the
+  next message; `/goal clear` stops it.
 
 ## Why not a harness-local store
 
@@ -84,12 +89,13 @@ belong there.
 
 ## Phased implementation
 
-| Phase | Deliverable | Acceptance |
+| Phase | Deliverable | Status |
 |---|---|---|
-| P1 | `nutausik_task_progress` tool in NUTAUSIK + tests | returns next/complete for: no plan, partial, all done, markdown plan |
-| P2 | Harness `/resume` + continue flow reads progress and continues from `next` | restart mid-plan, resume completes the remaining steps only |
-| P3 | Persist the goal (condition, turns) and resume it after restart | an interrupted autonomous goal is resumed or reported |
+| P1 | `nutausik_task_progress` tool in NUTAUSIK + tests | **Shipped** (NUTAUSIK 0.3.1): next/complete for no plan, partial, all done, markdown plan |
+| P2 | `/resume` reads progress and continues from `next` | **Shipped**: `packaging/config/command/resume.md`, cross-linked from `/continue` |
+| P3 | Persist the goal and resume it after a restart | **Shipped**: one file per session under `<data>/goals/`, restored on the next turn with a one-time notice. Auto-continue without a user message is intentionally off |
 
-P1 is self-contained in NUTAUSIK and is the next increment; P2 and P3 depend on
-it. Until P2 lands, the read model alone already answers "where did we stop?"
-for a human, which is the most common interruption case.
+Phase P3 keeps one file per session rather than a shared store: several NoCowboy
+instances run at once, and a shared file would let one clobber another's goal.
+The goal is session-scoped, so it lives with the session — the workflow ledger
+(task-scoped) stays in NUTAUSIK.

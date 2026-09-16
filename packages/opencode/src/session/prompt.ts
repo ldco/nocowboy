@@ -9,7 +9,7 @@ import { Activity } from "@/nocowboy/session/activity" // nocowboy_change
 import { ToolBusy } from "@/nocowboy/session/tool-busy" // nocowboy_change - idle watchdog vs in-flight tools
 import { subagentStallTimeoutMs, toolHeartbeatIntervalMs } from "@/nocowboy/session/watchdog" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
-import { GoalService } from "@/nocowboy/session/goal"
+import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "@/nocowboy/session/goal"
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
 import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
@@ -104,6 +104,11 @@ const REQUEST_PRUNE_BYTES = 1_250_000
 
 const log = Log.create({ service: "session.prompt" })
 const elog = EffectLogger.create({ service: "session.prompt" })
+
+// Used to tell a goal restored from disk (created by an earlier process) apart
+// from one set in this run, so the user is warned exactly once.
+const PROCESS_STARTED_AT = Date.now() - Math.round(process.uptime() * 1000)
+const restoredGoalNotified = new Set<SessionID>()
 
 type ReferencePromptMetadata = {
   name: string
@@ -2025,6 +2030,21 @@ export const layer = Layer.effect(
           // Goal judge integration: если есть активная цель, проверяем её
           const goal = GoalService.get(sessionID)
           if (goal) {
+            // A goal persisted by an earlier process is restored here: tell the
+            // user once, so a session that keeps working is explained rather
+            // than mysterious. Auto-continuing without a user message is
+            // deliberately not done — it would spend tokens unattended.
+            if (isRestoredFromPreviousRun(goal, PROCESS_STARTED_AT) && !restoredGoalNotified.has(sessionID)) {
+              restoredGoalNotified.add(sessionID)
+              yield* sessions.updatePart({
+                id: PartID.ascending(),
+                messageID: handle.message.id,
+                sessionID,
+                type: "text",
+                text: restoredGoalNotice(goal),
+                ignored: true,
+              })
+            }
             const modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
             const goalMet = yield* Effect.promise(() =>
               GoalService.evaluate({ condition: goal.condition, messages: modelMsgs, model: model as any }),

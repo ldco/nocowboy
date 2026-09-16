@@ -1,0 +1,111 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+import { tmpdir } from "node:os"
+import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "../../src/nocowboy/session/goal"
+
+// Goals are persisted so an autonomous run survives a restart (docs/adr/005).
+// The module reads the directory per call, so pointing the env at a temp dir is
+// enough to keep the test off the real data directory.
+let dir: string
+
+beforeEach(() => {
+  dir = mkdtempSync(join(tmpdir(), "nocowboy-goals-"))
+  process.env.NOCOWBOY_GOALS_DIR = dir
+})
+
+afterEach(() => {
+  delete process.env.NOCOWBOY_GOALS_DIR
+  rmSync(dir, { recursive: true, force: true })
+})
+
+describe("GoalService persistence", () => {
+  test("a set goal is written to disk and read back", () => {
+    GoalService.set("ses_abc", "all tests pass", 7)
+
+    const goal = GoalService.get("ses_abc")
+    expect(goal?.condition).toBe("all tests pass")
+    expect(goal?.maxTurns).toBe(7)
+    expect(goal?.react).toBe(0)
+
+    // The state is on disk, not in a process-local map: a restart reads it.
+    const files = readdirSync(dir)
+    expect(files).toEqual(["ses_abc.json"])
+    const onDisk = JSON.parse(readFileSync(join(dir, "ses_abc.json"), "utf-8"))
+    expect(onDisk.condition).toBe("all tests pass")
+    expect(onDisk.react).toBe(0)
+  })
+
+  test("the turn counter is persisted on every bump", () => {
+    GoalService.set("ses_abc", "done", 3)
+    expect(GoalService.bumpReact("ses_abc")).toBe(1)
+    expect(GoalService.bumpReact("ses_abc")).toBe(2)
+
+    const onDisk = JSON.parse(readFileSync(join(dir, "ses_abc.json"), "utf-8"))
+    expect(onDisk.react).toBe(2)
+    expect(GoalService.get("ses_abc")?.react).toBe(2)
+  })
+
+  test("the turn budget is exhausted at maxTurns", () => {
+    GoalService.set("ses_abc", "done", 2)
+    expect(GoalService.exhausted("ses_abc")).toBe(false)
+    GoalService.bumpReact("ses_abc")
+    expect(GoalService.exhausted("ses_abc")).toBe(false)
+    GoalService.bumpReact("ses_abc")
+    expect(GoalService.exhausted("ses_abc")).toBe(true)
+  })
+
+  test("clear removes the goal and its file", () => {
+    GoalService.set("ses_abc", "done")
+    GoalService.clear("ses_abc")
+    expect(GoalService.get("ses_abc")).toBeUndefined()
+    expect(readdirSync(dir)).toEqual([])
+  })
+
+  test("an unknown session has no goal, and bumping it is a no-op", () => {
+    expect(GoalService.get("ses_missing")).toBeUndefined()
+    expect(GoalService.bumpReact("ses_missing")).toBe(0)
+    expect(GoalService.exhausted("ses_missing")).toBe(false)
+  })
+
+  test("a corrupt file is treated as no goal instead of throwing", () => {
+    writeFileSync(join(dir, "ses_broken.json"), "{not json", "utf-8")
+    expect(() => GoalService.get("ses_broken")).not.toThrow()
+    expect(GoalService.get("ses_broken")).toBeUndefined()
+  })
+
+  test("session ids are sanitised into safe file names", () => {
+    GoalService.set("ses/../weird id", "done")
+    expect(GoalService.get("ses/../weird id")?.condition).toBe("done")
+    expect(readdirSync(dir)).toEqual(["ses_.._weird_id.json"])
+  })
+
+  test("two sessions keep separate goals", () => {
+    GoalService.set("ses_a", "goal a")
+    GoalService.set("ses_b", "goal b")
+    expect(GoalService.get("ses_a")?.condition).toBe("goal a")
+    expect(GoalService.get("ses_b")?.condition).toBe("goal b")
+    GoalService.clear("ses_a")
+    expect(GoalService.get("ses_b")?.condition).toBe("goal b")
+  })
+})
+
+describe("restored goal detection", () => {
+  const goal = { condition: "all tests pass", react: 3, maxTurns: 20, createdAt: 1_000 }
+
+  test("a goal created before the process started counts as restored", () => {
+    expect(isRestoredFromPreviousRun(goal, 2_000)).toBe(true)
+  })
+
+  test("a goal created in this run is not restored", () => {
+    expect(isRestoredFromPreviousRun(goal, 500)).toBe(false)
+    expect(isRestoredFromPreviousRun(goal, 1_000)).toBe(false)
+  })
+
+  test("the notice names the condition and the turn budget", () => {
+    const notice = restoredGoalNotice(goal)
+    expect(notice).toContain("all tests pass")
+    expect(notice).toContain("turn 3/20")
+    expect(notice).toContain("/goal clear")
+  })
+})
