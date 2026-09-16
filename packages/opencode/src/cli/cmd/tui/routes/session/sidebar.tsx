@@ -21,14 +21,11 @@ import { DialogIndexing } from "@/nocowboy/components/dialog-indexing"
 import * as Clipboard from "../../util/clipboard"
 import { useToast } from "../../ui/toast"
 import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
+import * as Log from "@nocowboy/core/util/log"
+import { LanguageRow } from "@/nocowboy/cli/cmd/tui/component/language-row"
 let _historyScrollbox: any = undefined
 
-// DEBUG — remove after stable
-import { appendFileSync } from "node:fs"
-console.log("SIDEBAR MODULE LOADED")
-const LOG = "/tmp/nocowboy-sidebar.log"
-function log(msg: string) { appendFileSync(LOG, `${new Date().toISOString()} ${msg}\n`) }
-log("=== SIDEBAR STARTED ===")
+const log = Log.create({ service: "tui.sidebar" })
 
 type SidebarTab = "info" | "history" | "commands" | "settings"
 const brand = RGBA.fromInts(0xff, 0x68, 0x00)
@@ -163,6 +160,9 @@ function SettingsTab() {
 
   return (
     <box flexDirection="column" gap={1}>
+      {/* nocowboy_change: language switcher (mirror: nocowboy/cli/cmd/tui/component/language-row) */}
+      <LanguageRow />
+
       <text attributes={TextAttributes.BOLD} fg={theme.text}>Providers</text>
       <For each={connected()}>
         {(p: any) => (
@@ -352,7 +352,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const route = useRoute()
   const sdk = useSDK()
   const toast = useToast()
-  log(`sidebar.mount sessionID=${props.sessionID} overlay=${props.overlay}`) // debug
+  log.debug("sidebar.mount", { sessionID: props.sessionID, overlay: props.overlay })
   const session = createMemo(() => sync.session.get(props.sessionID))
   const workspace = () => {
     const workspaceID = session()?.workspaceID
@@ -385,28 +385,28 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   )
 
   const shareSession = async (sessionID: string) => {
-    log(`shareSession.start ${sessionID}`)
+    log.debug("shareSession.start", { sessionID })
     const sess = sync.session.get(sessionID)
     const existingUrl = sess?.share?.url
     if (existingUrl) {
-      log(`shareSession.existing-url ${existingUrl}`)
+      log.debug("shareSession.existing-url", { sessionID })
       await Clipboard.copy(existingUrl)
       toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
       return
     }
     try {
       const res = await sdk.client.session.share({ sessionID })
-      log(`shareSession.res keys=${Object.keys(res).join(",")} hasError=${!!(res as any).error} dataType=${typeof (res as any).data}`)
+      log.debug("shareSession.response", { keys: Object.keys(res).join(","), hasError: !!(res as any).error })
       const d = (res as any).data
       if (d?.share?.url) {
         await Clipboard.copy(d.share.url)
-        log(`shareSession.copied ${d.share.url}`)
+        log.debug("shareSession.copied", { sessionID })
         toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
       } else {
         toast.show({ message: "Failed to share session", variant: "error" })
       }
     } catch (e: any) {
-      log(`shareSession.error ${e?.message ?? e}`)
+      log.error("shareSession.failed", { sessionID, error: e?.message ?? String(e) })
       toast.show({ message: e?.message ?? "Failed to share session", variant: "error" })
     }
   }
@@ -449,7 +449,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         cmd: () => {
           setNavigating(true)
           const next = selectedIdx() > 0 ? selectedIdx() - 1 : 0
-          log(`key.up ${selectedIdx()} -> ${next} sb=${!!_historyScrollbox}`)
+          log.debug("key.up", { from: selectedIdx(), to: next })
           setSelectedIdx(next)
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
@@ -462,7 +462,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           setNavigating(true)
           const len = list().length
           const next = selectedIdx() < len - 1 ? selectedIdx() + 1 : len - 1
-          log(`key.down ${selectedIdx()} -> ${next} len=${len} sb=${!!_historyScrollbox}`)
+          log.debug("key.down", { from: selectedIdx(), to: next, len })
           setSelectedIdx(next)
           setTimeout(() => _historyScrollbox?.scrollTo(next), 0)
         },
@@ -510,7 +510,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       <Show when={tab() === "history"}>
         <box flexDirection="row" flexShrink={0} gap={2}>
           <text fg={brand} onMouseDown={() => route.navigate({ type: "home" })}>[+ New Session]</text>
-          <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log(`share.click ${s.id}`); shareSession(s.id) } }}>[ Share ]</text>
+          <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log.debug("share.click", { sessionID: s.id }); shareSession(s.id) } }}>[ Share ]</text>
         </box>
         <box height={1} flexShrink={0} />
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>

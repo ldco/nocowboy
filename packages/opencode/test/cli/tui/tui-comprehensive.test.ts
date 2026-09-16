@@ -213,3 +213,19 @@ test("B14. The prompt registers the attach and paste commands used by the button
   const paste = await readFile(resolve(SRC_ROOT, "nocowboy/components/paste-button.tsx"))
   expect(paste).toContain('dispatchCommand("prompt.paste")')
 })
+
+test("B15. The sidebar mounts the language switcher and keeps no debug logging", async () => {
+  const sidebar = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
+  expect(sidebar).toContain("<LanguageRow />")
+  // A previous session left console.log + appendFileSync("/tmp/nocowboy-sidebar.log")
+  // in this module; it must not come back.
+  expect(sidebar).not.toContain("appendFileSync")
+  expect(sidebar).not.toContain("/tmp/nocowboy-sidebar.log")
+  expect(sidebar).not.toMatch(/console\.log\(/)
+
+  const row = await readFile(resolve(SRC_ROOT, "nocowboy/cli/cmd/tui/component/language-row.tsx"))
+  expect(row).toContain('t("settings.language")')
+  expect(row).toContain("sdk.client.config")
+  expect(row).toContain(".update(")
+  expect(row).toContain("lang")
+})

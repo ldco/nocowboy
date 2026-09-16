@@ -12,6 +12,7 @@
  */
 import { afterAll, expect, test } from "bun:test"
 import { existsSync } from "node:fs"
+import { rm } from "node:fs/promises"
 import { resolve } from "node:path"
 
 const DRIVER_TIMEOUT = 18
@@ -105,6 +106,11 @@ test.skipIf(!HAS_PYTHON)(
 test.skipIf(!HAS_PYTHON)(
   "no fatal startup errors and no left-over debug output",
   async () => {
+    // A previous session wrote debug lines to this file on every sidebar mount;
+    // deleting it first turns its reappearance into a failure.
+    const strayDebugLog = "/tmp/nocowboy-sidebar.log"
+    await rm(strayDebugLog, { force: true })
+
     const frame = await render()
     const fatal = [
       "TuiConfig context must be used",
@@ -118,6 +124,9 @@ test.skipIf(!HAS_PYTHON)(
       "toggleLsp called",
     ]
     for (const pattern of fatal) expect(frame).not.toMatch(new RegExp(pattern, "i"))
+
+    expect(frame).not.toContain("SIDEBAR MODULE LOADED")
+    expect(existsSync(strayDebugLog)).toBe(false)
   },
   TEST_TIMEOUT,
 )
