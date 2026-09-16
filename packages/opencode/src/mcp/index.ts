@@ -183,6 +183,22 @@ function currentProjectDir(): string | undefined {
   }
 }
 
+/**
+ * Attach the calling project to a project-scoped MCP call. Exported for tests.
+ * A caller-supplied `projectDir` always wins.
+ */
+export function withProjectDir(
+  serverName: string,
+  args: Record<string, unknown> | undefined,
+  directory: string | undefined,
+): Record<string, unknown> {
+  const params = { ...(args ?? {}) }
+  if (directory && PROJECT_SCOPED_MCP.has(serverName) && params.projectDir === undefined) {
+    params.projectDir = directory
+  }
+  return params
+}
+
 // Convert MCP tool definition to AI SDK Tool type
 function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number, serverName?: string): Tool {
   const inputSchema = mcpTool.inputSchema
@@ -201,12 +217,7 @@ function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number
     description: mcpTool.description ?? "",
     inputSchema: jsonSchema(schema),
     execute: async (args: unknown) => {
-      let params = (args || {}) as Record<string, unknown>
-      if (projectScoped) {
-        const dir = currentProjectDir()
-        // Never override a caller that explicitly chose a project.
-        if (dir && params.projectDir === undefined) params = { ...params, projectDir: dir }
-      }
+      const params = withProjectDir(serverName ?? "", args as Record<string, unknown> | undefined, projectScoped ? currentProjectDir() : undefined)
       return client.callTool(
         {
           name: mcpTool.name,
