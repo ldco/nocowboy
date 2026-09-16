@@ -38,12 +38,27 @@ async function start(input: TuiInput) {
   try {
     const { existsSync, mkdirSync, writeFileSync } = await import("fs")
     const { join } = await import("path")
-    const projectRoot = process.cwd()
+    const { execSync } = await import("child_process")
+    // Project docs belong to the repository, not to whichever subdirectory the
+    // TUI was launched from. Using cwd here bootstrapped a stray docs/roadmap.json
+    // inside packages/opencode (which then shadowed the real roadmap and hid
+    // verification behind a "no features" roadmap).
+    const projectRoot = (() => {
+      try {
+        const root = execSync("git rev-parse --show-toplevel", {
+          encoding: "utf-8",
+          stdio: ["ignore", "pipe", "ignore"],
+          timeout: 5000,
+        }).trim()
+        return root.length > 0 ? root : process.cwd()
+      } catch {
+        return process.cwd()
+      }
+    })()
     const roadmapPath = join(projectRoot, "docs", "roadmap.json")
     if (!existsSync(roadmapPath)) {
       // Check if we're in a git repo (saveguard). Outside git we skip roadmap
       // auto-init — but must NOT bail out of start(), or the TUI never launches.
-      const { execSync } = await import("child_process")
       const inGitRepo = (() => {
         try {
           execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore", timeout: 5000 })
