@@ -28,8 +28,8 @@ function source(spec: string) {
 
 function meta(item: TuiPluginStatus, width: number) {
   if (item.source === "internal") {
-    if (width >= 120) return "Built-in plugin"
-    return "Built-in"
+    if (width >= 120) return t("plugins.badgeBuiltInLong")
+    return t("plugins.badgeBuiltIn")
   }
   const next = source(item.spec)
   if (next) return next
@@ -42,7 +42,7 @@ function Install(props: { api: TuiPluginApi }) {
 
   useBindings(() => ({
     enabled: !busy(),
-    bindings: [{ key: "tab", desc: "Toggle install scope", group: "Plugins", cmd: () => setGlobal((value) => !value) }],
+    bindings: [{ key: "tab", desc: t("plugins.toggleScope"), group: "Plugins", cmd: () => setGlobal((value) => !value) }],
   }))
 
   return (
@@ -50,7 +50,7 @@ function Install(props: { api: TuiPluginApi }) {
       title={t("plugins.install")}
       placeholder="npm package name"
       busy={busy()}
-      busyText="Installing plugin..."
+      busyText={t("plugins.installing")}
       description={() => (
         <box flexDirection="row" gap={1}>
           <text fg={props.api.theme.current.textMuted}>scope:</text>
@@ -68,7 +68,7 @@ function Install(props: { api: TuiPluginApi }) {
         if (!mod) {
           props.api.ui.toast({
             variant: "error",
-            message: "Plugin package name is required",
+            message: t("plugins.nameRequired"),
           })
           return
         }
@@ -85,7 +85,7 @@ function Install(props: { api: TuiPluginApi }) {
               if (out.missing) {
                 props.api.ui.toast({
                   variant: "info",
-                  message: "Check npm registry/auth settings and try again.",
+                  message: t("plugins.registryHint"),
                 })
               }
               show(props.api)
@@ -99,7 +99,7 @@ function Install(props: { api: TuiPluginApi }) {
             if (!out.tui) {
               props.api.ui.toast({
                 variant: "info",
-                message: "Package has no TUI target to load in this app.",
+                message: t("plugins.noTuiTarget"),
               })
               show(props.api)
               return
@@ -109,7 +109,7 @@ function Install(props: { api: TuiPluginApi }) {
               if (!ok) {
                 props.api.ui.toast({
                   variant: "warning",
-                  message: "Installed plugin, but runtime load failed. See console/logs; restart TUI to retry.",
+                  message: t("plugins.loadFailed"),
                 })
                 show(props.api)
                 return
@@ -137,7 +137,7 @@ function row(api: TuiPluginApi, item: TuiPluginStatus, width: number): DialogSel
   return {
     title: item.id,
     value: item.id,
-    category: item.source === "internal" ? "Internal" : "External",
+    category: item.source === "internal" ? t("plugins.internal") : t("plugins.external"),
     description: meta(item, width),
     footer: state(api, item),
     disabled: item.id === id,

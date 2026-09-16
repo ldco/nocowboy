@@ -30,6 +30,7 @@ import type {
   ToolTextContent,
 } from "@nocowboy/sdk/v2"
 import { createEffect, createMemo, createSignal, For, Match, Show, Switch } from "solid-js"
+import { t } from "@tui/context/i18n"
 
 const id = "internal:session-v2-debug"
 const route = "session.v2.messages"
@@ -61,7 +62,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
     bindings: [
       {
         key: "escape",
-        desc: "Back to session",
+        desc: t("session2.back"),
         group: "Session",
         cmd() {
           props.api.route.navigate("session", { sessionID: props.sessionID })
@@ -83,7 +84,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
           >
             <box height={1} />
             <Show when={messages().length === 0}>
-              <MissingData label="Messages" detail="No v2 messages loaded from useSyncV2 yet." />
+              <MissingData label={t("session2.messages")} detail={t("session2.noMessages")} />
             </Show>
             <For each={renderedMessages()}>
               {(message, index) => (
@@ -124,8 +125,8 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
             </For>
           </scrollbox>
           <MissingData
-            label="Session prompt, permission prompt, question prompt, sidebar"
-            detail="The v2 message endpoint only exposes messages, so these session UI regions cannot be rendered here. Press Esc to return to the live session."
+            label={t("session2.promptRegions")}
+            detail={t("session2.promptRegionsDetail")}
           />
         </box>
       </box>
@@ -218,7 +219,7 @@ function ShellMessage(props: { message: SessionMessageShell }) {
           <text fg={theme.text}>{limited()}</text>
         </Show>
         <Show when={overflow()}>
-          <text fg={theme.textMuted}>{expanded() ? "Click to collapse" : "Click to expand"}</text>
+          <text fg={theme.textMuted}>{expanded() ? t("session2.clickCollapse") : t("session2.clickExpand")}</text>
         </Show>
       </box>
     </BlockTool>
@@ -262,7 +263,7 @@ function AgentSwitchedMessage(props: { message: SessionMessageAgentSwitched }) {
     <box paddingLeft={3} marginTop={1} flexShrink={0}>
       <text>
         <span style={{ fg: local.agent.color(props.message.agent) }}>▣ </span>
-        <span style={{ fg: theme.textMuted }}>Switched agent to </span>
+        <span style={{ fg: theme.textMuted }}>{t("session2.switchedAgent")}</span>
         <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.agent)}</span>
       </text>
     </box>
@@ -279,7 +280,7 @@ function ModelSwitchedMessage(props: { message: SessionMessageModelSwitched }) {
     <box paddingLeft={3} marginTop={1} flexShrink={0}>
       <text>
         <span style={{ fg: theme.secondary }}>◇ </span>
-        <span style={{ fg: theme.textMuted }}>Switched model to </span>
+        <span style={{ fg: theme.textMuted }}>{t("session2.switchedModel")}</span>
         <span style={{ fg: theme.text }}>{model()}</span>
       </text>
     </box>
@@ -287,7 +288,7 @@ function ModelSwitchedMessage(props: { message: SessionMessageModelSwitched }) {
 }
 
 function UnknownMessage(props: { message: SessionMessage }) {
-  return <MissingData label="Unknown message type" detail={JSON.stringify(props.message)} />
+  return <MissingData label={t("session2.unknownType")} detail={JSON.stringify(props.message)} />
 }
 
 function AssistantMessage(props: {
@@ -331,7 +332,7 @@ function AssistantMessage(props: {
         )}
       </For>
       <Show when={props.message.content.length === 0}>
-        <MissingData label="Assistant content" detail={`Assistant message ${props.message.id} has no content items.`} />
+        <MissingData label={t("session2.assistantContent")} detail={`Assistant message ${props.message.id} has no content items.`} />
       </Show>
       <Show when={props.message.error}>
         <box
@@ -437,7 +438,7 @@ function AssistantReasoning(props: {
         </Match>
         <Match when={true}>
           <box paddingLeft={3} marginTop={1} flexShrink={0} onMouseUp={toggle}>
-            <Spinner color={theme.textMuted}>{title() ? "Thinking: " + title() : "Thinking"}</Spinner>
+            <Spinner color={theme.textMuted}>{title() ? t("session2.thinking") + ": " + title() : t("session2.thinking")}</Spinner>
           </box>
         </Match>
       </Switch>
@@ -531,7 +532,7 @@ function GenericTool(props: ToolProps) {
     <Show
       when={output()}
       fallback={
-        <InlineTool icon="⚙" pending="Writing command..." complete={toolComplete(props.part)} part={props.part}>
+        <InlineTool icon="⚙" pending={t("session2.writingCommand")} complete={toolComplete(props.part)} part={props.part}>
           {props.part.name} {input(props.input)}
         </InlineTool>
       }

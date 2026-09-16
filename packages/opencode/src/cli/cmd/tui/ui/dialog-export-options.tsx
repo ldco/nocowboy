@@ -94,7 +94,7 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
       </box>
       <box gap={1}>
         <box>
-          <text fg={theme.text}>Filename:</text>
+          <text fg={theme.text}>{t("export.filenameLabel")}</text>
         </box>
         <textarea
           onSubmit={() => {
@@ -135,7 +135,7 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           <text fg={store.active === "thinking" ? theme.primary : theme.textMuted}>
             {store.thinking ? "[x]" : "[ ]"}
           </text>
-          <text fg={store.active === "thinking" ? theme.primary : theme.text}>Include thinking</text>
+          <text fg={store.active === "thinking" ? theme.primary : theme.text}>{t("export.includeThinking")}</text>
         </box>
         <box
           flexDirection="row"
@@ -152,7 +152,7 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           <text fg={store.active === "toolDetails" ? theme.primary : theme.textMuted}>
             {store.toolDetails ? "[x]" : "[ ]"}
           </text>
-          <text fg={store.active === "toolDetails" ? theme.primary : theme.text}>Include tool details</text>
+          <text fg={store.active === "toolDetails" ? theme.primary : theme.text}>{t("export.includeToolDetails")}</text>
         </box>
         <box
           flexDirection="row"
@@ -169,7 +169,7 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           <text fg={store.active === "assistantMetadata" ? theme.primary : theme.textMuted}>
             {store.assistantMetadata ? "[x]" : "[ ]"}
           </text>
-          <text fg={store.active === "assistantMetadata" ? theme.primary : theme.text}>Include assistant metadata</text>
+          <text fg={store.active === "assistantMetadata" ? theme.primary : theme.text}>{t("export.includeAssistantMeta")}</text>
         </box>
         <box
           flexDirection="row"
@@ -186,19 +186,19 @@ export function DialogExportOptions(props: DialogExportOptionsProps) {
           <text fg={store.active === "openWithoutSaving" ? theme.primary : theme.textMuted}>
             {store.openWithoutSaving ? "[x]" : "[ ]"}
           </text>
-          <text fg={store.active === "openWithoutSaving" ? theme.primary : theme.text}>Open without saving</text>
+          <text fg={store.active === "openWithoutSaving" ? theme.primary : theme.text}>{t("export.openWithoutSaving")}</text>
         </box>
       </box>
       <Show when={store.active !== "filename"}>
         <text fg={theme.textMuted} paddingBottom={1}>
-          Press <span style={{ fg: theme.text }}>space</span> to toggle, <span style={{ fg: theme.text }}>return</span>{" "}
-          to confirm
+          {t("export.hintPress")} <span style={{ fg: theme.text }}>space</span> {t("export.hintToToggle")}{" "}
+          <span style={{ fg: theme.text }}>return</span> {t("export.hintToConfirm")}
         </text>
       </Show>
       <Show when={store.active === "filename"}>
         <text fg={theme.textMuted} paddingBottom={1}>
-          Press <span style={{ fg: theme.text }}>return</span> to confirm, <span style={{ fg: theme.text }}>tab</span>{" "}
-          for options
+          {t("export.hintPress")} <span style={{ fg: theme.text }}>return</span> {t("export.hintConfirmReturn")}{" "}
+          <span style={{ fg: theme.text }}>tab</span> {t("export.hintConfirmTab")}
         </text>
       </Show>
     </box>

@@ -94,6 +94,40 @@ export namespace I18n {
     | "question.ownAnswer"
     | "timeline.filterFilename"
     | "palette.title"
+    | "export.filenameLabel"
+    | "export.includeThinking"
+    | "export.includeToolDetails"
+    | "export.includeAssistantMeta"
+    | "export.openWithoutSaving"
+    | "export.hintPress"
+    | "export.hintToToggle"
+    | "export.hintToConfirm"
+    | "export.hintConfirmReturn"
+    | "export.hintConfirmTab"
+    | "plugins.badgeBuiltIn"
+    | "plugins.badgeBuiltInLong"
+    | "plugins.toggleScope"
+    | "plugins.installing"
+    | "plugins.nameRequired"
+    | "plugins.registryHint"
+    | "plugins.noTuiTarget"
+    | "plugins.loadFailed"
+    | "plugins.internal"
+    | "plugins.external"
+    | "whichKey.unknown"
+    | "session2.back"
+    | "session2.clickExpand"
+    | "session2.clickCollapse"
+    | "session2.switchedAgent"
+    | "session2.switchedModel"
+    | "session2.thinking"
+    | "session2.writingCommand"
+    | "session2.messages"
+    | "session2.noMessages"
+    | "session2.promptRegions"
+    | "session2.promptRegionsDetail"
+    | "session2.unknownType"
+    | "session2.assistantContent"
     | "home.welcome"
     | "chat.inputPlaceholder"
 
@@ -188,6 +222,40 @@ export namespace I18n {
     "question.ownAnswer": "Свой ответ",
     "timeline.filterFilename": "Фильтр по имени файла",
     "palette.title": "Команды",
+    "export.filenameLabel": "Имя файла:",
+    "export.includeThinking": "Включить рассуждения",
+    "export.includeToolDetails": "Включить детали инструментов",
+    "export.includeAssistantMeta": "Включить метаданные ассистента",
+    "export.openWithoutSaving": "Открыть без сохранения",
+    "export.hintPress": "Нажмите",
+    "export.hintToToggle": "чтобы переключить,",
+    "export.hintToConfirm": "чтобы подтвердить",
+    "export.hintConfirmReturn": "чтобы подтвердить,",
+    "export.hintConfirmTab": "для параметров",
+    "plugins.badgeBuiltIn": "Встроенный",
+    "plugins.badgeBuiltInLong": "Встроенный плагин",
+    "plugins.toggleScope": "Переключить область установки",
+    "plugins.installing": "Установка плагина…",
+    "plugins.nameRequired": "Укажите имя пакета плагина",
+    "plugins.registryHint": "Проверьте доступ к npm-реестру и авторизацию, затем повторите.",
+    "plugins.noTuiTarget": "У пакета нет TUI-цели для загрузки в этом приложении.",
+    "plugins.loadFailed": "Плагин установлен, но загрузка не удалась. Смотрите логи; перезапустите TUI.",
+    "plugins.internal": "Встроенный",
+    "plugins.external": "Внешний",
+    "whichKey.unknown": "Неизвестно",
+    "session2.back": "Назад к сессии",
+    "session2.clickExpand": "Клик — развернуть",
+    "session2.clickCollapse": "Клик — свернуть",
+    "session2.switchedAgent": "Агент переключён на ",
+    "session2.switchedModel": "Модель переключена на ",
+    "session2.thinking": "Думает",
+    "session2.writingCommand": "Запись команды…",
+    "session2.messages": "Сообщения",
+    "session2.noMessages": "v2-сообщения ещё не загружены.",
+    "session2.promptRegions": "Промпт сессии, разрешения, вопросы, сайдбар",
+    "session2.promptRegionsDetail": "Эндпоинт v2 отдаёт только сообщения, поэтому эти области UI здесь не отображаются. Esc — вернуться в живую сессию.",
+    "session2.unknownType": "Неизвестный тип сообщения",
+    "session2.assistantContent": "Содержимое ассистента",
     "home.welcome": "Добро пожаловать в NoCowboy",
     "chat.inputPlaceholder": "Введите сообщение…",
   }
@@ -274,6 +342,40 @@ export namespace I18n {
     "question.ownAnswer": "Type your own answer",
     "timeline.filterFilename": "Filter by filename",
     "palette.title": "Commands",
+    "export.filenameLabel": "Filename:",
+    "export.includeThinking": "Include thinking",
+    "export.includeToolDetails": "Include tool details",
+    "export.includeAssistantMeta": "Include assistant metadata",
+    "export.openWithoutSaving": "Open without saving",
+    "export.hintPress": "Press",
+    "export.hintToToggle": "to toggle,",
+    "export.hintToConfirm": "to confirm",
+    "export.hintConfirmReturn": "to confirm,",
+    "export.hintConfirmTab": "for options",
+    "plugins.badgeBuiltIn": "Built-in",
+    "plugins.badgeBuiltInLong": "Built-in plugin",
+    "plugins.toggleScope": "Toggle install scope",
+    "plugins.installing": "Installing plugin...",
+    "plugins.nameRequired": "Plugin package name is required",
+    "plugins.registryHint": "Check npm registry/auth settings and try again.",
+    "plugins.noTuiTarget": "Package has no TUI target to load in this app.",
+    "plugins.loadFailed": "Installed plugin, but runtime load failed. See console/logs; restart TUI to retry.",
+    "plugins.internal": "Internal",
+    "plugins.external": "External",
+    "whichKey.unknown": "Unknown",
+    "session2.back": "Back to session",
+    "session2.clickExpand": "Click to expand",
+    "session2.clickCollapse": "Click to collapse",
+    "session2.switchedAgent": "Switched agent to ",
+    "session2.switchedModel": "Switched model to ",
+    "session2.thinking": "Thinking",
+    "session2.writingCommand": "Writing command...",
+    "session2.messages": "Messages",
+    "session2.noMessages": "No v2 messages loaded from useSyncV2 yet.",
+    "session2.promptRegions": "Session prompt, permission prompt, question prompt, sidebar",
+    "session2.promptRegionsDetail": "The v2 message endpoint only exposes messages, so these session UI regions cannot be rendered here. Press Esc to return to the live session.",
+    "session2.unknownType": "Unknown message type",
+    "session2.assistantContent": "Assistant content",
     "home.welcome": "Welcome to NoCowboy",
     "settings.providers": "Providers",
     "settings.codeIndexing": "Code Indexing",

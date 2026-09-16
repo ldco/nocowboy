@@ -6,6 +6,7 @@ import { useBindings, useKeymapSelector } from "../../keymap"
 import type { ActiveKey } from "@opentui/keymap"
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
+import { t } from "@tui/context/i18n"
 
 const command = {
   toggle: "which-key.toggle",
@@ -46,7 +47,7 @@ const MAX_PANEL_HEIGHT = 16
 const PANEL_TOP_PADDING = 1
 const FOOTER_HEIGHT = 1
 const FOOTER_MARGIN = 1
-const UNKNOWN = "Unknown"
+const UNKNOWN = () => t("whichKey.unknown")
 
 type Layout = "dock" | "overlay"
 
@@ -112,15 +113,15 @@ function skin(api: TuiPluginApi): Skin {
 }
 
 function activeKeyLabel(active: ActiveKey<Renderable, KeyEvent>) {
-  if (active.continues) return text(active.tokenName) ?? text(active.display) ?? UNKNOWN
+  if (active.continues) return text(active.tokenName) ?? text(active.display) ?? UNKNOWN()
   return (
-    text(active.commandAttrs?.title) ?? text(active.bindingAttrs?.desc) ?? text(active.commandAttrs?.desc) ?? UNKNOWN
+    text(active.commandAttrs?.title) ?? text(active.bindingAttrs?.desc) ?? text(active.commandAttrs?.desc) ?? UNKNOWN()
   )
 }
 
 function activeKeyGroup(active: ActiveKey<Renderable, KeyEvent>) {
   if (active.continues) return "System"
-  return text(active.commandAttrs?.category) ?? text(active.bindingAttrs?.group) ?? UNKNOWN
+  return text(active.commandAttrs?.category) ?? text(active.bindingAttrs?.group) ?? UNKNOWN()
 }
 
 function activeKeyEntry(api: TuiPluginApi, active: ActiveKey<Renderable, KeyEvent>): Entry {
