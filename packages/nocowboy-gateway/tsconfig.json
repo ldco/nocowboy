@@ -1,13 +1,14 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/bun/tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
     "jsx": "preserve",
     "jsxImportSource": "@opentui/solid",
-    "skipLibCheck": true,
-    "lib": ["es2023", "dom", "dom.iterable"],
-    "types": ["node"]
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["bun"],
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "../plugin", "../sdk"]
