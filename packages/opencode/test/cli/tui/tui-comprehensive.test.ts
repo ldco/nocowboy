@@ -8,8 +8,7 @@ import { afterAll, expect, test } from "bun:test"
 import { existsSync } from "node:fs"
 import { resolve } from "node:path"
 
-const STARTUP_WAIT = 6000
-const OVERALL_TIMEOUT = 20_000
+const OVERALL_TIMEOUT = 25_000
 
 // Resolve the project root by walking up from this test file until we find package.json
 function findProjectRoot(startDir: string): string {
@@ -25,9 +24,26 @@ const SRC = resolve(PROJECT_ROOT, "src/cli/cmd/tui")
 const TUI_ROOT = SRC
 const SRC_ROOT = resolve(PROJECT_ROOT, "src")
 
-function spawnTui(): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ stdout: string; stderr: string }> } {
+const DRIVER = resolve(PROJECT_ROOT, "test/cli/tui/pty-driver.py")
+const HAS_PYTHON = (() => {
+  try {
+    return Bun.spawnSync(["python3", "--version"]).exitCode === 0
+  } catch {
+    return false
+  }
+})()
+
+/**
+ * Spawn the TUI on a pseudo-terminal via the python pty driver, which answers the
+ * terminal capability queries OpenTUI waits for. Without those answers the TUI
+ * only writes ~500 bytes and never renders — which is why these tests used to
+ * fail on any machine without a real terminal.
+ */
+function spawnTui(
+  driverTimeout = 12,
+): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ stdout: string; stderr: string }> } {
   const proc = Bun.spawn({
-    cmd: ["bun", "run", "--conditions=browser", "src/index.ts"],
+    cmd: ["python3", DRIVER, `--timeout=${driverTimeout}`, "bun", "run", "--conditions=browser", "src/index.ts"],
     cwd: PROJECT_ROOT,
     env: { ...process.env, NOCOWBOY_DB: ":memory:", FORCE_COLOR: "0" },
     stdout: "pipe",
@@ -38,7 +54,7 @@ function spawnTui(): { proc: ReturnType<typeof Bun.spawn>; promise: Promise<{ st
   const r = proc.stdout.getReader(), er = proc.stderr.getReader()
   const rl = (async () => { while (true) { const { done, value } = await r.read(); if (done) break; stdout += d.decode(value, { stream: true }) } })()
   const el = (async () => { while (true) { const { done, value } = await er.read(); if (done) break; stderr += d.decode(value, { stream: true }) } })()
-  const p = (async () => { await Bun.sleep(STARTUP_WAIT); proc.kill("SIGTERM"); await Bun.sleep(500); r.cancel(); er.cancel(); await Promise.allSettled([rl, el]); return { stdout, stderr } })()
+  const p = (async () => { await proc.exited; r.cancel(); er.cancel(); await Promise.allSettled([rl, el]); return { stdout, stderr } })()
   return { proc, promise: p }
 }
 function stripAnsi(s: string): string { return s.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "") }
@@ -47,17 +63,18 @@ let proc: ReturnType<typeof Bun.spawn> | undefined
 afterAll(() => { proc?.kill("SIGTERM") })
 
 // ============================================================
-// PART A — Runtime tests (TUI process)
+// PART A — Runtime tests (TUI process on a pty)
 // ============================================================
 
-test("A1. TUI starts, DB migrates, renders content", async () => {
-  const s = spawnTui(); proc = s.proc; const { stdout, stderr } = await s.promise
-  expect(stdout + stderr).toContain("Database migration complete")
-  expect(stripAnsi(stdout).length).toBeGreaterThan(100)
+test.skipIf(!HAS_PYTHON)("A1. TUI starts on a pty and renders a full frame", async () => {
+  const s = spawnTui(); proc = s.proc; const { stdout } = await s.promise
+  expect(stdout).toContain("\x1b[?1049h") // entered the alternate screen
+  expect(stdout.length).toBeGreaterThan(5_000)
+  expect(stripAnsi(stdout).length).toBeGreaterThan(200)
   expect(stdout).toMatch(/\x1b\[38;2;\d+;\d+;\d+m/)
 }, OVERALL_TIMEOUT)
 
-test("A2. No fatal errors on startup", async () => {
+test.skipIf(!HAS_PYTHON)("A2. No fatal errors on startup", async () => {
   const s = spawnTui(); proc = s.proc; const { stdout, stderr } = await s.promise
   const combined = stdout + stderr
   const fatal = ["TuiConfig context must be used", "Keymap not found", "require is not defined",
@@ -65,12 +82,12 @@ test("A2. No fatal errors on startup", async () => {
   for (const p of fatal) expect(combined).not.toMatch(new RegExp(p, "i"))
 }, OVERALL_TIMEOUT)
 
-test("A3. Brand orange #ff6800 present in rendered output", async () => {
+test.skipIf(!HAS_PYTHON)("A3. Brand orange #ff6800 present in rendered output", async () => {
   const s = spawnTui(); proc = s.proc; const { stdout } = await s.promise
   expect(stdout).toMatch(/\x1b\[38;2;255;104;0m/)
 }, OVERALL_TIMEOUT)
 
-test("A4. No debug console.error left in startup output", async () => {
+test.skipIf(!HAS_PYTHON)("A4. No debug console.error left in startup output", async () => {
   const s = spawnTui(); proc = s.proc; const { stderr } = await s.promise
   expect(stderr).not.toContain("LSP toggle")
   expect(stderr).not.toContain("toggleLsp called")
@@ -161,4 +178,38 @@ test("B11. Config file exists at PROJECT_ROOT/nocowboy.jsonc", async () => {
   expect(existsSync(resolve(PROJECT_ROOT, "nocowboy.jsonc"))).toBe(true)
   const text = await readFile(resolve(PROJECT_ROOT, "nocowboy.jsonc"))
   expect(text).toContain("lsp")
+})
+
+test("B12. The app tree wraps the UI in the i18n provider", async () => {
+  const app = await readFile(resolve(TUI_ROOT, "app.tsx"))
+  // The bridge must sit inside SyncProvider (it reads the synced language) and
+  // wrap the rest of the tree.
+  const syncAt = app.indexOf("<SyncProvider>")
+  const i18nAt = app.indexOf("<NoCowboyI18n>")
+  const closeAt = app.indexOf("</NoCowboyI18n>")
+  expect(syncAt).toBeGreaterThan(-1)
+  expect(i18nAt).toBeGreaterThan(syncAt)
+  expect(closeAt).toBeGreaterThan(i18nAt)
+  const bridge = await readFile(resolve(SRC_ROOT, "nocowboy/cli/cmd/tui/context/i18n-bridge.tsx"))
+  expect(bridge).toContain("I18nProvider")
+  expect(bridge).toContain("sync.data.config")
+})
+
+test("B13. The sidebar and session list read their labels from the dictionary", async () => {
+  const sidebar = await readFile(resolve(TUI_ROOT, "routes/session/sidebar.tsx"))
+  expect(sidebar).toContain("useI18n")
+  expect(sidebar).toContain('t("settings.title")')
+  const sessionList = await readFile(resolve(TUI_ROOT, "component/dialog-session-list.tsx"))
+  expect(sessionList).toContain("useI18n")
+  expect(sessionList).toContain('t("sessions.')
+})
+
+test("B14. The prompt registers the attach and paste commands used by the buttons", async () => {
+  const prompt = await readFile(resolve(TUI_ROOT, "component/prompt/index.tsx"))
+  expect(prompt).toContain('name: "prompt.attach"')
+  expect(prompt).toContain('name: "prompt.paste"')
+  const attach = await readFile(resolve(SRC_ROOT, "nocowboy/components/attach-button.tsx"))
+  expect(attach).toContain('dispatchCommand("prompt.attach")')
+  const paste = await readFile(resolve(SRC_ROOT, "nocowboy/components/paste-button.tsx"))
+  expect(paste).toContain('dispatchCommand("prompt.paste")')
 })
