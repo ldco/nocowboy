@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { I18n } from "../../src/nocowboy/ui/i18n"
+import { I18n, phrases, translatePhrase } from "../../src/nocowboy/ui/i18n"
 
 // The dictionary is typed as Record<I18n.Key, string>, so a missing translation is
 // a type error; this also guards against silently adding a key to only one locale.
@@ -27,5 +27,33 @@ describe("i18n dictionary", () => {
     expect(I18n.getStrings("ru")["sessions.allWorktrees"]).toContain("worktree")
     expect(I18n.getStrings("ru")["sidebar.templates"]).toBe("Шаблоны")
     expect(I18n.getStrings("en")["sidebar.templates"]).toBe("Templates")
+  })
+})
+
+// Command palette titles, key-binding descriptions, groups and categories are
+// registered as data, so they are translated by phrase rather than by key.
+describe("phrase translation", () => {
+  test("translates a known palette title in Russian", () => {
+    expect(translatePhrase("New session", "ru")).toBe("Новая сессия")
+    expect(translatePhrase("Toggle sidebar", "ru")).toBe("Показать/скрыть сайдбар")
+  })
+
+  test("translates groups and categories", () => {
+    expect(translatePhrase("Permission", "ru")).toBe("Разрешения")
+    expect(translatePhrase("Session", "ru")).toBe("Сессия")
+  })
+
+  test("passes unknown phrases and non-Russian languages through", () => {
+    expect(translatePhrase("New session", "en")).toBe("New session")
+    expect(translatePhrase("gpt-5.1-codex", "ru")).toBe("gpt-5.1-codex")
+    expect(translatePhrase("", "ru")).toBe("")
+  })
+
+  test("every collected phrase has a non-empty Russian translation", () => {
+    // Guards the table itself: no accidental empty values.
+    for (const [english, russian] of Object.entries(phrases) as [string, string][]) {
+      expect(english.length).toBeGreaterThan(0)
+      expect(russian.length).toBeGreaterThan(0)
+    }
   })
 })

@@ -61,14 +61,14 @@ export function NetworkPrompt(props: { request: SessionNetworkWait }) {
           when={props.request.restored}
           fallback={
             <>
-              <text fg={theme.warning}>Network disconnected</text>
+              <text fg={theme.warning}>{t("network.disconnected")}</text>
               <text fg={theme.text}>{props.request.message}</text>
               <text fg={theme.textMuted}>Waiting for network...</text>
               <text fg={theme.textMuted}>{t("network.stop")}</text>
             </>
           }
         >
-          <text fg={theme.success}>Network reconnected</text>
+          <text fg={theme.success}>{t("network.reconnected")}</text>
           <text fg={theme.text}>Connection restored. Retrying in {countdown()}s.</text>
           <text fg={theme.textMuted}>{t("network.resume")}</text>
           <text fg={theme.textMuted}>{t("network.stopShort")}</text>

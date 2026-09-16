@@ -82,6 +82,7 @@ import { OpencodeKeymapProvider, registerOpencodeKeymap, useBindings, useOpencod
 
 import type { EventSource } from "./context/sdk"
 import { DialogVariant } from "./component/dialog-variant"
+import { t } from "@tui/context/i18n"
 
 const appBindingCommands = [
   "command.palette.show",
@@ -1124,7 +1125,7 @@ function ErrorComponent(props: {
             Copy issue URL (exception info pre-filled)
           </text>
         </box>
-        {copied() && <text fg={colors.muted}>Successfully copied</text>}
+        {copied() && <text fg={colors.muted}>{t("common.copied")}</text>}
       </box>
       <box flexDirection="row" gap={2} alignItems="center">
         <text fg={colors.text}>A fatal error occurred!</text>

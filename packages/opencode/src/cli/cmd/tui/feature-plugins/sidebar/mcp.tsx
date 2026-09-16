@@ -1,6 +1,7 @@
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
 import { createMemo, For, Match, Show, Switch, createSignal } from "solid-js"
+import { t } from "@tui/context/i18n"
 
 const id = "internal:sidebar-mcp"
 
@@ -74,7 +75,7 @@ function View(props: { api: TuiPluginApi }) {
                         <i>{item.error}</i>
                       </Match>
                       <Match when={item.status === "disabled"}>Disabled</Match>
-                      <Match when={item.status === "needs_auth"}>Needs auth</Match>
+                      <Match when={item.status === "needs_auth"}>{t("mcp.needsAuth")}</Match>
                       <Match when={item.status === "needs_client_registration"}>Needs client ID</Match>
                     </Switch>
                   </span>

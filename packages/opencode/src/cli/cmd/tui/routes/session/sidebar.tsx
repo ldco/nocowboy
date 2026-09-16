@@ -23,6 +23,7 @@ import { useToast } from "../../ui/toast"
 import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
 import * as Log from "@nocowboy/core/util/log"
 import { LanguageRow } from "@/nocowboy/cli/cmd/tui/component/language-row"
+import { t } from "@tui/context/i18n"
 let _historyScrollbox: any = undefined
 
 const log = Log.create({ service: "tui.sidebar" })
@@ -73,7 +74,7 @@ function HistoryTab(props: {
   }
 
   return (
-    <Show when={props.list.length > 0} fallback={<text fg={theme.textMuted}>No sessions</text>}>
+    <Show when={props.list.length > 0} fallback={<text fg={theme.textMuted}>{t("sidebar.noSessions")}</text>}>
       <For each={props.list}>
         {(s: any, idx) => (
           <text
@@ -339,7 +340,7 @@ function CommandsTab() {
         </For>
 
         <Show when={entries().length === 0}>
-          <text fg={theme.textMuted}>No commands configured</text>
+          <text fg={theme.textMuted}>{t("sidebar.noCommands")}</text>
         </Show>
       </scrollbox>
     </box>
@@ -503,7 +504,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
-        <Show when={session()} fallback={<text fg={theme.textMuted}>No active session</text>}>
+        <Show when={session()} fallback={<text fg={theme.textMuted}>{t("sidebar.noActiveSession")}</text>}>
           <scrollbox flexGrow={1}><box flexShrink={0} gap={1} paddingRight={1}><TuiPluginRuntime.Slot name="sidebar_title" mode="single_winner" session_id={props.sessionID} title={session()!.title} share_url={session()!.share?.url}><box paddingRight={1}><text fg={theme.text}><b>{session()!.title}</b></text><Show when={session()!.workspaceID}><text fg={theme.textMuted}><Show when={workspace()} fallback={<WorkspaceLabel type="unknown" name={session()!.workspaceID!} status="error" icon />}>{(item: any) => <WorkspaceLabel type={item().type} name={item().name} status={project.workspace.status(item().id) ?? "error"} icon />}</Show></text></Show><Show when={session()!.share?.url}><text fg={theme.textMuted}>{session()!.share!.url}</text></Show></box></TuiPluginRuntime.Slot><TuiPluginRuntime.Slot name="sidebar_content" session_id={props.sessionID} /></box></scrollbox><box flexShrink={0} gap={1} paddingTop={1}><text fg={theme.textMuted} wrapMode="word">{project.data.instance.path.directory}{sync.data.vcs?.branch ? ":" + sync.data.vcs.branch : ""}</text><text fg={theme.textMuted} wrapMode="none"><span style={{ fg: theme.success }}>•</span> <b>NoCowboy</b> <span>{InstallationVersion}</span></text></box>
         </Show>
       </Show>

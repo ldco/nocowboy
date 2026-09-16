@@ -5,6 +5,7 @@ import { createSignal } from "solid-js"
 import { InstallationVersion } from "@nocowboy/core/installation/version"
 import { win32FlushInputBuffer } from "../win32"
 import { getScrollAcceleration } from "../util/scroll"
+import { t } from "@tui/context/i18n"
 
 export function ErrorComponent(props: {
   error: Error
@@ -72,7 +73,7 @@ export function ErrorComponent(props: {
             Copy issue URL (exception info pre-filled)
           </text>
         </box>
-        {copied() && <text fg={colors.muted}>Successfully copied</text>}
+        {copied() && <text fg={colors.muted}>{t("common.copied")}</text>}
       </box>
       <box flexDirection="row" gap={2} alignItems="center">
         <text fg={colors.text}>A fatal error occurred!</text>

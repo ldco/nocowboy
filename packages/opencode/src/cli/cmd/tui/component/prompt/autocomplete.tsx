@@ -23,6 +23,7 @@ import { Reference } from "@/reference/reference"
 import type { Config } from "@/config/config"
 import { displayCharAt, mentionTriggerIndex } from "@/cli/cmd/prompt-display"
 import { getFileList } from "@/nocowboy/repomap"
+import { t } from "@tui/context/i18n"
 
 function removeLineRange(input: string) {
   const hashIndex = input.lastIndexOf("#")
@@ -858,7 +859,7 @@ export function Autocomplete(props: {
           each={options()}
           fallback={
             <box paddingLeft={1} paddingRight={1}>
-              <text fg={theme.textMuted}>No matching items</text>
+              <text fg={theme.textMuted}>{t("autocomplete.noMatches")}</text>
             </box>
           }
         >

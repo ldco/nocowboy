@@ -6,7 +6,7 @@ import { useBindings, useKeymapSelector } from "../../keymap"
 import type { ActiveKey } from "@opentui/keymap"
 import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
-import { t } from "@tui/context/i18n"
+import { t, p } from "@tui/context/i18n"
 
 const command = {
   toggle: "which-key.toggle",
@@ -114,14 +114,15 @@ function skin(api: TuiPluginApi): Skin {
 
 function activeKeyLabel(active: ActiveKey<Renderable, KeyEvent>) {
   if (active.continues) return text(active.tokenName) ?? text(active.display) ?? UNKNOWN()
-  return (
+  // Titles and descriptions are registered as data, so translate the phrase.
+  const raw =
     text(active.commandAttrs?.title) ?? text(active.bindingAttrs?.desc) ?? text(active.commandAttrs?.desc) ?? UNKNOWN()
-  )
+  return p(raw)
 }
 
 function activeKeyGroup(active: ActiveKey<Renderable, KeyEvent>) {
-  if (active.continues) return "System"
-  return text(active.commandAttrs?.category) ?? text(active.bindingAttrs?.group) ?? UNKNOWN()
+  if (active.continues) return p("System")
+  return p(text(active.commandAttrs?.category) ?? text(active.bindingAttrs?.group) ?? UNKNOWN())
 }
 
 function activeKeyEntry(api: TuiPluginApi, active: ActiveKey<Renderable, KeyEvent>): Entry {
@@ -442,7 +443,7 @@ function WhichKeyPanel(props: {
                           attributes={selected() ? TextAttributes.BOLD : undefined}
                           wrapMode="none"
                         >
-                          {group().label}
+                          {p(group().label)}
                         </text>
                       </box>
                     )
@@ -456,7 +457,7 @@ function WhichKeyPanel(props: {
           <box height={TAB_CONTENT_GAP} flexShrink={0} />
         </Show>
         <box height={rows()} flexShrink={0} flexDirection="column">
-          <Show when={shown().length > 0} fallback={<text fg={look().muted}>No reachable bindings</text>}>
+          <Show when={shown().length > 0} fallback={<text fg={look().muted}>{t("whichKey.noBindings")}</text>}>
             <For each={rowIndexes()}>
               {(row) => (
                 <box width="100%" flexDirection="row" justifyContent="center" gap={COLUMN_GAP}>

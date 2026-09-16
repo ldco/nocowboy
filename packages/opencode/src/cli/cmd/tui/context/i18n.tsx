@@ -7,7 +7,7 @@
  * JSX expressions re-render when the language changes.
  */
 import { createContext, useContext, createSignal, createEffect, type ParentProps, type Accessor } from "solid-js"
-import { I18n } from "@/nocowboy/ui/i18n"
+import { I18n, translatePhrase } from "@/nocowboy/ui/i18n"
 
 export type T = (key: I18n.Key, params?: Record<string, string | number>) => string
 
@@ -23,6 +23,12 @@ export const t: T = (key, params) => {
   // {name} placeholders so hints can keep their wording in both languages
   return raw.replace(/\{(\w+)\}/g, (_, name: string) => (params[name] !== undefined ? String(params[name]) : `{${name}}`))
 }
+
+/**
+ * Translate a phrase that is registered as data (palette title, key-binding
+ * description, group, category). Unknown phrases pass through unchanged.
+ */
+export const p = (text: string): string => translatePhrase(text, currentLang())
 
 export function I18nProvider(props: ParentProps<{ lang: Accessor<string> }>) {
   createEffect(() => setCurrentLang(props.lang()))

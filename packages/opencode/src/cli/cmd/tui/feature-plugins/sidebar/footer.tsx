@@ -2,6 +2,7 @@ import type { TuiPlugin, TuiPluginApi } from "@nocowboy/plugin/tui"
 import type { InternalTuiPlugin } from "../../plugin/internal"
 import { createMemo, Show } from "solid-js"
 import { Global } from "@nocowboy/core/global"
+import { t } from "@tui/context/i18n"
 
 const id = "internal:sidebar-footer"
 
@@ -42,7 +43,7 @@ function View(props: { api: TuiPluginApi }) {
           <box flexGrow={1} gap={1}>
             <box flexDirection="row" justifyContent="space-between">
               <text fg={theme().text}>
-                <b>Getting started</b>
+                <b>{t("sidebar.gettingStarted")}</b>
               </text>
               <text fg={theme().textMuted} onMouseDown={() => props.api.kv.set("dismissed_getting_started", true)}>
                 ✕
@@ -53,7 +54,7 @@ function View(props: { api: TuiPluginApi }) {
               Connect from 75+ providers to use other models, including Claude, GPT, Gemini etc
             </text>
             <box flexDirection="row" gap={1} justifyContent="space-between">
-              <text fg={theme().text}>Connect provider</text>
+              <text fg={theme().text}>{t("sidebar.connectProvider")}</text>
               <text fg={theme().textMuted}>/connect</text>
             </box>
           </box>

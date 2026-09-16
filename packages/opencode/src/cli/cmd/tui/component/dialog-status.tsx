@@ -7,6 +7,7 @@ import { useProject } from "@tui/context/project"
 import { For, Match, Switch, Show, createMemo } from "solid-js"
 import { InstallationVersion, InstallationLocal } from "@nocowboy/core/installation/version"
 import { Global } from "@nocowboy/core/global"
+import { t } from "@tui/context/i18n"
 
 export type DialogStatusProps = {}
 
@@ -99,7 +100,7 @@ export function DialogStatus() {
                     <Switch fallback={item.status}>
                       <Match when={item.status === "connected"}>Connected</Match>
                       <Match when={item.status === "failed" && item}>{(val) => val().error}</Match>
-                      <Match when={item.status === "disabled"}>Disabled in configuration</Match>
+                      <Match when={item.status === "disabled"}>{t("status.disabledInConfig")}</Match>
                       <Match when={(item.status as string) === "needs_auth"}>
                         Needs authentication (run: kilo mcp auth {key})</Match>
                       <Match when={(item.status as string) === "needs_client_registration" && item}>

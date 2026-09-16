@@ -19,7 +19,7 @@ import { Locale } from "@/util/locale"
 import { getScrollAcceleration } from "../util/scroll"
 import { useTuiConfig } from "../context/tui-config"
 import { formatKeyBindings, useBindings, useKeymapSelector } from "../keymap"
-import { t } from "@tui/context/i18n"
+import { t, p } from "@tui/context/i18n"
 
 export interface DialogSelectProps<T> {
   title: string
@@ -408,7 +408,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
         when={grouped().length > 0}
         fallback={
           <box paddingLeft={4} paddingRight={4} paddingTop={1}>
-            <text fg={theme.textMuted}>No results found</text>
+            <text fg={theme.textMuted}>{t("search.noResults")}</text>
           </box>
         }
       >
@@ -475,9 +475,9 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
                           </box>
                         </Show>
                         <Option
-                          title={option.title}
-                          footer={flatten() ? (option.category ?? option.footer) : option.footer}
-                          description={option.description !== category ? option.description : undefined}
+                          title={p(option.title)}
+                          footer={flatten() ? p(String(option.category ?? option.footer ?? "")) || undefined : option.footer}
+                          description={option.description !== category ? p(String(option.description)) : undefined}
                           active={active()}
                           current={current()}
                           gutter={option.gutter}
