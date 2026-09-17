@@ -137,24 +137,59 @@ Actual description here.`
       ).toBe(true)
     })
 
-    test("applies markdown substitutions to workflow content", async () => {
+    // Project workflows are untrusted by design (config trust boundary): {file:}
+    // may only read inside the project root and {env:} is refused outright.
+    test("project workflows substitute {file:} inside the project root", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await Bun.write(path.join(dir, "guide.md"), "file content")
+          await Bun.write(
+            path.join(dir, ".nocowboy", "workflows", "workflow.md"),
+            ["# Workflow", "", "{file:../../guide.md}"].join("\n"),
+          )
+        },
+      })
+
+      const workflows = await WorkflowsMigrator.discoverWorkflows(tmp.path, true)
+
+      expect(workflows[0].content).toContain("file content")
+    })
+
+    test("project workflows refuse {env:} references", async () => {
       process.env.KILO_WORKFLOW_TEST = "env content"
       await using tmp = await tmpdir({
         init: async (dir) => {
-          const workflowsDir = path.join(dir, ".nocowboy", "workflows")
-          await Bun.write(path.join(dir, "guide.md"), "file content")
           await Bun.write(
-            path.join(workflowsDir, "workflow.md"),
-            ["# Workflow", "", "{file:../../guide.md}", "{env:KILO_WORKFLOW_TEST}"].join("\n"),
+            path.join(dir, ".nocowboy", "workflows", "workflow.md"),
+            ["# Workflow", "", "{env:KILO_WORKFLOW_TEST}"].join("\n"),
           )
         },
       })
 
       try {
-        const workflows = await WorkflowsMigrator.discoverWorkflows(tmp.path, true)
+        await expect(WorkflowsMigrator.discoverWorkflows(tmp.path, true)).rejects.toThrow()
+      } finally {
+        delete process.env.KILO_WORKFLOW_TEST
+      }
+    })
 
-        expect(workflows[0].content).toContain("file content")
-        expect(workflows[0].content).toContain("env content")
+    test("global workflows are trusted and resolve {env:}", async () => {
+      process.env.KILO_WORKFLOW_TEST = "env content"
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await Bun.write(
+            path.join(dir, ".nocowboy", "workflows", "global.md"),
+            ["# Global workflow", "", "{env:KILO_WORKFLOW_TEST}"].join("\n"),
+          )
+        },
+      })
+
+      try {
+        const workflows = await withHome(tmp.path, () =>
+          WorkflowsMigrator.discoverWorkflows(path.join(tmp.path, "repo")),
+        )
+        const global = workflows.find((w) => w.source === "global" && w.path.includes("global.md"))
+        expect(global?.content).toContain("env content")
       } finally {
         delete process.env.KILO_WORKFLOW_TEST
       }

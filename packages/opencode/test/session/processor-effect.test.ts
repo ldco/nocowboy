@@ -390,8 +390,10 @@ it.live("session.processor effect tests stop after token overflow requests compa
         const parts = MessageV2.parts(msg.id)
 
         expect(value).toBe("compact")
-        expect(parts.some((part) => part.type === "text" && part.text === "after")).toBe(true)
-        expect(parts.some((part) => part.type === "step-finish")).toBe(true)
+        // nocowboy_change: preflight compaction fires before the request is sent,
+        // so the model is never called and its response never becomes a part.
+        expect(yield* llm.calls).toBe(0)
+        expect(parts.some((part) => part.type === "text" && part.text === "after")).toBe(false)
       }),
     { git: true, config: (url) => providerCfg(url) },
   ),
@@ -434,7 +436,12 @@ capped.live("session.processor respects the configured output token ceiling", ()
 
         expect(value).toBe("continue")
       }),
-    { git: true, config: (url) => providerCfg(url) },
+    {
+      git: true,
+      // Pin the threshold to the full window so this test measures the configured
+      // output ceiling, not the default 80% threshold.
+      config: (url) => ({ ...providerCfg(url), compaction: { threshold_percent: 100 } }),
+    },
   ),
 )
 // kilocode_change end

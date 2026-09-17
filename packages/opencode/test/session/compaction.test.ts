@@ -470,13 +470,29 @@ describe("session.compaction.isOverflow", () => {
   )
 
   it.live(
-    "returns false when input/output are within input caps",
+    "returns false when the context is comfortably below the threshold",
+    provideTmpdirInstance(() =>
+      Effect.gen(function* () {
+        const compact = yield* SessionCompaction.Service
+        const model = createModel({ context: 400_000, input: 272_000, output: 128_000 })
+        // 180k tokens against an 80% threshold of 217.6k -> no compaction.
+        const tokens = { input: 150_000, output: 20_000, reasoning: 0, cache: { read: 10_000, write: 0 } }
+        expect(yield* compact.isOverflow({ tokens, model })).toBe(false)
+      }),
+    ),
+  )
+
+  // nocowboy_change: compaction fires at 80% of the window by default (see
+  // NoCowboySessionOverflow.limit), not at the raw input cap — 230k tokens are
+  // below the 272k input cap but above the 217.6k threshold, so it must compact.
+  it.live(
+    "compacts at the default 80% threshold before the raw input cap is reached",
     provideTmpdirInstance(() =>
       Effect.gen(function* () {
         const compact = yield* SessionCompaction.Service
         const model = createModel({ context: 400_000, input: 272_000, output: 128_000 })
         const tokens = { input: 200_000, output: 20_000, reasoning: 0, cache: { read: 10_000, write: 0 } }
-        expect(yield* compact.isOverflow({ tokens, model })).toBe(false)
+        expect(yield* compact.isOverflow({ tokens, model })).toBe(true)
       }),
     ),
   )

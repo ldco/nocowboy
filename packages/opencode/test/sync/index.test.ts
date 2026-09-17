@@ -29,6 +29,13 @@ beforeEach(() => {
 describe("SyncEvent", () => {
   function setup() {
     SyncEvent.reset()
+    // The sync tables outlive a single test instance (the same test database is
+    // reused), so clear them here — otherwise EventTable rows leak between tests
+    // and the row-count assertions fail depending on execution order.
+    Database.use((db) => {
+      db.delete(EventTable).run()
+      db.delete(EventSequenceTable).run()
+    })
 
     const Created = SyncEvent.define({
       type: "item.created",

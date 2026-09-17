@@ -296,6 +296,24 @@ function withFakeLlm<A, E>(serverPath: ServerPath, run: (input: LlmProjectFixtur
   }).pipe(Effect.provide(TestLLMServer.layer))
 }
 
+// Image attachments must be rejected as a client error even when the failure is
+// not about the model, so these tests need a provider configured: without one the
+// request stops at model resolution and reports a server error instead.
+function withProviderProject<A, E>(
+  serverPath: ServerPath,
+  config: Partial<Config.Info>,
+  run: (input: LlmProjectFixture) => Effect.Effect<A, E, TestScope>,
+) {
+  return Effect.gen(function* () {
+    const llm = yield* TestLLMServer
+    return yield* withProject(
+      serverPath,
+      { config: { ...providerConfig(llm.url), ...config } },
+      (input) => run({ ...input, llm }),
+    )
+  }).pipe(Effect.provide(TestLLMServer.layer))
+}
+
 function withFakeLlmProject<A, E>(
   serverPath: ServerPath,
   options: { setup?: (dir: string) => Effect.Effect<void, E, TestServices> },
@@ -681,7 +699,9 @@ describe("HttpApi SDK", () => {
   )
 
   serverPathParity("matches generated SDK prompt no-reply routes", (serverPath) =>
-    withStandardProject(serverPath, ({ sdk }) =>
+    // A provider is required: the message is persisted by the prompt pipeline,
+    // which resolves the model before writing, even for noReply prompts.
+    withProviderProject(serverPath, {}, ({ sdk }) =>
       Effect.gen(function* () {
         const session = yield* capture(() => sdk.session.create({ title: "prompt" }))
         const sessionID = String(record(session.data).id)
@@ -722,7 +742,7 @@ describe("HttpApi SDK", () => {
 
   // kilocode_change start - verify invalid user images fail at the real SDK boundary
   serverPathParity("rejects malformed user image data before persistence", (serverPath) =>
-    withStandardProject(serverPath, ({ sdk }) =>
+    withProviderProject(serverPath, {}, ({ sdk }) =>
       Effect.gen(function* () {
         const session = yield* capture(() => sdk.session.create({ title: "invalid image" }))
         const sessionID = String(record(session.data).id)
@@ -754,7 +774,7 @@ describe("HttpApi SDK", () => {
     ),
   )
   serverPathParity("rejects oversized user image files before persistence", (serverPath) =>
-    withProject(serverPath, { config: { attachment: { image: { max_base64_bytes: 4 } } } }, ({ sdk, directory }) =>
+    withProviderProject(serverPath, { attachment: { image: { max_base64_bytes: 4 } } }, ({ sdk, directory }) =>
       Effect.gen(function* () {
         const filepath = path.join(directory, "oversized.png")
         yield* call(() => Bun.write(filepath, Buffer.alloc(1024, 1)))
