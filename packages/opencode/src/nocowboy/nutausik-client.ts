@@ -130,26 +130,22 @@ export async function fetchHandoff(): Promise<string> {
 // ---------------------------------------------------------------------------
 
 /**
- * Auto-create a NUTAUSIK task for a new session, then start the NUTAUSIK session.
+ * Start the NUTAUSIK session for a new NoCowboy session.
+ *
+ * This deliberately does NOT create a NUTAUSIK task: nothing ever read those
+ * tasks and nothing closed them, so every session left one behind and the
+ * backlog filled up with "Session <id> — …" planning rows (39 open when this
+ * was fixed). Session tracking already happens through nutausik_session_start /
+ * session_end, the handoff and the memory writes.
+ *
  * Fire-and-forget: errors are logged but not propagated.
  */
-export async function autoCreateTask(sessionID: string, title: string, directory: string): Promise<void> {
+export async function autoStartSession(sessionID: string, directory: string): Promise<void> {
   if (!(await hasNutausik())) return
 
-  const taskTitle = `Session ${sessionID.slice(0, 8)}${title ? ` — ${title}` : ""}`
-
-  callTool("nutausik_task_quick", {
-    title: taskTitle,
-    goal: `Auto-created task for session ${sessionID}`,
-    acceptance_criteria: "Session completed with all goals met",
-  }, directory)
+  callTool("nutausik_session_start", undefined, directory)
     .then((result) => {
-      if (result) {
-        log.info("auto-created NUTAUSIK task", { sessionID, taskTitle })
-        callTool("nutausik_session_start", undefined, directory).then((sr) => {
-          if (sr) log.info("auto-started NUTAUSIK session", { sessionID })
-        })
-      }
+      if (result) log.info("auto-started NUTAUSIK session", { sessionID })
     })
     .catch(() => log.warn("nutausik session auto-wire failed", { sessionID }))
 }

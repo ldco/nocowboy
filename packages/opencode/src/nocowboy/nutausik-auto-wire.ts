@@ -9,7 +9,7 @@
 
 import { shouldAutoDream, shouldAutoDistill, DREAM_TASK, DISTILL_TASK } from "./session/auto-dream"
 import { saveMetrics } from "./session-metrics"
-import { hasNutausik, autoCreateTask, autoEndSession, callTool } from "./nutausik-client"
+import { hasNutausik, autoStartSession, autoEndSession, callTool } from "./nutausik-client"
 import { runAll as runStartupChecks } from "./startup-checks"
 import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
@@ -82,8 +82,9 @@ function registerToolLoggingHook(): void {
 
 /**
  * Called when a NoCowboy session is created.
- * Auto-starts NUTAUSIK MCP server if needed, then creates a task,
- * starts a session, and registers a PostToolUse hook.
+ * Auto-starts the NUTAUSIK MCP server if needed, starts the NUTAUSIK session and
+ * registers a PostToolUse hook. No task is created per session — see
+ * autoStartSession().
  */
 export function onSessionCreated(sessionID: string, title: string, directory: string): void {
   // Single flight: ensureNutausikRunning guards against duplicate proxy startup
@@ -91,7 +92,7 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
   const ready = ensureNutausikRunning()
 
   ready
-    .then(() => autoCreateTask(sessionID, title, directory))
+    .then(() => autoStartSession(sessionID, directory))
     .catch(() => {})
 
   ready
