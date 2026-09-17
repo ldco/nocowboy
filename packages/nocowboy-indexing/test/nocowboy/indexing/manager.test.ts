@@ -105,12 +105,20 @@ describe("CodeIndexManager", () => {
     const data = createData(mgr) as Data & {
       _baselineStamp: string
       _baselineSigned: number
-      _orchestrator: { state: string }
+      _orchestrator: {
+        state: string
+        stopWatcher(): void
+        startIndexing(trigger: IndexingTelemetryTrigger): Promise<void>
+      }
       _searchService: { searchIndex(): Promise<[]> }
     }
     data._baselineStamp = "same"
     data._baselineSigned = Date.now()
-    data._orchestrator = { state: "Indexed" }
+    data._orchestrator = {
+      state: "Indexed",
+      stopWatcher() {},
+      async startIndexing() {},
+    }
     data._searchService = {
       async searchIndex() {
         return []

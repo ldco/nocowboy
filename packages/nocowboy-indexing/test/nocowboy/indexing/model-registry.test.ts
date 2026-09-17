@@ -22,10 +22,12 @@ describe("model-registry", () => {
     test("resolves a model selected via indexing.model without a manual dimension override", () => {
       for (const modelId of ["google/gemini-embedding-001", "qwen/qwen3-embedding-8b"]) {
         const profile = resolveEmbeddingProfile("openrouter", modelId)
+        const dimension = getModelDimension("openrouter", modelId)
+        if (dimension === undefined) throw new Error(`no dimension registered for ${modelId}`)
         expect(profile).toEqual({
           provider: "openrouter",
           modelId,
-          dimension: getModelDimension("openrouter", modelId),
+          dimension,
         })
       }
     })

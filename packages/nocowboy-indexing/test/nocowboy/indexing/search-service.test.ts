@@ -8,6 +8,7 @@ import type { IEmbedder, IVectorStore, VectorStoreSearchResult } from "../../../
 import { CodeIndexSearchService } from "../../../src/indexing/search-service"
 import { CodeIndexStateManager } from "../../../src/indexing/state-manager"
 import { WorktreeOverlay } from "../../../src/indexing/worktree-overlay"
+import type { EmbedderInfo } from "../../../src/indexing/interfaces/embedder"
 
 const result = (filePath: string, score: number, codeChunk = filePath, fileHash?: string): VectorStoreSearchResult => ({
   id: `${filePath}:${score}`,
@@ -17,7 +18,7 @@ const result = (filePath: string, score: number, codeChunk = filePath, fileHash?
 
 const store = (results: VectorStoreSearchResult[], limits: number[]): IVectorStore =>
   ({
-    async search(_vector, _prefix, _score, limit) {
+    async search(_vector: number[], _prefix?: string, _score?: number, limit?: number) {
       limits.push(limit ?? results.length)
       return results.slice(0, limit)
     },
@@ -31,7 +32,7 @@ const embedder = (calls: string[][]): IEmbedder => ({
   async validateConfiguration() {
     return { valid: true }
   },
-  get embedderInfo() {
+  get embedderInfo(): EmbedderInfo {
     return { name: "openai" }
   },
 })

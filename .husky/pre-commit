@@ -8,10 +8,15 @@ ROOT="$(git rev-parse --show-toplevel)"
 # поэтому при `commit -m` здесь читалось сообщение ПРОШЛОГО коммита и
 # невиновные коммиты блокировались (проверка по feature-ID из сообщения).
 
-# ── Typecheck (non-fatal — pre-existing plugin errors may fail) ──
-if [ -f "$ROOT/packages/opencode/package.json" ]; then
-  cd "$ROOT/packages/opencode" && bun run typecheck || echo "⚠️ typecheck failed (pre-existing errors, continuing)"
+# ── Typecheck (blocking, forced) ──
+# Blocking: a hook that warns and continues is how 17 real type errors survived
+# behind "clean" commits. Forced: tsgo's incremental cache can skip files it
+# already checked, so only a full program check tells the truth.
+if [ -f "$ROOT/turbo.json" ] && command -v bun &>/dev/null; then
   cd "$ROOT"
+  bun turbo typecheck --force || exit 1
+elif [ -f "$ROOT/packages/opencode/package.json" ] && command -v bun &>/dev/null; then
+  cd "$ROOT/packages/opencode" && bun run typecheck || exit 1
 fi
 
 # ── Quality ratchet (fast, blocking) ──
