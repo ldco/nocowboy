@@ -136,6 +136,15 @@ function call<T>(request: () => Promise<T>) {
   return Effect.promise(request)
 }
 
+/**
+ * A few generated endpoints type `response` as optional even though the client
+ * always attaches it in these tests. Narrow the type only — no runtime check, so
+ * behaviour is unchanged.
+ */
+function withResponse<T>(promise: Promise<T>): Promise<T & { response: Response }> {
+  return promise as unknown as Promise<T & { response: Response }>
+}
+
 function capture(request: () => Promise<SdkResult>) {
   return call(request).pipe(
     Effect.map((result) => ({
@@ -396,15 +405,15 @@ describe("HttpApi SDK", () => {
     "uses the generated SDK for global and control routes",
     Effect.gen(function* () {
       const sdk = client("raw")
-      const health = yield* call(() => sdk.global.health())
-      const log = yield* call(() => sdk.app.log({ service: "httpapi-sdk-test", level: "info", message: "hello" }))
+      const health = yield* capture(() => sdk.global.health())
+      const log = yield* capture(() => sdk.app.log({ service: "httpapi-sdk-test", level: "info", message: "hello" }))
 
-      expect(health.response.status).toBe(200)
+      expect(health.status).toBe(200)
       expect(health.data).toMatchObject({ healthy: true })
       expect(yield* firstEvent((signal) => sdk.global.event({ signal }))).toMatchObject({
         payload: { type: "server.connected" },
       })
-      expect(log.response.status).toBe(200)
+      expect(log.status).toBe(200)
       expect(log.data).toBe(true)
       yield* expectStatus(() => sdk.auth.set({ providerID: "test" }), 400)
     }),
@@ -427,7 +436,7 @@ describe("HttpApi SDK", () => {
         expect(listed.data?.map((item) => item.id)).toContain(session.data?.id)
 
         yield* Effect.all([
-          expectStatus(() => sdk.project.current(), 200),
+          expectStatus(() => withResponse(sdk.project.current()), 200),
           expectStatus(() => sdk.config.get(), 200),
           expectStatus(() => sdk.config.providers(), 200),
           expectStatus(() => sdk.find.files({ query: "hello", limit: 10 }), 200),
@@ -545,7 +554,7 @@ describe("HttpApi SDK", () => {
   serverPathParity("matches generated SDK instance read routes", (serverPath) =>
     withStandardProject(serverPath, ({ sdk, directory }) =>
       Effect.gen(function* () {
-        const project = yield* capture(() => sdk.project.current())
+        const project = yield* capture(() => withResponse(sdk.project.current()))
         const projects = yield* capture(() => sdk.project.list())
         const paths = yield* capture(() => sdk.path.get())
         const config = yield* capture(() => sdk.config.get())
@@ -979,9 +988,9 @@ describe("HttpApi SDK", () => {
   serverPathParity("matches generated SDK project git initialization", (serverPath) =>
     withProject(serverPath, { git: false }, ({ sdk, directory }) =>
       Effect.gen(function* () {
-        const before = yield* capture(() => sdk.project.current())
-        const init = yield* capture(() => sdk.project.initGit())
-        const after = yield* capture(() => sdk.project.current())
+        const before = yield* capture(() => withResponse(sdk.project.current()))
+        const init = yield* capture(() => withResponse(sdk.project.initGit()))
+        const after = yield* capture(() => withResponse(sdk.project.current()))
 
         return {
           statuses: statuses({ before, init, after }),
