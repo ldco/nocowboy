@@ -23,34 +23,46 @@ const log = Log.create({ service: "nutausik.auto-wire" })
 const HOOKS_FILE = path.join(homedir(), ".nocowboy", "hooks.json")
 
 const NUTAUSIK_PORT = 9210
-// How long to wait for the proxy to answer after spawning it. The instance
-// bootstrap awaits this before building MCP state, so being wrong here is what
-// produced "Unable to connect" and a session with no nutausik_* tools.
-const READY_TIMEOUT_MS = 8_000
+// The proxy binds the port itself, moments after it is spawned, so the wait only
+// needs to cover process startup. It is short on purpose: the instance bootstrap
+// awaits this before building MCP state, and a long wait there would stall every
+// instance. A failed attempt is not repeated for every instance either.
+const READY_TIMEOUT_MS = 3_000
 const READY_INTERVAL_MS = 200
+const FAILED_RETRY_COOLDOWN_MS = 60_000
+let lastFailureAt = 0
 
 /**
  * Auto-start NUTAUSIK MCP server if it's not running.
  * Delegates to McpLifecycle which handles proxy resolution, PID/port tracking.
  * Awaits readiness (bounded) so callers can rely on the port answering.
  */
-export async function ensureNutausikRunning(): Promise<void> {
+export async function ensureNutausikRunning(timeoutMs = READY_TIMEOUT_MS): Promise<void> {
   if (await hasNutausik()) return // already running
+
+  // One failed start must not make every later instance pay the full wait.
+  if (Date.now() - lastFailureAt < FAILED_RETRY_COOLDOWN_MS) return
 
   try {
     const cmd = await Launcher.command("nutausik")
-    if (!cmd) { log.warn("nutausik auto-start: no launch command found"); return }
+    if (!cmd) {
+      lastFailureAt = Date.now()
+      log.warn("nutausik auto-start: no launch command found")
+      return
+    }
 
     const info = await McpLifecycle.startOne("nutausik", cmd, NUTAUSIK_PORT)
     log.info("nutausik auto-started", { pid: info.pid, port: info.port })
 
-    const deadline = Date.now() + READY_TIMEOUT_MS
+    const deadline = Date.now() + timeoutMs
     while (Date.now() < deadline) {
       if (await hasNutausik()) return
       await new Promise((resolve) => setTimeout(resolve, READY_INTERVAL_MS))
     }
-    log.warn("nutausik auto-start: proxy did not become ready", { timeout: READY_TIMEOUT_MS })
+    lastFailureAt = Date.now()
+    log.warn("nutausik auto-start: proxy did not become ready", { timeout: timeoutMs })
   } catch (e) {
+    lastFailureAt = Date.now()
     log.warn("nutausik auto-start failed", { error: String(e) })
   }
 }

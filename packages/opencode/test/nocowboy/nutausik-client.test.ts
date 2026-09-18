@@ -28,6 +28,9 @@ test("a failed probe is not cached, so the next probe can succeed", async () => 
 
 test("a successful probe is cached", async () => {
   mode = "ok"
+  // Prime the cache so this test does not depend on a previous test having run.
+  expect(await hasNutausik()).toBe(true)
+
   const before = fetchCalls
   expect(await hasNutausik()).toBe(true)
   expect(fetchCalls).toBe(before)

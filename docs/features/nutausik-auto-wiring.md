@@ -20,8 +20,10 @@ url?") and never retried, leaving the session with no `nutausik_*` tools.
 
 Fixes:
 - `packages/opencode/src/nocowboy/bootstrap.ts` starts the proxy from
-  `NocowboyBootstrap.init` and `ensureNutausikRunning()` now waits (bounded, 8s)
-  until the port answers, so MCP state is built against a listening proxy.
+  `NocowboyBootstrap.init` and `ensureNutausikRunning()` now waits (bounded, 3s)
+  until the port answers, so MCP state is built against a listening proxy. After
+  a failed start the wait is skipped for 60s, so a broken setup cannot stall
+  every instance load.
 - `hasNutausik()` no longer caches a negative probe, so a probe taken while the
   proxy was still starting cannot pin the server as dead for 30s.
 

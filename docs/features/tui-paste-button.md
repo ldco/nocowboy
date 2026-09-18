@@ -24,7 +24,8 @@ returned `undefined` and clicking `[Paste]` did nothing.
 The Linux branch now reads text from the native selection with
 `wl-paste --no-newline` when `WAYLAND_DISPLAY` is set, before falling back to
 `clipboardy`. `--no-newline` strips the trailing newline the tool adds while
-preserving real line breaks.
+preserving real line breaks. The call is aborted after 2s so a stalled clipboard
+owner cannot hang the paste command.
 
 Regression: `packages/opencode/test/cli/tui/clipboard.test.ts`.
 

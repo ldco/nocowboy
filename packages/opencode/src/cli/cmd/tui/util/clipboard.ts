@@ -117,7 +117,10 @@ export async function read(): Promise<Content | undefined> {
     // through xsel (X11), which sees an empty clipboard when the copy came from a
     // Wayland app — so read wl-paste directly before falling back to it.
     if (process.env["WAYLAND_DISPLAY"]) {
-      const text = await Process.run(["wl-paste", "--no-newline"], { nothrow: true })
+      const text = await Process.run(["wl-paste", "--no-newline"], {
+        nothrow: true,
+        abort: AbortSignal.timeout(2_000),
+      })
       if (text.stdout.byteLength > 0) {
         return { data: text.stdout.toString("utf-8"), mime: "text/plain" }
       }
