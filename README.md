@@ -55,8 +55,8 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 - **Собственные MCP-серверы** — Constitution (AST-проверка кода), Puppeteer (браузер), Git, SQLite, context7 — стартуют автоматически
 - **Self-hosting** — NoCowboy разрабатывает сам себя. Код в этом репозитории написан через NoCowboy
 
-### Что нового в 1.0.0-alpha
-YOLO-режим реально работает (грант из конфига, а не из памяти инстанса); кнопки Paste и Attach; каскад кросс-модельного ревью; бюджет сессии; баланс OpenRouter; память NUTAUSIK с изоляцией по проектам; чистка документации и включённая проверка роадмапа. Подробности — в [docs/features/](docs/features/) и [CHANGELOG.md](docs/CHANGELOG.md).
+### Что нового в 1.0.1-alpha
+Хотфикс здоровья: прокси NUTAUSIK поднимается до подключения MCP, поэтому сессии больше не остаются без инструментов `nutausik_*`; текст из буфера на Wayland читается через `wl-paste` — кнопка Paste снова работает. Подробности — в [docs/releases/1.0.1-alpha.md](docs/releases/1.0.1-alpha.md).
 
 ## Что дальше
 
@@ -80,7 +80,7 @@ YOLO-режим реально работает (грант из конфига,
 bun install
 bun run release        # typecheck + build; обновляет ~/.nocowboy/bin/nocowboy
 
-nocowboy --version     # 1.0.0-alpha
+nocowboy --version     # 1.0.1-alpha
 nocowboy init          # мастер настройки
 nocowboy mcp start     # MCP-серверы
 nocowboy               # старт TUI

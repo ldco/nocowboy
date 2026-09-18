@@ -94,6 +94,11 @@
       "description": "Alpha Release — internal testing, all features done, no critical bugs"
     },
     {
+      "tag": "v1.0.1-alpha",
+      "date": "2026-09-18",
+      "description": "Health fixes — NUTAUSIK MCP proxy starts before the client connects; Wayland text paste via wl-paste"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"

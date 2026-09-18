@@ -90,6 +90,7 @@ packaging/aur/src
 packaging/aur/*.pkg.tar.zst
 packaging/aur/*.tar.gz
 releases/
+!docs/releases/
 packaging/aur/*.tar.gz
 packaging/mcp-servers/*/node_modules
 mcp-servers
