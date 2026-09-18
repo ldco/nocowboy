@@ -23,13 +23,18 @@ const log = Log.create({ service: "nutausik.auto-wire" })
 const HOOKS_FILE = path.join(homedir(), ".nocowboy", "hooks.json")
 
 const NUTAUSIK_PORT = 9210
+// How long to wait for the proxy to answer after spawning it. The instance
+// bootstrap awaits this before building MCP state, so being wrong here is what
+// produced "Unable to connect" and a session with no nutausik_* tools.
+const READY_TIMEOUT_MS = 8_000
+const READY_INTERVAL_MS = 200
 
 /**
  * Auto-start NUTAUSIK MCP server if it's not running.
  * Delegates to McpLifecycle which handles proxy resolution, PID/port tracking.
- * Called on session creation — fire-and-forget.
+ * Awaits readiness (bounded) so callers can rely on the port answering.
  */
-async function ensureNutausikRunning(): Promise<void> {
+export async function ensureNutausikRunning(): Promise<void> {
   if (await hasNutausik()) return // already running
 
   try {
@@ -38,6 +43,13 @@ async function ensureNutausikRunning(): Promise<void> {
 
     const info = await McpLifecycle.startOne("nutausik", cmd, NUTAUSIK_PORT)
     log.info("nutausik auto-started", { pid: info.pid, port: info.port })
+
+    const deadline = Date.now() + READY_TIMEOUT_MS
+    while (Date.now() < deadline) {
+      if (await hasNutausik()) return
+      await new Promise((resolve) => setTimeout(resolve, READY_INTERVAL_MS))
+    }
+    log.warn("nutausik auto-start: proxy did not become ready", { timeout: READY_TIMEOUT_MS })
   } catch (e) {
     log.warn("nutausik auto-start failed", { error: String(e) })
   }

@@ -28,7 +28,10 @@ const CHECK_INTERVAL = 30_000 // проверять не чаще раза в 30
 
 async function checkNutausikAlive(): Promise<boolean> {
   const now = Date.now()
-  if (_nutausikAlive !== null && now - _lastCheck < CHECK_INTERVAL) return _nutausikAlive
+  // Only a positive result is cached. A failed probe must not pin the server as
+  // dead for 30s while its proxy is still starting up — callers retry during
+  // startup and need a fresh answer.
+  if (_nutausikAlive === true && now - _lastCheck < CHECK_INTERVAL) return true
   _lastCheck = now
   try {
     const res = await fetch(NUTAUSIK_MCP_URL, {

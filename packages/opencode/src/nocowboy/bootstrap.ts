@@ -10,6 +10,7 @@ import { SessionExport } from "@/nocowboy/session-export"
 import { createWorkspaceProvider } from "@/nocowboy/session-export/workspace-provider"
 import { Instance } from "@/nocowboy/instance"
 import { Identity } from "@nocowboy/telemetry"
+import { ensureNutausikRunning } from "@/nocowboy/nutausik-auto-wire"
 
 const log = Log.create({ service: "kilocode-bootstrap" })
 
@@ -27,6 +28,16 @@ export namespace NocowboyBootstrap {
 
       const init = Effect.fn("NocowboyBootstrap.init")(function* () {
         yield* sessions.init()
+        // Start the NUTAUSIK proxy before MCP state is built. MCP connects to
+        // http://127.0.0.1:9210 at instance start; if the proxy is not listening
+        // yet the client fails once and never retries, leaving the session
+        // without nutausik_* tools ("Unable to connect. Is the computer able to
+        // access the url?"). Awaited so the port answers before bootstrap ends.
+        yield* EffectBridge.fromPromise(() => ensureNutausikRunning()).pipe(
+          Effect.catchCause((cause) =>
+            Effect.sync(() => log.warn("nutausik bootstrap failed", { err: Cause.squash(cause) })),
+          ),
+        )
         yield* Effect.gen(function* () {
           const anon = yield* EffectBridge.fromPromise(() =>
             Identity.getMachineId().catch((err) => {
