@@ -113,6 +113,15 @@ export async function read(): Promise<Content | undefined> {
     if (x11.stdout.byteLength > 0) {
       return { data: Buffer.from(x11.stdout).toString("base64"), mime: "image/png" }
     }
+    // Text on a Wayland session lives in the native selection. clipboardy reads
+    // through xsel (X11), which sees an empty clipboard when the copy came from a
+    // Wayland app — so read wl-paste directly before falling back to it.
+    if (process.env["WAYLAND_DISPLAY"]) {
+      const text = await Process.run(["wl-paste", "--no-newline"], { nothrow: true })
+      if (text.stdout.byteLength > 0) {
+        return { data: text.stdout.toString("utf-8"), mime: "text/plain" }
+      }
+    }
   }
 
   const clipboardy = await getClipboardy()
