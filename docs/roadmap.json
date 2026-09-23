@@ -99,6 +99,11 @@
       "description": "Health fixes — NUTAUSIK MCP proxy starts before the client connects; Wayland text paste via wl-paste"
     },
     {
+      "tag": "v1.0.2-alpha",
+      "date": "2026-09-23",
+      "description": "Routing and agent models — #route switches to the routed agent; per-agent model picker in the palette and sidebar; the prompt-footer pick persists to the agent config"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"
