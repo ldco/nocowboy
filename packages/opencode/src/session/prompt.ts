@@ -1696,7 +1696,11 @@ export const layer = Layer.effect(
                 input.sessionID,
                 loopResult.info.id,
                 rebridge.run(
-                  loop({ sessionID: input.sessionID, snapshotInitialization: undefined }).pipe(Effect.orDie),
+                  loop({
+                    sessionID: input.sessionID,
+                    agentOverride: route.agent,
+                    snapshotInitialization: undefined,
+                  }).pipe(Effect.orDie),
                 ),
                 rebridge.run(lastAssistant(input.sessionID)),
               )
@@ -1807,7 +1811,23 @@ export const layer = Layer.effect(
             history: msgs,
           }).pipe(Effect.ignore, Effect.forkIn(scope))
 
-        const model = yield* getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID)
+        // nocowboy_change: a routed turn runs under the routed agent, not the
+        // agent from the last user message. Model, variant, system prompt and
+        // permission all follow `msg.agent` (processor → llm), so applying the
+        // override here is enough for the whole loop.
+        const overrideAgent = input.agentOverride
+          ? yield* agents.get(input.agentOverride)
+          : undefined
+        // The routed agent brings its own model; if that model is not available
+        // in this environment, fall back to the model on the last user message
+        // instead of failing the whole turn.
+        const model = overrideAgent?.model
+          ? yield* getModel(overrideAgent.model.providerID, overrideAgent.model.modelID, sessionID).pipe(
+              Effect.catchCause(() =>
+                getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID),
+              ),
+            )
+          : yield* getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID)
         const task = tasks.pop()
 
         if (task?.type === "subtask") {
@@ -1868,7 +1888,7 @@ export const layer = Layer.effect(
             continue
           }
 
-        const agent = yield* agents.get(lastUser.agent)
+        const agent = overrideAgent ?? (yield* agents.get(lastUser.agent))
         if (!agent) {
           const available = (yield* agents.list()).filter((a) => !a.hidden).map((a) => a.name)
           const hint = available.length ? ` Available agents: ${available.join(", ")}` : ""
@@ -1886,7 +1906,7 @@ export const layer = Layer.effect(
           role: "assistant",
           mode: agent.name,
           agent: agent.name,
-          variant: lastUser.model.variant,
+          variant: overrideAgent?.variant ?? lastUser.model.variant,
           path: { cwd: ctx.directory, root: ctx.worktree },
           cost: 0,
           tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
@@ -2431,6 +2451,10 @@ export type PromptInput = Omit<Schema.Schema.Type<typeof PromptInput>, "parts" |
 export class LoopInput extends Schema.Class<LoopInput>("SessionPrompt.LoopInput")({
   sessionID: SessionID,
   snapshotInitialization: Schema.optional(Schema.Literal("wait")),
+  // nocowboy_change: `#route: <agent>` hands the current turn to another agent.
+  // The loop otherwise resolves the agent from the last user message, so a route
+  // directive that only restarted the loop silently kept the original agent.
+  agentOverride: Schema.optional(Schema.String),
 }) {
   static readonly zod = zod(this)
 }

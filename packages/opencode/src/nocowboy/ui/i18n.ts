@@ -48,6 +48,8 @@ export namespace I18n {
     | "search.noResults"
     | "settings.providers"
     | "settings.codeIndexing"
+    | "settings.agentModels"
+    | "settings.agentModelsCta"
     | "settings.lsp"
     | "settings.mcpServers"
     | "status.enabled"
@@ -65,6 +67,10 @@ export namespace I18n {
     | "agent.select"
     | "model.select"
     | "model.agentTitle"
+    | "model.agentNotConfigured"
+    | "model.agentAssignHint"
+    | "model.agentAssignFailed"
+    | "model.agentAssigned"
     | "variant.select"
     | "provider.connect"
     | "provider.authMethod"
@@ -195,6 +201,8 @@ export namespace I18n {
     "search.noResults": "Ничего не найдено",
     "settings.providers": "Провайдеры",
     "settings.codeIndexing": "Индексация кода",
+    "settings.agentModels": "Модели агентов",
+    "settings.agentModelsCta": "Назначить модель агенту →",
     "settings.lsp": "LSP",
     "settings.mcpServers": "MCP-серверы",
     "status.enabled": "Включено",
@@ -212,6 +220,10 @@ export namespace I18n {
     "agent.select": "Выбор агента",
     "model.select": "Выбор модели",
     "model.agentTitle": "Модели агентов — клик, чтобы назначить",
+    "model.agentNotConfigured": "не назначена",
+    "model.agentAssignHint": "Назначить агенту {agent}",
+    "model.agentAssignFailed": "Не удалось назначить модель агенту {agent}",
+    "model.agentAssigned": "{agent} → {model}",
     "variant.select": "Выбор варианта",
     "provider.connect": "Подключить провайдера",
     "provider.authMethod": "Способ авторизации",
@@ -351,6 +363,10 @@ export namespace I18n {
     "agent.select": "Select agent",
     "model.select": "Select model",
     "model.agentTitle": "Agent Models — click a model to assign",
+    "model.agentNotConfigured": "not configured",
+    "model.agentAssignHint": "Assign to {agent}",
+    "model.agentAssignFailed": "Failed to assign a model to {agent}",
+    "model.agentAssigned": "{agent} → {model}",
     "variant.select": "Select variant",
     "provider.connect": "Connect a provider",
     "provider.authMethod": "Select auth method",
@@ -436,6 +452,8 @@ export namespace I18n {
     "home.welcome": "Welcome to NoCowboy",
     "settings.providers": "Providers",
     "settings.codeIndexing": "Code Indexing",
+    "settings.agentModels": "Agent Models",
+    "settings.agentModelsCta": "Assign a model to an agent →",
     "settings.lsp": "LSP",
     "settings.mcpServers": "MCP Servers",
     "status.enabled": "Enabled",
@@ -478,6 +496,7 @@ export const phrases: Record<string, string> = {
   "Agent": "Агент",
   "Agent cycle": "Цикл агентов",
   "Agent cycle reverse": "Цикл агентов назад",
+  "Agent models": "Модели агентов",
   "Attach file": "Прикрепить файл",
   "Autocomplete": "Автодополнение",
   "Automatically show which-key for pending key sequences in overlay mode": "Автопоказ привязок для незавершённых последовательностей",

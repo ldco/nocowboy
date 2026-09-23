@@ -1,76 +1,75 @@
 import { createMemo } from "solid-js"
+import { reconcile } from "solid-js/store"
 import { useLocal } from "@tui/context/local"
 import { useSync } from "@tui/context/sync"
 import { useSDK } from "@tui/context/sdk"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
+import { useToast } from "@tui/ui/toast"
 import { t } from "@tui/context/i18n"
-
-type AgentItem = { name: string; displayName?: string; description?: string; native?: boolean }
+import {
+  agentModelPatch,
+  currentAgentModel,
+  isCurrentAgentModel,
+  listAssignableAgents,
+  listAssignableModels,
+  type AgentLike,
+  type ProviderLike,
+} from "@/nocowboy/components/agent-model-dialog-state"
 
 export function DialogAgentModel() {
   const local = useLocal()
   const sync = useSync()
   const sdk = useSDK()
   const dialog = useDialog()
+  const toast = useToast()
   dialog.setSize("xlarge")
 
-  const allModels = createMemo(() => {
-    const result: { providerID: string; modelID: string; label: string }[] = []
-    for (const provider of sync.data.provider ?? []) {
-      if (!provider.models) continue
-      for (const [modelID, info] of Object.entries(provider.models) as [string, any][]) {
-        if (info.status === "deprecated") continue
-        const label = `${info.name ?? modelID} (${provider.name})`
-        result.push({ providerID: provider.id, modelID, label })
-      }
-    }
-    return result.sort((a, b) => a.label.localeCompare(b.label))
-  })
+  const allModels = createMemo(() => listAssignableModels((sync.data.provider ?? []) as unknown as ProviderLike[]))
 
-  function currentModel(agentName: string): string {
-    const agents = sync.data.agent ?? []
-    const agent = agents.find((a: any) => a.name === agentName)
-    if (!agent?.model) return ""
-    return `${agent.model.modelID} (${agent.model.providerID})`
-  }
+  const agents = createMemo(() => listAssignableAgents((local.agent.list() ?? []) as unknown as AgentLike[]))
 
   const options = createMemo(() => {
-    const agents = (local.agent.list() as AgentItem[]).filter(
-      (a) => !["compaction", "title", "summary", "router"].includes(a.name),
-    )
     const models = allModels()
     const result: any[] = []
 
-    for (const agent of agents) {
+    for (const agent of agents()) {
       const name = agent.displayName ?? agent.name
-      const cur = currentModel(agent.name)
+      const cur = currentAgentModel(agent)
+      const current = cur ? `${cur.modelID} (${cur.providerID})` : t("model.agentNotConfigured")
+
       result.push({
-        category: `⚙ ${name}  (${cur || "not configured"})`,
-        value: { agentName: agent.name },
-        title: "",
+        title: `⚙ ${name}  —  ${current}`,
+        value: { agentName: agent.name, kind: "header" },
         disabled: true,
       })
+
       for (const model of models) {
-        const isCurrent = model.modelID === cur.split(" ")[0]
+        const isCurrent = isCurrentAgentModel(agent, model)
         result.push({
           value: { agentName: agent.name, providerID: model.providerID, modelID: model.modelID },
-          title: model.label,
-          indent: 1,
-          ...(isCurrent ? { action: "(current)" } : {}),
+          title: isCurrent ? `✓ ${model.label}` : model.label,
+          description: t("model.agentAssignHint", { agent: name }),
           onSelect: async () => {
-            // Save per-agent model to config via overlayUpdate
-            try {
-              ;(sdk.client as any).overlayUpdate({
-                body: {
-                  scope: "project",
-                  set: {
-                    [`agent.${agent.name}.model.modelID`]: model.modelID,
-                    [`agent.${agent.name}.model.providerID`]: model.providerID,
-                  },
-                },
-              })
-            } catch { /* non-fatal: the dialog closes anyway */ }
+            const response = await sdk.client.config.overlayUpdate({
+              scope: "global",
+              set: agentModelPatch(agent.name, { providerID: model.providerID, modelID: model.modelID }),
+              unset: undefined,
+            })
+            if (response.error) {
+              toast.show({ message: t("model.agentAssignFailed", { agent: name }), variant: "error" })
+              return
+            }
+            const [configResponse, globalResponse] = await Promise.all([
+              sdk.client.config.get({}),
+              sdk.client.global.config.get({}),
+            ])
+            if (configResponse.data) sync.set("config", reconcile(configResponse.data))
+            if (globalResponse.data) sync.set("globalConfig", reconcile(globalResponse.data))
+            toast.show({
+              message: t("model.agentAssigned", { agent: name, model: model.modelID }),
+              variant: "success",
+            })
             dialog.clear()
           },
         })

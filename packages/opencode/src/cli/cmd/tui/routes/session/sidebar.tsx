@@ -18,6 +18,7 @@ import { WorkspaceLabel } from "../../component/workspace-label"
 import { useBindings } from "../../keymap"
 import { DialogProvider } from "../../component/dialog-provider"
 import { DialogIndexing } from "@/nocowboy/components/dialog-indexing"
+import { DialogAgentModel } from "../../component/dialog-agent-model"
 import * as Clipboard from "../../util/clipboard"
 import { useToast } from "../../ui/toast"
 import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
@@ -184,6 +185,12 @@ function SettingsTab() {
         </text>
         <text fg={theme.textMuted} onMouseDown={() => { console.error("INDEXING_CLICK"); dialog.replace(() => <DialogIndexing useSDK={() => sdk as any} />) }}>
           Open indexing configuration →
+        </text>
+      </box>
+      <box paddingTop={1}>
+        <text attributes={TextAttributes.BOLD} fg={theme.text}>{t("settings.agentModels")}</text>
+        <text fg={theme.textMuted} onMouseDown={() => dialog.replace(() => <DialogAgentModel />)}>
+          {t("settings.agentModelsCta")}
         </text>
       </box>
       <box paddingTop={1}>

@@ -1,52 +1,23 @@
 /**
- * Tests for DialogAgentModel — per-agent model selection UI
- * Tests focus on data logic (options generation, model listing) not SolidJS rendering
+ * Tests for DialogAgentModel — per-agent model selection UI.
+ *
+ * The component renders; the decisions (which models, which agents, and the
+ * exact config patch) live in agent-model-dialog-state and are tested here.
  */
 
 import { describe, it, expect } from "bun:test"
-import { createMemo } from "solid-js"
-
-// Helper to test the model listing logic used in dialog-agent-model.tsx
-// Extracts the pure data flow from the component for isolated testing
-
-interface ProviderInfo {
-  id: string
-  name: string
-  models?: Record<string, { name?: string; status?: string }>
-}
-
-interface AgentInfo {
-  name: string
-  displayName?: string
-  model?: { providerID: string; modelID: string }
-}
-
-function getAllModels(providers: ProviderInfo[]): { providerID: string; modelID: string; label: string }[] {
-  const result: { providerID: string; modelID: string; label: string }[] = []
-  for (const provider of providers ?? []) {
-    if (!provider.models) continue
-    for (const [modelID, info] of Object.entries(provider.models)) {
-      if (info.status === "deprecated") continue
-      const label = `${info.name ?? modelID} (${provider.name})`
-      result.push({ providerID: provider.id, modelID, label })
-    }
-  }
-  return result.sort((a, b) => a.label.localeCompare(b.label))
-}
-
-function getAgentModels(agents: AgentInfo[], providers: ProviderInfo[]): { agentName: string; currentModel: string; modelCount: number }[] {
-  const allModels = getAllModels(providers)
-  return agents
-    .filter((a) => !["compaction", "title", "summary", "router"].includes(a.name))
-    .map((agent) => ({
-      agentName: agent.name,
-      currentModel: agent.model ? `${agent.model.modelID} (${agent.model.providerID})` : "not configured",
-      modelCount: allModels.length,
-    }))
-}
+import {
+  agentModelPatch,
+  currentAgentModel,
+  isCurrentAgentModel,
+  listAssignableAgents,
+  listAssignableModels,
+  type AgentLike,
+  type ProviderLike,
+} from "../../src/nocowboy/components/agent-model-dialog-state"
 
 describe("DialogAgentModel", () => {
-  const mockProviders: ProviderInfo[] = [
+  const mockProviders: ProviderLike[] = [
     {
       id: "deepseek",
       name: "DeepSeek",
@@ -65,7 +36,7 @@ describe("DialogAgentModel", () => {
     },
   ]
 
-  const mockAgents: AgentInfo[] = [
+  const mockAgents: AgentLike[] = [
     { name: "auto", model: { providerID: "deepseek", modelID: "deepseek-v4-flash" } },
     { name: "worker", model: { providerID: "deepseek", modelID: "deepseek-v4-flash" } },
     { name: "planner", model: { providerID: "deepseek", modelID: "deepseek-v4-pro" } },
@@ -74,42 +45,54 @@ describe("DialogAgentModel", () => {
   ]
 
   it("lists all non-deprecated models from providers", () => {
-    const models = getAllModels(mockProviders)
+    const models = listAssignableModels(mockProviders)
     expect(models).toHaveLength(3) // 2 deepseek + 1 opencode, -1 deprecated
     expect(models.find((m) => m.modelID === "deepseek-v4-flash")).toBeDefined()
     expect(models.find((m) => m.modelID === "deepseek-nano")).toBeUndefined() // deprecated
   })
 
   it("sorts models alphabetically by label", () => {
-    const models = getAllModels(mockProviders)
+    const models = listAssignableModels(mockProviders)
     for (let i = 1; i < models.length; i++) {
       expect(models[i].label.localeCompare(models[i - 1].label)).toBeGreaterThanOrEqual(0)
     }
   })
 
-  it("shows current model for each agent", () => {
-    const result = getAgentModels(mockAgents, mockProviders)
-    expect(result).toHaveLength(5) // 5 agents, skipped hidden ones
-
-    const auto = result.find((a) => a.agentName === "auto")
-    expect(auto?.currentModel).toBe("deepseek-v4-flash (deepseek)")
-
-    const reviewer = result.find((a) => a.agentName === "reviewer")
-    expect(reviewer?.currentModel).toBe("kimi-k2-thinking (opencode)")
-
-    const nocowboy = result.find((a) => a.agentName === "nocowboy")
-    expect(nocowboy?.currentModel).toBe("not configured")
-  })
-
   it("filters out hidden/internal agents", () => {
-    const agentsWithHidden: AgentInfo[] = [
+    const agentsWithHidden: AgentLike[] = [
       ...mockAgents,
       { name: "compaction" },
       { name: "title" },
       { name: "summary" },
       { name: "router" },
     ]
-    const result = getAgentModels(agentsWithHidden, mockProviders)
-    expect(result).toHaveLength(5) // compaction, title, summary, router filtered out
+    expect(listAssignableAgents(agentsWithHidden)).toHaveLength(5)
+  })
+
+  it("resolves the current model of an agent", () => {
+    expect(currentAgentModel(mockAgents[0])).toEqual({ providerID: "deepseek", modelID: "deepseek-v4-flash" })
+    expect(currentAgentModel(mockAgents.find((a) => a.name === "nocowboy"))).toBeUndefined()
+    expect(currentAgentModel(undefined)).toBeUndefined()
+  })
+
+  it("matches current model by provider AND model, not model alone", () => {
+    const auto = mockAgents[0]
+    expect(
+      isCurrentAgentModel(auto, { providerID: "deepseek", modelID: "deepseek-v4-flash", label: "x" }),
+    ).toBe(true)
+    // Same modelID behind a different provider must not count as current.
+    expect(
+      isCurrentAgentModel(auto, { providerID: "opencode", modelID: "deepseek-v4-flash", label: "x" }),
+    ).toBe(false)
+  })
+
+  it("builds a nested patch with a provider/model string", () => {
+    // ConfigModelID is a STRING; the overlay payload must be NESTED, not dotted.
+    expect(agentModelPatch("worker", { providerID: "deepseek", modelID: "deepseek-v4-flash" })).toEqual({
+      agent: { worker: { model: "deepseek/deepseek-v4-flash" } },
+    })
+    expect(Object.keys(agentModelPatch("architect", { providerID: "kimi-for-coding", modelID: "kimi-k2.7-code" }))).toEqual([
+      "agent",
+    ])
   })
 })

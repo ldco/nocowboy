@@ -434,6 +434,39 @@ it.live("loop calls LLM and returns assistant message", () =>
   30_000,
 )
 
+// nocowboy_change: `#route:` hands the current turn to another agent. The loop
+// must run under the routed agent instead of the agent recorded on the last
+// user message, which is what a bare loop restart used to fall back to.
+it.live("loop runs an assistant turn under an explicit agent override", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ llm }) {
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const chat = yield* sessions.create({
+        title: "Agent override",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      yield* prompt.prompt({
+        sessionID: chat.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "hand off" }],
+      })
+      yield* llm.text("routed reply")
+
+      const result = yield* prompt.loop({ sessionID: chat.id, agentOverride: "architect" })
+      expect(result.info.role).toBe("assistant")
+      if (result.info.role === "assistant") {
+        expect(result.info.agent).toBe("architect")
+        const parts = result.parts.filter((p) => p.type === "text")
+        expect(parts.some((p) => p.type === "text" && p.text === "routed reply")).toBe(true)
+      }
+    }),
+    { git: true, config: providerCfg },
+  ),
+  30_000,
+)
+
 // kilocode_change start - replacement prompts unblock pending Question service requests
 it.live("new prompt dismisses a pending question", () =>
   provideTmpdirServer(

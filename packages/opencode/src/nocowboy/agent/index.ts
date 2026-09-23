@@ -424,7 +424,7 @@ export function patchAgents(
   agents.planner = {
     name: "planner",
     description: "Planning, specification, acceptance criteria — read-only",
-    prompt: (lang === "ru" ? PROMPT_PLANNER_RU : PROMPT_PLANNER),
+    prompt: (lang === "ru" ? PROMPT_PLANNER_RU : PROMPT_PLANNER) + routerPrompt,
     model: resolveModel("planner", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
     permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),

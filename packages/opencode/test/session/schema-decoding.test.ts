@@ -260,9 +260,11 @@ describe("Todo.Info", () => {
 })
 
 describe("SessionPrompt input schemas", () => {
-  test("LoopInput is just sessionID", () => {
+  test("LoopInput carries sessionID and an optional routed agent", () => {
     const decode = decodeUnknown(SessionPrompt.LoopInput)
     expect(decode({ sessionID })).toEqual({ sessionID })
+    // nocowboy_change: `#route: <agent>` forwards the routed agent into the loop.
+    expect(decode({ sessionID, agentOverride: "worker" })).toEqual({ sessionID, agentOverride: "worker" })
   })
 
   test("ShellInput requires agent + command", () => {

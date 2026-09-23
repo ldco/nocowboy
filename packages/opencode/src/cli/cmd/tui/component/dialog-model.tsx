@@ -1,7 +1,10 @@
 import { useTerminalDimensions } from "@opentui/solid"
 import { createEffect, createMemo, createSignal, Show } from "solid-js"
+import { reconcile } from "solid-js/store"
 import { useLocal } from "@tui/context/local"
 import { useSync } from "@tui/context/sync"
+import { useSDK } from "@tui/context/sdk"
+import { useToast } from "@tui/ui/toast"
 import { map, pipe, flatMap, entries, filter, sortBy, take, groupBy } from "remeda"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
@@ -12,11 +15,14 @@ import * as fuzzysort from "fuzzysort"
 import { useConnected } from "./use-connected"
 import { ModelInfoPanel } from "@/nocowboy/components/model-info-panel"
 import { FreeModelDisclosure } from "@/nocowboy/components/free-model-disclosure"
+import { agentModelPatch } from "@/nocowboy/components/agent-model-dialog-state"
 import { t } from "@tui/context/i18n"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
   const sync = useSync()
+  const sdk = useSDK()
+  const toast = useToast()
   const dialog = useDialog()
   const [query, setQuery] = createSignal("")
   const dimensions = useTerminalDimensions()
@@ -196,8 +202,31 @@ export function DialogModel(props: { providerID?: string }) {
     return value.name
   })
 
+  // Choosing a model here is how the agent's default is changed without opening
+  // the settings dialog. The in-process pick (#9050) is deliberately short-lived,
+  // so also write it to the config — otherwise the next launch silently falls
+  // back to the previously configured model.
+  async function persistAgentModel(providerID: string, modelID: string) {
+    const agent = local.agent.current()
+    if (!agent) return
+    const response = await sdk.client.config.overlayUpdate({
+      scope: "global",
+      set: agentModelPatch(agent.name, { providerID, modelID }),
+      unset: undefined,
+    })
+    if (response.error) return
+    const [configResponse, globalResponse] = await Promise.all([
+      sdk.client.config.get({}),
+      sdk.client.global.config.get({}),
+    ])
+    if (configResponse.data) sync.set("config", reconcile(configResponse.data))
+    if (globalResponse.data) sync.set("globalConfig", reconcile(globalResponse.data))
+    toast.show({ message: t("model.agentAssigned", { agent: agent.name, model: modelID }), variant: "success" })
+  }
+
   function onSelect(providerID: string, modelID: string) {
     local.model.set({ providerID, modelID }, { recent: true })
+    void persistAgentModel(providerID, modelID)
     const list = local.model.variant.list()
     const cur = local.model.variant.selected()
     if (cur === "default" || (cur && list.includes(cur))) {
