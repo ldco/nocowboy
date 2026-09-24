@@ -104,6 +104,11 @@
       "description": "Routing and agent models — #route switches to the routed agent; per-agent model picker in the palette and sidebar; the prompt-footer pick persists to the agent config"
     },
     {
+      "tag": "v1.0.3-alpha",
+      "date": "2026-09-24",
+      "description": "Autopilot — unattended roadmap runner: harness auto-continue (no human continue), /autopilot conductor with a reviewer gate (feature + tests + roadmap currency), deterministic roadmap stage gate, goal turn budget, stall guard, and headless run --autopilot / --agent goal with zero-input resume"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"

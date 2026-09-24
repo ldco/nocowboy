@@ -55,8 +55,8 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 - **Собственные MCP-серверы** — Constitution (AST-проверка кода), Puppeteer (браузер), Git, SQLite, context7 — стартуют автоматически
 - **Self-hosting** — NoCowboy разрабатывает сам себя. Код в этом репозитории написан через NoCowboy
 
-### Что нового в 1.0.2-alpha
-Агенты наконец передают работу друг другу: директива `#route` применяет указанного агента (раньше цикл перезапускался под прежним агентом, поэтому architect не мог отдать реализацию worker'у). Маппинг «агент → модель» теперь доступен из палитры (`Agent models` / `/agent-models`) и из сайдбара, а выбор модели в футере промпта сохраняется в конфиг агента и переживает перезапуск. Подробности — в [docs/releases/1.0.2-alpha.md](docs/releases/1.0.2-alpha.md).
+### Что нового в 1.0.3-alpha
+Появился **автопилот** — прогон целого roadmap без человека. Команда `/autopilot [scope]` (в TUI) или `nocowboy run --autopilot "<scope>" --max-turns N` (headless/CI) ставит цель и ведёт этапы сама: worker реализует, reviewer-гейт проверяет и фичу с тестами, и **актуальность roadmap**, и только после подтверждения начинается следующий этап. Harness сам продолжает сессию, пока цель не достигнута или не исчерпан бюджет `--max-turns`; зависшие этапы отсекает stall-guard, а `run --continue` возобновляет прерванный прогон. Подробности — в [docs/releases/1.0.3-alpha.md](docs/releases/1.0.3-alpha.md).
 
 ## Что дальше
 
@@ -80,7 +80,7 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 bun install
 bun run release        # typecheck + build; обновляет ~/.nocowboy/bin/nocowboy
 
-nocowboy --version     # 1.0.2-alpha
+nocowboy --version     # 1.0.3-alpha
 nocowboy init          # мастер настройки
 nocowboy mcp start     # MCP-серверы
 nocowboy               # старт TUI
