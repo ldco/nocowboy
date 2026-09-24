@@ -840,6 +840,56 @@ it.live("autopilot goal continues across turns without a user message", () =>
   30_000,
 )
 
+// nocowboy_change: the server publishes the live goal state on the bus so the
+// TUI badge reflects the real run, not a client-side guess.
+it.live("autopilot publishes live goal state on the bus", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ dir, llm }) {
+      const previousGoalsDir = process.env.NOCOWBOY_GOALS_DIR
+      process.env.NOCOWBOY_GOALS_DIR = path.join(dir, "goals")
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          if (previousGoalsDir === undefined) delete process.env.NOCOWBOY_GOALS_DIR
+          else process.env.NOCOWBOY_GOALS_DIR = previousGoalsDir
+        }),
+      )
+
+      const bus = yield* Bus.Service
+      const seen: { sessionID: string; goal: { auto?: boolean } | null }[] = []
+      yield* bus.subscribeAllCallback((event: any) => {
+        if (event.type === "session.goal") seen.push(event.properties)
+      })
+
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({
+        title: "Autopilot bus",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      GoalService.set(session.id, "keep going", 2, true)
+
+      yield* prompt.prompt({
+        sessionID: session.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "start" }],
+      })
+      yield* llm.text("turn one")
+
+      yield* prompt.loop({ sessionID: session.id })
+      // Bus callbacks are delivered on a forked fiber; give them a tick.
+      yield* Effect.sleep("100 millis")
+
+      const forSession = seen.filter((p) => p.sessionID === session.id)
+      expect(forSession.length).toBeGreaterThan(0)
+      expect(forSession.some((p) => p.goal?.auto === true)).toBe(true)
+      expect(forSession.some((p) => p.goal === null)).toBe(true)
+    }),
+    { git: true, config: providerCfg },
+  ),
+  30_000,
+)
+
 // nocowboy_change: the goal budget (--max-turns) is the real autopilot budget —
 // a run must go past the per-turn default cap (AUTO_CONTINUE_MAX = 8) when the
 // goal allows it, otherwise "run the roadmap to the end" would truncate.

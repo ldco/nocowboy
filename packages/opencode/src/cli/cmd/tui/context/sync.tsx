@@ -95,6 +95,11 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: FormatterStatus[]
       vcs: VcsInfo | undefined
       indexing: IndexingStatus
+      // nocowboy_change: live goal/autopilot state, pushed by the server's
+      // "session.goal" bus event. Absent key means "no active goal".
+      goal: {
+        [sessionID: string]: { condition: string; react: number; maxTurns: number; auto: boolean } | undefined
+      }
     }>({
       provider_next: {
         all: [],
@@ -128,6 +133,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: [],
       vcs: undefined,
       indexing: { state: "Disabled", message: "Indexing disabled.", processedFiles: 0, totalFiles: 0, percent: 0 },
+      goal: {},
     })
 
     const event = useEvent()
@@ -154,6 +160,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           delete draft.question[sessionID]
           delete draft.suggestion[sessionID]
           delete draft.network[sessionID]
+          delete draft.goal[sessionID]
         }),
       )
       fullSyncedSessions.delete(sessionID)
@@ -189,6 +196,28 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
     }
 
     event.subscribe((event, { workspace }) => {
+      // nocowboy_change: live autopilot/goal state. The bus event is emitted by
+      // the server on every goal set/bump/clear, so the badge reflects the real
+      // run instead of a client-side guess. (No generated SDK type yet — a full
+      // SDK regen would type this case.)
+      if ((event as { type: string }).type === "session.goal") {
+        const props = (
+          event as unknown as {
+            properties: {
+              sessionID: string
+              goal: { condition: string; react: number; maxTurns: number; auto: boolean } | null
+            }
+          }
+        ).properties
+        setStore(
+          "goal",
+          produce((draft) => {
+            if (props.goal) draft[props.sessionID] = props.goal
+            else delete draft[props.sessionID]
+          }),
+        )
+        return
+      }
       switch (event.type) {
         case "server.instance.disposed":
           deleted.clear()

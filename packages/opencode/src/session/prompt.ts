@@ -2125,14 +2125,20 @@ export const layer = Layer.effect(
             if (goalMet?.ok || goalMet?.impossible) {
               yield* Effect.logInfo(goalMet?.ok ? "goal met, stopping" : "goal impossible, stopping")
               GoalService.clear(sessionID)
+              yield* bus.publish(NoCowboySession.Event.Goal, { sessionID, goal: null })
               return "break" as const
             }
             if (GoalService.exhausted(sessionID)) {
               yield* Effect.logInfo("goal turn budget exhausted, stopping")
               GoalService.clear(sessionID)
+              yield* bus.publish(NoCowboySession.Event.Goal, { sessionID, goal: null })
               return "break" as const
             }
             GoalService.bumpReact(sessionID)
+            yield* bus.publish(NoCowboySession.Event.Goal, {
+              sessionID,
+              goal: GoalService.get(sessionID) ?? null,
+            })
 
             // Deterministic stage gate (+ stall guard): read the roadmap so every
             // continuation says whether a stage is still in progress (finish and
@@ -2326,6 +2332,11 @@ export const layer = Layer.effect(
           sessionID: input.sessionID,
           arguments: input.arguments,
         })
+        // Publish the live goal state so the TUI badge reflects reality.
+        yield* bus.publish(NoCowboySession.Event.Goal, {
+          sessionID: input.sessionID,
+          goal: GoalService.get(input.sessionID) ?? null,
+        })
         if (handled.kind === "handled") {
           return yield* emitLocalMessage({
             sessionID: input.sessionID,
@@ -2339,6 +2350,10 @@ export const layer = Layer.effect(
         const handled = NoCowboySessionPrompt.handleAutopilotCommand({
           sessionID: input.sessionID,
           arguments: input.arguments,
+        })
+        yield* bus.publish(NoCowboySession.Event.Goal, {
+          sessionID: input.sessionID,
+          goal: GoalService.get(input.sessionID) ?? null,
         })
         if (handled.kind === "handled") {
           return yield* emitLocalMessage({

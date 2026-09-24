@@ -42,6 +42,23 @@ export namespace NoCowboySession {
         reason: CloseReasonSchema,
       }),
     ),
+    // Live goal/autopilot state per session, so the TUI can show whether a run
+    // is actually active instead of a client-side guess. Published whenever a
+    // goal is set, bumped or cleared; `goal: null` means "no active goal".
+    Goal: BusEvent.define(
+      "session.goal",
+      Schema.Struct({
+        sessionID: SessionID,
+        goal: Schema.NullOr(
+          Schema.Struct({
+            condition: Schema.String,
+            react: Schema.Number,
+            maxTurns: Schema.Number,
+            auto: Schema.Boolean,
+          }),
+        ),
+      }),
+    ),
   }
 
   export type CloseReason = Schema.Schema.Type<typeof CloseReasonSchema>
