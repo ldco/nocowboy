@@ -67,6 +67,7 @@ import open from "open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import * as NoCowboyApp from "@/nocowboy/cli/cmd/tui/app"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
+import { launchAutopilot } from "@/nocowboy/cli/cmd/tui/component/autopilot-row" // nocowboy_change
 import { TuiConfigProvider, useTuiConfig } from "./context/tui-config"
 // nocowboy_change: i18n context wired to the synced config language
 import { NoCowboyI18n } from "@/nocowboy/cli/cmd/tui/context/i18n-bridge"
@@ -530,6 +531,19 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
           local.session.quickSwitch(i + 1)
         },
       })),
+      // nocowboy_change: Autopilot button in the command palette (Ctrl+P).
+      {
+        name: "session.autopilot",
+        title: "Autopilot — run the roadmap unattended",
+        category: "Session",
+        run: () =>
+          void launchAutopilot({
+            dialog,
+            sdk,
+            toast,
+            sessionID: route.data.type === "session" ? route.data.sessionID : undefined,
+          }),
+      },
       {
         name: "model.list",
         title: "Switch model",
