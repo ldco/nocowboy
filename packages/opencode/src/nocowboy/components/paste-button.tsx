@@ -1,10 +1,12 @@
 import { useTheme } from "@tui/context/theme"
 import { useOpencodeKeymap } from "@tui/keymap"
+import { icons } from "@/nocowboy/icons"
 
 /**
  * Mouse affordance for the `prompt.paste` command. The command already reads the
  * system clipboard (image or text) and routes it through the same code path as
- * the keyboard shortcut, so the button is a thin dispatcher.
+ * the keyboard shortcut, so the button is a thin dispatcher. Rendered as a
+ * compact monochrome clipboard icon.
  */
 export function PasteButton() {
   const { theme } = useTheme()
@@ -21,7 +23,7 @@ export function PasteButton() {
       paddingRight={1}
       onMouseUp={() => paste()}
     >
-      [Paste]
+      {icons.paste}
     </text>
   )
 }

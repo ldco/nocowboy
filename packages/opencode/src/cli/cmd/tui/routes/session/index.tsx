@@ -62,6 +62,7 @@ import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { ErrorBlock } from "@/nocowboy/components/error-display"
 import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { YoloButton } from "@/nocowboy/components/yolo-button"
+import { AutopilotButton } from "@/nocowboy/components/autopilot-button"
 import { PasteButton } from "@/nocowboy/components/paste-button"
 import { AttachButton } from "@/nocowboy/components/attach-button"
 // BalanceIndicator — перенесён в Info tab (sidebar/context.tsx)
@@ -1464,9 +1465,11 @@ export function Session() {
                         sessionID={route.sessionID}
                         right={
                           <box flexDirection="row">
+                            {/* nocowboy_change — control order: mode badges, then icon toolbar, then submit/voice */}
+                            <YoloButton />
+                            <AutopilotButton />
                             <AttachButton />
                             <PasteButton />
-                            <YoloButton />
                             <text
                               fg={theme.textMuted}
                               paddingLeft={1}
@@ -1481,7 +1484,7 @@ export function Session() {
                               paddingRight={1}
                               onMouseUp={() => prompt?.submit()}
                             >
-                              ⮞
+                              ▶
                             </text>
                             <VoiceButton onResult={(text) => {
   const cur = prompt?.current?.input ?? ""

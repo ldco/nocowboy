@@ -63,6 +63,7 @@ import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
 import { KiloSessionTuiSync } from "@/nocowboy/session/tui-sync"
 import { slashMatches } from "@/nocowboy/cli/cmd/command-display"
+import { shouldRunAsAutopilot } from "@/nocowboy/cli/cmd/tui/context/autopilot-state"
 import { Flag } from "@nocowboy/core/flag/flag"
 import { type WorkspaceStatus } from "../workspace-label"
 import { useCommandPalette } from "../../context/command-palette"
@@ -1231,6 +1232,24 @@ export function Prompt(props: PromptProps) {
         sessionID,
         command: command.slice(1),
         arguments: args,
+        agent: local.agent.current()?.name ?? "",
+        model: `${selectedModel.providerID}/${selectedModel.modelID}`,
+        messageID,
+        variant,
+        parts: nonTextParts
+          .filter((x) => x.type === "file")
+          .map((x) => ({
+            id: PartID.ascending(),
+            ...x,
+          })),
+      })
+      // nocowboy_change: autopilot mode — a plain prompt becomes an autopilot
+      // run (auto goal = the message), so the session continues unattended.
+    } else if (shouldRunAsAutopilot(inputText)) {
+      void sdk.client.session.command({
+        sessionID,
+        command: "autopilot",
+        arguments: inputText,
         agent: local.agent.current()?.name ?? "",
         model: `${selectedModel.providerID}/${selectedModel.modelID}`,
         messageID,

@@ -15,6 +15,7 @@ import { VoiceButton } from "@/nocowboy/components/voice-button"
 import { YoloButton } from "@/nocowboy/components/yolo-button"
 import { PasteButton } from "@/nocowboy/components/paste-button"
 import { AttachButton } from "@/nocowboy/components/attach-button"
+import { AutopilotButton } from "@/nocowboy/components/autopilot-button"
 import { useEditorContext } from "@tui/context/editor"
 
 let once = false
@@ -99,9 +100,11 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={
                 <box flexDirection="row">
+                    {/* nocowboy_change — control order: mode badges, then icon toolbar, then submit/voice */}
+                    <YoloButton />
+                    <AutopilotButton />
                     <AttachButton />
                     <PasteButton />
-                    <YoloButton />
                     <text
                     fg={theme.textMuted}
                     paddingLeft={1}
@@ -116,7 +119,7 @@ export function Home() {
                     paddingRight={1}
                     onMouseUp={() => ref()?.submit()}
                   >
-                    ⮞
+                    ▶
                   </text>
                   <VoiceButton onResult={(text) => {
   const cur = ref()?.current?.input ?? ""

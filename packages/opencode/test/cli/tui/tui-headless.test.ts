@@ -82,12 +82,17 @@ test.skipIf(!HAS_PYTHON)(
 )
 
 test.skipIf(!HAS_PYTHON)(
-  "the prompt renders the Attach, Paste and YOLO mouse buttons",
+  "the prompt renders the YOLO/Autopilot badges and the Attach/Paste icon buttons",
   async () => {
-    const frame = await render()
-    expect(frame).toContain("[Attach]")
-    expect(frame).toContain("[Paste]")
+    const frame = plain(await render())
     expect(frame).toMatch(/\[YOLO( ON)?\]/)
+    expect(frame).toMatch(/\[AUTOPILOT( ON)?\]/)
+    // Monochrome Nerd Font glyphs: paperclip (Attach) and clipboard (Paste).
+    expect(frame).toContain("\uf0c6")
+    expect(frame).toContain("\uf0ea")
+    // Mode badges sit left of the icon toolbar.
+    expect(frame.indexOf("[YOLO")).toBeLessThan(frame.indexOf("[AUTOPILOT"))
+    expect(frame.indexOf("[AUTOPILOT")).toBeLessThan(frame.indexOf("\uf0c6"))
   },
   TEST_TIMEOUT,
 )

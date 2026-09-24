@@ -28,6 +28,9 @@ export const icons = {
   plus: "+",
   play: "▶",
   stop: "■",
+  // Monochrome Nerd Font glyphs (no emoji, follow the theme colour):
+  attach: "\uf0c6", // fa-paperclip
+  paste: "\uf0ea", // fa-clipboard
 
   // Indicators
   check: "✓",
