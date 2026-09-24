@@ -352,10 +352,6 @@
   `verify:file docs/features/goal-loop-controller.md`
 - **DONE** Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls
   `verify:file docs/features/auto-permission-classifier.md`
-- **DONE** Turn-level Stop Hooks — блокировка завершения turn до проверки
-  `verify:file docs/features/stop-hooks-turn-level.md`
-- **DONE** Built-in AC Verification Stop Hook
-  `verify:file docs/features/ac-verification-hook.md`
 - **DONE** Async Task Spawning — асинхронные под-агенты
   `verify:file docs/features/async-task-spawn.md`
 - **DONE** Task Dependency Chain — авто-запуск задач по зависимостям
@@ -366,12 +362,8 @@
   `verify:file docs/features/agent-mailbox.md`
 - **DONE** Team Lead — мульти-агентный оркестратор
   `verify:file docs/features/team-lead.md`
-- **DONE** Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)
-  `verify:file docs/features/goal-agent.md`
 - **DONE** TUI Goal UX — индикатор, /goal команды, визуализация прогресса
   `verify:file docs/features/tui-goal-ux.md`
-- **DONE** Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'
-  `verify:file docs/features/goal-headless.md`
 - **DONE** Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)
   `verify:file docs/features/tree-sitter-parsing.md`
 - **DONE** Cost-Routing Doctrine — формализованный роутинг по стоимости модели

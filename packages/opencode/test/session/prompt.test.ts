@@ -8,6 +8,7 @@ import { Cause, Effect, Exit, Fiber, Layer } from "effect"
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { Activity } from "@/nocowboy/session/activity"
+import { GoalService } from "@/nocowboy/session/goal" // nocowboy_change - autopilot continuation
 import { NamedError } from "@nocowboy/core/util/error"
 import { Agent as AgentSvc } from "../../src/agent/agent"
 import { Bus } from "../../src/bus"
@@ -760,6 +761,127 @@ it.live("loop continues when finish is tool-calls", () =>
     }),
     { git: true, config: providerCfg },
   ),
+)
+
+// nocowboy_change: an autopilot goal must keep the loop running with no user
+// "continue" — the harness injects a synthetic user message each time the model
+// stops without meeting the goal. This is the proof that the loop crosses the
+// turn boundary on its own.
+it.live("autopilot goal continues across turns without a user message", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ dir, llm }) {
+      const previousGoalsDir = process.env.NOCOWBOY_GOALS_DIR
+      process.env.NOCOWBOY_GOALS_DIR = path.join(dir, "goals")
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          if (previousGoalsDir === undefined) delete process.env.NOCOWBOY_GOALS_DIR
+          else process.env.NOCOWBOY_GOALS_DIR = previousGoalsDir
+        }),
+      )
+
+      // The project roadmap has a stage in progress. The harness must read it and
+      // carry the deterministic gate into every continuation: finish + get this
+      // stage reviewed before starting another item.
+      yield* Effect.promise(() =>
+        Bun.write(
+          path.join(dir, "docs", "roadmap.json"),
+          JSON.stringify({ features: [{ id: "stage-one", status: "in_progress" }] }),
+        ),
+      )
+
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({
+        title: "Autopilot",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      // Budget of two turns. The judge cannot satisfy itself from the prose the
+      // mock model emits, so the run keeps going until the budget is spent.
+      GoalService.set(session.id, "keep going", 2, true)
+
+      yield* prompt.prompt({
+        sessionID: session.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "start" }],
+      })
+      yield* llm.text("turn one")
+
+      const result = yield* prompt.loop({ sessionID: session.id })
+      expect(result.info.role).toBe("assistant")
+
+      const msgs = yield* MessageV2.filterCompactedEffect(session.id)
+      const userMsgs = msgs.filter((m) => m.info.role === "user")
+      const assistants = msgs.filter((m) => m.info.role === "assistant")
+
+      // Exactly one real (human) user message ("start"); everything else in the
+      // transcript that looks like a prompt must be a synthetic continuation.
+      const realUser = userMsgs.filter(
+        (m) => !m.parts.some((p) => p.type === "text" && p.synthetic === true),
+      )
+      expect(realUser).toHaveLength(1)
+      const synthetic = userMsgs
+        .flatMap((m) => m.parts)
+        .filter((p): p is MessageV2.TextPart => p.type === "text" && p.synthetic === true)
+      expect(synthetic.length).toBeGreaterThanOrEqual(1)
+      expect(synthetic.some((p) => p.text.includes("<autopilot-continue"))).toBe(true)
+      // Every continuation carries the roadmap-derived stage gate.
+      expect(synthetic.every((p) => p.text.includes("A stage is still in progress"))).toBe(true)
+      expect(synthetic.some((p) => p.text.includes("stage-one"))).toBe(true)
+      expect(synthetic.every((p) => p.text.includes("Do NOT start another roadmap item"))).toBe(true)
+
+      // More than one model turn ran, with zero human messages sent.
+      expect(assistants.length).toBeGreaterThanOrEqual(2)
+      // The run stopped by itself: the goal was cleared when the budget ran out.
+      expect(GoalService.get(session.id)).toBeUndefined()
+    }),
+    { git: true, config: providerCfg },
+  ),
+  30_000,
+)
+
+// nocowboy_change: the goal budget (--max-turns) is the real autopilot budget —
+// a run must go past the per-turn default cap (AUTO_CONTINUE_MAX = 8) when the
+// goal allows it, otherwise "run the roadmap to the end" would truncate.
+it.live("autopilot honours a goal budget larger than the per-turn default", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ dir, llm }) {
+      const previousGoalsDir = process.env.NOCOWBOY_GOALS_DIR
+      process.env.NOCOWBOY_GOALS_DIR = path.join(dir, "goals")
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          if (previousGoalsDir === undefined) delete process.env.NOCOWBOY_GOALS_DIR
+          else process.env.NOCOWBOY_GOALS_DIR = previousGoalsDir
+        }),
+      )
+
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({
+        title: "Autopilot budget",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      // Budget of ten turns — well above AUTO_CONTINUE_MAX (8).
+      GoalService.set(session.id, "keep going", 10, true)
+
+      yield* prompt.prompt({
+        sessionID: session.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "start" }],
+      })
+      yield* llm.text("turn one")
+
+      yield* prompt.loop({ sessionID: session.id })
+
+      const msgs = yield* MessageV2.filterCompactedEffect(session.id)
+      const assistants = msgs.filter((m) => m.info.role === "assistant")
+      // More turns than the per-turn default cap: the goal budget drove the run.
+      expect(assistants.length).toBeGreaterThan(9)
+    }),
+    { git: true, config: providerCfg },
+  ),
+  30_000,
 )
 
 it.live.skip("glob tool keeps instance context during prompt runs", () =>

@@ -22,7 +22,7 @@ import { Filesystem } from "@/util/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
-import { GoalService } from "@/nocowboy/session/goal"
+import { DEFAULT_MAX_TURNS, GoalService } from "@/nocowboy/session/goal"
 import { Provider } from "@/provider/provider"
 import * as Log from "@nocowboy/core/util/log"
 import {
@@ -544,21 +544,99 @@ export namespace NoCowboySessionPrompt {
     | { kind: "handled"; output: string }
     | { kind: "run" } {
     const arg = input.arguments.trim()
+    const argv = arg.split(/\s+/).filter(Boolean)
+
     if (arg === "status" || arg === "") {
       const goal = GoalService.get(input.sessionID)
       if (!goal) {
         return { kind: "handled", output: "No active goal. Set one with /goal <condition>." }
       }
       const status = GoalService.exhausted(input.sessionID) ? "stopped (budget exhausted)" : "active"
+      const mode = goal.auto ? "autopilot" : "manual"
       return {
         kind: "handled",
-        output: `Goal: "${goal.condition}" — ${status} — turns: ${goal.react}/${goal.maxTurns}`,
+        output: `Goal: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${goal.maxTurns}`,
       }
     }
     if (arg === "clear" || arg === "cancel" || arg === "stop") {
       GoalService.clear(input.sessionID)
       return { kind: "handled", output: "Goal cleared. Returning to normal interactive mode." }
     }
+
+    // Parse flags out of the arguments so the condition is the remaining text.
+    // `--auto` turns the goal into an autonomous run; `--max-turns N` sets the
+    // budget. The goal is set deterministically here (the command handler),
+    // not left to the model to remember.
+    const auto = argv.some((token) => token === "--auto" || token === "-a")
+    const { maxTurns, words } = parseMaxTurns(argv.filter((token) => token !== "--auto" && token !== "-a"))
+    const condition = words.join(" ").trim()
+    if (!condition) {
+      return { kind: "handled", output: "No goal condition given. Usage: /goal [--auto] <condition>." }
+    }
+    GoalService.set(input.sessionID, condition, maxTurns ?? DEFAULT_MAX_TURNS, auto)
     return { kind: "run" }
+  }
+
+  /** Default scope when `/autopilot` is started without an argument. */
+  export const DEFAULT_AUTOPILOT_SCOPE =
+    "the roadmap (docs/roadmap.json): every planned and in-progress item is implemented, reviewer-verified, and marked done"
+
+  /**
+   * `/autopilot [scope] [--max-turns N]` — start an unattended run: the goal is
+   * set with `auto: true`, so the harness injects a continuation each time the
+   * model stops until the scope is met or the budget is spent. The command
+   * template (`.nocowboy/command/autopilot.md`) carries the conductor protocol;
+   * this handler only records the goal deterministically, so a run does not
+   * depend on the model remembering to call `goal_set`.
+   */
+  export function handleAutopilotCommand(input: { sessionID: SessionID; arguments: string }):
+    | { kind: "handled"; output: string }
+    | { kind: "run" } {
+    const arg = input.arguments.trim()
+    // `/autopilot` with no argument starts a run on the default scope; `status`
+    // (explicit) reports the current one.
+    if (arg === "status") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal) {
+        return { kind: "handled", output: "No autopilot run. Start one with /autopilot [scope]." }
+      }
+      const status = GoalService.exhausted(input.sessionID) ? "stopped (budget exhausted)" : "active"
+      const mode = goal.auto ? "autopilot" : "manual (re-enable with /goal --auto ...)"
+      return {
+        kind: "handled",
+        output: `Autopilot: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${goal.maxTurns}`,
+      }
+    }
+    if (arg === "clear" || arg === "cancel" || arg === "stop") {
+      GoalService.clear(input.sessionID)
+      return { kind: "handled", output: "Autopilot stopped. Returning to normal interactive mode." }
+    }
+
+    const { maxTurns, words } = parseMaxTurns(arg.split(/\s+/).filter(Boolean))
+    const scope = words.join(" ").trim() || DEFAULT_AUTOPILOT_SCOPE
+    GoalService.set(input.sessionID, `Autopilot run complete: ${scope}.`, maxTurns ?? DEFAULT_MAX_TURNS, true)
+    return { kind: "run" }
+  }
+
+  /**
+   * Strip `--max-turns N` (or `--turns N`) out of an argument list, returning
+   * the parsed budget and the remaining words. Shared by /goal and /autopilot.
+   */
+  function parseMaxTurns(argv: string[]): { maxTurns?: number; words: string[] } {
+    let maxTurns: number | undefined
+    const words: string[] = []
+    for (let i = 0; i < argv.length; i++) {
+      const token = argv[i]
+      if (token === "--max-turns" || token === "--turns") {
+        const parsed = Number(argv[i + 1])
+        if (Number.isFinite(parsed) && parsed > 0) {
+          maxTurns = Math.floor(parsed)
+          i++
+        }
+        continue
+      }
+      words.push(token)
+    }
+    return { maxTurns, words }
   }
 }

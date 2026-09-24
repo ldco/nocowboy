@@ -2315,7 +2315,7 @@
     {
       "id": "stop-hooks-turn-level",
       "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
-      "status": "done",
+      "status": "in_progress",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2324,7 +2324,7 @@
         "quality"
       ],
       "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
-      "done_at": "2026-08-01",
+      "notes": "Unmarked 2026-09-24: the plugin `session.stop` hook and the stopHookContinues cap exist, but the turn is NOT actually blocked — the counters are only logged and never used to continue the turn. The continuation that keeps a run going ships under `autopilot-roadmap-runner` (goal.auto + session/prompt.ts synthetic injection).",
       "version": "v0.12.0",
       "verify": [
         {
@@ -2336,7 +2336,7 @@
     {
       "id": "ac-verification-hook",
       "title": "Built-in AC Verification Stop Hook",
-      "status": "done",
+      "status": "in_progress",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2348,7 +2348,7 @@
         "ac"
       ],
       "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
-      "done_at": "2026-08-01",
+      "notes": "Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === \"goal\", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.",
       "version": "v0.12.0",
       "verify": [
         {
@@ -2472,7 +2472,7 @@
     {
       "id": "goal-agent",
       "title": "Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)",
-      "status": "done",
+      "status": "in_progress",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2486,7 +2486,7 @@
         "tui"
       ],
       "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
-      "done_at": "2026-08-01",
+      "notes": "Unmarked 2026-09-24: no agent named `goal` is registered (agents are auto/planner/worker/reviewer/nocowboy + native). The intent is delivered by `/autopilot` (built-in conductor command running under `auto`) plus the harness auto-continue, not as a separate TUI agent. See `autopilot-roadmap-runner` and ADR-006.",
       "version": "v0.12.0",
       "verify": [
         {
@@ -2522,7 +2522,7 @@
     {
       "id": "goal-headless",
       "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'",
-      "status": "done",
+      "status": "in_progress",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2534,7 +2534,7 @@
         "ci"
       ],
       "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
-      "done_at": "2026-08-01",
+      "notes": "Unmarked 2026-09-24: `--max-turns` is declared in cli/cmd/run.ts but never read, and `--agent goal` fails because no such agent exists. Headless autopilot is not wired. See `autopilot-roadmap-runner`.",
       "version": "v0.12.0",
       "verify": [
         {

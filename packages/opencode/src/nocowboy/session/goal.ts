@@ -12,6 +12,12 @@ export type Goal = {
   react: number
   maxTurns: number
   createdAt: number
+  /**
+   * Autopilot: when true, the harness injects a synthetic continuation each
+   * time the model stops without meeting the goal, so the session keeps
+   * working with no human "continue". Off for a normal /goal.
+   */
+  auto: boolean
 }
 
 export const Verdict = z.object({
@@ -74,6 +80,7 @@ function read(sessionID: string): Goal | undefined {
       react: typeof parsed.react === "number" ? parsed.react : 0,
       maxTurns: parsed.maxTurns,
       createdAt: typeof parsed.createdAt === "number" ? parsed.createdAt : Date.now(),
+      auto: parsed.auto === true,
     }
   } catch {
     // No goal for this session, or an unreadable file — either way, no goal.
@@ -101,12 +108,18 @@ function remove(sessionID: string): void {
 }
 
 export namespace GoalService {
-  export function set(sessionID: string, condition: string, maxTurns: number = DEFAULT_MAX_TURNS): void {
+  export function set(
+    sessionID: string,
+    condition: string,
+    maxTurns: number = DEFAULT_MAX_TURNS,
+    auto = false,
+  ): void {
     write(sessionID, {
       condition,
       react: 0,
       maxTurns,
       createdAt: Date.now(),
+      auto,
     })
   }
 

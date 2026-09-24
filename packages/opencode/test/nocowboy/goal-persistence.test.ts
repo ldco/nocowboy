@@ -36,6 +36,30 @@ describe("GoalService persistence", () => {
     expect(onDisk.react).toBe(0)
   })
 
+  test("autopilot mode is persisted and read back", () => {
+    GoalService.set("ses_auto", "keep going", 5, true)
+    expect(GoalService.get("ses_auto")?.auto).toBe(true)
+
+    const onDisk = JSON.parse(readFileSync(join(dir, "ses_auto.json"), "utf-8"))
+    expect(onDisk.auto).toBe(true)
+  })
+
+  test("a goal set without auto is a manual goal", () => {
+    GoalService.set("ses_manual", "keep going")
+    expect(GoalService.get("ses_manual")?.auto).toBe(false)
+  })
+
+  test("a legacy goal file without auto reads back as manual", () => {
+    writeFileSync(
+      join(dir, "ses_legacy.json"),
+      JSON.stringify({ condition: "old", react: 1, maxTurns: 4, createdAt: 1 }),
+      "utf-8",
+    )
+    const goal = GoalService.get("ses_legacy")
+    expect(goal?.condition).toBe("old")
+    expect(goal?.auto).toBe(false)
+  })
+
   test("the turn counter is persisted on every bump", () => {
     GoalService.set("ses_abc", "done", 3)
     expect(GoalService.bumpReact("ses_abc")).toBe(1)
@@ -91,7 +115,7 @@ describe("GoalService persistence", () => {
 })
 
 describe("restored goal detection", () => {
-  const goal = { condition: "all tests pass", react: 3, maxTurns: 20, createdAt: 1_000 }
+  const goal = { condition: "all tests pass", react: 3, maxTurns: 20, createdAt: 1_000, auto: false }
 
   test("a goal created before the process started counts as restored", () => {
     expect(isRestoredFromPreviousRun(goal, 2_000)).toBe(true)

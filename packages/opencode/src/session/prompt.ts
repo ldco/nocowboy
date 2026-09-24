@@ -10,6 +10,7 @@ import { ToolBusy } from "@/nocowboy/session/tool-busy" // nocowboy_change - idl
 import { subagentStallTimeoutMs, toolHeartbeatIntervalMs } from "@/nocowboy/session/watchdog" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "@/nocowboy/session/goal"
+import { Autopilot } from "@/nocowboy/session/autopilot" // nocowboy_change - unattended autopilot continuation
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
 import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
@@ -1733,6 +1734,7 @@ export const layer = Layer.effect(
       closeReasons.delete(sessionID)
       let compactionAttempts = 0
       let stopHookContinues = 0
+      let autoContinues = 0 // nocowboy_change - autopilot per-turn continuation budget
       const ctx = yield* InstanceState.context
       const slog = elog.with({ sessionID })
       let structured: unknown
@@ -2047,41 +2049,6 @@ export const layer = Layer.effect(
             stopHookContinues = 0
           }
 
-          // Goal judge integration: если есть активная цель, проверяем её
-          const goal = GoalService.get(sessionID)
-          if (goal) {
-            // A goal persisted by an earlier process is restored here: tell the
-            // user once, so a session that keeps working is explained rather
-            // than mysterious. Auto-continuing without a user message is
-            // deliberately not done — it would spend tokens unattended.
-            if (isRestoredFromPreviousRun(goal, PROCESS_STARTED_AT) && !restoredGoalNotified.has(sessionID)) {
-              restoredGoalNotified.add(sessionID)
-              yield* sessions.updatePart({
-                id: PartID.ascending(),
-                messageID: handle.message.id,
-                sessionID,
-                type: "text",
-                text: restoredGoalNotice(goal),
-                ignored: true,
-              })
-            }
-            const modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
-            const goalMet = yield* Effect.promise(() =>
-              GoalService.evaluate({ condition: goal.condition, messages: modelMsgs, model: model as any }),
-            )
-            if (goalMet?.ok || goalMet?.impossible) {
-              yield* Effect.logInfo(goalMet?.ok ? "goal met, stopping" : "goal impossible, stopping")
-              GoalService.clear(sessionID)
-              return "break" as const
-            }
-            if (GoalService.exhausted(sessionID)) {
-              yield* Effect.logInfo("goal turn budget exhausted, stopping")
-              GoalService.clear(sessionID)
-              return "break" as const
-            }
-            GoalService.bumpReact(sessionID)
-          }
-
           if (structured !== undefined) {
             handle.message.structured = structured
             handle.message.finish = handle.message.finish ?? "stop"
@@ -2104,6 +2071,110 @@ export const layer = Layer.effect(
               yield* sessions.updateMessage(handle.message)
               closeReasons.set(sessionID, "error")
               return "break" as const
+            }
+          }
+
+          // nocowboy_change - Goal judge + autopilot continuation. Evaluated once
+          // the model has stopped for this turn.
+          // A tool-call step is mid-turn, not a turn boundary: judging there
+          // inflates the turn counter and can stop a run mid-ReAct. The judge
+          // runs against the fresh transcript so it sees the step it judges
+          // (the top-of-loop `msgs` snapshot predates this step).
+          const goal = result !== "stop" && finished ? GoalService.get(sessionID) : undefined
+          if (goal) {
+            // A goal persisted by an earlier process is restored here: tell the
+            // user once, so a session that keeps working is explained.
+            if (isRestoredFromPreviousRun(goal, PROCESS_STARTED_AT) && !restoredGoalNotified.has(sessionID)) {
+              restoredGoalNotified.add(sessionID)
+              yield* sessions.updatePart({
+                id: PartID.ascending(),
+                messageID: handle.message.id,
+                sessionID,
+                type: "text",
+                text: restoredGoalNotice(goal),
+                ignored: true,
+              })
+            }
+            const judgeMsgs = yield* MessageV2.filterCompactedEffect(sessionID)
+            const judgeModelMsgs = yield* MessageV2.toModelMessagesEffect(
+              NoCowboySessionPromptQueue.scope(sessionID, judgeMsgs),
+              model,
+            )
+            // Resolve the real language model for the judge. Passing the
+            // Provider.Model metadata (the old `model as any`) made
+            // generateObject throw, so a goal could never be judged "met".
+            const judgeModel = yield* provider
+              .getLanguage(model)
+              .pipe(Effect.catchCause(() => Effect.succeed(undefined)))
+            if (!judgeModel) {
+              // Structural failure (provider/model cannot be resolved), not a
+              // "not met" verdict. Auto-injecting here would spend tokens on a
+              // goal that can never be judged satisfied, so the autopilot
+              // continuation is suppressed for this turn.
+              yield* Effect.logWarning("goal judge model unavailable; autopilot continuation suppressed", {
+                sessionID,
+              })
+            }
+            const goalMet = judgeModel
+              ? yield* Effect.promise(() =>
+                  GoalService.evaluate({ condition: goal.condition, messages: judgeModelMsgs, model: judgeModel }),
+                )
+              : null
+            if (goalMet?.ok || goalMet?.impossible) {
+              yield* Effect.logInfo(goalMet?.ok ? "goal met, stopping" : "goal impossible, stopping")
+              GoalService.clear(sessionID)
+              return "break" as const
+            }
+            if (GoalService.exhausted(sessionID)) {
+              yield* Effect.logInfo("goal turn budget exhausted, stopping")
+              GoalService.clear(sessionID)
+              return "break" as const
+            }
+            GoalService.bumpReact(sessionID)
+
+            // Autopilot: the model stopped on its own but the goal is not met.
+            // Inject a synthetic continuation so the run keeps going with no
+            // human "continue". hasFollowup guards against piling up when the
+            // user already queued something newer.
+            if (
+              judgeModel &&
+              Autopilot.shouldContinue({
+                auto: goal.auto,
+                stopped: !!finished,
+                blocked: result === "stop",
+                continues: autoContinues,
+                // The goal's turn budget is the real autopilot budget; the
+                // default AUTO_CONTINUE_MAX only applies when a goal gives none.
+                max: goal.maxTurns,
+                followupPending: NoCowboySessionPromptQueue.hasFollowup(sessionID),
+              })
+            ) {
+              autoContinues++
+              const bumped = GoalService.get(sessionID) ?? goal
+              // Deterministic stage gate: read the roadmap so every continuation
+              // tells the run whether a stage is still in progress (finish + get
+              // it reviewed first) or whether it may start the next item.
+              const inProgress = yield* Effect.promise(() => Autopilot.readInProgress(ctx.directory))
+              const continuation = Autopilot.buildContinuation({
+                sessionID,
+                goal: bumped,
+                inProgress,
+                previous: {
+                  agent: agent.name,
+                  model: {
+                    providerID: model.providerID,
+                    modelID: model.id,
+                    variant: overrideAgent?.variant ?? lastUser.model.variant,
+                  },
+                  tools: lastUser.tools,
+                },
+              })
+              yield* sessions.updateMessage(continuation.info)
+              yield* sessions.updatePart(continuation.part)
+              // The queued synthetic message is hidden by scope() unless it is
+              // retargeted as an owned follow-up, so the next turn sees it.
+              NoCowboySessionPromptQueue.retarget(sessionID, continuation.info.id)
+              yield* Effect.logInfo("autopilot injected a continuation", { turn: bumped.react })
             }
           }
 
@@ -2202,38 +2273,70 @@ export const layer = Layer.effect(
       )
     })
 
+    // Emit a local (non-LLM) assistant message. Command handlers such as /goal
+    // and /autopilot answer synchronously, without starting a model turn.
+    const emitLocalMessage = Effect.fn("SessionPrompt.emitLocalMessage")(function* (input: {
+      sessionID: SessionID
+      messageID?: MessageID
+      agent: string
+      text: string
+    }) {
+      const msg: MessageV2.Assistant = {
+        id: MessageID.ascending(),
+        parentID: input.messageID ?? MessageID.ascending(),
+        role: "assistant",
+        mode: input.agent,
+        agent: input.agent,
+        path: { cwd: input.sessionID, root: input.sessionID },
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        modelID: ModelID.make(input.agent),
+        providerID: ProviderID.make(input.agent),
+        time: { created: Date.now(), completed: Date.now() },
+        sessionID: input.sessionID,
+      }
+      yield* sessions.updateMessage(msg)
+      const part = yield* sessions.updatePart({
+        id: PartID.ascending(),
+        messageID: msg.id,
+        sessionID: msg.sessionID,
+        type: "text",
+        text: input.text,
+      })
+      return { info: msg, parts: [part] } satisfies MessageV2.WithParts
+    })
+
     const command = Effect.fn("SessionPrompt.command")(function* (input: CommandInput) {
       yield* elog.info("command", { sessionID: input.sessionID, command: input.command, agent: input.agent })
-      // nocowboy_change: handle /goal status|clear synchronously without an LLM turn
+      // nocowboy_change: /goal and /autopilot record their goal synchronously
+      // (status/clear answer immediately). A "run" result falls through to the
+      // command template so the agent executes the actual work.
       if (input.command === "goal") {
         const handled = NoCowboySessionPrompt.handleGoalCommand({
           sessionID: input.sessionID,
           arguments: input.arguments,
         })
         if (handled.kind === "handled") {
-          const msg: MessageV2.Assistant = {
-            id: MessageID.ascending(),
-            parentID: input.messageID ?? MessageID.ascending(),
-            role: "assistant",
-            mode: "goal",
-            agent: "goal",
-            path: { cwd: input.sessionID, root: input.sessionID },
-            cost: 0,
-            tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
-            modelID: ModelID.make("goal"),
-            providerID: ProviderID.make("goal"),
-            time: { created: Date.now(), completed: Date.now() },
+          return yield* emitLocalMessage({
             sessionID: input.sessionID,
-          }
-          yield* sessions.updateMessage(msg)
-          const part = yield* sessions.updatePart({
-            id: PartID.ascending(),
-            messageID: msg.id,
-            sessionID: msg.sessionID,
-            type: "text",
+            messageID: input.messageID,
+            agent: "goal",
             text: handled.output,
           })
-          return { info: msg, parts: [part] } satisfies MessageV2.WithParts
+        }
+      }
+      if (input.command === "autopilot") {
+        const handled = NoCowboySessionPrompt.handleAutopilotCommand({
+          sessionID: input.sessionID,
+          arguments: input.arguments,
+        })
+        if (handled.kind === "handled") {
+          return yield* emitLocalMessage({
+            sessionID: input.sessionID,
+            messageID: input.messageID,
+            agent: "autopilot",
+            text: handled.output,
+          })
         }
       }
       const cmd = yield* commands.get(input.command)

@@ -13,6 +13,12 @@ export const Parameters = Schema.Struct({
         "Maximum number of autonomous turns before the goal loop stops (default 20). Guards against infinite loops.",
     }),
   ),
+  auto: Schema.optional(
+    Schema.Boolean.annotate({
+      description:
+        "Autopilot: keep the session working without a human 'continue' by injecting a synthetic step each time the model stops. Defaults to the existing goal's mode so a running autopilot is not silently downgraded.",
+    }),
+  ),
 })
 
 type Params = Schema.Schema.Type<typeof Parameters>
@@ -31,12 +37,18 @@ export const GoalSetTool = Tool.define(
       parameters: Parameters,
       execute: (params: Params, ctx: Tool.Context) =>
         Effect.gen(function* () {
-          GoalService.set(ctx.sessionID, params.condition, params.max_turns)
+          // Preserve an existing autopilot goal when the model re-sets the same
+          // condition without restating `auto` — otherwise a mid-run goal_set
+          // would silently turn the autonomous loop back into a manual one.
+          const existing = GoalService.get(ctx.sessionID)
+          const auto = params.auto ?? existing?.auto ?? false
+          GoalService.set(ctx.sessionID, params.condition, params.max_turns, auto)
           const goal = GoalService.get(ctx.sessionID)
+          const mode = goal?.auto ? "autopilot" : "manual"
           return {
             title: "Goal set",
-            output: `Goal active: "${params.condition}" (max ${goal?.maxTurns ?? 20} turns). The agent will continue working until the condition is met or the budget is exhausted. Use goal_clear to cancel.`,
-            metadata: { condition: params.condition, maxTurns: goal?.maxTurns },
+            output: `Goal active (${mode}): "${params.condition}" (max ${goal?.maxTurns ?? 20} turns). The agent will continue working until the condition is met or the budget is exhausted. Use goal_clear to cancel.`,
+            metadata: { condition: params.condition, maxTurns: goal?.maxTurns, auto: goal?.auto },
           }
         }).pipe(Effect.orDie),
     }
