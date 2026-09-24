@@ -55,7 +55,7 @@ import { Ripgrep } from "../../src/file/ripgrep"
 import { Format } from "../../src/format"
 import { Reference } from "../../src/reference/reference"
 import { provideTmpdirInstance, provideTmpdirServer } from "../fixture/fixture"
-import { testEffect } from "../lib/effect"
+import { pollWithTimeout, testEffect } from "../lib/effect"
 import { reply, TestLLMServer } from "../lib/llm-server"
 import { SyncEvent } from "@/sync"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -877,11 +877,16 @@ it.live("autopilot publishes live goal state on the bus", () =>
       yield* llm.text("turn one")
 
       yield* prompt.loop({ sessionID: session.id })
-      // Bus callbacks are delivered on a forked fiber; give them a tick.
-      yield* Effect.sleep("100 millis")
 
-      const forSession = seen.filter((p) => p.sessionID === session.id)
-      expect(forSession.length).toBeGreaterThan(0)
+      // Bus callbacks are delivered on a forked fiber — wait for the terminal
+      // signal (the cleared goal) instead of sleeping.
+      const forSession = yield* pollWithTimeout<(typeof seen)[number][], never, never>(
+        Effect.sync(() => {
+          const events = seen.filter((p) => p.sessionID === session.id)
+          return events.some((p) => p.goal === null) ? events : undefined
+        }),
+        "autopilot goal events never arrived",
+      )
       expect(forSession.some((p) => p.goal?.auto === true)).toBe(true)
       expect(forSession.some((p) => p.goal === null)).toBe(true)
     }),

@@ -127,6 +127,26 @@ export namespace GoalService {
     return read(sessionID)
   }
 
+  /**
+   * All persisted goals (best-effort). Used to seed a client's view of live
+   * goal state when it connects, so a badge is correct immediately instead of
+   * waiting for the next goal mutation.
+   */
+  export function list(): { sessionID: string; goal: Goal }[] {
+    try {
+      return fs
+        .readdirSync(goalsDir())
+        .filter((file) => file.endsWith(".json"))
+        .flatMap((file) => {
+          const sessionID = file.slice(0, -".json".length)
+          const goal = read(sessionID)
+          return goal ? [{ sessionID, goal }] : []
+        })
+    } catch {
+      return []
+    }
+  }
+
   export function clear(sessionID: string): void {
     remove(sessionID)
   }

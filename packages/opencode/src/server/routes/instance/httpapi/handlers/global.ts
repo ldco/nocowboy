@@ -1,5 +1,6 @@
 import { Config } from "@/config/config"
 import { GlobalBus, type GlobalEvent as GlobalBusEvent } from "@/bus/global"
+import { GoalService } from "@/nocowboy/session/goal" // nocowboy_change
 import { EffectBridge } from "@/effect/bridge"
 import { Bus } from "@/bus"
 import { Installation } from "@/installation"
@@ -23,6 +24,30 @@ function eventData(data: unknown): Sse.Event {
     id: undefined,
     data: JSON.stringify(data),
   }
+}
+
+// nocowboy_change: seed live goal state when a client connects, so the TUI
+// autopilot badge is correct immediately — including a goal restored after a
+// restart — instead of waiting for the next goal mutation. `directory: "global"`
+// makes the client accept the event regardless of the active project; the
+// payload is keyed by sessionID, so only the matching session reacts.
+function initialGoalEvents(): GlobalBusEvent[] {
+  return GoalService.list().map(({ sessionID, goal }) => ({
+    directory: "global",
+    payload: {
+      id: Bus.createID(),
+      type: "session.goal",
+      properties: {
+        sessionID,
+        goal: {
+          condition: goal.condition,
+          react: goal.react,
+          maxTurns: goal.maxTurns,
+          auto: goal.auto,
+        },
+      },
+    },
+  }))
 }
 
 function parseBody(body: string) {
@@ -49,6 +74,7 @@ function eventResponse() {
 
   return HttpServerResponse.stream(
     Stream.make({ payload: { id: Bus.createID(), type: "server.connected", properties: {} } }).pipe(
+      Stream.concat(Stream.fromIterable(initialGoalEvents())),
       Stream.concat(events.pipe(Stream.merge(heartbeat, { haltStrategy: "left" }))),
       Stream.map(eventData),
       Stream.pipeThroughChannel(Sse.encode()),

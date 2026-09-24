@@ -60,6 +60,23 @@ describe("GoalService persistence", () => {
     expect(goal?.auto).toBe(false)
   })
 
+  test("lists all persisted goals", () => {
+    GoalService.set("ses_one", "first", 4, true)
+    GoalService.set("ses_two", "second", 2)
+
+    const list = GoalService.list()
+    expect(list.map((x) => x.sessionID).sort()).toEqual(["ses_one", "ses_two"])
+    const one = list.find((x) => x.sessionID === "ses_one")
+    expect(one?.goal.condition).toBe("first")
+    expect(one?.goal.auto).toBe(true)
+    expect(one?.goal.maxTurns).toBe(4)
+    expect(list.find((x) => x.sessionID === "ses_two")?.goal.auto).toBe(false)
+  })
+
+  test("lists nothing when there are no goals", () => {
+    expect(GoalService.list()).toEqual([])
+  })
+
   test("the turn counter is persisted on every bump", () => {
     GoalService.set("ses_abc", "done", 3)
     expect(GoalService.bumpReact("ses_abc")).toBe(1)
