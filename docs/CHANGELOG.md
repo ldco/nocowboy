@@ -362,8 +362,14 @@
   `verify:file docs/features/agent-mailbox.md`
 - **DONE** Team Lead — мульти-агентный оркестратор
   `verify:file docs/features/team-lead.md`
+- **DONE** Goal Agent — автономный режим в TUI (/autopilot, agent auto)
+  `verify:file src/nocowboy/autopilot/command.ts`
+  `verify:grep src/command/index.ts autopilotCommand`
 - **DONE** TUI Goal UX — индикатор, /goal команды, визуализация прогресса
   `verify:file docs/features/tui-goal-ux.md`
+- **DONE** Goal Headless — CLI режим для CI/CD: nocowboy run --autopilot '...'
+  `verify:file src/nocowboy/cli/cmd/run-autopilot.ts`
+  `verify:grep src/cli/cmd/run.ts resolveRunCommand`
 - **DONE** Tree-sitter Integration — детерминированный парсинг AST (функции, классы, импорты)
   `verify:file docs/features/tree-sitter-parsing.md`
 - **DONE** Cost-Routing Doctrine — формализованный роутинг по стоимости модели

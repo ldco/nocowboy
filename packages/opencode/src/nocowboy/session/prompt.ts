@@ -611,6 +611,15 @@ export namespace NoCowboySessionPrompt {
       GoalService.clear(input.sessionID)
       return { kind: "handled", output: "Autopilot stopped. Returning to normal interactive mode." }
     }
+    if (arg === "resume") {
+      // Resume an interrupted run WITHOUT resetting the goal or its budget.
+      // Used after a restart (headless `run --continue`, or /autopilot resume).
+      const goal = GoalService.get(input.sessionID)
+      if (!goal?.auto) {
+        return { kind: "handled", output: "No active autopilot run to resume." }
+      }
+      return { kind: "run" }
+    }
 
     const { maxTurns, words } = parseMaxTurns(arg.split(/\s+/).filter(Boolean))
     const scope = words.join(" ").trim() || DEFAULT_AUTOPILOT_SCOPE

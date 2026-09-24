@@ -24,6 +24,11 @@ import type { Goal } from "./goal"
  */
 export const AUTO_CONTINUE_MAX = 8
 
+/** Consecutive continuations on one unchanged stage before a stall warning. */
+export const STALL_ESCALATE = 6
+/** Consecutive continuations on one unchanged stage before the run stops. */
+export const STALL_STOP = 12
+
 export namespace Autopilot {
   /**
    * Whether the loop should inject a continuation for the active goal.
@@ -84,6 +89,34 @@ export namespace Autopilot {
    * `in_progress`, the run must finish and get it reviewed before starting
    * another one.
    */
+  /**
+   * React to a stage that never changes across continuations. A run that keeps
+   * working the same in-progress stage turn after turn is either legitimately
+   * large or stuck; after STALL_ESCALATE the run is warned to make a decision,
+   * and after STALL_STOP the harness stops injecting so it cannot burn tokens
+   * forever on a wedged stage.
+   */
+  export function stallAction(input: {
+    key: string
+    previous?: { key: string; count: number }
+  }): { action: "continue" | "escalate" | "stop"; count: number } {
+    if (!input.key) return { action: "continue", count: 0 }
+    const count = input.previous && input.previous.key === input.key ? input.previous.count + 1 : 1
+    if (count >= STALL_STOP) return { action: "stop", count }
+    if (count >= STALL_ESCALATE) return { action: "escalate", count }
+    return { action: "continue", count }
+  }
+
+  /** The strong nudge injected once a stage looks stalled. */
+  export function escalationText(): string {
+    return [
+      "STALL WARNING: this stage has not changed for several turns.",
+      "Decide now — either finish it (implement, test, reviewer-confirmed, mark",
+      "done), mark it blocked with the exact missing piece, or /goal clear.",
+      "Do not keep repeating the same step.",
+    ].join("\n")
+  }
+
   export function stageInstruction(inProgress: string[]): string {
     if (inProgress.length > 0) {
       return [
@@ -104,6 +137,7 @@ export namespace Autopilot {
     turn: number
     maxTurns: number
     inProgress?: string[]
+    escalate?: boolean
   }): string {
     return [
       `<autopilot-continue turn="${input.turn}/${input.maxTurns}">`,
@@ -112,6 +146,7 @@ export namespace Autopilot {
       "- Do not ask the user to continue and do not stop to confirm.",
       "- Verify progress with real commands (tests, lint, build) when relevant.",
       stageInstruction(input.inProgress ?? []),
+      ...(input.escalate ? [escalationText()] : []),
       "- If the goal is genuinely impossible or blocked, say exactly why and stop.",
       "</autopilot-continue>",
     ].join("\n")
@@ -129,6 +164,8 @@ export namespace Autopilot {
     previous: Pick<MessageV2.User, "agent" | "model" | "tools">
     /** Roadmap items currently `in_progress` (see readInProgress). */
     inProgress?: string[]
+    /** Add the strong stall nudge (see stallAction). */
+    escalate?: boolean
     now?: number
   }): { info: MessageV2.User; part: MessageV2.TextPart } {
     const now = input.now ?? Date.now()
@@ -151,6 +188,7 @@ export namespace Autopilot {
         turn: input.goal.react,
         maxTurns: input.goal.maxTurns,
         inProgress: input.inProgress,
+        escalate: input.escalate,
       }),
       synthetic: true,
       time: { start: now, end: now },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import path from "path"
-import { Autopilot, AUTO_CONTINUE_MAX } from "@/nocowboy/session/autopilot"
+import { Autopilot, AUTO_CONTINUE_MAX, STALL_ESCALATE, STALL_STOP } from "@/nocowboy/session/autopilot"
 import { autopilotCommand } from "@/nocowboy/autopilot/command"
 import type { Goal } from "@/nocowboy/session/goal"
 import { tmpdir } from "../fixture/fixture"
@@ -74,6 +74,38 @@ describe("autopilotCommand", () => {
     expect(template).toContain("Do not mark `done` yet")
     // Never ask the human to continue.
     expect(template).toContain("end a turn by asking the user to continue")
+  })
+})
+
+describe("Autopilot.stallAction", () => {
+  it("does not count when no stage is in progress", () => {
+    expect(Autopilot.stallAction({ key: "" })).toEqual({ action: "continue", count: 0 })
+    expect(Autopilot.stallAction({ key: "", previous: { key: "x", count: 9 } })).toEqual({
+      action: "continue",
+      count: 0,
+    })
+  })
+
+  it("counts consecutive continuations on the same stage", () => {
+    expect(Autopilot.stallAction({ key: "a", previous: { key: "a", count: 1 } }).count).toBe(2)
+    expect(Autopilot.stallAction({ key: "a", previous: { key: "b", count: 5 } }).count).toBe(1)
+  })
+
+  it("escalates then stops as the stage stays unchanged", () => {
+    expect(Autopilot.stallAction({ key: "a", previous: { key: "a", count: STALL_ESCALATE - 1 } }).action).toBe("escalate")
+    expect(Autopilot.stallAction({ key: "a", previous: { key: "a", count: STALL_STOP - 1 } }).action).toBe("stop")
+  })
+
+  it("carries the stall warning into the continuation when escalating", () => {
+    const { part } = Autopilot.buildContinuation({
+      sessionID: "ses_auto" as never,
+      goal,
+      previous: { agent: "worker", model: { providerID: "test", modelID: "m" } as never, tools: undefined },
+      inProgress: ["a"],
+      escalate: true,
+    })
+    expect(part.text).toContain("STALL WARNING")
+    expect(part.text).toContain("/goal clear")
   })
 })
 

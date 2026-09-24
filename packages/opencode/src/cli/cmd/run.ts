@@ -11,6 +11,11 @@
 // Also supports `--command` for slash-command execution, `--format json` for
 // raw event streaming, `--continue` / `--session` for session resumption,
 // and `--fork` for forking before continuing.
+//
+// Unattended roadmap runs: `--autopilot "<scope>"` (or the `--agent goal`
+// alias) sends the built-in /autopilot command, which sets an auto goal and
+// conducts worker -> reviewer until done or `--max-turns`. `--continue` with no
+// message resumes an interrupted autopilot run. See run-autopilot.ts.
 import type { Argv } from "yargs"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -32,6 +37,7 @@ import { event as normalizeEvent } from "./run/event"
 import { importCloudSession, validateCloudFork } from "@/nocowboy/cloud-session"
 import { KiloRunAuto } from "@/nocowboy/cli/run-auto"
 import { KiloRunDaemon } from "@/nocowboy/cli/cmd/run"
+import { resolveRunCommand } from "@/nocowboy/cli/cmd/run-autopilot" // nocowboy_change - headless autopilot
 
 const runtimeTask = import("./run/runtime")
 type ModelInput = Parameters<KiloClient["session"]["prompt"]>[0]["model"]
@@ -184,6 +190,12 @@ export const RunCommand = effectCmd({
       .option("max-turns", {
         type: "number",
         describe: "max autonomous turns for the goal agent (default 20)",
+      })
+      .option("autopilot", {
+        type: "boolean",
+        default: false,
+        describe:
+          "run an unattended roadmap autopilot (implies --command autopilot: sets an auto goal and conducts worker→reviewer until done or --max-turns)",
       })
       .option("format", {
         type: "string",
@@ -370,7 +382,26 @@ export const RunCommand = effectCmd({
       message = resolveRunInput(message, piped) ?? ""
       const initialInput = resolveRunInput(rawMessage, piped)
 
-      if (message.trim().length === 0 && !args.command && !args.interactive) {
+      // nocowboy_change - resolve --autopilot / --agent goal into a session command.
+      const resolved = resolveRunCommand({
+        command: args.command,
+        agent: args.agent,
+        autopilot: args.autopilot,
+        maxTurns: args["max-turns"],
+        resume: !args.interactive && Boolean(args.continue || args.session) && !args.fork,
+        message,
+      })
+      if (!resolved.ok) {
+        UI.error(resolved.error)
+        process.exit(1)
+      }
+      const runCommand = resolved.value
+      if (args.interactive && runCommand.command === "autopilot") {
+        UI.error("--interactive cannot be used with --autopilot")
+        process.exit(1)
+      }
+
+      if (message.trim().length === 0 && !runCommand.command && !args.interactive) {
         UI.error("You must provide a message or a command")
         process.exit(1)
       }
@@ -850,8 +881,9 @@ export const RunCommand = effectCmd({
         const cwd = args.attach ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
         const client = args.attach ? attachSDK(cwd) : sdk
 
-        // Validate agent if specified
-        const agent = await pickAgent(client)
+        // Validate agent if specified. An autopilot run pins the agent itself
+        // (the /autopilot command runs under `auto`), so skip resolution.
+        const agent = runCommand.command === "autopilot" ? runCommand.agent : await pickAgent(client)
 
         await share(client, sessionID)
 
@@ -862,13 +894,13 @@ export const RunCommand = effectCmd({
             process.exit(1)
           })
 
-          if (args.command) {
+          if (runCommand.command) {
             const result = await client.session.command({
               sessionID,
               agent,
               model: args.model,
-              command: args.command,
-              arguments: message,
+              command: runCommand.command,
+              arguments: runCommand.arguments,
               variant: args.variant,
             })
             if (result.error) {

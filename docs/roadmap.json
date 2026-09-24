@@ -2471,8 +2471,8 @@
     },
     {
       "id": "goal-agent",
-      "title": "Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)",
-      "status": "in_progress",
+      "title": "Goal Agent — автономный режим в TUI (/autopilot, agent auto)",
+      "status": "done",
       "priority": "P0",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2485,13 +2485,19 @@
         "agent",
         "tui"
       ],
-      "description": "Новый тип агента Goal — пользователь переключается на него в TUI (Ctrl+B), ставит цель, агент автономно работает до выполнения. Использует тот же task tool (architect→code→overseer), ту же worktree-изоляцию. Esc пауза, Esc+Esc стоп. Headless режим: nocowboy run --agent goal '...'",
-      "notes": "Unmarked 2026-09-24: no agent named `goal` is registered (agents are auto/planner/worker/reviewer/nocowboy + native). The intent is delivered by `/autopilot` (built-in conductor command running under `auto`) plus the harness auto-continue, not as a separate TUI agent. See `autopilot-roadmap-runner` and ADR-006.",
+      "description": "Unattended autonomous mode in the TUI: `/autopilot [scope]` sets an auto goal and conducts worker -> reviewer per roadmap stage until done or the turn budget. Delivered as the built-in /autopilot command under the `auto` agent plus the harness auto-continue (not a separate agent named `goal`). Esc stops; `/goal clear` ends the run; the same command runs headless.",
+      "notes": "Implemented 2026-09-24 (0eb8064ad0 + follow-up): the capability ships as the built-in /autopilot conductor command under `auto` rather than a distinct `goal` agent; `--agent goal` is accepted as a headless alias. See ADR-006 and `autopilot-roadmap-runner`.",
+      "done_at": "2026-09-24",
       "version": "v0.12.0",
       "verify": [
         {
           "type": "file",
-          "path": "docs/features/goal-agent.md"
+          "path": "src/nocowboy/autopilot/command.ts"
+        },
+        {
+          "type": "grep",
+          "path": "src/command/index.ts",
+          "pattern": "autopilotCommand"
         }
       ]
     },
@@ -2521,8 +2527,8 @@
     },
     {
       "id": "goal-headless",
-      "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'",
-      "status": "in_progress",
+      "title": "Goal Headless — CLI режим для CI/CD: nocowboy run --autopilot '...'",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2533,13 +2539,18 @@
         "cli",
         "ci"
       ],
-      "description": "nocowboy run --agent goal 'all tests pass' --max-turns 20 --yolo. Для CI/CD. --output-format json, --verbose.",
-      "notes": "Unmarked 2026-09-24: `--max-turns` is declared in cli/cmd/run.ts but never read, and `--agent goal` fails because no such agent exists. Headless autopilot is not wired. See `autopilot-roadmap-runner`.",
+      "description": "Unattended roadmap run from the CLI/CI: `nocowboy run --autopilot '<scope>' --max-turns 20` (or the `--agent goal` alias). Sends the built-in /autopilot command, which sets an auto goal and conducts worker -> reviewer until done or the budget. `nocowboy run --continue` with no message resumes an interrupted run. `--format json` streams events.",
+      "done_at": "2026-09-24",
       "version": "v0.12.0",
       "verify": [
         {
           "type": "file",
-          "path": "docs/features/goal-headless.md"
+          "path": "src/nocowboy/cli/cmd/run-autopilot.ts"
+        },
+        {
+          "type": "grep",
+          "path": "src/cli/cmd/run.ts",
+          "pattern": "resolveRunCommand"
         }
       ]
     },

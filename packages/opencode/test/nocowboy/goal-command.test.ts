@@ -34,6 +34,29 @@ describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
     expect(goal?.maxTurns).toBe(7)
   })
 
+  it("resumes an active run without resetting its budget", () => {
+    GoalService.set("autopilot-cmd-session", "Autopilot run complete: x.", 20, true)
+    GoalService.bumpReact("autopilot-cmd-session")
+    GoalService.bumpReact("autopilot-cmd-session")
+
+    const none = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "no-goal-session" as never,
+      arguments: "resume",
+    })
+    expect(none.kind).toBe("handled")
+    if (none.kind === "handled") expect(none.output).toContain("No active autopilot run")
+
+    const resumed = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "autopilot-cmd-session" as never,
+      arguments: "resume",
+    })
+    expect(resumed.kind).toBe("run")
+    const goal = GoalService.get("autopilot-cmd-session")
+    expect(goal?.react).toBe(2)
+    expect(goal?.maxTurns).toBe(20)
+    expect(goal?.auto).toBe(true)
+  })
+
   it("reports status and clears the run", () => {
     const none = NoCowboySessionPrompt.handleAutopilotCommand({
       sessionID: "autopilot-cmd-session" as never,

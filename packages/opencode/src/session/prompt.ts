@@ -1735,6 +1735,8 @@ export const layer = Layer.effect(
       let compactionAttempts = 0
       let stopHookContinues = 0
       let autoContinues = 0 // nocowboy_change - autopilot per-turn continuation budget
+      // nocowboy_change - track consecutive continuations on an unchanged stage
+      const autoStages = new Map<string, { key: string; count: number }>()
       const ctx = yield* InstanceState.context
       const slog = elog.with({ sessionID })
       let structured: unknown
@@ -2132,11 +2134,22 @@ export const layer = Layer.effect(
             }
             GoalService.bumpReact(sessionID)
 
+            // Deterministic stage gate (+ stall guard): read the roadmap so every
+            // continuation says whether a stage is still in progress (finish and
+            // get it reviewed first) or whether the next item may start.
+            const inProgress = yield* Effect.promise(() => Autopilot.readInProgress(ctx.directory))
+            const stallKey = [...inProgress].sort().join(",")
+            const stall = Autopilot.stallAction({ key: stallKey, previous: autoStages.get(sessionID) })
+            autoStages.set(sessionID, { key: stallKey, count: stall.count })
+
             // Autopilot: the model stopped on its own but the goal is not met.
             // Inject a synthetic continuation so the run keeps going with no
             // human "continue". hasFollowup guards against piling up when the
-            // user already queued something newer.
+            // user already queued something newer. A stalled stage (with no
+            // progress across many turns) stops the injection instead of burning
+            // tokens forever.
             if (
+              stall.action !== "stop" &&
               judgeModel &&
               Autopilot.shouldContinue({
                 auto: goal.auto,
@@ -2151,14 +2164,11 @@ export const layer = Layer.effect(
             ) {
               autoContinues++
               const bumped = GoalService.get(sessionID) ?? goal
-              // Deterministic stage gate: read the roadmap so every continuation
-              // tells the run whether a stage is still in progress (finish + get
-              // it reviewed first) or whether it may start the next item.
-              const inProgress = yield* Effect.promise(() => Autopilot.readInProgress(ctx.directory))
               const continuation = Autopilot.buildContinuation({
                 sessionID,
                 goal: bumped,
                 inProgress,
+                escalate: stall.action === "escalate",
                 previous: {
                   agent: agent.name,
                   model: {

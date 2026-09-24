@@ -51,12 +51,6 @@
 - ⬜ Built-in AC Verification Stop Hook
   > Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === "goal", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.
   `verify:file docs/features/ac-verification-hook.md`
-- ⬜ Goal Agent — автономный агент в TUI (выбор через Ctrl+B, /agent goal)
-  > Unmarked 2026-09-24: no agent named `goal` is registered (agents are auto/planner/worker/reviewer/nocowboy + native). The intent is delivered by `/autopilot` (built-in conductor command running under `auto`) plus the harness auto-continue, not as a separate TUI agent. See `autopilot-roadmap-runner` and ADR-006.
-  `verify:file docs/features/goal-agent.md`
-- ⬜ Goal Headless — CLI режим для CI/CD: nocowboy run --agent goal '...'
-  > Unmarked 2026-09-24: `--max-turns` is declared in cli/cmd/run.ts but never read, and `--agent goal` fails because no such agent exists. Headless autopilot is not wired. See `autopilot-roadmap-runner`.
-  `verify:file docs/features/goal-headless.md`
 
 ---
 
