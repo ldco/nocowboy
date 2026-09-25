@@ -931,24 +931,24 @@ export const McpStatusCommand = effectCmd({
 
     yield* Effect.promise(async () => {
       const results: McpProcInfo[] = []
+      // Real state comes from the pid file for every server. A "remote" entry
+      // whose url is 127.0.0.1 is still a lifecycle-managed local proxy that
+      // init/install wrote; keying off config `type` reported such servers as
+      // permanently "stopped" even while their process was running.
+      const entryOf = async (name: string, fallbackUrl: string): Promise<McpProcInfo> => {
+        const st = await McpLifecycle.status(name)
+        return { ...st, url: st.url || fallbackUrl }
+      }
+      const fallbackUrl = (cfg: (typeof servers)[number][1]) =>
+        isMcpConfigured(cfg) && cfg.type === "remote" ? cfg.url : "?"
       if (args.name) {
-        const entry = servers.find(([n]) => n === args.name)
-        if (!entry) { prompts.log.warn(`Server "${args.name}" not found`); return }
-        const [name, cfg] = entry
-        if (isMcpConfigured(cfg) && cfg.type === "local") {
-          results.push(await McpLifecycle.status(name))
-        } else {
-          const url = isMcpConfigured(cfg) && cfg.type === "remote" ? cfg.url : "?"
-          results.push({ name, pid: null, running: false, port: 0, url })
-        }
+        const found = servers.find(([n]) => n === args.name)
+        if (!found) { prompts.log.warn(`Server "${args.name}" not found`); return }
+        const [name, cfg] = found
+        results.push(await entryOf(name, fallbackUrl(cfg)))
       } else {
         for (const [name, cfg] of servers) {
-          if (isMcpConfigured(cfg) && cfg.type === "local") {
-            results.push(await McpLifecycle.status(name))
-          } else {
-            const url = isMcpConfigured(cfg) && cfg.type === "remote" ? cfg.url : "?"
-            results.push({ name, pid: null, running: false, port: 0, url })
-          }
+          results.push(await entryOf(name, fallbackUrl(cfg)))
         }
       }
       await showMcpStatus(results)
