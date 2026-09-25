@@ -19,6 +19,7 @@ import { Global } from "@nocowboy/core/global"
 import { modify, applyEdits } from "jsonc-parser"
 import { KilocodeMcpConfig } from "@/nocowboy/cli/cmd/mcp"
 import { McpLifecycle } from "@/nocowboy/mcp/lifecycle"
+import { mcpServerPort } from "@/nocowboy/mcp/ports"
 import { McpProxy } from "@/nocowboy/mcp/proxy"
 import { Launcher } from "@/nocowboy/mcp/launcher"
 import { spawn } from "node:child_process"
@@ -867,6 +868,8 @@ export const McpStartCommand = effectCmd({
   handler: Effect.fn("Cli.mcp.start")(function* (args) {
     const config = yield* Config.Service.use((cfg) => cfg.get())
     const servers = Object.entries(config.mcp ?? {}).filter(([, s]) => isMcpConfigured(s) && s.enabled !== false)
+    // Config order feeds the port fallback — see mcpServerPort.
+    const allNames = Object.keys(config.mcp ?? {})
 
     const names = args.name ? [args.name] : servers.map(([n]) => n)
 
@@ -882,7 +885,10 @@ export const McpStartCommand = effectCmd({
           ? srv.command.map((s: string) => (/\s/.test(s) ? `"${s}"` : s)).join(" ")
           : await Launcher.command(name)
         if (!cmd) { prompts.log.warn(`Skipping "${name}" — no launch command defined`); continue }
-        const port = 9200 + results.length
+        // Reuse the server's configured port (its url is authoritative), not the
+        // index in the started subset — `9200 + results.length` bound a single
+        // named server to 9200 while clients dialled its configured port.
+        const port = mcpServerPort(name, srv, allNames)
         const r = await McpLifecycle.startOne(name, cmd, port)
         results.push(r)
       }
