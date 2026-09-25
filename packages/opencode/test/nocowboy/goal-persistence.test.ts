@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
-import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "../../src/nocowboy/session/goal"
+import { GoalService, UNBOUNDED_MAX_TURNS, isRestoredFromPreviousRun, restoredGoalNotice } from "../../src/nocowboy/session/goal"
 
 // Goals are persisted so an autonomous run survives a restart (docs/adr/005).
 // The module reads the directory per call, so pointing the env at a temp dir is
@@ -42,6 +42,38 @@ describe("GoalService persistence", () => {
 
     const onDisk = JSON.parse(readFileSync(join(dir, "ses_auto.json"), "utf-8"))
     expect(onDisk.auto).toBe(true)
+  })
+
+  test("a roadmap run is persisted and read back", () => {
+    GoalService.set("ses_roadmap", "run the roadmap", UNBOUNDED_MAX_TURNS, true, true)
+    const goal = GoalService.get("ses_roadmap")
+    expect(goal?.roadmap).toBe(true)
+    expect(goal?.maxTurns).toBe(UNBOUNDED_MAX_TURNS)
+
+    const onDisk = JSON.parse(readFileSync(join(dir, "ses_roadmap.json"), "utf-8"))
+    expect(onDisk.roadmap).toBe(true)
+  })
+
+  test("a legacy goal file without the roadmap flag is not a roadmap run", () => {
+    writeFileSync(
+      join(dir, "ses_legacy_roadmap.json"),
+      JSON.stringify({ condition: "old", react: 1, maxTurns: 4, createdAt: 1, auto: true }),
+      "utf-8",
+    )
+    expect(GoalService.get("ses_legacy_roadmap")?.roadmap).toBe(false)
+  })
+
+  test("an unbounded goal is never exhausted, however many turns it reacts", () => {
+    GoalService.set("ses_unbounded", "run the roadmap", UNBOUNDED_MAX_TURNS, true, true)
+    expect(GoalService.exhausted("ses_unbounded")).toBe(false)
+    for (let i = 0; i < 50; i++) GoalService.bumpReact("ses_unbounded")
+    expect(GoalService.get("ses_unbounded")?.react).toBe(50)
+    expect(GoalService.exhausted("ses_unbounded")).toBe(false)
+  })
+
+  test("a non-roadmap goal with a zero budget still stops immediately", () => {
+    GoalService.set("ses_zero", "keep going", 0, true, false)
+    expect(GoalService.exhausted("ses_zero")).toBe(true)
   })
 
   test("a goal set without auto is a manual goal", () => {
@@ -148,5 +180,10 @@ describe("restored goal detection", () => {
     expect(notice).toContain("all tests pass")
     expect(notice).toContain("turn 3/20")
     expect(notice).toContain("/goal clear")
+  })
+
+  test("the notice shows an unbounded budget as ∞", () => {
+    const notice = restoredGoalNotice({ ...goal, maxTurns: UNBOUNDED_MAX_TURNS, roadmap: true })
+    expect(notice).toContain("turn 3/∞")
   })
 })

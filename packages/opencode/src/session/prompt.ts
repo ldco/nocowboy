@@ -10,7 +10,7 @@ import { ToolBusy } from "@/nocowboy/session/tool-busy" // nocowboy_change - idl
 import { subagentStallTimeoutMs, toolHeartbeatIntervalMs } from "@/nocowboy/session/watchdog" // nocowboy_change
 import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "@/nocowboy/session/goal"
-import { Autopilot } from "@/nocowboy/session/autopilot" // nocowboy_change - unattended autopilot continuation
+import { Autopilot, AUTO_CONTINUE_MAX } from "@/nocowboy/session/autopilot" // nocowboy_change - unattended autopilot continuation
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
 import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
 import { CommandTimeout } from "@/nocowboy/command-timeout"
@@ -2097,18 +2097,38 @@ export const layer = Layer.effect(
                 ignored: true,
               })
             }
-            const judgeMsgs = yield* MessageV2.filterCompactedEffect(sessionID)
-            const judgeModelMsgs = yield* MessageV2.toModelMessagesEffect(
-              NoCowboySessionPromptQueue.scope(sessionID, judgeMsgs),
-              model,
-            )
+            // Deterministic roadmap signal. The default autopilot scope is the
+            // whole roadmap, so its completion is decided from docs/roadmap.json
+            // — the LLM judge only sees the transcript and can false-positive
+            // "met" while later items are still pending (the R01 → R02 stop).
+            const summary = yield* Effect.promise(() => Autopilot.readRoadmap(ctx.directory))
+            if (goal.roadmap && Autopilot.roadmapComplete(summary)) {
+              yield* Effect.logInfo("roadmap complete, stopping autopilot")
+              GoalService.clear(sessionID)
+              yield* bus.publish(NoCowboySession.Event.Goal, { sessionID, goal: null })
+              return "break" as const
+            }
+            // The judge runs for a custom goal, or for a roadmap goal when the
+            // roadmap cannot be read (no deterministic signal to trust).
+            const useJudge = Autopilot.judgeRequired(goal.roadmap === true, summary)
+            // The judge transcript is only needed when the judge runs. Building
+            // it is O(history) and used to run every turn even for a roadmap
+            // goal, so it is gated to keep the unbounded roadmap run cheap.
+            const judgeModelMsgs = useJudge
+              ? yield* MessageV2.toModelMessagesEffect(
+                  NoCowboySessionPromptQueue.scope(sessionID, yield* MessageV2.filterCompactedEffect(sessionID)),
+                  model,
+                )
+              : []
             // Resolve the real language model for the judge. Passing the
             // Provider.Model metadata (the old `model as any`) made
             // generateObject throw, so a goal could never be judged "met".
-            const judgeModel = yield* provider
-              .getLanguage(model)
-              .pipe(Effect.catchCause(() => Effect.succeed(undefined)))
-            if (!judgeModel) {
+            // Skipped entirely when the roadmap decides completion, so a
+            // roadmap run never depends on the judge model being reachable.
+            const judgeModel = useJudge
+              ? yield* provider.getLanguage(model).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
+              : undefined
+            if (useJudge && !judgeModel) {
               // Structural failure (provider/model cannot be resolved), not a
               // "not met" verdict. Auto-injecting here would spend tokens on a
               // goal that can never be judged satisfied, so the autopilot
@@ -2117,7 +2137,7 @@ export const layer = Layer.effect(
                 sessionID,
               })
             }
-            const goalMet = judgeModel
+            const goalMet = useJudge && judgeModel
               ? yield* Effect.promise(() =>
                   GoalService.evaluate({ condition: goal.condition, messages: judgeModelMsgs, model: judgeModel }),
                 )
@@ -2142,9 +2162,15 @@ export const layer = Layer.effect(
 
             // Deterministic stage gate (+ stall guard): read the roadmap so every
             // continuation says whether a stage is still in progress (finish and
-            // get it reviewed first) or whether the next item may start.
-            const inProgress = yield* Effect.promise(() => Autopilot.readInProgress(ctx.directory))
-            const stallKey = [...inProgress].sort().join(",")
+            // get it reviewed first) or whether the next item may start. The
+            // stall key tracks actionable roadmap items only for a roadmap goal;
+            // a custom judged goal keeps the old in-progress key so its own
+            // budget, not the roadmap, decides when it stops.
+            const inProgress = summary.inProgress
+            const stallKey =
+              goal.roadmap && summary.hasFeatures
+                ? [...summary.actionable].sort().join(",")
+                : [...inProgress].sort().join(",")
             const stall = Autopilot.stallAction({ key: stallKey, previous: autoStages.get(sessionID) })
             autoStages.set(sessionID, { key: stallKey, count: stall.count })
 
@@ -2156,7 +2182,9 @@ export const layer = Layer.effect(
             // tokens forever.
             if (
               stall.action !== "stop" &&
-              judgeModel &&
+              // A roadmap goal needs no judge: its stop is deterministic, so it
+              // must keep going even when the judge model cannot be resolved.
+              (!useJudge || judgeModel) &&
               Autopilot.shouldContinue({
                 auto: goal.auto,
                 stopped: !!finished,
@@ -2164,7 +2192,10 @@ export const layer = Layer.effect(
                 continues: autoContinues,
                 // The goal's turn budget is the real autopilot budget; the
                 // default AUTO_CONTINUE_MAX only applies when a goal gives none.
-                max: goal.maxTurns,
+                // An unbounded roadmap goal (maxTurns 0) has no cap, but a
+                // roadmap goal without a readable roadmap falls back to the
+                // per-turn cap so it cannot spin forever.
+                max: goal.roadmap && !summary.hasFeatures ? AUTO_CONTINUE_MAX : goal.maxTurns,
                 followupPending: NoCowboySessionPromptQueue.hasFollowup(sessionID),
               })
             ) {

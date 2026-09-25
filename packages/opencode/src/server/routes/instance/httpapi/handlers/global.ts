@@ -44,6 +44,7 @@ function initialGoalEvents(): GlobalBusEvent[] {
           react: goal.react,
           maxTurns: goal.maxTurns,
           auto: goal.auto,
+          roadmap: goal.roadmap,
         },
       },
     },

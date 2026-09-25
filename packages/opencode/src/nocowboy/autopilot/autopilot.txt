@@ -7,6 +7,11 @@ then stop the turn and let the harness resume you.
 
 Scope for this run: $ARGUMENTS
 
+If the scope above is empty, it is the **whole roadmap** in `docs/roadmap.json`:
+every planned and in-progress item implemented, reviewer-verified, and marked
+done. This run has no turn budget — it continues across stages until the roadmap
+has no actionable items left, so never stop early and never wait for a human.
+
 The goal condition already recorded (judged after every turn) is
 `Autopilot run complete: <scope>`.
 

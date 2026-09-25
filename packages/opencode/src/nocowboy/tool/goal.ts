@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect"
 import * as Tool from "@/tool/tool"
-import { GoalService } from "@/nocowboy/session/goal"
+import { GoalService, formatMaxTurns } from "@/nocowboy/session/goal"
 
 export const Parameters = Schema.Struct({
   condition: Schema.String.annotate({
@@ -10,7 +10,7 @@ export const Parameters = Schema.Struct({
   max_turns: Schema.optional(
     Schema.Number.annotate({
       description:
-        "Maximum number of autonomous turns before the goal loop stops (default 20). Guards against infinite loops.",
+        "Maximum number of autonomous turns before the goal loop stops (default 20). Must be positive; omit it to keep the existing/default budget. Guards against infinite loops.",
     }),
   ),
   auto: Schema.optional(
@@ -40,14 +40,22 @@ export const GoalSetTool = Tool.define(
           // Preserve an existing autopilot goal when the model re-sets the same
           // condition without restating `auto` — otherwise a mid-run goal_set
           // would silently turn the autonomous loop back into a manual one.
+          // The same applies to `roadmap`: dropping it would turn an unbounded
+          // roadmap run back into the bounded, transcript-judged mode.
           const existing = GoalService.get(ctx.sessionID)
           const auto = params.auto ?? existing?.auto ?? false
-          GoalService.set(ctx.sessionID, params.condition, params.max_turns, auto)
+          const roadmap = existing?.roadmap ?? false
+          // A non-positive `max_turns` is ignored (the CLI treats it as invalid
+          // too): it must never silently create an unbounded non-roadmap goal.
+          const explicit =
+            params.max_turns !== undefined && params.max_turns > 0 ? params.max_turns : undefined
+          const maxTurns = explicit ?? (roadmap ? existing?.maxTurns : undefined)
+          GoalService.set(ctx.sessionID, params.condition, maxTurns, auto, roadmap)
           const goal = GoalService.get(ctx.sessionID)
           const mode = goal?.auto ? "autopilot" : "manual"
           return {
             title: "Goal set",
-            output: `Goal active (${mode}): "${params.condition}" (max ${goal?.maxTurns ?? 20} turns). The agent will continue working until the condition is met or the budget is exhausted. Use goal_clear to cancel.`,
+            output: `Goal active (${mode}): "${params.condition}" (max ${formatMaxTurns(goal?.maxTurns ?? 20)} turns). The agent will continue working until the condition is met or the budget is exhausted. Use goal_clear to cancel.`,
             metadata: { condition: params.condition, maxTurns: goal?.maxTurns, auto: goal?.auto },
           }
         }).pipe(Effect.orDie),

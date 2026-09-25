@@ -114,6 +114,11 @@
       "description": "Autopilot in the UI — launch button in the sidebar and command palette, a live [AUTOPILOT] toggle next to YOLO (driven by the server's session.goal event and seeded on connect), and monochrome Attach/Paste icons in the prompt toolbar"
     },
     {
+      "tag": "v1.0.5-alpha",
+      "date": "2026-09-25",
+      "description": "Autopilot mode — [AUTOPILOT] works from a brand-new chat (creates the session), no scope dialog (one-click toggle), and the run is an unbounded roadmap goal that ends deterministically from docs/roadmap.json (done/blocked/abandoned are terminal) instead of a fixed 20-turn budget or a transcript-only judge verdict"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"

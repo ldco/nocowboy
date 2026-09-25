@@ -18,6 +18,13 @@ export type Goal = {
    * working with no human "continue". Off for a normal /goal.
    */
   auto: boolean
+  /**
+   * Roadmap runner: the goal's completion is decided deterministically from
+   * docs/roadmap.json (all items done/blocked) instead of the LLM judge, and
+   * the run is normally unbounded (`maxTurns === 0`) so it crosses every
+   * roadmap stage instead of stopping at a fixed turn count.
+   */
+  roadmap?: boolean
 }
 
 export const Verdict = z.object({
@@ -28,6 +35,30 @@ export const Verdict = z.object({
 export type Verdict = z.infer<typeof Verdict>
 
 export const DEFAULT_MAX_TURNS = 20
+
+/**
+ * Sentinel for "no turn budget": a roadmap autopilot run keeps going until the
+ * roadmap is done (or the stall guard trips), not until an arbitrary turn
+ * count. A large number rather than `0` so a goal file written by this build is
+ * still read sanely by an older binary, whose `exhausted()` is `react >= maxTurns`
+ * — it would treat `0` as "already exhausted" and kill the run on rollback.
+ */
+export const UNBOUNDED_MAX_TURNS = Number.MAX_SAFE_INTEGER
+
+/**
+ * True when the goal has no per-run turn budget. Only a roadmap goal can be
+ * unbounded: a plain goal with `maxTurns <= 0` keeps the historical meaning
+ * ("stop immediately"), so `goal_set(max_turns: 0)` cannot create an unbounded
+ * judged loop outside the roadmap path.
+ */
+export function isUnbounded(goal: Pick<Goal, "maxTurns" | "roadmap">): boolean {
+  return goal.roadmap === true && goal.maxTurns >= UNBOUNDED_MAX_TURNS
+}
+
+/** Human-readable budget: "∞" for an unbounded run, otherwise the number. */
+export function formatMaxTurns(maxTurns: number): string {
+  return maxTurns >= UNBOUNDED_MAX_TURNS ? "∞" : String(maxTurns)
+}
 
 /**
  * True when the goal was created before this process started, i.e. it was
@@ -43,7 +74,7 @@ export function isRestoredFromPreviousRun(goal: Goal, processStartedAt: number):
 
 /** One-line notice shown in a session whose goal survived a restart. */
 export function restoredGoalNotice(goal: Goal): string {
-  return `Goal restored after a restart: "${goal.condition}" — turn ${goal.react}/${goal.maxTurns}. The loop continues on your next message; clear it with /goal clear.`
+  return `Goal restored after a restart: "${goal.condition}" — turn ${goal.react}/${formatMaxTurns(goal.maxTurns)}. The loop continues on your next message; clear it with /goal clear.`
 }
 
 const JUDGE_SYSTEM = `You are evaluating a stop-condition hook. Read the conversation transcript carefully, then judge whether the user-provided condition is satisfied.
@@ -81,6 +112,7 @@ function read(sessionID: string): Goal | undefined {
       maxTurns: parsed.maxTurns,
       createdAt: typeof parsed.createdAt === "number" ? parsed.createdAt : Date.now(),
       auto: parsed.auto === true,
+      roadmap: parsed.roadmap === true,
     }
   } catch {
     // No goal for this session, or an unreadable file — either way, no goal.
@@ -113,6 +145,7 @@ export namespace GoalService {
     condition: string,
     maxTurns: number = DEFAULT_MAX_TURNS,
     auto = false,
+    roadmap = false,
   ): void {
     write(sessionID, {
       condition,
@@ -120,6 +153,7 @@ export namespace GoalService {
       maxTurns,
       createdAt: Date.now(),
       auto,
+      roadmap,
     })
   }
 
@@ -164,6 +198,7 @@ export namespace GoalService {
   export function exhausted(sessionID: string): boolean {
     const goal = read(sessionID)
     if (!goal) return false
+    if (isUnbounded(goal)) return false
     return goal.react >= goal.maxTurns
   }
 

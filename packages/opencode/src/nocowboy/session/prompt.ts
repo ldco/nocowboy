@@ -22,7 +22,7 @@ import { Filesystem } from "@/util/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import NATIVE_PLAN_PROMPT from "@/nocowboy/session/native-plan-prompt.txt"
 import CODE_SWITCH from "@/session/prompt/code-switch.txt"
-import { DEFAULT_MAX_TURNS, GoalService } from "@/nocowboy/session/goal"
+import { DEFAULT_MAX_TURNS, GoalService, UNBOUNDED_MAX_TURNS, formatMaxTurns } from "@/nocowboy/session/goal"
 import { Provider } from "@/provider/provider"
 import * as Log from "@nocowboy/core/util/log"
 import {
@@ -555,7 +555,7 @@ export namespace NoCowboySessionPrompt {
       const mode = goal.auto ? "autopilot" : "manual"
       return {
         kind: "handled",
-        output: `Goal: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${goal.maxTurns}`,
+        output: `Goal: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${formatMaxTurns(goal.maxTurns)}`,
       }
     }
     if (arg === "clear" || arg === "cancel" || arg === "stop") {
@@ -604,7 +604,7 @@ export namespace NoCowboySessionPrompt {
       const mode = goal.auto ? "autopilot" : "manual (re-enable with /goal --auto ...)"
       return {
         kind: "handled",
-        output: `Autopilot: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${goal.maxTurns}`,
+        output: `Autopilot: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${formatMaxTurns(goal.maxTurns)}`,
       }
     }
     if (arg === "clear" || arg === "cancel" || arg === "stop") {
@@ -622,8 +622,24 @@ export namespace NoCowboySessionPrompt {
     }
 
     const { maxTurns, words } = parseMaxTurns(arg.split(/\s+/).filter(Boolean))
-    const scope = words.join(" ").trim() || DEFAULT_AUTOPILOT_SCOPE
-    GoalService.set(input.sessionID, `Autopilot run complete: ${scope}.`, maxTurns ?? DEFAULT_MAX_TURNS, true)
+    const scope = words.join(" ").trim()
+    if (!scope) {
+      // Default scope = the whole roadmap. Completion is decided from
+      // docs/roadmap.json (not the LLM judge), and the run is unbounded by turn
+      // count unless the caller asked for a budget — so it crosses every
+      // roadmap stage instead of stopping at R01.
+      GoalService.set(
+        input.sessionID,
+        `Autopilot run complete: ${DEFAULT_AUTOPILOT_SCOPE}.`,
+        maxTurns ?? UNBOUNDED_MAX_TURNS,
+        true,
+        true,
+      )
+      return { kind: "run" }
+    }
+    // A custom scope has no deterministic roadmap signal, so the LLM judge
+    // decides and the default turn budget bounds the run.
+    GoalService.set(input.sessionID, `Autopilot run complete: ${scope}.`, maxTurns ?? DEFAULT_MAX_TURNS, true, false)
     return { kind: "run" }
   }
 

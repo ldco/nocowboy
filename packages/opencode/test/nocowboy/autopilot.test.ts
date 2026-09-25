@@ -3,6 +3,7 @@ import path from "path"
 import { Autopilot, AUTO_CONTINUE_MAX, STALL_ESCALATE, STALL_STOP } from "@/nocowboy/session/autopilot"
 import { autopilotCommand } from "@/nocowboy/autopilot/command"
 import type { Goal } from "@/nocowboy/session/goal"
+import { UNBOUNDED_MAX_TURNS } from "@/nocowboy/session/goal"
 import { tmpdir } from "../fixture/fixture"
 
 const goal: Goal = {
@@ -47,6 +48,14 @@ describe("Autopilot.shouldContinue", () => {
     expect(Autopilot.shouldContinue({ ...base, continues: AUTO_CONTINUE_MAX })).toBe(false)
     expect(Autopilot.shouldContinue({ ...base, continues: 2, max: 2 })).toBe(false)
     expect(Autopilot.shouldContinue({ ...base, continues: 1, max: 2 })).toBe(true)
+  })
+
+  it("has no cap when the goal is unbounded", () => {
+    expect(Autopilot.shouldContinue({ ...base, continues: 10_000, max: UNBOUNDED_MAX_TURNS })).toBe(true)
+  })
+
+  it("stops when the budget is zero", () => {
+    expect(Autopilot.shouldContinue({ ...base, continues: 0, max: 0 })).toBe(false)
   })
 })
 
@@ -157,21 +166,21 @@ describe("Autopilot.buildContinuation", () => {
 describe("Autopilot stage gate", () => {
   it("computes in-progress ids from a roadmap", () => {
     expect(
-      Autopilot.inProgressFromRoadmap({
+      Autopilot.roadmapSummaryFrom({
         features: [
           { id: "a", status: "in_progress" },
           { id: "b", status: "done" },
           { id: "c", status: "in_progress" },
           { status: "in_progress" },
         ],
-      }),
+      }).inProgress,
     ).toEqual(["a", "c"])
   })
 
   it("returns no ids for a missing or malformed roadmap", () => {
-    expect(Autopilot.inProgressFromRoadmap(undefined)).toEqual([])
-    expect(Autopilot.inProgressFromRoadmap({})).toEqual([])
-    expect(Autopilot.inProgressFromRoadmap({ features: "nope" })).toEqual([])
+    expect(Autopilot.roadmapSummaryFrom(undefined).inProgress).toEqual([])
+    expect(Autopilot.roadmapSummaryFrom({}).inProgress).toEqual([])
+    expect(Autopilot.roadmapSummaryFrom({ features: "nope" }).inProgress).toEqual([])
   })
 
   it("reads the in-progress stage from docs/roadmap.json", async () => {
@@ -183,11 +192,96 @@ describe("Autopilot stage gate", () => {
         )
       },
     })
-    expect(await Autopilot.readInProgress(tmp.path)).toEqual(["x"])
+    expect((await Autopilot.readRoadmap(tmp.path)).inProgress).toEqual(["x"])
   })
 
   it("degrades to no in-progress stage when the roadmap is absent", async () => {
     await using tmp = await tmpdir()
-    expect(await Autopilot.readInProgress(tmp.path)).toEqual([])
+    expect((await Autopilot.readRoadmap(tmp.path)).inProgress).toEqual([])
+  })
+
+  it("summarises a roadmap into in-progress, remaining and actionable ids", () => {
+    expect(
+      Autopilot.roadmapSummaryFrom({
+        features: [
+          { id: "a", status: "done" },
+          { id: "b", status: "in_progress" },
+          { id: "c", status: "planned" },
+          { id: "d", status: "blocked" },
+        ],
+      }),
+    ).toEqual({ hasFeatures: true, inProgress: ["b"], remaining: ["b", "c", "d"], actionable: ["b", "c"] })
+  })
+
+  it("treats abandoned as terminal, so an abandoned item never blocks completion", () => {
+    const summary = Autopilot.roadmapSummaryFrom({
+      features: [
+        { id: "a", status: "done" },
+        { id: "abandoned-one", status: "abandoned" },
+      ],
+    })
+    // remaining still lists it (not done), but it is not work to do.
+    expect(summary.remaining).toEqual(["abandoned-one"])
+    expect(summary.actionable).toEqual([])
+    expect(Autopilot.roadmapComplete(summary)).toBe(true)
+  })
+
+  it("is complete only when a readable roadmap has no actionable items left", () => {
+    expect(Autopilot.roadmapComplete(Autopilot.roadmapSummaryFrom({ features: [] }))).toBe(false)
+    expect(Autopilot.roadmapComplete(Autopilot.roadmapSummaryFrom(undefined))).toBe(false)
+    expect(
+      Autopilot.roadmapComplete(
+        Autopilot.roadmapSummaryFrom({ features: [{ id: "a", status: "done" }, { id: "b", status: "planned" }] }),
+      ),
+    ).toBe(false)
+    // done + blocked + abandoned = nothing left for the run to do.
+    expect(
+      Autopilot.roadmapComplete(
+        Autopilot.roadmapSummaryFrom({
+          features: [
+            { id: "a", status: "done" },
+            { id: "b", status: "blocked" },
+            { id: "c", status: "abandoned" },
+          ],
+        }),
+      ),
+    ).toBe(true)
+  })
+
+  it("reads the summary from docs/roadmap.json", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "docs", "roadmap.json"),
+          JSON.stringify({ features: [{ id: "x", status: "in_progress" }, { id: "y", status: "done" }] }),
+        )
+      },
+    })
+    expect(await Autopilot.readRoadmap(tmp.path)).toEqual({
+      hasFeatures: true,
+      inProgress: ["x"],
+      remaining: ["x"],
+      actionable: ["x"],
+    })
+    // Not complete while x is actionable.
+    expect(Autopilot.roadmapComplete(await Autopilot.readRoadmap(tmp.path))).toBe(false)
+  })
+
+  it("degrades to an empty summary when the roadmap is absent", async () => {
+    await using tmp = await tmpdir()
+    expect(await Autopilot.readRoadmap(tmp.path)).toEqual({
+      hasFeatures: false,
+      inProgress: [],
+      remaining: [],
+      actionable: [],
+    })
+  })
+
+  it("skips the LLM judge for a roadmap goal only while the roadmap is readable", () => {
+    const readable = Autopilot.roadmapSummaryFrom({ features: [{ id: "a", status: "planned" }] })
+    expect(Autopilot.judgeRequired(true, readable)).toBe(false)
+    expect(Autopilot.judgeRequired(false, readable)).toBe(true)
+    // No readable roadmap -> fall back to the judge even for a roadmap goal.
+    expect(Autopilot.judgeRequired(true, Autopilot.roadmapSummaryFrom(undefined))).toBe(true)
   })
 })

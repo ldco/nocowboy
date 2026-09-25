@@ -55,6 +55,10 @@ export namespace NoCowboySession {
             react: Schema.Number,
             maxTurns: Schema.Number,
             auto: Schema.Boolean,
+            // Roadmap runner: completion is decided from docs/roadmap.json and
+            // the run is normally unbounded (maxTurns 0). Optional so a goal
+            // persisted by an older build still decodes.
+            roadmap: Schema.optional(Schema.Boolean),
           }),
         ),
       }),

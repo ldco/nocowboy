@@ -56,30 +56,79 @@ export namespace Autopilot {
     return input.continues < max
   }
 
-  /** Ids of roadmap features currently `in_progress` (empty when unknown). */
-  export function inProgressFromRoadmap(json: unknown): string[] {
+  /**
+   * A roadmap read reduced to what the autopilot needs to decide whether the
+   * run is finished and whether it is making progress.
+   */
+  export interface RoadmapSummary {
+    /** Whether the file actually carries a `features` array (a real roadmap). */
+    hasFeatures: boolean
+    /** Features currently `in_progress`. */
+    inProgress: string[]
+    /** Features not yet `done`, in any status. */
+    remaining: string[]
+    /** Features with a non-terminal status (not done/blocked/abandoned) — the work left. */
+    actionable: string[]
+  }
+
+  const EMPTY_ROADMAP: RoadmapSummary = { hasFeatures: false, inProgress: [], remaining: [], actionable: [] }
+
+  /**
+   * Statuses that end an item's life for a run: `done` is finished, `blocked`
+   * needs a human, and `abandoned` was decided against. None of them is work the
+   * run should keep trying — if `abandoned` counted as actionable, a roadmap
+   * with a single abandoned item could never be complete and an unbounded run
+   * would never stop (the project's own `docs/roadmap.json` has one).
+   */
+  const TERMINAL_STATUSES = new Set(["done", "blocked", "abandoned"])
+
+  /**
+   * Reduce a parsed roadmap to its summary. A roadmap is "complete" for an
+   * autopilot run once there are features and none are actionable — every item
+   * is either done, blocked, or abandoned, so there is nothing left to run.
+   */
+  export function roadmapSummaryFrom(json: unknown): RoadmapSummary {
     const features = (json as { features?: unknown } | undefined)?.features
-    if (!Array.isArray(features)) return []
-    return features
-      .filter((f): f is { id: string } => {
-        if (!f || typeof f !== "object") return false
-        const item = f as { id?: unknown; status?: unknown }
-        return item.status === "in_progress" && typeof item.id === "string"
-      })
-      .map((f) => f.id)
+    if (!Array.isArray(features)) return EMPTY_ROADMAP
+    const rows = features.filter((f): f is { id: string; status?: unknown } => {
+      if (!f || typeof f !== "object") return false
+      const item = f as { id?: unknown }
+      return typeof item.id === "string"
+    })
+    if (rows.length === 0) return EMPTY_ROADMAP
+    const byStatus = (status: string) => rows.filter((f) => f.status === status).map((f) => f.id)
+    const remaining = rows.filter((f) => f.status !== "done").map((f) => f.id)
+    const actionable = rows.filter((f) => !TERMINAL_STATUSES.has(String(f.status))).map((f) => f.id)
+    return { hasFeatures: true, inProgress: byStatus("in_progress"), remaining, actionable }
+  }
+
+  /** True when a readable roadmap has no actionable items left. */
+  export function roadmapComplete(summary: RoadmapSummary): boolean {
+    return summary.hasFeatures && summary.actionable.length === 0
+  }
+
+  /**
+   * Whether the LLM judge is needed to decide the goal. A roadmap goal is
+   * decided deterministically from the roadmap, so the transcript-only judge is
+   * skipped while the roadmap is readable — that removes the false-positive
+   * "met" stop that ended a run at the R01 → R02 boundary. A custom goal, or a
+   * roadmap goal whose roadmap cannot be read, still needs the judge.
+   */
+  export function judgeRequired(roadmap: boolean, summary: RoadmapSummary): boolean {
+    return !roadmap || !summary.hasFeatures
   }
 
   /**
    * Best-effort read of the project roadmap. Never throws: a missing or
-   * unreadable file degrades to "no known in-progress stage" so a run without a
-   * roadmap still works (same degradation as ADR-005).
+   * unreadable file degrades to "no known roadmap" so a run without one still
+   * works (same degradation as ADR-005).
    */
-  export async function readInProgress(root: string): Promise<string[]> {
+  export async function readRoadmap(root: string): Promise<RoadmapSummary> {
     try {
       const text = await Bun.file(path.join(root, "docs", "roadmap.json")).text()
-      return inProgressFromRoadmap(JSON.parse(text))
+      return roadmapSummaryFrom(JSON.parse(text))
     } catch {
-      return []
+      return EMPTY_ROADMAP
     }
   }
 
@@ -162,7 +211,7 @@ export namespace Autopilot {
     sessionID: SessionID
     goal: Goal
     previous: Pick<MessageV2.User, "agent" | "model" | "tools">
-    /** Roadmap items currently `in_progress` (see readInProgress). */
+    /** Roadmap items currently `in_progress` (see readRoadmap). */
     inProgress?: string[]
     /** Add the strong stall nudge (see stallAction). */
     escalate?: boolean

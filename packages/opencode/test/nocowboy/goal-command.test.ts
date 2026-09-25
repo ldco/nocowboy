@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test"
-import { GoalService } from "@/nocowboy/session/goal"
+import { GoalService, UNBOUNDED_MAX_TURNS } from "@/nocowboy/session/goal"
 import { NoCowboySessionPrompt } from "@/nocowboy/session/prompt"
 
 describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
@@ -7,7 +7,7 @@ describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
     GoalService.clear("autopilot-cmd-session")
   })
 
-  it("starts an autopilot run with the default scope", () => {
+  it("starts an unbounded roadmap run with the default scope", () => {
     const result = NoCowboySessionPrompt.handleAutopilotCommand({
       sessionID: "autopilot-cmd-session" as never,
       arguments: "",
@@ -16,11 +16,17 @@ describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
 
     const goal = GoalService.get("autopilot-cmd-session")
     expect(goal?.auto).toBe(true)
+    expect(goal?.roadmap).toBe(true)
+    expect(goal?.maxTurns).toBe(UNBOUNDED_MAX_TURNS)
     expect(goal?.condition).toContain("Autopilot run complete")
     expect(goal?.condition).toContain(NoCowboySessionPrompt.DEFAULT_AUTOPILOT_SCOPE)
+    // Unbounded: the turn budget never stops a roadmap run mid-roadmap.
+    expect(GoalService.exhausted("autopilot-cmd-session")).toBe(false)
+    GoalService.bumpReact("autopilot-cmd-session")
+    expect(GoalService.exhausted("autopilot-cmd-session")).toBe(false)
   })
 
-  it("accepts a scope and a turn budget", () => {
+  it("accepts a custom scope and a turn budget", () => {
     const result = NoCowboySessionPrompt.handleAutopilotCommand({
       sessionID: "autopilot-cmd-session" as never,
       arguments: "fix the auth module --max-turns 7",
@@ -29,6 +35,9 @@ describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
 
     const goal = GoalService.get("autopilot-cmd-session")
     expect(goal?.auto).toBe(true)
+    // A custom scope has no deterministic roadmap signal, so it stays a judged,
+    // bounded run rather than an unbounded roadmap runner.
+    expect(goal?.roadmap).toBe(false)
     expect(goal?.condition).toContain("fix the auth module")
     expect(goal?.condition).not.toContain("--max-turns")
     expect(goal?.maxTurns).toBe(7)
