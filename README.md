@@ -55,8 +55,8 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 - **Собственные MCP-серверы** — Constitution (AST-проверка кода), Puppeteer (браузер), Git, SQLite, context7 — стартуют автоматически
 - **Self-hosting** — NoCowboy разрабатывает сам себя. Код в этом репозитории написан через NoCowboy
 
-### Что нового в 1.0.6-alpha
-Автопилот и roadmap разведены. **`/roadmap`** — это цель «добить `docs/roadmap.json`», причём идемпотентная: активный прогон не сбрасывается (running → «already active», paused → ре-арм, сброс только через явный `--max-turns`). **`[AUTOPILOT]`** — безопасный тумблер режима: пауза сохраняет цель, повторный запуск не начинается с нуля. Запуск мышью: **`[FINISH ROADMAP ▶]`** в нижней панели главного экрана (один клик из нового чата); в существующем чате — пункт палитры (`Ctrl+P` → Finish the roadmap) и `/roadmap`. Дубль кнопки в сайдбаре убран (дублировал и налезал на заголовок сессии). Headless: `run --autopilot` без сообщения → `/roadmap`. Гайд — [docs/guides/autopilot.md](docs/guides/autopilot.md), детали — в [docs/releases/1.0.6-alpha.md](docs/releases/1.0.6-alpha.md).
+### Что нового в 1.0.7-alpha
+Живой индикатор roadmap-прогона. **`[AUTOPILOT ▶/⏸]`** и **`[ROADMAP ▶/⏸]`** в промпт-баре — короткий тумблер режима; в сайдбаре появилась секция **Roadmap** с прогрессом `done/total`, текущим пунктом (`▶`) и списком оставшихся шагов чек-листом. Данные идут из события `session.goal` (переиспользует слот/компонент нативного Todo-сайдбара, но не конфликтует с рабочим списком агента). Попутно исправлена регрессия из ревью: bump больше не «воскрешает» цель, очищенную конкурентным `/goal clear`. Гайд — [docs/guides/autopilot.md](docs/guides/autopilot.md), детали — в [docs/releases/1.0.7-alpha.md](docs/releases/1.0.7-alpha.md).
 
 ## Что дальше
 
@@ -80,7 +80,7 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 bun install
 bun run release        # typecheck + build; обновляет ~/.nocowboy/bin/nocowboy
 
-nocowboy --version     # 1.0.6-alpha
+nocowboy --version     # 1.0.7-alpha
 nocowboy init          # мастер настройки
 nocowboy mcp start     # MCP-серверы
 nocowboy               # старт TUI
