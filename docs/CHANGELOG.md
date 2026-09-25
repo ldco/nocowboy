@@ -482,3 +482,13 @@
 - **DONE** Typecheck clean — 0 errors
   `verify:typecheck`
   `verify:file docs/features/release-typecheck-clean.md`
+
+## v1.0.6-alpha — Autopilot is a mode, the roadmap is a target — /roadmap owns the finish-the-roadmap goal and is idempotent (an active run is never reset), /autopilot is a non-destructive mode toggle (no-arg arms the active goal, off/pause keeps it), one visible roadmap launcher ([FINISH ROADMAP ▶] on home + palette; the sidebar duplicate that overlapped the session title was removed), restored the run --interactive guard, and user/DX docs (2026-09-25)
+
+- **DONE** Autopilot — режим, roadmap — цель: разведение кнопки и безопасный ре-арм
+  `verify:grep packages/opencode/src/nocowboy/session/prompt.ts handleRoadmapCommand`
+  `verify:grep packages/opencode/src/nocowboy/session/goal.ts setAuto`
+  `verify:test packages/opencode/test/nocowboy/goal-command.test.ts`
+  `verify:test packages/opencode/test/nocowboy/run-autopilot.test.ts`
+  `verify:file docs/features/autopilot-mode-vs-roadmap-target.md`
+  `verify:file docs/guides/autopilot.md`

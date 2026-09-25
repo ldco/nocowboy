@@ -8,7 +8,7 @@ import { Config } from "@/config/config"
 import { MCP } from "../mcp"
 import { Skill } from "../skill"
 import { localReviewCommand, localReviewUncommittedCommand } from "@/nocowboy/review/command"
-import { autopilotCommand } from "@/nocowboy/autopilot/command" // nocowboy_change
+import { autopilotCommand, roadmapCommand } from "@/nocowboy/autopilot/command" // nocowboy_change
 import PROMPT_REVIEW from "./template/review.txt"
 
 type State = {
@@ -110,9 +110,12 @@ export const layer = Layer.effect(
 
       commands[Default.LOCAL_REVIEW] = localReviewCommand()
       commands[Default.LOCAL_REVIEW_UNCOMMITTED] = localReviewUncommittedCommand()
-      // nocowboy_change: built-in unattended roadmap runner (conducts worker →
-      // reviewer → next). The goal is set by handleAutopilotCommand.
+      // nocowboy_change: built-in unattended runner (conducts worker → reviewer
+      // → next). `/autopilot` is the mode (armed by handleAutopilotCommand on
+      // the active goal); `/roadmap` is the "finish the roadmap" target
+      // (set by handleRoadmapCommand).
       commands.autopilot = autopilotCommand()
+      commands.roadmap = roadmapCommand()
 
       for (const [name, command] of Object.entries(cfg.command ?? {})) {
         commands[name] = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import path from "path"
 import { Autopilot, AUTO_CONTINUE_MAX, STALL_ESCALATE, STALL_STOP } from "@/nocowboy/session/autopilot"
-import { autopilotCommand } from "@/nocowboy/autopilot/command"
+import { autopilotCommand, roadmapCommand } from "@/nocowboy/autopilot/command"
 import type { Goal } from "@/nocowboy/session/goal"
 import { UNBOUNDED_MAX_TURNS } from "@/nocowboy/session/goal"
 import { tmpdir } from "../fixture/fixture"
@@ -83,6 +83,14 @@ describe("autopilotCommand", () => {
     expect(template).toContain("Do not mark `done` yet")
     // Never ask the human to continue.
     expect(template).toContain("end a turn by asking the user to continue")
+  })
+
+  it("registers the finish-the-roadmap target as a separate command", () => {
+    const cmd = roadmapCommand()
+    expect(cmd.name).toBe("roadmap")
+    expect(cmd.agent).toBe("auto")
+    expect(cmd.template).toContain("$ARGUMENTS")
+    expect(cmd.hints).toContain("$ARGUMENTS")
   })
 })
 

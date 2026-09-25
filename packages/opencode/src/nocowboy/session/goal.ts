@@ -162,6 +162,20 @@ export namespace GoalService {
   }
 
   /**
+   * Flip the autopilot mode of an existing goal without touching its target:
+   * the condition, budget and turn count are preserved, so pausing and
+   * re-arming a run never restarts it. Returns the updated goal, or undefined
+   * when there is no goal to arm (the caller reports the guidance).
+   */
+  export function setAuto(sessionID: string, auto: boolean): Goal | undefined {
+    const goal = read(sessionID)
+    if (!goal) return undefined
+    goal.auto = auto
+    write(sessionID, goal)
+    return goal
+  }
+
+  /**
    * All persisted goals (best-effort). Used to seed a client's view of live
    * goal state when it connects, so a badge is correct immediately instead of
    * waiting for the next goal mutation.

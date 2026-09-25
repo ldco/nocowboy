@@ -577,31 +577,107 @@ export namespace NoCowboySessionPrompt {
     return { kind: "run" }
   }
 
-  /** Default scope when `/autopilot` is started without an argument. */
-  export const DEFAULT_AUTOPILOT_SCOPE =
+  /** Default scope of a roadmap run (`/roadmap`). */
+  export const DEFAULT_ROADMAP_SCOPE =
     "the roadmap (docs/roadmap.json): every planned and in-progress item is implemented, reviewer-verified, and marked done"
 
   /**
-   * `/autopilot [scope] [--max-turns N]` — start an unattended run: the goal is
-   * set with `auto: true`, so the harness injects a continuation each time the
-   * model stops until the scope is met or the budget is spent. The command
-   * template (`.nocowboy/command/autopilot.md`) carries the conductor protocol;
-   * this handler only records the goal deterministically, so a run does not
-   * depend on the model remembering to call `goal_set`.
+   * `/roadmap [--max-turns N]` — the *target* "finish the roadmap".
+   *
+   * This used to be `/autopilot` with no argument, which fused the autopilot
+   * *mode* with the roadmap *target*: pressing the autopilot toggle silently
+   * hijacked the session into "implement all of docs/roadmap.json", and a stray
+   * click restarted the run from turn 0. The two are separate now: this command
+   * owns the target, `handleAutopilotCommand` owns the mode.
+   *
+   * Completion is decided deterministically from docs/roadmap.json (not the LLM
+   * judge) and the run is unbounded by turn count unless the caller asked for a
+   * budget — so it crosses every roadmap stage instead of stopping at the first.
+   */
+  export function handleRoadmapCommand(input: { sessionID: SessionID; arguments: string }):
+    | { kind: "handled"; output: string }
+    | { kind: "run"; arguments?: string } {
+    const arg = input.arguments.trim()
+    if (arg === "status") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal?.roadmap) {
+        return { kind: "handled", output: "No roadmap run. Start one with /roadmap." }
+      }
+      const status = GoalService.exhausted(input.sessionID) ? "stopped (budget exhausted)" : "active"
+      return {
+        kind: "handled",
+        output: `Roadmap run: "${goal.condition}" — ${status} — turns: ${goal.react}/${formatMaxTurns(goal.maxTurns)}`,
+      }
+    }
+    if (arg === "clear" || arg === "cancel" || arg === "stop") {
+      GoalService.clear(input.sessionID)
+      return { kind: "handled", output: "Roadmap run stopped. Returning to normal interactive mode." }
+    }
+    if (arg === "resume") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal?.roadmap) return { kind: "handled", output: "No active roadmap run to resume." }
+      return { kind: "run", arguments: DEFAULT_ROADMAP_SCOPE }
+    }
+
+    const { maxTurns } = parseMaxTurns(arg.split(/\s+/).filter(Boolean))
+    // Re-invoking `/roadmap` on a live run must never restart it (the same rule
+    // as re-arming autopilot): an already-active roadmap run is left untouched —
+    // only re-armed if it was paused. An explicit `--max-turns` is the one way to
+    // deliberately restart with a new budget. This makes the palette entry and
+    // the [FINISH ROADMAP] button safe to press from any chat.
+    const existing = GoalService.get(input.sessionID)
+    if (existing?.roadmap && maxTurns === undefined) {
+      if (existing.auto) {
+        return {
+          kind: "handled",
+          output: `Roadmap run already active — turns: ${existing.react}/${formatMaxTurns(existing.maxTurns)}. Pause with /autopilot off, stop with /roadmap clear.`,
+        }
+      }
+      GoalService.setAuto(input.sessionID, true)
+      return { kind: "run", arguments: DEFAULT_ROADMAP_SCOPE }
+    }
+    GoalService.set(
+      input.sessionID,
+      `Autopilot run complete: ${DEFAULT_ROADMAP_SCOPE}.`,
+      maxTurns ?? UNBOUNDED_MAX_TURNS,
+      true,
+      true,
+    )
+    // The template's `$ARGUMENTS` is the run's target, so the conductor gets the
+    // roadmap description even though `/roadmap` was invoked with no argument.
+    return { kind: "run", arguments: DEFAULT_ROADMAP_SCOPE }
+  }
+
+  /**
+   * `/autopilot [scope] [--max-turns N]` — the unattended *mode*.
+   *
+   * With no argument it arms autopilot on the goal that is already active and
+   * leaves the target, budget and turn count untouched, so re-arming is
+   * idempotent and never restarts a run. A scope argument is the one exception:
+   * it starts a new custom goal under autopilot (the judged, bounded form).
+   * "Finish the roadmap" is its own target, `/roadmap`.
+   *
+   * Sub-commands: `status`, `on`/`arm`, `off`/`pause`, `toggle`, `clear`,
+   * `resume`, or `<scope> [--max-turns N]`.
    */
   export function handleAutopilotCommand(input: { sessionID: SessionID; arguments: string }):
     | { kind: "handled"; output: string }
-    | { kind: "run" } {
+    | { kind: "run"; arguments?: string } {
     const arg = input.arguments.trim()
-    // `/autopilot` with no argument starts a run on the default scope; `status`
-    // (explicit) reports the current one.
+    const noGoal = {
+      kind: "handled" as const,
+      output: "No goal to autopilot. Start one with /goal <condition>, or /roadmap to finish the roadmap.",
+    }
     if (arg === "status") {
       const goal = GoalService.get(input.sessionID)
       if (!goal) {
-        return { kind: "handled", output: "No autopilot run. Start one with /autopilot [scope]." }
+        return {
+          kind: "handled",
+          output: "No autopilot run. Start a goal with /goal <condition>, or /roadmap to finish the roadmap.",
+        }
       }
       const status = GoalService.exhausted(input.sessionID) ? "stopped (budget exhausted)" : "active"
-      const mode = goal.auto ? "autopilot" : "manual (re-enable with /goal --auto ...)"
+      const mode = goal.auto ? "autopilot" : "manual (arm with /autopilot)"
       return {
         kind: "handled",
         output: `Autopilot: "${goal.condition}" — ${status} — ${mode} — turns: ${goal.react}/${formatMaxTurns(goal.maxTurns)}`,
@@ -611,6 +687,33 @@ export namespace NoCowboySessionPrompt {
       GoalService.clear(input.sessionID)
       return { kind: "handled", output: "Autopilot stopped. Returning to normal interactive mode." }
     }
+    if (arg === "off" || arg === "pause") {
+      const goal = GoalService.setAuto(input.sessionID, false)
+      if (!goal) return { kind: "handled", output: "No active run to pause." }
+      return {
+        kind: "handled",
+        output: `Autopilot paused — goal kept: "${goal.condition}". Re-arm with /autopilot.`,
+      }
+    }
+    if (arg === "toggle") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal) return noGoal
+      if (goal.auto) {
+        GoalService.setAuto(input.sessionID, false)
+        return {
+          kind: "handled",
+          output: `Autopilot paused — goal kept: "${goal.condition}". Re-arm with /autopilot.`,
+        }
+      }
+      GoalService.setAuto(input.sessionID, true)
+      return { kind: "run", arguments: goal.condition }
+    }
+    if (arg === "on" || arg === "arm") {
+      const goal = GoalService.get(input.sessionID)
+      if (!goal) return noGoal
+      GoalService.setAuto(input.sessionID, true)
+      return { kind: "run", arguments: goal.condition }
+    }
     if (arg === "resume") {
       // Resume an interrupted run WITHOUT resetting the goal or its budget.
       // Used after a restart (headless `run --continue`, or /autopilot resume).
@@ -618,29 +721,26 @@ export namespace NoCowboySessionPrompt {
       if (!goal?.auto) {
         return { kind: "handled", output: "No active autopilot run to resume." }
       }
-      return { kind: "run" }
+      return { kind: "run", arguments: goal.condition }
     }
 
     const { maxTurns, words } = parseMaxTurns(arg.split(/\s+/).filter(Boolean))
     const scope = words.join(" ").trim()
     if (!scope) {
-      // Default scope = the whole roadmap. Completion is decided from
-      // docs/roadmap.json (not the LLM judge), and the run is unbounded by turn
-      // count unless the caller asked for a budget — so it crosses every
-      // roadmap stage instead of stopping at R01.
-      GoalService.set(
-        input.sessionID,
-        `Autopilot run complete: ${DEFAULT_AUTOPILOT_SCOPE}.`,
-        maxTurns ?? UNBOUNDED_MAX_TURNS,
-        true,
-        true,
-      )
-      return { kind: "run" }
+      // No scope is NOT "the whole roadmap" any more: autopilot is a mode, so it
+      // arms the goal already active (target and budget untouched). A roadmap
+      // target is started explicitly with /roadmap.
+      const goal = GoalService.get(input.sessionID)
+      if (!goal) return noGoal
+      GoalService.setAuto(input.sessionID, true)
+      // The template's `$ARGUMENTS` is the target, so the conductor is told the
+      // real condition instead of the empty argument list.
+      return { kind: "run", arguments: goal.condition }
     }
     // A custom scope has no deterministic roadmap signal, so the LLM judge
     // decides and the default turn budget bounds the run.
     GoalService.set(input.sessionID, `Autopilot run complete: ${scope}.`, maxTurns ?? DEFAULT_MAX_TURNS, true, false)
-    return { kind: "run" }
+    return { kind: "run", arguments: scope }
   }
 
   /**

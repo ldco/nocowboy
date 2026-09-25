@@ -1,10 +1,13 @@
 /**
  * Headless autopilot — resolve `nocowboy run` flags into a session command.
  *
- * The TUI autopilot is the built-in `/autopilot` command under the `auto` agent
- * plus the harness auto-continue. In headless mode the same command is sent over
- * the session command API, so CI can run a whole roadmap unattended:
+ * Autopilot is the unattended *mode*; a target is a goal. `--autopilot` with a
+ * message starts a custom goal under autopilot (`/autopilot <scope>`), and
+ * `--autopilot` with no message runs the whole roadmap (`/roadmap`). The
+ * harness auto-continue then keeps the run going, so CI can run a whole roadmap
+ * unattended:
  *
+ *   nocowboy run --autopilot                  # whole roadmap, unbounded
  *   nocowboy run --autopilot "<scope>" --max-turns 20
  *   nocowboy run --agent goal "<scope>" --max-turns 20
  *
@@ -42,7 +45,9 @@ export function resolveRunCommand(input: {
     return { ok: true, value: { command: "autopilot", agent: undefined, arguments: "resume" } }
   }
 
-  const command = autopilot ? "autopilot" : input.command
+  // With no message `--autopilot` means the whole roadmap (`/roadmap`); with a
+  // message it is a custom goal run (`/autopilot <scope>`).
+  const command = autopilot ? (input.message.trim() ? "autopilot" : "roadmap") : input.command
   // `--agent goal` is the documented alias for the autopilot run; the command
   // itself pins the agent to `auto`, so the pseudo-agent is dropped here.
   const agent = agentGoalAlias ? undefined : input.agent

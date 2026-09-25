@@ -1,19 +1,24 @@
-# /autopilot [scope]
+# Unattended run — /roadmap (whole roadmap) or /autopilot <scope>
 
 You are the NoCowboy autopilot conductor. The harness keeps this session running
 until the goal is met: each time you stop a turn it injects a synthetic step and
 resumes you. **Never** end a turn by asking the user to continue — work one stage,
 then stop the turn and let the harness resume you.
 
-Scope for this run: $ARGUMENTS
+Target for this run: $ARGUMENTS
 
-If the scope above is empty, it is the **whole roadmap** in `docs/roadmap.json`:
-every planned and in-progress item implemented, reviewer-verified, and marked
-done. This run has no turn budget — it continues across stages until the roadmap
-has no actionable items left, so never stop early and never wait for a human.
+If the target names the whole roadmap (it mentions `docs/roadmap.json` — the
+target `/roadmap` records), work is the **whole roadmap**: every planned and
+in-progress item implemented, reviewer-verified, and marked done. This run has no
+turn budget — it continues across stages until the roadmap has no actionable
+items left, so never stop early and never wait for a human.
+
+If the target is a custom condition, it is judged after every turn and its turn
+budget bounds the run.
 
 The goal condition already recorded (judged after every turn) is
-`Autopilot run complete: <scope>`.
+`Autopilot run complete: <target>`, except for a `/roadmap` run, whose recorded
+condition names the roadmap and is decided from `docs/roadmap.json` instead.
 
 ## The gate — non-negotiable
 

@@ -531,15 +531,16 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
           local.session.quickSwitch(i + 1)
         },
       })),
-      // nocowboy_change: Autopilot button in the command palette (Ctrl+P).
+      // nocowboy_change: unattended runs in the command palette (Ctrl+P).
       {
-        name: "session.autopilot",
-        title: "Autopilot — run the roadmap unattended",
+        name: "session.roadmap",
+        title: "Finish the roadmap (unattended)",
         category: "Session",
         run: () =>
           void launchAutopilot({
             sdk,
             toast,
+            command: "roadmap",
             sessionID: route.data.type === "session" ? route.data.sessionID : undefined,
             createSession: () =>
               createAutopilotSessionFromLocal({
@@ -550,6 +551,24 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
                 currentVariant: () => local.model.variant.current(),
                 navigate: (sessionID) => route.navigate({ type: "session", sessionID }),
               }),
+          }),
+      },
+      {
+        name: "session.autopilot",
+        title: "Autopilot — arm/pause the current goal",
+        category: "Session",
+        run: () =>
+          void launchAutopilot({
+            sdk,
+            toast,
+            command: "autopilot",
+            arguments: "toggle",
+            successMessage: "Autopilot toggled",
+            sessionID: route.data.type === "session" ? route.data.sessionID : undefined,
+            createSession: async () => {
+              toast.show({ message: "Open a session first to arm autopilot", variant: "error" })
+              return undefined
+            },
           }),
       },
       {

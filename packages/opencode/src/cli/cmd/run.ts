@@ -195,7 +195,7 @@ export const RunCommand = effectCmd({
         type: "boolean",
         default: false,
         describe:
-          "run an unattended roadmap autopilot (implies --command autopilot: sets an auto goal and conducts worker→reviewer until done or --max-turns)",
+          "run unattended: no message finishes the whole roadmap (/roadmap, unbounded); with a message runs that custom goal under autopilot until done or --max-turns",
       })
       .option("format", {
         type: "string",
@@ -396,7 +396,7 @@ export const RunCommand = effectCmd({
         process.exit(1)
       }
       const runCommand = resolved.value
-      if (args.interactive && runCommand.command === "autopilot") {
+      if (args.interactive && (runCommand.command === "autopilot" || runCommand.command === "roadmap")) {
         UI.error("--interactive cannot be used with --autopilot")
         process.exit(1)
       }
@@ -883,7 +883,10 @@ export const RunCommand = effectCmd({
 
         // Validate agent if specified. An autopilot run pins the agent itself
         // (the /autopilot command runs under `auto`), so skip resolution.
-        const agent = runCommand.command === "autopilot" ? runCommand.agent : await pickAgent(client)
+        const agent =
+          runCommand.command === "autopilot" || runCommand.command === "roadmap"
+            ? runCommand.agent
+            : await pickAgent(client)
 
         await share(client, sessionID)
 

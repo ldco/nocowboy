@@ -55,8 +55,8 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 - **Собственные MCP-серверы** — Constitution (AST-проверка кода), Puppeteer (браузер), Git, SQLite, context7 — стартуют автоматически
 - **Self-hosting** — NoCowboy разрабатывает сам себя. Код в этом репозитории написан через NoCowboy
 
-### Что нового в 1.0.4-alpha
-Автопилот вышел в интерфейс. Запуск мышью: кнопка **Autopilot** в сайдбаре сессии, пункт в палитре (`Ctrl+P`) и тумблер **`[AUTOPILOT]` / `[AUTOPILOT ON]`** рядом с `[YOLO]` — он показывает **живой** статус прогона (сервер шлёт событие `session.goal` при изменениях и сразу при подключении, так что бейдж верен и после рестарта) и запускает/останавливает прогон. Иконки Attach/Paste в нижней панели промпта стали компактными монохромными. Сам автопилот (прогон целого roadmap без человека, worker → reviewer-гейт → следующий этап) появился в 1.0.3-alpha. Подробности — в [docs/releases/1.0.4-alpha.md](docs/releases/1.0.4-alpha.md).
+### Что нового в 1.0.6-alpha
+Автопилот и roadmap разведены. **`/roadmap`** — это цель «добить `docs/roadmap.json`», причём идемпотентная: активный прогон не сбрасывается (running → «already active», paused → ре-арм, сброс только через явный `--max-turns`). **`[AUTOPILOT]`** — безопасный тумблер режима: пауза сохраняет цель, повторный запуск не начинается с нуля. Запуск мышью: **`[FINISH ROADMAP ▶]`** в нижней панели главного экрана (один клик из нового чата); в существующем чате — пункт палитры (`Ctrl+P` → Finish the roadmap) и `/roadmap`. Дубль кнопки в сайдбаре убран (дублировал и налезал на заголовок сессии). Headless: `run --autopilot` без сообщения → `/roadmap`. Гайд — [docs/guides/autopilot.md](docs/guides/autopilot.md), детали — в [docs/releases/1.0.6-alpha.md](docs/releases/1.0.6-alpha.md).
 
 ## Что дальше
 
@@ -80,7 +80,7 @@ Kilo Code вышел с базовым TUI. Мы переделали практ
 bun install
 bun run release        # typecheck + build; обновляет ~/.nocowboy/bin/nocowboy
 
-nocowboy --version     # 1.0.4-alpha
+nocowboy --version     # 1.0.6-alpha
 nocowboy init          # мастер настройки
 nocowboy mcp start     # MCP-серверы
 nocowboy               # старт TUI
@@ -88,7 +88,7 @@ nocowboy               # старт TUI
 
 Конфиг: `~/.config/nocowboy/nocowboy.jsonc`
 
-Проверки перед коммитом: `bun turbo typecheck`, `bun scripts/verify-roadmap.ts` (147/147 фич).
+Проверки перед коммитом: `bun turbo typecheck`, `bun scripts/verify-roadmap.ts` (146/146 фич).
 
 ---
 

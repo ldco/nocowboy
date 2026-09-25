@@ -2,28 +2,190 @@ import { beforeEach, describe, expect, it } from "bun:test"
 import { GoalService, UNBOUNDED_MAX_TURNS } from "@/nocowboy/session/goal"
 import { NoCowboySessionPrompt } from "@/nocowboy/session/prompt"
 
+describe("NoCowboySessionPrompt.handleRoadmapCommand", () => {
+  beforeEach(() => {
+    GoalService.clear("roadmap-cmd-session")
+  })
+
+  it("starts an unbounded roadmap run with the roadmap target", () => {
+    const result = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    expect(result.kind).toBe("run")
+    // The template is rendered with the target, so the conductor is told it is
+    // the roadmap even though /roadmap was invoked with no argument.
+    if (result.kind === "run") expect(result.arguments).toContain("docs/roadmap.json")
+
+    const goal = GoalService.get("roadmap-cmd-session")
+    expect(goal?.auto).toBe(true)
+    expect(goal?.roadmap).toBe(true)
+    expect(goal?.maxTurns).toBe(UNBOUNDED_MAX_TURNS)
+    expect(goal?.condition).toContain("Autopilot run complete")
+    expect(goal?.condition).toContain(NoCowboySessionPrompt.DEFAULT_ROADMAP_SCOPE)
+    // Unbounded: the turn budget never stops a roadmap run mid-roadmap.
+    expect(GoalService.exhausted("roadmap-cmd-session")).toBe(false)
+    GoalService.bumpReact("roadmap-cmd-session")
+    expect(GoalService.exhausted("roadmap-cmd-session")).toBe(false)
+  })
+
+  it("honours an explicit turn budget", () => {
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "--max-turns 25",
+    })
+    const goal = GoalService.get("roadmap-cmd-session")
+    expect(goal?.maxTurns).toBe(25)
+    expect(goal?.roadmap).toBe(true)
+  })
+
+  it("never resets an already-active roadmap run", () => {
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    GoalService.bumpReact("roadmap-cmd-session")
+    GoalService.bumpReact("roadmap-cmd-session")
+
+    const again = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    expect(again.kind).toBe("handled")
+    if (again.kind === "handled") expect(again.output).toContain("already active")
+
+    const goal = GoalService.get("roadmap-cmd-session")
+    expect(goal?.react).toBe(2)
+    expect(goal?.roadmap).toBe(true)
+    expect(goal?.auto).toBe(true)
+  })
+
+  it("re-arms a paused roadmap run without resetting progress", () => {
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    GoalService.bumpReact("roadmap-cmd-session")
+    GoalService.setAuto("roadmap-cmd-session", false)
+
+    const resumed = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    expect(resumed.kind).toBe("run")
+
+    const goal = GoalService.get("roadmap-cmd-session")
+    expect(goal?.react).toBe(1)
+    expect(goal?.auto).toBe(true)
+    expect(goal?.roadmap).toBe(true)
+  })
+
+  it("an explicit --max-turns deliberately restarts with a new budget", () => {
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    GoalService.bumpReact("roadmap-cmd-session")
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "--max-turns 5",
+    })
+    const goal = GoalService.get("roadmap-cmd-session")
+    expect(goal?.maxTurns).toBe(5)
+    expect(goal?.react).toBe(0)
+  })
+
+  it("reports status and clears the run", () => {
+    const none = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "status",
+    })
+    expect(none.kind).toBe("handled")
+    if (none.kind === "handled") expect(none.output).toContain("No roadmap run")
+
+    NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "",
+    })
+    const status = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "status",
+    })
+    expect(status.kind).toBe("handled")
+    if (status.kind === "handled") expect(status.output).toContain("Roadmap run")
+
+    const stop = NoCowboySessionPrompt.handleRoadmapCommand({
+      sessionID: "roadmap-cmd-session" as never,
+      arguments: "stop",
+    })
+    expect(stop.kind).toBe("handled")
+    expect(GoalService.get("roadmap-cmd-session")).toBeUndefined()
+  })
+})
+
 describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
   beforeEach(() => {
     GoalService.clear("autopilot-cmd-session")
   })
 
-  it("starts an unbounded roadmap run with the default scope", () => {
+  it("arms the existing goal without resetting its target or budget", () => {
+    GoalService.set("autopilot-cmd-session", "lint clean", 10)
+    GoalService.bumpReact("autopilot-cmd-session")
+
     const result = NoCowboySessionPrompt.handleAutopilotCommand({
       sessionID: "autopilot-cmd-session" as never,
       arguments: "",
     })
     expect(result.kind).toBe("run")
+    if (result.kind === "run") expect(result.arguments).toBe("lint clean")
 
     const goal = GoalService.get("autopilot-cmd-session")
     expect(goal?.auto).toBe(true)
-    expect(goal?.roadmap).toBe(true)
-    expect(goal?.maxTurns).toBe(UNBOUNDED_MAX_TURNS)
-    expect(goal?.condition).toContain("Autopilot run complete")
-    expect(goal?.condition).toContain(NoCowboySessionPrompt.DEFAULT_AUTOPILOT_SCOPE)
-    // Unbounded: the turn budget never stops a roadmap run mid-roadmap.
-    expect(GoalService.exhausted("autopilot-cmd-session")).toBe(false)
-    GoalService.bumpReact("autopilot-cmd-session")
-    expect(GoalService.exhausted("autopilot-cmd-session")).toBe(false)
+    // Target, budget and turn count survive re-arming.
+    expect(goal?.condition).toBe("lint clean")
+    expect(goal?.maxTurns).toBe(10)
+    expect(goal?.react).toBe(1)
+    expect(goal?.roadmap).toBe(false)
+  })
+
+  it("does not invent a roadmap target when there is no goal", () => {
+    const result = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "autopilot-cmd-session" as never,
+      arguments: "",
+    })
+    expect(result.kind).toBe("handled")
+    if (result.kind === "handled") expect(result.output).toContain("/roadmap")
+    expect(GoalService.get("autopilot-cmd-session")).toBeUndefined()
+  })
+
+  it("pauses without clearing the goal", () => {
+    GoalService.set("autopilot-cmd-session", "lint clean", 10, true)
+    const result = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "autopilot-cmd-session" as never,
+      arguments: "off",
+    })
+    expect(result.kind).toBe("handled")
+    const goal = GoalService.get("autopilot-cmd-session")
+    expect(goal?.auto).toBe(false)
+    expect(goal?.condition).toBe("lint clean")
+    expect(goal?.maxTurns).toBe(10)
+  })
+
+  it("toggles: arms an idle goal and pauses an armed one", () => {
+    GoalService.set("autopilot-cmd-session", "lint clean", 10, false)
+    const armed = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "autopilot-cmd-session" as never,
+      arguments: "toggle",
+    })
+    expect(armed.kind).toBe("run")
+    expect(GoalService.get("autopilot-cmd-session")?.auto).toBe(true)
+
+    const paused = NoCowboySessionPrompt.handleAutopilotCommand({
+      sessionID: "autopilot-cmd-session" as never,
+      arguments: "toggle",
+    })
+    expect(paused.kind).toBe("handled")
+    expect(GoalService.get("autopilot-cmd-session")?.auto).toBe(false)
   })
 
   it("accepts a custom scope and a turn budget", () => {
@@ -32,6 +194,7 @@ describe("NoCowboySessionPrompt.handleAutopilotCommand", () => {
       arguments: "fix the auth module --max-turns 7",
     })
     expect(result.kind).toBe("run")
+    if (result.kind === "run") expect(result.arguments).toBe("fix the auth module")
 
     const goal = GoalService.get("autopilot-cmd-session")
     expect(goal?.auto).toBe(true)

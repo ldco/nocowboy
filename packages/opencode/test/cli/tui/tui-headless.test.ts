@@ -82,17 +82,19 @@ test.skipIf(!HAS_PYTHON)(
 )
 
 test.skipIf(!HAS_PYTHON)(
-  "the prompt renders the YOLO/Autopilot badges and the Attach/Paste icon buttons",
+  "the prompt renders the YOLO/roadmap badges and the Attach/Paste icon buttons",
   async () => {
     const frame = plain(await render())
     expect(frame).toMatch(/\[YOLO( ON)?\]/)
-    expect(frame).toMatch(/\[AUTOPILOT( ON)?\]/)
+    // The home screen offers the roadmap target (one click from a new chat); the
+    // [AUTOPILOT] mode toggle lives inside a session, where a goal exists.
+    expect(frame).toMatch(/\[FINISH ROADMAP/)
     // Monochrome Nerd Font glyphs: paperclip (Attach) and clipboard (Paste).
     expect(frame).toContain("\uf0c6")
     expect(frame).toContain("\uf0ea")
     // Mode badges sit left of the icon toolbar.
-    expect(frame.indexOf("[YOLO")).toBeLessThan(frame.indexOf("[AUTOPILOT"))
-    expect(frame.indexOf("[AUTOPILOT")).toBeLessThan(frame.indexOf("\uf0c6"))
+    expect(frame.indexOf("[YOLO")).toBeLessThan(frame.indexOf("[FINISH ROADMAP"))
+    expect(frame.indexOf("[FINISH ROADMAP")).toBeLessThan(frame.indexOf("\uf0c6"))
   },
   TEST_TIMEOUT,
 )

@@ -31,6 +31,7 @@ BACKLOG  →  ROADMAP  →  CHANGELOG
 
 ## Guides
 
+- [autopilot.md](guides/autopilot.md) — автопилот и roadmap: как пользоваться
 - [publish.md](guides/publish.md) — npm publishing
 
 ## Archive

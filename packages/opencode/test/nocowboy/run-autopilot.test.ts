@@ -28,6 +28,23 @@ describe("resolveRunCommand", () => {
     expect(ok({ autopilot: true, maxTurns: 3, message: "" }).arguments).toBe("--max-turns 3")
   })
 
+  it("maps --autopilot with no scope to the roadmap command", () => {
+    expect(ok({ autopilot: true, message: "" })).toEqual({
+      command: "roadmap",
+      agent: undefined,
+      arguments: "",
+    })
+    expect(ok({ autopilot: true, maxTurns: 3, message: "" })).toEqual({
+      command: "roadmap",
+      agent: undefined,
+      arguments: "--max-turns 3",
+    })
+  })
+
+  it("keeps a scoped --autopilot on the custom autopilot command", () => {
+    expect(ok({ autopilot: true, message: "docs cleanup" }).command).toBe("autopilot")
+  })
+
   it("does not append --max-turns for a non-autopilot command", () => {
     expect(ok({ command: "review", maxTurns: 5, message: "focus tests" })).toEqual({
       command: "review",

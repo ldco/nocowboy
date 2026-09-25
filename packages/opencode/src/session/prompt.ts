@@ -2355,6 +2355,10 @@ export const layer = Layer.effect(
 
     const command = Effect.fn("SessionPrompt.command")(function* (input: CommandInput) {
       yield* elog.info("command", { sessionID: input.sessionID, command: input.command, agent: input.agent })
+      // The arguments the command template is rendered with. The goal commands
+      // may replace them with the real target (see the autopilot/roadmap blocks
+      // below) so a no-argument arm still tells the conductor what to work on.
+      let commandArguments = input.arguments
       // nocowboy_change: /goal and /autopilot record their goal synchronously
       // (status/clear answer immediately). A "run" result falls through to the
       // command template so the agent executes the actual work.
@@ -2394,6 +2398,26 @@ export const layer = Layer.effect(
             text: handled.output,
           })
         }
+        if (handled.arguments !== undefined) commandArguments = handled.arguments
+      }
+      if (input.command === "roadmap") {
+        const handled = NoCowboySessionPrompt.handleRoadmapCommand({
+          sessionID: input.sessionID,
+          arguments: input.arguments,
+        })
+        yield* bus.publish(NoCowboySession.Event.Goal, {
+          sessionID: input.sessionID,
+          goal: GoalService.get(input.sessionID) ?? null,
+        })
+        if (handled.kind === "handled") {
+          return yield* emitLocalMessage({
+            sessionID: input.sessionID,
+            messageID: input.messageID,
+            agent: "autopilot",
+            text: handled.output,
+          })
+        }
+        if (handled.arguments !== undefined) commandArguments = handled.arguments
       }
       const cmd = yield* commands.get(input.command)
       if (!cmd) {
@@ -2424,10 +2448,10 @@ export const layer = Layer.effect(
         return args[argIndex]
       })
       const usesArgumentsPlaceholder = templateCommand.includes("$ARGUMENTS")
-      let template = withArgs.replaceAll("$ARGUMENTS", input.arguments)
+      let template = withArgs.replaceAll("$ARGUMENTS", commandArguments)
 
-      if (placeholders.length === 0 && !usesArgumentsPlaceholder && input.arguments.trim()) {
-        template = template + "\n\n" + input.arguments
+      if (placeholders.length === 0 && !usesArgumentsPlaceholder && commandArguments.trim()) {
+        template = template + "\n\n" + commandArguments
       }
 
       const shellMatches = ConfigMarkdown.shell(template)

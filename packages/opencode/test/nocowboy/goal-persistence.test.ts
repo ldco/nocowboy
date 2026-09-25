@@ -44,6 +44,25 @@ describe("GoalService persistence", () => {
     expect(onDisk.auto).toBe(true)
   })
 
+  test("setAuto flips the mode without touching target, budget or progress", () => {
+    GoalService.set("ses_toggle", "fix auth", 9, false)
+    GoalService.bumpReact("ses_toggle")
+    GoalService.bumpReact("ses_toggle")
+
+    const armed = GoalService.setAuto("ses_toggle", true)
+    expect(armed?.auto).toBe(true)
+    const goal = GoalService.get("ses_toggle")
+    expect(goal?.auto).toBe(true)
+    expect(goal?.condition).toBe("fix auth")
+    expect(goal?.maxTurns).toBe(9)
+    expect(goal?.react).toBe(2)
+
+    GoalService.setAuto("ses_toggle", false)
+    expect(GoalService.get("ses_toggle")?.auto).toBe(false)
+    // No goal to flip is a no-op, not an error.
+    expect(GoalService.setAuto("ses_absent", true)).toBeUndefined()
+  })
+
   test("a roadmap run is persisted and read back", () => {
     GoalService.set("ses_roadmap", "run the roadmap", UNBOUNDED_MAX_TURNS, true, true)
     const goal = GoalService.get("ses_roadmap")

@@ -119,6 +119,11 @@
       "description": "Autopilot mode — [AUTOPILOT] works from a brand-new chat (creates the session), no scope dialog (one-click toggle), and the run is an unbounded roadmap goal that ends deterministically from docs/roadmap.json (done/blocked/abandoned are terminal) instead of a fixed 20-turn budget or a transcript-only judge verdict"
     },
     {
+      "tag": "v1.0.6-alpha",
+      "date": "2026-09-25",
+      "description": "Autopilot is a mode, the roadmap is a target — /roadmap owns the finish-the-roadmap goal and is idempotent (an active run is never reset), /autopilot is a non-destructive mode toggle (no-arg arms the active goal, off/pause keeps it), one visible roadmap launcher ([FINISH ROADMAP ▶] on home + palette; the sidebar duplicate that overlapped the session title was removed), restored the run --interactive guard, and user/DX docs"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"
@@ -3198,6 +3203,48 @@
         {
           "type": "file",
           "path": "docs/features/context-compaction-default-threshold.md"
+        }
+      ]
+    },
+    {
+      "id": "autopilot-mode-vs-roadmap-target",
+      "title": "Autopilot — режим, roadmap — цель: разведение кнопки и безопасный ре-арм",
+      "status": "done",
+      "version": "v1.0.6-alpha",
+      "tags": [
+        "autopilot",
+        "roadmap",
+        "ux",
+        "dx"
+      ],
+      "description": "Кнопка [AUTOPILOT] смешивала режим (продолжать без человека) и цель (весь roadmap): `/autopilot` без аргумента ставил roadmap-цель, а повторный запуск через GoalService.set сбрасывал condition/бюджет/react, из-за чего случайный клик (кнопка «Parent» в футере сабагента стоит там же, где бейдж) перезапускал прогон с первого хода. Разведено: /roadmap — цель (идемпотентная: running → «already active», paused → ре-арм, сброс только через явный --max-turns), /autopilot — режим (arm через GoalService.setAuto, off/pause сохраняет цель, toggle). UI: [FINISH ROADMAP ▶] на домашнем экране + пункт палитры, [AUTOPILOT] — тумблер режима, сайдбарная кнопка-дубль удалена. Headless: `run --autopilot` без сообщения → /roadmap.",
+      "done_at": "2026-09-25",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/prompt.ts",
+          "pattern": "handleRoadmapCommand"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/goal.ts",
+          "pattern": "setAuto"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/goal-command.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/run-autopilot.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/autopilot-mode-vs-roadmap-target.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/guides/autopilot.md"
         }
       ]
     }

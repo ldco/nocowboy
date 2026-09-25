@@ -113,3 +113,49 @@ false-positive "met" while later roadmap items were still pending.
 first, then starts the run — no scope dialog. A custom scope remains available
 through the slash command.
 
+## Amendment 2 (2026-09-25): autopilot is a mode, the roadmap is a target
+
+**Problem.** The no-argument `/autopilot` *was* "finish the whole roadmap", so the
+`[AUTOPILOT]` badge — labelled as a mode — silently hijacked the session into an
+unbounded roadmap run every time it was pressed. Two concrete failures:
+
+- The name lied. A user who wanted autopilot for the goal they already had got
+  "implement all of docs/roadmap.json" instead.
+- The toggle was destructive. `handleAutopilotCommand("")` called `GoalService.set`,
+  which reset the condition, the budget and `react` to 0, so re-arming a live run
+  (e.g. a stray click after navigating back from a subagent, where the subagent
+  footer's "Parent" button sits over the badge) restarted it from the first turn.
+
+**Decision — separate the two orthogonal concepts.**
+
+- A **run** is a *target* (a goal) plus a *mode* (`manual` | `autopilot`).
+  Autopilot is a property of the run, not a kind of run.
+- `/roadmap [--max-turns N]` is the *target* "finish docs/roadmap.json": an
+  unbounded, deterministic roadmap goal. It is what `/autopilot` with no argument
+  used to be (`handleRoadmapCommand`).
+- `/autopilot [scope] [--max-turns N]` is the *mode*: with no argument it arms the
+  goal that is already active and changes **nothing else** — condition, budget and
+  `react` are preserved (`GoalService.setAuto`, not `set`). A scope argument still
+  starts a new custom goal under autopilot (the judged, bounded form).
+- Sub-commands: `off`/`pause` disarms the mode but keeps the goal (a toggle is
+  never destructive); `toggle` flips it; `clear`/`stop` clears the goal; `resume`
+  re-arms without resetting.
+- A goal command's `run` result may override the template's `$ARGUMENTS` with the
+  real target (`{ kind: "run", arguments }`), so an arm-with-no-argument still
+  tells the conductor what to work on instead of rendering an empty scope.
+- UI: `[AUTOPILOT]` in a session is the mode toggle (OFF = pause, keeping the
+  goal). "Finish the roadmap" is a separate, honestly labelled action — the
+  prompt-bar `[FINISH ROADMAP ▶]` on the home screen (so the one-click-from-a-
+  new-chat flow survives) and the `session.roadmap` command-palette entry. There
+  is deliberately only one such control: the sidebar row added the same action
+  again, overlapped the session title when the sidebar was open on the home
+  screen, and was removed. The badge also ignores clicks for 250 ms after a route
+  change, so the subagent footer's navigation mouse-up cannot re-dispatch onto it.
+- Headless: `nocowboy run --autopilot` (no message) maps to `/roadmap`;
+  `--autopilot "<scope>"` maps to `/autopilot <scope>` as before.
+
+**Consequence.** The two features overlap by composition, not duplication: a
+roadmap run is simply an autopilot run whose target is the roadmap. Nothing about
+the continuation mechanism, the judge gate or the stall guard changes.
+
+

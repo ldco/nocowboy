@@ -24,7 +24,6 @@ import { useToast } from "../../ui/toast"
 import { slashDisplay } from "@/nocowboy/cli/cmd/command-display"
 import * as Log from "@nocowboy/core/util/log"
 import { LanguageRow } from "@/nocowboy/cli/cmd/tui/component/language-row"
-import { AutopilotRow } from "@/nocowboy/cli/cmd/tui/component/autopilot-row"
 import { t } from "@tui/context/i18n"
 let _historyScrollbox: any = undefined
 
@@ -509,9 +508,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       position={props.overlay ? "absolute" : "relative"}
     >
       <TabBar active={tab()} onSelect={(t) => { setTab(t); setSelectedIdx(0) }} />
-
-      {/* nocowboy_change: Autopilot button, always visible (mirror: nocowboy/cli/cmd/tui/component/autopilot-row) */}
-      <AutopilotRow />
 
       {/* Info Tab — original sidebar content */}
       <Show when={tab() === "info"}>
