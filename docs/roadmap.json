@@ -124,6 +124,11 @@
       "description": "Autopilot is a mode, the roadmap is a target — /roadmap owns the finish-the-roadmap goal and is idempotent (an active run is never reset), /autopilot is a non-destructive mode toggle (no-arg arms the active goal, off/pause keeps it), one visible roadmap launcher ([FINISH ROADMAP ▶] on home + palette; the sidebar duplicate that overlapped the session title was removed), restored the run --interactive guard, and user/DX docs"
     },
     {
+      "tag": "v1.0.7-alpha",
+      "date": "2026-09-25",
+      "description": "Live run indicator — the prompt-bar badge is a short mode toggle ([AUTOPILOT ▶/⏸] / [ROADMAP ▶/⏸]) and a new sidebar Roadmap section shows done/total, the current step and the remaining actionable checklist, fed from the session.goal event (stage/done/total/items) rather than the agent's todo table; a bump no longer resurrects a concurrently cleared goal"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"
@@ -3245,6 +3250,53 @@
         {
           "type": "file",
           "path": "docs/guides/autopilot.md"
+        }
+      ]
+    },
+    {
+      "id": "roadmap-run-indicator",
+      "title": "Live run indicator — режим в бейдже, шаги прогона в сайдбаре",
+      "status": "done",
+      "version": "v1.0.7-alpha",
+      "tags": [
+        "autopilot",
+        "roadmap",
+        "ux",
+        "tui"
+      ],
+      "description": "Бейдж показывал только [AUTOPILOT ON]: нельзя было понять, идёт roadmap-прогон или своя цель, и на каком пункте. Живой roadmap-прогон выглядел как обычный режим. Разведено по двум поверхностям: бейдж в промпт-баре — только режим/состояние ([ROADMAP ▶] / [ROADMAP ⏸] / [AUTOPILOT ▶] / [AUTOPILOT]); сайдбар — секция «Roadmap» с прогрессом done/total, текущим пунктом (▶) и списком оставшихся actionable-пунктов чек-листом. Секция переиспользует нативные слот sidebar_content и компонент TodoItem, но питается из session.goal, а не из таблицы todo: нативный Todo — рабочий список агента, roadmap — план проекта, их смешивание конфликтует. Event.Goal расширен опциональными stage/done/total/items; вычисляются в Autopilot.currentStage/actionItems/goalStage и публикуются на bump, в командах /goal|/autopilot|/roadmap и в seed при подключении клиента (directory сессии из SessionTable). Бейдж — чистый runLabel (юнит-тест).",
+      "done_at": "2026-09-25",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/components/run-label.ts",
+          "pattern": "export function runLabel"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/autopilot.ts",
+          "pattern": "export function actionItems"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/index.ts",
+          "pattern": "stage: Schema.optional"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/run-label.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/autopilot.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/plugins/sidebar-roadmap.tsx"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/roadmap-run-indicator.md"
         }
       ]
     }

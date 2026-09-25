@@ -97,8 +97,22 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       indexing: IndexingStatus
       // nocowboy_change: live goal/autopilot state, pushed by the server's
       // "session.goal" bus event. Absent key means "no active goal".
+      // `roadmap`/`stage`/`done`/`total` power the run indicator; `items` is the
+      // remaining-work checklist the sidebar renders.
       goal: {
-        [sessionID: string]: { condition: string; react: number; maxTurns: number; auto: boolean } | undefined
+        [sessionID: string]:
+          | {
+              condition: string
+              react: number
+              maxTurns: number
+              auto: boolean
+              roadmap?: boolean
+              stage?: string
+              done?: number
+              total?: number
+              items?: { id: string; status: string }[]
+            }
+          | undefined
       }
     }>({
       provider_next: {
@@ -205,7 +219,17 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           event as unknown as {
             properties: {
               sessionID: string
-              goal: { condition: string; react: number; maxTurns: number; auto: boolean } | null
+              goal: {
+                condition: string
+                react: number
+                maxTurns: number
+                auto: boolean
+                roadmap?: boolean
+                stage?: string
+                done?: number
+                total?: number
+                items?: { id: string; status: string }[]
+              } | null
             }
           }
         ).properties

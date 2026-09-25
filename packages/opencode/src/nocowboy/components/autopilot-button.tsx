@@ -6,11 +6,14 @@ import { useSDK } from "@tui/context/sdk"
 import { useSync } from "@tui/context/sync"
 import { useLocal } from "@tui/context/local"
 import { createAutopilotSessionFromLocal, launchAutopilot } from "@/nocowboy/cli/cmd/tui/component/autopilot-row"
+import { runLabel } from "@/nocowboy/components/run-label"
 
 /**
- * Autopilot toggle, styled like the YOLO badge. It reflects the LIVE goal state
- * of the current session (pushed by the server's "session.goal" event), not a
- * client-side guess: ON while autopilot is armed, OFF otherwise.
+ * Autopilot toggle and live run indicator, styled like the YOLO badge. It
+ * reflects the LIVE goal state of the current session (pushed by the server's
+ * "session.goal" event), not a client-side guess: ON while autopilot is armed,
+ * OFF otherwise. It also names the running target and the step the run is on
+ * (see `runLabel`), so a roadmap run is never mistaken for a normal turn.
  *
  * Autopilot is the *mode*, not a target: this badge only turns unattended
  * continuation on or off for the goal the session already has. Clicking OFF
@@ -77,7 +80,7 @@ export function AutopilotButton() {
 
   return (
     <text fg={fg()} paddingLeft={1} paddingRight={1} onMouseUp={() => void toggle()}>
-      {active() ? "[AUTOPILOT ON]" : "[AUTOPILOT]"}
+      {runLabel(goal())}
     </text>
   )
 }

@@ -1,11 +1,15 @@
 import { Config } from "@/config/config"
 import { GlobalBus, type GlobalEvent as GlobalBusEvent } from "@/bus/global"
 import { GoalService } from "@/nocowboy/session/goal" // nocowboy_change
+import { Autopilot } from "@/nocowboy/session/autopilot" // nocowboy_change - run stage
 import { EffectBridge } from "@/effect/bridge"
 import { Bus } from "@/bus"
 import { Installation } from "@/installation"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
 import { InstallationVersion } from "@nocowboy/core/installation/version"
+import { Database, eq } from "@/storage/db"
+import { SessionTable } from "@/session/session.sql"
+import { SessionID } from "@/session/schema"
 import * as Log from "@nocowboy/core/util/log"
 import { Effect, Queue, Schema } from "effect"
 import * as Stream from "effect/Stream"
@@ -26,29 +30,66 @@ function eventData(data: unknown): Sse.Event {
   }
 }
 
+/**
+ * The project directory a session belongs to, so a restored roadmap run can
+ * report its current stage from docs/roadmap.json. Best-effort: a row that
+ * cannot be read just omits the step.
+ */
+function sessionDirectory(sessionID: string): string | undefined {
+  try {
+    return Database.use((db) =>
+      db
+        .select({ directory: SessionTable.directory })
+        .from(SessionTable)
+        .where(eq(SessionTable.id, SessionID.make(sessionID)))
+        .get(),
+    )?.directory
+  } catch {
+    return undefined
+  }
+}
+
 // nocowboy_change: seed live goal state when a client connects, so the TUI
 // autopilot badge is correct immediately — including a goal restored after a
 // restart — instead of waiting for the next goal mutation. `directory: "global"`
 // makes the client accept the event regardless of the active project; the
 // payload is keyed by sessionID, so only the matching session reacts.
-function initialGoalEvents(): GlobalBusEvent[] {
-  return GoalService.list().map(({ sessionID, goal }) => ({
-    directory: "global",
-    payload: {
-      id: Bus.createID(),
-      type: "session.goal",
-      properties: {
-        sessionID,
-        goal: {
-          condition: goal.condition,
-          react: goal.react,
-          maxTurns: goal.maxTurns,
-          auto: goal.auto,
-          roadmap: goal.roadmap,
+//
+// The seed carries the current roadmap stage and progress too, so the indicator
+// names the step the run is on the moment the client connects — not only after
+// the next goal bump. Best-effort: an unreadable roadmap omits the fields.
+async function initialGoalEvents(): Promise<GlobalBusEvent[]> {
+  const events: GlobalBusEvent[] = []
+  for (const { sessionID, goal } of GoalService.list()) {
+    const directory = sessionDirectory(sessionID)
+    const stage = directory ? await Autopilot.goalStage(directory, goal) : undefined
+    events.push({
+      directory: "global",
+      payload: {
+        id: Bus.createID(),
+        type: "session.goal",
+        properties: {
+          sessionID,
+          goal: {
+            condition: goal.condition,
+            react: goal.react,
+            maxTurns: goal.maxTurns,
+            auto: goal.auto,
+            roadmap: goal.roadmap,
+            ...(stage ?? {}),
+          },
         },
       },
-    },
-  }))
+    })
+  }
+  return events
+}
+
+/** Flatten the (async) goal seed into the event stream, preserving order. */
+function goalSeedStream() {
+  return Stream.fromEffect(Effect.promise(() => initialGoalEvents())).pipe(
+    Stream.flatMap((events) => Stream.fromIterable(events)),
+  )
 }
 
 function parseBody(body: string) {
@@ -75,7 +116,7 @@ function eventResponse() {
 
   return HttpServerResponse.stream(
     Stream.make({ payload: { id: Bus.createID(), type: "server.connected", properties: {} } }).pipe(
-      Stream.concat(Stream.fromIterable(initialGoalEvents())),
+      Stream.concat(goalSeedStream()),
       Stream.concat(events.pipe(Stream.merge(heartbeat, { haltStrategy: "left" }))),
       Stream.map(eventData),
       Stream.pipeThroughChannel(Sse.encode()),

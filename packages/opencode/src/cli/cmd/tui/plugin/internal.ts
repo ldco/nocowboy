@@ -7,6 +7,7 @@ import KiloSidebarBackgroundProcesses from "@/nocowboy/plugins/sidebar-backgroun
 import KiloSidebarIndexing from "@/nocowboy/plugins/sidebar-indexing"
 import KiloSidebarPr from "@/nocowboy/plugins/sidebar-pr"
 import KiloSidebarUsage from "@/nocowboy/plugins/sidebar-usage"
+import KiloSidebarRoadmap from "@/nocowboy/plugins/sidebar-roadmap"
 import SidebarContext from "../feature-plugins/sidebar/context"
 import SidebarMcp from "../feature-plugins/sidebar/mcp"
 import SidebarLsp from "../feature-plugins/sidebar/lsp"
@@ -35,6 +36,7 @@ export function internalTuiPlugins(flags: Pick<RuntimeFlags.Info, "experimentalE
     KiloSidebarIndexing,
     KiloSidebarPr,
     KiloSidebarUsage,
+    KiloSidebarRoadmap,
     HomeFooter,
     HomeTips,
     SidebarContext,

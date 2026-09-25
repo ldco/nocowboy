@@ -895,6 +895,93 @@ it.live("autopilot publishes live goal state on the bus", () =>
   30_000,
 )
 
+// nocowboy_change: the live goal event must carry the current roadmap step and
+// progress, not just "autopilot is on" — the TUI indicator names the item the
+// run is on so a roadmap stage is never mistaken for a normal turn.
+it.live("autopilot goal event carries the roadmap stage and progress", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ dir, llm }) {
+      const previousGoalsDir = process.env.NOCOWBOY_GOALS_DIR
+      process.env.NOCOWBOY_GOALS_DIR = path.join(dir, "goals")
+      yield* Effect.addFinalizer(() =>
+        Effect.sync(() => {
+          if (previousGoalsDir === undefined) delete process.env.NOCOWBOY_GOALS_DIR
+          else process.env.NOCOWBOY_GOALS_DIR = previousGoalsDir
+        }),
+      )
+
+      yield* Effect.promise(() =>
+        Bun.write(
+          path.join(dir, "docs", "roadmap.json"),
+          JSON.stringify({
+            features: [
+              { id: "done-one", status: "done" },
+              { id: "stage-one", status: "in_progress" },
+            ],
+          }),
+        ),
+      )
+
+      const bus = yield* Bus.Service
+      const seen: {
+        sessionID: string
+        goal: {
+          auto?: boolean
+          stage?: string
+          done?: number
+          total?: number
+          items?: { id: string; status: string }[]
+        } | null
+      }[] = []
+      yield* bus.subscribeAllCallback((event: any) => {
+        if (event.type === "session.goal") seen.push(event.properties)
+      })
+
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({
+        title: "Autopilot stage",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+      // A roadmap goal: completion is decided from docs/roadmap.json.
+      GoalService.set(session.id, "keep going", 2, true, true)
+
+      yield* prompt.prompt({
+        sessionID: session.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "start" }],
+      })
+      yield* llm.text("turn one")
+
+      yield* prompt.loop({ sessionID: session.id })
+
+      const forSession = yield* pollWithTimeout<(typeof seen)[number][], never, never>(
+        Effect.sync(() => {
+          const events = seen.filter((p) => p.sessionID === session.id)
+          return events.some((p) => p.goal === null) ? events : undefined
+        }),
+        "autopilot goal events never arrived",
+      )
+      // The indicator can name the step and the progress, not only the mode.
+      expect(forSession.some((p) => p.goal?.stage === "stage-one")).toBe(true)
+      expect(forSession.some((p) => p.goal?.done === 1 && p.goal?.total === 2)).toBe(true)
+      // The sidebar checklist carries the remaining work: stage-one is
+      // in_progress, and `done-one` is not listed because it is done.
+      expect(
+        forSession.some((p) =>
+          p.goal?.items?.some((item: { id: string; status: string }) => item.id === "stage-one" && item.status === "in_progress"),
+        ),
+      ).toBe(true)
+      expect(
+        forSession.every((p) => !p.goal?.items?.some((item: { id: string }) => item.id === "done-one")),
+      ).toBe(true)
+    }),
+    { git: true, config: providerCfg },
+  ),
+  30_000,
+)
+
 // nocowboy_change: the goal budget (--max-turns) is the real autopilot budget —
 // a run must go past the per-turn default cap (AUTO_CONTINUE_MAX = 8) when the
 // goal allows it, otherwise "run the roadmap to the end" would truncate.

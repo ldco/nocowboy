@@ -45,6 +45,11 @@ export namespace NoCowboySession {
     // Live goal/autopilot state per session, so the TUI can show whether a run
     // is actually active instead of a client-side guess. Published whenever a
     // goal is set, bumped or cleared; `goal: null` means "no active goal".
+    //
+    // `stage`/`done`/`total` describe a roadmap run's current step and progress
+    // so the indicator can say *which* item the run is on, not just that it is
+    // active. They are omitted (not zeroed) when the goal is a custom goal or
+    // the roadmap cannot be read.
     Goal: BusEvent.define(
       "session.goal",
       Schema.Struct({
@@ -59,6 +64,21 @@ export namespace NoCowboySession {
             // the run is normally unbounded (maxTurns 0). Optional so a goal
             // persisted by an older build still decodes.
             roadmap: Schema.optional(Schema.Boolean),
+            /** Current roadmap item: first in_progress, else first actionable. */
+            stage: Schema.optional(Schema.String),
+            /** Features already `done` in docs/roadmap.json. */
+            done: Schema.optional(Schema.Number),
+            /** Total features in docs/roadmap.json. */
+            total: Schema.optional(Schema.Number),
+            /** Remaining work as a checklist for the sidebar (actionable items). */
+            items: Schema.optional(
+              Schema.Array(
+                Schema.Struct({
+                  id: Schema.String,
+                  status: Schema.String,
+                }),
+              ),
+            ),
           }),
         ),
       }),

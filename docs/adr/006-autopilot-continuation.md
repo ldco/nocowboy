@@ -159,3 +159,41 @@ roadmap run is simply an autopilot run whose target is the roadmap. Nothing abou
 the continuation mechanism, the judge gate or the stall guard changes.
 
 
+## Amendment 3 (2026-09-25): live run indicator — mode badge, sidebar roadmap section
+
+**Problem.** After Amendment 2 the badge told the user whether autopilot was on,
+but not *what* was running. A live roadmap run — which the harness keeps going by
+injecting a synthetic continuation each turn — looked identical to a normal
+interactive turn, and there was no indication of which roadmap item the run was
+on. The prompt-bar badge had already tried to carry the stage and `done/total`
+(`[ROADMAP ▶ r16 · 13 · 84/146]`), which crowded the prompt bar: the step and
+progress belong in a list, not in a toggle.
+
+**Decision — two surfaces, one data path.**
+
+- The **badge** stays a short mode toggle: `[AUTOPILOT]` / `[AUTOPILOT ▶/⏸]` /
+  `[ROADMAP ▶/⏸]` (pure `runLabel`, `nocowboy/components/run-label.ts`).
+- A **sidebar "Roadmap" section** (`nocowboy/plugins/sidebar-roadmap.tsx`,
+  registered beside the native todo plugin at order 390) shows the `done/total`
+  progress, the current stage (`▶`) and the remaining actionable items as a
+  checklist. It reuses the native `sidebar_content` slot and the `TodoItem`
+  component, but is fed from the `session.goal` event — **not** from the `todo`
+  table. The native `Todo` is the agent's per-session working list (driven by
+  `todowrite`); the roadmap is the project plan (`docs/roadmap.json`). Mixing them
+  would have the two writers fight over the same list.
+- The `session.goal` event's goal struct gains optional `stage` / `done` / `total`
+  / `items` (computed by `Autopilot.currentStage` / `actionItems` / `goalStage`
+  from the `docs/roadmap.json` summary). The fields are published on every goal
+  bump, on `/goal|/autopilot|/roadmap`, and in the client-connect seed (which looks
+  up the session's directory from `SessionTable` to read the roadmap), so the
+  section is correct immediately and survives a restart.
+- The bump publish deliberately has **no `?? goal` fallback**: a concurrent
+  `/goal clear` publishes `null`, and the bump must not resurrect the stale
+  in-memory goal (regression found in cross-model review and fixed before release).
+
+**Consequence.** The indicator is observational: it changes nothing about when a
+run stops (roadmap-complete, budget, stall guard). Old clients still decode the
+event — the new fields are optional and drop off the JSON wire when undefined.
+
+
+

@@ -218,7 +218,7 @@ describe("Autopilot stage gate", () => {
           { id: "d", status: "blocked" },
         ],
       }),
-    ).toEqual({ hasFeatures: true, inProgress: ["b"], remaining: ["b", "c", "d"], actionable: ["b", "c"] })
+    ).toEqual({ hasFeatures: true, inProgress: ["b"], remaining: ["b", "c", "d"], actionable: ["b", "c"], done: 1, total: 4 })
   })
 
   it("treats abandoned as terminal, so an abandoned item never blocks completion", () => {
@@ -270,6 +270,8 @@ describe("Autopilot stage gate", () => {
       inProgress: ["x"],
       remaining: ["x"],
       actionable: ["x"],
+      done: 1,
+      total: 2,
     })
     // Not complete while x is actionable.
     expect(Autopilot.roadmapComplete(await Autopilot.readRoadmap(tmp.path))).toBe(false)
@@ -282,6 +284,8 @@ describe("Autopilot stage gate", () => {
       inProgress: [],
       remaining: [],
       actionable: [],
+      done: 0,
+      total: 0,
     })
   })
 
@@ -291,5 +295,71 @@ describe("Autopilot stage gate", () => {
     expect(Autopilot.judgeRequired(false, readable)).toBe(true)
     // No readable roadmap -> fall back to the judge even for a roadmap goal.
     expect(Autopilot.judgeRequired(true, Autopilot.roadmapSummaryFrom(undefined))).toBe(true)
+  })
+})
+
+describe("Autopilot.currentStage", () => {
+  it("prefers the in-progress item, else the first actionable one", () => {
+    expect(
+      Autopilot.currentStage({
+        hasFeatures: true,
+        inProgress: ["b"],
+        remaining: ["b", "c"],
+        actionable: ["b", "c"],
+        done: 1,
+        total: 3,
+      }),
+    ).toBe("b")
+    expect(
+      Autopilot.currentStage({
+        hasFeatures: true,
+        inProgress: [],
+        remaining: ["c"],
+        actionable: ["c"],
+        done: 2,
+        total: 3,
+      }),
+    ).toBe("c")
+  })
+
+  it("returns undefined when there is no readable roadmap", () => {
+    expect(Autopilot.currentStage(Autopilot.roadmapSummaryFrom(undefined))).toBeUndefined()
+    expect(Autopilot.currentStage(Autopilot.roadmapSummaryFrom({ features: [] }))).toBeUndefined()
+  })
+})
+
+describe("Autopilot.goalStage", () => {
+  it("reports the step and progress for a roadmap goal", async () => {
+    await using tmp = await tmpdir({
+      init: async (dir) => {
+        await Bun.write(
+          path.join(dir, "docs", "roadmap.json"),
+          JSON.stringify({
+            features: [
+              { id: "a", status: "done" },
+              { id: "b", status: "in_progress" },
+              { id: "c", status: "planned" },
+            ],
+          }),
+        )
+      },
+    })
+    const roadmapGoal: Goal = { ...goal, roadmap: true, maxTurns: UNBOUNDED_MAX_TURNS }
+    expect(await Autopilot.goalStage(tmp.path, roadmapGoal)).toEqual({
+      stage: "b",
+      done: 1,
+      total: 3,
+      items: [
+        { id: "b", status: "in_progress" },
+        { id: "c", status: "pending" },
+      ],
+    })
+  })
+
+  it("omits the step for a custom goal or an unreadable roadmap", async () => {
+    await using tmp = await tmpdir()
+    expect(await Autopilot.goalStage(tmp.path, goal)).toBeUndefined()
+    const roadmapGoal: Goal = { ...goal, roadmap: true }
+    expect(await Autopilot.goalStage(tmp.path, roadmapGoal)).toBeUndefined()
   })
 })

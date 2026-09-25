@@ -69,9 +69,13 @@ export namespace Autopilot {
     remaining: string[]
     /** Features with a non-terminal status (not done/blocked/abandoned) — the work left. */
     actionable: string[]
+    /** How many features are `done` — shown in the live run indicator. */
+    done: number
+    /** Total feature count — shown in the live run indicator. */
+    total: number
   }
 
-  const EMPTY_ROADMAP: RoadmapSummary = { hasFeatures: false, inProgress: [], remaining: [], actionable: [] }
+  const EMPTY_ROADMAP: RoadmapSummary = { hasFeatures: false, inProgress: [], remaining: [], actionable: [], done: 0, total: 0 }
 
   /**
    * Statuses that end an item's life for a run: `done` is finished, `blocked`
@@ -99,7 +103,47 @@ export namespace Autopilot {
     const byStatus = (status: string) => rows.filter((f) => f.status === status).map((f) => f.id)
     const remaining = rows.filter((f) => f.status !== "done").map((f) => f.id)
     const actionable = rows.filter((f) => !TERMINAL_STATUSES.has(String(f.status))).map((f) => f.id)
-    return { hasFeatures: true, inProgress: byStatus("in_progress"), remaining, actionable }
+    const done = rows.filter((f) => f.status === "done").length
+    return { hasFeatures: true, inProgress: byStatus("in_progress"), remaining, actionable, done, total: rows.length }
+  }
+
+  /**
+   * The roadmap item the run is on right now: the first `in_progress` item, or
+   * the first actionable one when nothing is in progress. Returns undefined for
+   * a custom (non-roadmap) goal or an unreadable roadmap — the indicator then
+   * shows the mode and turn without inventing a stage.
+   */
+  export function currentStage(summary: RoadmapSummary): string | undefined {
+    if (!summary.hasFeatures) return undefined
+    return summary.inProgress[0] ?? summary.actionable[0]
+  }
+
+  /**
+   * The remaining work as a checklist for the sidebar: the actionable items
+   * with `in_progress`/`pending` status, in roadmap order. This is what the
+   * "Roadmap" sidebar section renders (reusing TodoItem), so the list a run is
+   * walking through is visible while it runs.
+   */
+  export function actionItems(summary: RoadmapSummary): { id: string; status: string }[] {
+    const inProgress = new Set(summary.inProgress)
+    return summary.actionable.map((id) => ({ id, status: inProgress.has(id) ? "in_progress" : "pending" }))
+  }
+
+  /**
+   * Display info for a goal's live indicator: the current roadmap stage, the
+   * done/total progress, and the actionable checklist. Undefined when the goal
+   * is not a roadmap run or the roadmap cannot be read, so callers omit the
+   * fields instead of guessing.
+   */
+  export async function goalStage(
+    root: string,
+    goal: Goal,
+  ): Promise<{ stage?: string; done: number; total: number; items: { id: string; status: string }[] } | undefined> {
+    if (!goal.roadmap) return undefined
+    const summary = await readRoadmap(root)
+    if (!summary.hasFeatures) return undefined
+    const stage = currentStage(summary)
+    return { stage, done: summary.done, total: summary.total, items: actionItems(summary) }
   }
 
   /** True when a readable roadmap has no actionable items left. */

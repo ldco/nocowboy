@@ -2155,9 +2155,25 @@ export const layer = Layer.effect(
               return "break" as const
             }
             GoalService.bumpReact(sessionID)
+            // Carry the current roadmap step, progress and the remaining-work
+            // checklist on every bump, so the TUI can show which item the run is
+            // on and the sidebar can list what is left. `summary` is already read
+            // above; a custom goal omits these instead of inventing them.
+            // No `?? goal` fallback here: a concurrent /goal clear must publish
+            // null (the goal is gone), not resurrect the stale in-memory object.
+            const bumped = GoalService.get(sessionID)
+            const roadmapInfo =
+              goal.roadmap && summary.hasFeatures
+                ? {
+                    stage: Autopilot.currentStage(summary),
+                    done: summary.done,
+                    total: summary.total,
+                    items: Autopilot.actionItems(summary),
+                  }
+                : undefined
             yield* bus.publish(NoCowboySession.Event.Goal, {
               sessionID,
-              goal: GoalService.get(sessionID) ?? null,
+              goal: bumped ? (roadmapInfo ? { ...bumped, ...roadmapInfo } : bumped) : null,
             })
 
             // Deterministic stage gate (+ stall guard): read the roadmap so every
@@ -2359,6 +2375,23 @@ export const layer = Layer.effect(
       // may replace them with the real target (see the autopilot/roadmap blocks
       // below) so a no-argument arm still tells the conductor what to work on.
       let commandArguments = input.arguments
+      // Live goal state published after a /goal, /autopilot or /roadmap command.
+      // Enriched with the current roadmap stage and progress so the TUI
+      // indicator can name the step the run is on. Best-effort: an unreadable
+      // roadmap omits stage/done/total rather than inventing them.
+      const directory = (yield* InstanceState.context).directory
+      const publishGoalState = Effect.fnUntraced(function* () {
+        const goal = GoalService.get(input.sessionID)
+        if (!goal) {
+          yield* bus.publish(NoCowboySession.Event.Goal, { sessionID: input.sessionID, goal: null })
+          return
+        }
+        const stage = yield* Effect.promise(() => Autopilot.goalStage(directory, goal))
+        yield* bus.publish(NoCowboySession.Event.Goal, {
+          sessionID: input.sessionID,
+          goal: stage ? { ...goal, ...stage } : goal,
+        })
+      })
       // nocowboy_change: /goal and /autopilot record their goal synchronously
       // (status/clear answer immediately). A "run" result falls through to the
       // command template so the agent executes the actual work.
@@ -2367,11 +2400,7 @@ export const layer = Layer.effect(
           sessionID: input.sessionID,
           arguments: input.arguments,
         })
-        // Publish the live goal state so the TUI badge reflects reality.
-        yield* bus.publish(NoCowboySession.Event.Goal, {
-          sessionID: input.sessionID,
-          goal: GoalService.get(input.sessionID) ?? null,
-        })
+        yield* publishGoalState()
         if (handled.kind === "handled") {
           return yield* emitLocalMessage({
             sessionID: input.sessionID,
@@ -2386,10 +2415,7 @@ export const layer = Layer.effect(
           sessionID: input.sessionID,
           arguments: input.arguments,
         })
-        yield* bus.publish(NoCowboySession.Event.Goal, {
-          sessionID: input.sessionID,
-          goal: GoalService.get(input.sessionID) ?? null,
-        })
+        yield* publishGoalState()
         if (handled.kind === "handled") {
           return yield* emitLocalMessage({
             sessionID: input.sessionID,
@@ -2405,10 +2431,7 @@ export const layer = Layer.effect(
           sessionID: input.sessionID,
           arguments: input.arguments,
         })
-        yield* bus.publish(NoCowboySession.Event.Goal, {
-          sessionID: input.sessionID,
-          goal: GoalService.get(input.sessionID) ?? null,
-        })
+        yield* publishGoalState()
         if (handled.kind === "handled") {
           return yield* emitLocalMessage({
             sessionID: input.sessionID,

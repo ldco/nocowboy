@@ -492,3 +492,14 @@
   `verify:test packages/opencode/test/nocowboy/run-autopilot.test.ts`
   `verify:file docs/features/autopilot-mode-vs-roadmap-target.md`
   `verify:file docs/guides/autopilot.md`
+
+## v1.0.7-alpha — Live run indicator — the prompt-bar badge is a short mode toggle ([AUTOPILOT ▶/⏸] / [ROADMAP ▶/⏸]) and a new sidebar Roadmap section shows done/total, the current step and the remaining actionable checklist, fed from the session.goal event (stage/done/total/items) rather than the agent's todo table; a bump no longer resurrects a concurrently cleared goal (2026-09-25)
+
+- **DONE** Live run indicator — режим в бейдже, шаги прогона в сайдбаре
+  `verify:grep packages/opencode/src/nocowboy/components/run-label.ts export function runLabel`
+  `verify:grep packages/opencode/src/nocowboy/session/autopilot.ts export function actionItems`
+  `verify:grep packages/opencode/src/nocowboy/session/index.ts stage: Schema.optional`
+  `verify:test packages/opencode/test/nocowboy/run-label.test.ts`
+  `verify:test packages/opencode/test/nocowboy/autopilot.test.ts`
+  `verify:file packages/opencode/src/nocowboy/plugins/sidebar-roadmap.tsx`
+  `verify:file docs/features/roadmap-run-indicator.md`
