@@ -18,3 +18,10 @@ else
 fi
 
 echo "pre-push: typecheck passed."
+
+# Generated docs must match docs/roadmap.json. Catches commits made with
+# --no-verify (which skip pre-commit's regeneration) before they reach the remote.
+if [ -f "$ROOT/scripts/generate-docs.ts" ] && command -v bun &>/dev/null; then
+  echo "pre-push: checking generated docs are in sync..."
+  (cd "$ROOT" && bun run "$ROOT/scripts/generate-docs.ts" --check)
+fi

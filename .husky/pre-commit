@@ -33,7 +33,11 @@ if [ -f "$ROOT/scripts/verify-roadmap.ts" ] && command -v bun &>/dev/null; then
   # This repo ships its own generators/verifier; they are the source of truth
   # for the docs/ format.
   cd "$ROOT"
-  bun run "$ROOT/scripts/generate-docs.ts" 2>/dev/null || true
+  # Regenerate (fail loudly — never swallow a generator error), then stage the
+  # generated docs. pre-commit runs AFTER `git add`, so rewriting the working
+  # tree alone would leave the staged — and committed — snapshot stale.
+  bun run "$ROOT/scripts/generate-docs.ts" || exit 1
+  git add -- docs/ROADMAP.md docs/CHANGELOG.md docs/BACKLOG.md
   bun run "$ROOT/scripts/verify-roadmap.ts"
 elif [ -f "$ROOT/packages/opencode/src/index.ts" ] && command -v bun &>/dev/null; then
   # NoCowboy dev project without repo-local scripts: use source tree

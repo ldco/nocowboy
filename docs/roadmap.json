@@ -3299,6 +3299,39 @@
           "path": "docs/features/roadmap-run-indicator.md"
         }
       ]
+    },
+    {
+      "id": "docs-sync-guard",
+      "title": "Сгенерированные доки не рассинхронизируются: --check + git add в pre-commit",
+      "status": "done",
+      "version": "v1.0.7-alpha",
+      "tags": [
+        "harness",
+        "docs",
+        "git-hooks"
+      ],
+      "description": "ROADMAP.md/CHANGELOG.md/BACKLOG.md генерируются из docs/roadmap.json, но синхронность ничем не гарантировалась: pre-commit перегенерировал их ПОСЛЕ git add и не делал повторный git add, поэтому в коммит уходил устаревший снапшот; ошибки генератора глотались (2>/dev/null || true); режима проверки не было. Добавлено: generate-docs.ts --check (сравнение с диском, exit 1 при рассинхроне, без записи), pre-commit генерирует (fail loudly) и git add'ит доки, pre-push гейтит --check (ловит коммиты с --no-verify).",
+      "done_at": "2026-10-01",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "scripts/generate-docs.ts",
+          "pattern": "includes(\"--check\")"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/generate-docs.ts --check"
+        },
+        {
+          "type": "grep",
+          "path": ".husky/pre-commit",
+          "pattern": "git add -- docs/ROADMAP.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/docs-sync-guard.md"
+        }
+      ]
     }
   ]
 }

@@ -3,7 +3,12 @@
  * generate-docs.ts — Генерирует ROADMAP.md, CHANGELOG.md, BACKLOG.md из roadmap.json.
  *
  * Запуск: bun run scripts/generate-docs.ts
- * Выполняется в pre-commit: сначала генерация, потом verify.
+ * Проверка (не пишет): bun run scripts/generate-docs.ts --check
+ *
+ * `--check` сравнивает файлы на диске с тем, что сгенерировал бы генератор, и
+ * возвращает 1 при рассинхроне — для pre-push/CI и любых гейтов. Обычный запуск
+ * пишет файлы; pre-commit вызывает его и затем `git add`, чтобы свежие доки
+ * попадали в коммит, а не оставались в рабочем дереве.
  *
  * Никто не редактирует .md вручную. Единственный источник — docs/roadmap.json.
  */
@@ -209,6 +214,28 @@ function main(): number {
   const roadmap = generateRoadmap(data);
   const changelog = generateChangelog(data);
   const backlog = generateBacklog(data);
+
+  // ── --check: verify the committed docs match roadmap.json, do not write ──
+  if (process.argv.includes("--check")) {
+    const generated: [string, string][] = [
+      ["ROADMAP.md", roadmap],
+      ["CHANGELOG.md", changelog],
+      ["BACKLOG.md", backlog],
+    ];
+    const stale = generated
+      .filter(([name, content]) => {
+        const path = join(OUTPUT_DIR, name);
+        return !existsSync(path) || readFileSync(path, "utf-8") !== content;
+      })
+      .map(([name]) => name);
+    if (stale.length > 0) {
+      console.error(`❌ Generated docs are out of sync with docs/roadmap.json: ${stale.join(", ")}`);
+      console.error(`   Regenerate and stage them:  bun run scripts/generate-docs.ts`);
+      return 1;
+    }
+    console.log(`✅ Generated docs are in sync with docs/roadmap.json`);
+    return 0;
+  }
 
   writeGenerated("ROADMAP.md", roadmap);
   writeGenerated("CHANGELOG.md", changelog);

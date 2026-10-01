@@ -10,6 +10,8 @@
     "dev": "bash dev.sh",
     "setup": "bash packages/opencode/bin/install-deps.sh",
     "typecheck": "bun turbo typecheck",
+    "docs:gen": "bun run scripts/generate-docs.ts",
+    "docs:check": "bun run scripts/generate-docs.ts --check",
     "test": "echo 'do not run tests from root' && exit 1",
     "dev-setup": "bun run --cwd packages/opencode --conditions=browser src/index.ts dev-setup",
     "prepare": "husky",

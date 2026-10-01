@@ -503,3 +503,8 @@
   `verify:test packages/opencode/test/nocowboy/autopilot.test.ts`
   `verify:file packages/opencode/src/nocowboy/plugins/sidebar-roadmap.tsx`
   `verify:file docs/features/roadmap-run-indicator.md`
+- **DONE** Сгенерированные доки не рассинхронизируются: --check + git add в pre-commit
+  `verify:grep scripts/generate-docs.ts includes("--check")`
+  `verify:cmd bun run scripts/generate-docs.ts --check`
+  `verify:grep .husky/pre-commit git add -- docs/ROADMAP.md`
+  `verify:file docs/features/docs-sync-guard.md`
