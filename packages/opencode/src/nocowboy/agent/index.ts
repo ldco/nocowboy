@@ -373,8 +373,6 @@ export function patchAgents(
       defaults,
       Permission.fromConfig({
         suggest: "allow",
-        plan_enter: "allow",
-        plan_exit: "allow",
         semantic_search: "allow",
         codebase_search: "allow",
       }),

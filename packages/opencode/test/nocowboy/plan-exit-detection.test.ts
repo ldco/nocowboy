@@ -777,6 +777,44 @@ describe("plan_exit detection", () => {
       expect(text).not.toContain("A fallback plan file exists")
     }))
 
+  test("reviewer is NOT a planning agent — no plan boilerplate is injected", () =>
+    withInstance(async () => {
+      const session = await sessions.create({})
+      const id = MessageID.ascending()
+      const user: MessageV2.WithParts = {
+        info: {
+          id,
+          role: "user",
+          sessionID: session.id,
+          time: { created: Date.now() },
+          agent: "reviewer",
+          model,
+        },
+        parts: [
+          {
+            id: PartID.ascending(),
+            messageID: id,
+            sessionID: session.id,
+            type: "text",
+            text: "Review the worker's changes",
+          },
+        ],
+      }
+
+      await NoCowboySessionPrompt.insertPlanReminders({
+        agent: { name: "reviewer", options: {} },
+        session,
+        userMessage: user,
+        messages: [user],
+      })
+
+      const text = content(user)
+      expect(text).not.toContain("Plan File")
+      expect(text).not.toContain("plan_exit")
+      expect(text).not.toContain("main plan file")
+      expect(text).toContain("Review the worker's changes")
+    }))
+
   test("PlanFollowup.ask shows prompt when plan text is on earlier assistant and last assistant is empty", () =>
     withInstance(async () => {
       const session = await sessions.create({})

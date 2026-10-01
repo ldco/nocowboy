@@ -47,9 +47,11 @@ export namespace NoCowboySessionPrompt {
   }
 
   function planning(input: { name: string; options?: Record<string, unknown> }) {
-    const id = typeof input.options?.id === "string" ? mode(input.options.id) : undefined
     const name = mode(input.name)
-    return name === "architect" || name === "planner" || name === "reviewer"
+    // Only architect and planner are plan-like agents. `reviewer` is NOT: it
+    // verifies other agents' output and must never receive the plan-file /
+    // plan_exit boilerplate meant for the planning stage.
+    return name === "architect" || name === "planner"
   }
 
   /**

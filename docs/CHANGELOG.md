@@ -508,3 +508,12 @@
   `verify:cmd bun run scripts/generate-docs.ts --check`
   `verify:grep .husky/pre-commit git add -- docs/ROADMAP.md`
   `verify:file docs/features/docs-sync-guard.md`
+
+## v1.0.8-alpha — Reviewer no longer receives planner boilerplate — the reviewer agent was misclassified as a plan-like agent, so its prompt got the plan-file / plan_exit system-reminder meant for the planning stage; planning() now matches only architect/planner, and reviewer lost its plan_enter/plan_exit permissions (2026-10-01)
+
+- **DONE** Reviewer больше не получает boilerplate планировщика
+  `verify:grep packages/opencode/src/nocowboy/session/prompt.ts return name === "architect" || name === "planner"`
+  `verify:grep packages/opencode/src/nocowboy/session/prompt.ts Only architect and planner are plan-like`
+  `verify:file packages/opencode/test/nocowboy/plan-exit-detection.test.ts`
+  `verify:test packages/opencode/test/nocowboy/plan-exit-detection.test.ts`
+  `verify:file docs/features/reviewer-planning-boilerplate.md`

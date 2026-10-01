@@ -129,6 +129,11 @@
       "description": "Live run indicator — the prompt-bar badge is a short mode toggle ([AUTOPILOT ▶/⏸] / [ROADMAP ▶/⏸]) and a new sidebar Roadmap section shows done/total, the current step and the remaining actionable checklist, fed from the session.goal event (stage/done/total/items) rather than the agent's todo table; a bump no longer resurrects a concurrently cleared goal"
     },
     {
+      "tag": "v1.0.8-alpha",
+      "date": "2026-10-01",
+      "description": "Reviewer no longer receives planner boilerplate — the reviewer agent was misclassified as a plan-like agent, so its prompt got the plan-file / plan_exit system-reminder meant for the planning stage; planning() now matches only architect/planner, and reviewer lost its plan_enter/plan_exit permissions"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"
@@ -3330,6 +3335,44 @@
         {
           "type": "file",
           "path": "docs/features/docs-sync-guard.md"
+        }
+      ]
+    },
+    {
+      "id": "reviewer-planning-boilerplate",
+      "title": "Reviewer больше не получает boilerplate планировщика",
+      "status": "done",
+      "version": "v1.0.8-alpha",
+      "tags": [
+        "reviewer",
+        "agents",
+        "prompt",
+        "permission"
+      ],
+      "description": "В review-режиме агент reviewer получал планировочный boilerplate: функция planning() в nocowboy/session/prompt.ts ошибочно включала reviewer (наряду с architect/planner), поэтому insertPlanReminders вставлял в промпт reviewer <system-reminder> \"## Plan File ... call plan_exit\" — инструкции писать план и завершать планирование, бессмысленные для ревьюера. Дополнительно у reviewer в nocowboy/agent/index.ts были plan_enter: allow и plan_exit: allow (планировочные инструменты). Исправлено: planning() возвращает true только для architect/planner (reviewer исключён), у reviewer убраны plan_enter/plan_exit permissions. Regression-тест «reviewer is NOT a planning agent» добавлен в test/nocowboy/plan-exit-detection.test.ts.",
+      "done_at": "2026-10-01",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/prompt.ts",
+          "pattern": "return name === \"architect\" || name === \"planner\""
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/prompt.ts",
+          "pattern": "Only architect and planner are plan-like"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/plan-exit-detection.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/plan-exit-detection.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/reviewer-planning-boilerplate.md"
         }
       ]
     }
