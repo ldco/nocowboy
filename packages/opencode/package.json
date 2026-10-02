@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "1.0.8-alpha",
+  "version": "1.0.9-alpha",
   "name": "nocowboy-tui",
   "type": "module",
   "license": "MIT",
