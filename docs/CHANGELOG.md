@@ -517,3 +517,17 @@
   `verify:file packages/opencode/test/nocowboy/plan-exit-detection.test.ts`
   `verify:test packages/opencode/test/nocowboy/plan-exit-detection.test.ts`
   `verify:file docs/features/reviewer-planning-boilerplate.md`
+
+## v1.0.9-alpha — Autonomous work no longer dead-ends — suggest/question never block in a subagent or an autopilot/roadmap session (no human at the other end), YOLO now lifts the built-in read-only agent ceilings (architect/planner/reviewer) while external-directory safety, config protection and explicit top-level config denies stay absolute, and the built-in auto prompt tells Auto to work itself and delegate only for real parallelism (2026-10-02)
+
+- **DONE** Автономная работа больше не упирается в человека: suggest/question, YOLO и Auto
+  `verify:grep packages/opencode/src/nocowboy/session/index.ts export function noHumanReason`
+  `verify:grep packages/opencode/src/nocowboy/suggestion/tool.ts noHumanReason`
+  `verify:grep packages/opencode/src/tool/question.ts noHumanReason`
+  `verify:grep packages/opencode/src/permission/index.ts YOLO is consulted BEFORE`
+  `verify:grep packages/opencode/src/agent/prompt/auto.ru.txt работай сам`
+  `verify:file packages/opencode/test/nocowboy/suggestion/tool.test.ts`
+  `verify:test packages/opencode/test/nocowboy/suggestion/tool.test.ts`
+  `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
+  `verify:test packages/opencode/test/tool/question.test.ts`
+  `verify:file docs/features/autonomous-harness-hardening.md`

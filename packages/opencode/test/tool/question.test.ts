@@ -2,6 +2,7 @@ import { describe, expect } from "bun:test"
 import { Effect, Fiber, Layer, Queue } from "effect"
 import { QuestionTool } from "../../src/tool/question"
 import { Question } from "../../src/question"
+import { NoCowboySession } from "../../src/nocowboy/session"
 import { SessionID, MessageID } from "../../src/session/schema"
 import { Agent } from "../../src/agent/agent"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
@@ -89,6 +90,35 @@ describe("tool.question", () => {
 
       const result = yield* Fiber.join(fiber)
       expect(result.output).toContain(`"What is your favorite animal?"="Dog"`)
+    }),
+  )
+
+  // A question asks a HUMAN to answer. In a subagent session nobody can
+  // answer, so blocking would freeze the parent waiting on the task result.
+  it.instance("does not block in a subagent session", () =>
+    Effect.gen(function* () {
+      const toolInfo = yield* QuestionTool
+      const tool = yield* toolInfo.init()
+      NoCowboySession.register({ id: "ses_test-session", parentID: "ses_parent" })
+      try {
+        const result = yield* tool.execute(
+          {
+            questions: [
+              {
+                question: "What is your favorite color?",
+                header: "Color",
+                options: [{ label: "Red", description: "The color of passion" }],
+              },
+            ],
+          },
+          ctx,
+        )
+        expect(result.title).toBe("Question skipped (no human available)")
+        expect(result.output).toContain("subagent")
+        expect(result.metadata.dismissed).toBe(true)
+      } finally {
+        NoCowboySession.clearPlatformOverride("ses_test-session")
+      }
     }),
   )
 

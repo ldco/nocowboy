@@ -1,4 +1,5 @@
 import { writer as _writer } from "./fork"
+import { GoalService } from "./goal"
 import z from "zod"
 import { Cause, Effect, Schema } from "effect"
 import { BusEvent } from "@/bus/bus-event"
@@ -126,6 +127,22 @@ export namespace NoCowboySession {
 
   export function resolveParent(id: string): string | undefined {
     return parents.get(id)
+  }
+
+  /**
+   * Human-facing tools (`suggest`, `question`) park on a promise that only a
+   * human can resolve. In sessions with no human at the other end that promise
+   * NEVER resolves: a subagent session has nobody watching it, and an
+   * autopilot/roadmap run keeps continuing without a user. Blocking there
+   * freezes the parent task result and the whole pipeline.
+   *
+   * Returns the human-readable reason no human can answer, or undefined when a
+   * human is present and the tool may block normally.
+   */
+  export function noHumanReason(id: string): string | undefined {
+    if (parents.has(id)) return "this is a subagent session and no human sees or answers it"
+    if (GoalService.get(id)?.auto) return "this session is running autonomously (autopilot/roadmap) and no human answers it"
+    return undefined
   }
 
   export function featureForPlatform(platform: string | undefined): string | undefined {

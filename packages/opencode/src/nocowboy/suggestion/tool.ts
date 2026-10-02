@@ -6,6 +6,7 @@ import { Tool } from "../../tool/tool"
 import { Suggestion } from "./index"
 import { SessionStatus } from "../../session/status"
 import { SessionID } from "../../session/schema"
+import { NoCowboySession } from "../session"
 
 const log = Log.create({ service: "tool.suggest" })
 
@@ -71,6 +72,29 @@ export const SuggestTool = Tool.define<typeof Params, Meta, Command.Service | Se
       parameters: Params,
       execute: (params, ctx) =>
         Effect.gen(function* () {
+          // A suggestion is a request for a HUMAN decision. In sessions with no
+          // human at the other end the promise below never resolves, so the tool
+          // parks forever and freezes the caller (the parent agent waiting on a
+          // subagent result, or an autopilot/roadmap turn). Short-circuit with
+          // guidance instead of blocking.
+          const noHuman = NoCowboySession.noHumanReason(ctx.sessionID)
+          if (noHuman) {
+            log.info("skipped — no human at the other end", { sessionID: ctx.sessionID, reason: noHuman })
+            const metadata: Meta = {
+              accepted: undefined,
+              dismissed: true,
+              truncated: false,
+            }
+            return {
+              title: "Suggestion skipped (no human available)",
+              output:
+                `The suggest tool is unavailable here because ${noHuman}. ` +
+                `Do NOT call suggest and do NOT wait for the user: continue the task on your own ` +
+                `and return your result (or report the exact blocker) directly.`,
+              metadata,
+            }
+          }
+
           const promise = Suggestion.show({
             sessionID: ctx.sessionID,
             text: params.suggest,

@@ -197,7 +197,79 @@ describe("AllowEverythingPermission", () => {
     ),
   )
 
-  it.live("a deny rule still wins over global YOLO", () =>
+  it.live("YOLO lifts an agent/read-only deny rule (the architect ceiling)", () =>
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const sessions = yield* Session.Service
+          const permission = yield* Permission.Service
+          expect(yield* AllowEverythingPermission.effect({ enable: true })).toBe(true)
+
+          const session = yield* sessions.create({})
+          // Mirrors the read-only architect ceiling (readOnlyBash): the agent
+          // ruleset denies `git add`/`nocowboy *`, and the hard ruleset makes it
+          // a ceiling. In YOLO the user explicitly allowed everything, so both
+          // must be lifted instead of dead-ending the run.
+          const exit = yield* permission
+            .ask({
+              id: PermissionID.make("permission_yolo_lifts_deny"),
+              sessionID: session.id,
+              permission: "bash",
+              patterns: ["git add -A"],
+              metadata: {},
+              always: [],
+              ruleset: [{ permission: "bash", pattern: "*", action: "deny" }],
+              hardRuleset: [
+                { permission: "bash", pattern: "*", action: "deny" },
+                { permission: "bash", pattern: "git *", action: "deny" },
+              ],
+            })
+            .pipe(Effect.timeout("2 seconds"), Effect.exit)
+          expect(Exit.isSuccess(exit)).toBe(true)
+          expect(yield* AllowEverythingPermission.effect({ enable: false })).toBe(true)
+        }),
+      { git: true },
+    ),
+  )
+
+  it.live("YOLO does not lift config-path protection", () =>
+    provideTmpdirInstance(
+      () =>
+        Effect.gen(function* () {
+          const sessions = yield* Session.Service
+          expect(yield* AllowEverythingPermission.effect({ enable: true })).toBe(true)
+
+          const session = yield* sessions.create({})
+          // Editing the tool's own config is protected: even in YOLO it asks,
+          // and a reject is still honoured.
+          const pending = yield* ask({
+            id: PermissionID.make("permission_yolo_config_protected"),
+            sessionID: session.id,
+            permission: "edit",
+            patterns: ["nocowboy.json"],
+            metadata: { filepath: "nocowboy.json" },
+            always: [],
+            ruleset: [{ permission: "edit", pattern: "*", action: "allow" }],
+          }).pipe(Effect.forkScoped)
+
+          yield* wait()
+          yield* reply({
+            requestID: PermissionID.make("permission_yolo_config_protected"),
+            reply: "reject",
+          })
+
+          const exit = yield* Fiber.await(pending)
+          expect(Exit.isFailure(exit)).toBe(true)
+          if (Exit.isFailure(exit)) {
+            expect(Cause.squash(exit.cause)).toBeInstanceOf(Permission.RejectedError)
+          }
+          expect(yield* AllowEverythingPermission.effect({ enable: false })).toBe(true)
+        }),
+      { git: true },
+    ),
+  )
+
+  it.live("YOLO still honours an external-directory hard veto", () =>
     provideTmpdirInstance(
       () =>
         Effect.gen(function* () {
@@ -208,13 +280,14 @@ describe("AllowEverythingPermission", () => {
           const session = yield* sessions.create({})
           const exit = yield* permission
             .ask({
-              id: PermissionID.make("permission_yolo_deny"),
+              id: PermissionID.make("permission_yolo_external_veto"),
               sessionID: session.id,
-              permission: "bash",
-              patterns: ["rm -rf /"],
+              permission: "external_directory",
+              patterns: ["/some/other/dir/*"],
               metadata: {},
               always: [],
-              ruleset: [{ permission: "bash", pattern: "*", action: "deny" }],
+              ruleset: [{ permission: "external_directory", pattern: "*", action: "ask" }],
+              hardRuleset: [{ permission: "external_directory", pattern: "*", action: "deny" }],
             })
             .pipe(Effect.exit)
 

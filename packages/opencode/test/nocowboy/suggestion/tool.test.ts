@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, spyOn } from "bun:test"
 import { Effect, Fiber, Layer } from "effect"
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
 import { Command } from "../../../src/command"
 import { Suggestion } from "../../../src/nocowboy/suggestion"
 import { SuggestTool } from "../../../src/nocowboy/suggestion/tool"
+import { NoCowboySession } from "../../../src/nocowboy/session"
+import { GoalService } from "../../../src/nocowboy/session/goal"
 import { Tool } from "../../../src/tool/tool"
 import { Truncate } from "../../../src/tool/truncate"
 import { Agent } from "../../../src/agent/agent"
@@ -304,6 +309,60 @@ describe("tool.suggest", () => {
       )
 
       expect(statuses.map(([, value]) => value.type)).toEqual(["idle"])
+    }),
+  )
+
+  // A suggestion asks a HUMAN to choose. In a subagent session nobody can
+  // answer, so blocking parks the tool (and the parent agent waiting on the
+  // task result) forever. The tool must short-circuit instead.
+  it.live("does not block in a subagent session", () =>
+    Effect.gen(function* () {
+      const tool = yield* init()
+      NoCowboySession.register({ id: "ses_child", parentID: "ses_parent" })
+      try {
+        const result = yield* tool.execute(
+          {
+            suggest: "Review uncommitted changes?",
+            actions: [{ label: "Review", prompt: "/local-review-uncommitted" }],
+          },
+          { ...ctx, sessionID: "ses_child" } as any,
+        )
+
+        expect(show).not.toHaveBeenCalled()
+        expect(result.title).toBe("Suggestion skipped (no human available)")
+        expect(result.output).toContain("subagent")
+        expect(result.metadata.dismissed).toBe(true)
+      } finally {
+        NoCowboySession.clearPlatformOverride("ses_child")
+      }
+    }),
+  )
+
+  // An autopilot/roadmap run keeps continuing with no user watching: a
+  // suggestion there freezes the whole pipeline until someone clicks it.
+  it.live("does not block in an autonomous (autopilot) session", () =>
+    Effect.gen(function* () {
+      const tool = yield* init()
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nc-goals-"))
+      process.env.NOCOWBOY_GOALS_DIR = dir
+      try {
+        GoalService.set("ses_auto", "finish the roadmap", 100, true)
+        const result = yield* tool.execute(
+          {
+            suggest: "Suggesting next step...",
+            actions: [{ label: "Go", prompt: "go" }],
+          },
+          { ...ctx, sessionID: "ses_auto" } as any,
+        )
+
+        expect(show).not.toHaveBeenCalled()
+        expect(result.title).toBe("Suggestion skipped (no human available)")
+        expect(result.output).toContain("autonomously")
+        expect(result.metadata.dismissed).toBe(true)
+      } finally {
+        delete process.env.NOCOWBOY_GOALS_DIR
+        fs.rmSync(dir, { recursive: true, force: true })
+      }
     }),
   )
 })

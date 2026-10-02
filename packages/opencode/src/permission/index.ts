@@ -242,24 +242,71 @@ export const layer = Layer.effect(
         return allowEverything
       })
 
+      // The user's explicit deny rules in the top-level `permission` config are
+      // the only thing YOLO does not lift: a global allow-everything grant is a
+      // decision to override the tool's built-in agent policy (including the
+      // read-only architect/planner/reviewer ceilings) and any per-agent config,
+      // not a decision to override a rule the user wrote down to forbid
+      // something. Scope is intentionally the top-level config only — `ask` has
+      // no agent name, so per-agent config denies follow the same YOLO lift as
+      // built-in agent policy. Computed lazily so the common path stays free of
+      // config I/O.
+      let configDenies: Ruleset | undefined
+      const configForbids = Effect.fnUntraced(function* (permission: string, pattern: string) {
+        if (configDenies === undefined) {
+          const cfg = yield* config.get()
+          configDenies = fromConfig(cfg.permission ?? {}).filter((rule) => rule.action === "deny")
+        }
+        return evaluate(permission, pattern, configDenies).action === "deny"
+      })
+
       for (const pattern of request.patterns) {
-        // Hard invariants are never overridden by YOLO: an explicit deny or an
-        // external-directory veto still wins.
+        // External-directory safety is a true invariant: a hard veto wins even
+        // under YOLO.
+        if (request.permission === "external_directory" && veto(request.permission, pattern, hardRuleset)) {
+          return yield* new DeniedError({ ruleset: subset(request.permission, hardRuleset ?? []) })
+        }
+
+        const rule = resolve(request.permission, pattern, ruleset, approved, local)
+
+        // Config-path protection is never lifted: editing the tool's own config
+        // or AGENTS.md keeps prompting (or denying) under YOLO too.
+        if (isProtected) {
+          if (rule.action === "deny") {
+            return yield* new DeniedError({ ruleset: subset(request.permission, ruleset) })
+          }
+          log.info("evaluated", { permission: request.permission, pattern, action: rule })
+          needsAsk = true
+          continue
+        }
+
+        // YOLO is consulted BEFORE the hard-ruleset veto and the deny checks so
+        // a global allow-everything grant really allows everything the user did
+        // not explicitly forbid in config — including the built-in read-only
+        // agent policy. Previously the read-only ceiling (hardRuleset) and agent
+        // `deny` rules survived YOLO, which silently dead-ended an
+        // architect/planner/reviewer run: it could not run `git add/commit` or
+        // `nocowboy roadmap generate` and had to stop and ask the user, even in
+        // YOLO.
+        if (yield* yoloAllows()) {
+          if (!(yield* configForbids(request.permission, pattern))) {
+            log.info("evaluated", { permission: request.permission, pattern, action: { action: "allow", via: "yolo" } })
+            continue
+          }
+        }
+
+        // Hard ceilings are absolute without YOLO: an explicit plan/read-only
+        // deny preempts even a saved "always allow" rule.
         if (veto(request.permission, pattern, hardRuleset)) {
           return yield* new DeniedError({ ruleset: subset(request.permission, hardRuleset ?? []) })
         }
-        const rule = resolve(request.permission, pattern, ruleset, approved, local)
         if (rule.action === "deny") {
           return yield* new DeniedError({
             ruleset: subset(request.permission, ruleset),
           })
         }
-        if (rule.action === "allow" && !isProtected) {
+        if (rule.action === "allow") {
           log.info("evaluated", { permission: request.permission, pattern, action: rule })
-          continue
-        }
-        if (!isProtected && (yield* yoloAllows())) {
-          log.info("evaluated", { permission: request.permission, pattern, action: { action: "allow", via: "yolo" } })
           continue
         }
         log.info("evaluated", { permission: request.permission, pattern, action: rule })

@@ -134,6 +134,11 @@
       "description": "Reviewer no longer receives planner boilerplate — the reviewer agent was misclassified as a plan-like agent, so its prompt got the plan-file / plan_exit system-reminder meant for the planning stage; planning() now matches only architect/planner, and reviewer lost its plan_enter/plan_exit permissions"
     },
     {
+      "tag": "v1.0.9-alpha",
+      "date": "2026-10-02",
+      "description": "Autonomous work no longer dead-ends — suggest/question never block in a subagent or an autopilot/roadmap session (no human at the other end), YOLO now lifts the built-in read-only agent ceilings (architect/planner/reviewer) while external-directory safety, config protection and explicit top-level config denies stay absolute, and the built-in auto prompt tells Auto to work itself and delegate only for real parallelism"
+    },
+    {
       "tag": "v1.0.0-rc",
       "date": "2026-10",
       "description": "Release Candidate — user testing, performance, docs complete"
@@ -3373,6 +3378,62 @@
         {
           "type": "file",
           "path": "docs/features/reviewer-planning-boilerplate.md"
+        }
+      ]
+    },
+    {
+      "id": "autonomous-harness-hardening",
+      "title": "Автономная работа больше не упирается в человека: suggest/question, YOLO и Auto",
+      "status": "done",
+      "version": "v1.0.9-alpha",
+      "tags": ["autopilot", "subagent", "suggest", "question", "yolo", "permission", "agents", "prompt"],
+      "description": "Три связанных дефекта автономного режима. (1) suggest и question парковались на промис, который может разрешить только человек; в сабагент-сессии или в автопилот/roadmap-прогоне человека нет, промис не разрешался никогда, и весь конвейер (родитель, ждущий task-результат) вставал намертво. Добавлен NoCowboySession.noHumanReason (сабагент по parents-map или активный autopilot-goal); оба инструмента теперь мгновенно возвращают инструкцию «продолжай сам» вместо блокировки. (2) YOLO не снимал встроенные read-only потолки architect/planner/reviewer (hardRuleset veto и ruleset deny проверялись раньше гранта), поэтому в yolo-режиме read-only агент не мог выполнить git add/commit или nocowboy roadmap generate и останавливался с просьбой к пользователю. Permission.ask переставлен: YOLO читается до veto/deny и снимает политику агентов; абсолютными остаются внешние директории, защита конфигов и явные deny из верхнеуровневого permission-конфига. (3) Встроенный auto-промпт утверждал «ты НЕ делаешь инженерную работу сам» — переписан на «работай сам по умолчанию, task — исключение для настоящего параллелизма».",
+      "done_at": "2026-10-02",
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/index.ts",
+          "pattern": "export function noHumanReason"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/suggestion/tool.ts",
+          "pattern": "noHumanReason"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/question.ts",
+          "pattern": "noHumanReason"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/permission/index.ts",
+          "pattern": "YOLO is consulted BEFORE"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/agent/prompt/auto.ru.txt",
+          "pattern": "работай сам"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/suggestion/tool.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/suggestion/tool.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/question.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/autonomous-harness-hardening.md"
         }
       ]
     }
