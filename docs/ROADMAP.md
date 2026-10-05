@@ -90,3 +90,49 @@
   `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
 
 ---
+
+## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
+
+- ⬜ Манифест движка — SHA, provenance, версии зависимостей, ledger портов
+  > Проверено: корень ca721a2 (19.06.2026), `fork of KiloCode v7.3.46`; GitHub tag v7.3.46 = f388b60ab579adef7cf1a6c022082100338d6450, побайтовое соответствие снимку НЕ установлено; remote upstream и .opencode-version отсутствуют. Артефакты: engine-manifest.json + docs/reference/engine-manifest.md.
+- ⬜ Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
+  > `script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.
+- ⬜ Ownership-манифест: owned / adapted / generated
+- ⬜ Контракт read-only planner/reviewer — реальное ограничение, а не декларация
+  > Подтверждено в коде: `agent.ts:115` defaults начинаются с `* : allow`; planner получает `Permission.merge(defaults, {suggest,plan_enter}, user, META_TOOLS)` без deny edit; reviewer — без deny edit. Только architect имеет `edit: {"*": deny}` и readOnlyBash. `guardPermissions/hardPermissions` повторно применяют правила, а не создают отсутствующий deny.
+- ⬜ AgentCatalog и единая политика spawnable agents
+  > `tool/task.ts` фильтрует types по `primary`, но `KiloTask.validate()` ничего не запрещает: запрет spawn `auto` не является отдельной проверкой executor.
+- ⬜ Политика независимости модели reviewer
+  > `resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.
+- ⬜ @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)
+- ⬜ @nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState
+- ⬜ Структурированный Handoff вместо текстового #route
+  > `session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.
+- ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix
+  > ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.
+- ⬜ EditPort — семантика match/batch/stale-read/partial-failure
+  > `tool/search_replace.ts:79` — текстовый SEARCH/REPLACE. Должен сохранить точное строковое совпадение, CRLF/BOM/кодировку, diff для permission, LSP/format и ConfigValidation.
+- ⬜ Versioned facade + contract tests для experimental hooks
+- ⬜ @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
+  > phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.
+- ⬜ @nocowboy/ui — виджеты через slots + facade view models
+  > Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.
+- ⬜ InputPort/UI facade — контракт mouse/focus/selection
+  > Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.
+- ⬜ Git/Balance — асинхронные сервисы, unknown ≠ 0
+  > Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.
+- ⬜ Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
+  > `nutausik-client.ts` возвращает пустую строку при transport failure и не превращает JSON-RPC/tool error в явный memory status. Session-end операции fire-and-forget; logging hook прописывает shell/python/curl command с literal endpoint, обходя общий client/env override.
+- ⬜ ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
+  > `rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.
+- ⬜ Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
+- ⬜ Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
+  > В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику.
+- ⬜ Контрактные тесты миграции движка (минимальный набор сценариев)
+- ⬜ Backport: сохранение recent tail при compaction + token budgeting/pruning
+- ⬜ Backport: subagent depth limit + resume diagnostics
+- ⬜ Backport: терпимость provider config к malformed model entry
+- ⬜ Capability-конфиг выбора инструментов вместо проверки имени модели
+  > `tool/registry.ts:344` включает apply_patch для части `gpt-*` и E2E URL, исключая edit; write и search_replace остаются в общем списке.
+
+---

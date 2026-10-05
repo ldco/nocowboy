@@ -152,6 +152,11 @@
       "tag": "v0.14.0",
       "date": "2026-09-15",
       "description": "Security Hardening & Upstream Harvest"
+    },
+    {
+      "tag": "v1.1.0",
+      "date": "2026-10",
+      "description": "Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)"
     }
   ],
   "features": [
@@ -3434,6 +3439,797 @@
         {
           "type": "file",
           "path": "docs/features/autonomous-harness-hardening.md"
+        }
+      ]
+    },
+    {
+      "id": "engine-manifest",
+      "title": "Манифест движка — SHA, provenance, версии зависимостей, ledger портов",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-baseline",
+      "priority": "P0",
+      "tags": [
+        "fork",
+        "process",
+        "docs"
+      ],
+      "description": "Зафиксировать измеримую базу: NoCowboy SHA, заявленный исходный Kilo tag/SHA, provenance confidence (snapshot vs сохранённая цепочка предков), версии OpenTUI/AI SDK/MCP SDK и список локальных upstream backport.",
+      "notes": "Проверено: корень ca721a2 (19.06.2026), `fork of KiloCode v7.3.46`; GitHub tag v7.3.46 = f388b60ab579adef7cf1a6c022082100338d6450, побайтовое соответствие снимку НЕ установлено; remote upstream и .opencode-version отсутствуют. Артефакты: engine-manifest.json + docs/reference/engine-manifest.md.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "engine-manifest.json содержит NoCowboy SHA, заявленный Kilo tag/SHA, provenance confidence и версии OpenTUI/AI SDK/MCP SDK",
+          "verify": "bun run scripts/engine-manifest.ts --check",
+          "critical": true
+        },
+        {
+          "check": "docs/reference/engine-manifest.md документирует provenance confidence (импортированный снимок, а не сохранённая Git-цепочка)",
+          "verify": "file exists: docs/reference/engine-manifest.md",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "fork-merge-profile",
+      "title": "Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-baseline",
+      "priority": "P0",
+      "tags": [
+        "fork",
+        "upstream",
+        "process"
+      ],
+      "description": "Ввести отдельный NoCowboy merge profile: выключить legacy OpenCode→Kilo transforms для этого workflow, хранить upstream как read-only reference, сравнивать нормализованные деревья (package names/paths).",
+      "notes": "`script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.",
+      "depends_on": [
+        "engine-manifest"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "NoCowboy merge profile не переписывает @nocowboy/* в @kilocode/*",
+          "verify": "grep script/upstream/utils/config.ts: no @kilocode rewrite in NoCowboy profile",
+          "critical": true
+        },
+        {
+          "check": "Upstream checkout хранится read-only и не инжектится в рабочие пути",
+          "verify": "merge profile dry-run report",
+          "critical": true
+        },
+        {
+          "check": "Нормализация package names/paths применяется до сравнения деревьев",
+          "verify": "compare script exists + test",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "file-ownership-manifest",
+      "title": "Ownership-манифест: owned / adapted / generated",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-baseline",
+      "priority": "P1",
+      "tags": [
+        "fork",
+        "process"
+      ],
+      "description": "Разделить файлы на owned, adapted и generated. `src/nocowboy` не использовать как единственный ownership criterion — точки вызова живут в shared core (session/prompt, tool/task, permission, registry).",
+      "depends_on": [
+        "engine-manifest"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Манифест перечисляет пути по классам owned/adapted/generated",
+          "verify": "ownership manifest file exists",
+          "critical": true
+        },
+        {
+          "check": "Ownership не выводится только из src/nocowboy",
+          "verify": "manifest includes shared-core call sites (session/prompt.ts, tool/task.ts, permission/*)",
+          "critical": true
+        },
+        {
+          "check": "CI/gate проверяет, что новые shared-core изменения классифицированы",
+          "verify": "check script runs in pre-commit",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "planner-reviewer-readonly-contract",
+      "title": "Контракт read-only planner/reviewer — реальное ограничение, а не декларация",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-contracts",
+      "priority": "P0",
+      "tags": [
+        "permission",
+        "agents",
+        "safety"
+      ],
+      "description": "Сделать read-only planner/reviewer исполняемым инвариантом: встроенный профиль должен запрещать мутации (edit/write/apply_patch/search_replace/мутирующий bash) в режиме по умолчанию; YOLO и явный agent-конфиг остаются единственным осознанным способом снять ограничение (см. 1.0.9-alpha).",
+      "notes": "Подтверждено в коде: `agent.ts:115` defaults начинаются с `* : allow`; planner получает `Permission.merge(defaults, {suggest,plan_enter}, user, META_TOOLS)` без deny edit; reviewer — без deny edit. Только architect имеет `edit: {\"*\": deny}` и readOnlyBash. `guardPermissions/hardPermissions` повторно применяют правила, а не создают отсутствующий deny.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "В default-режиме planner не может мутировать через edit/write/apply_patch/search_replace/bash — тест падает до фикса и проходит после",
+          "verify": "bun test test/nocowboy/agent (read-only planner)",
+          "critical": true
+        },
+        {
+          "check": "В default-режиме reviewer не может мутировать теми же инструментами",
+          "verify": "bun test test/nocowboy/agent (read-only reviewer)",
+          "critical": true
+        },
+        {
+          "check": "YOLO и явный agent-config остаются единственным способом снять ограничение; внешняя директория и защита конфигов абсолютны",
+          "verify": "bun test test/nocowboy/permission",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "agent-catalog-spawn-policy",
+      "title": "AgentCatalog и единая политика spawnable agents",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-contracts",
+      "priority": "P1",
+      "tags": [
+        "agents",
+        "orchestration",
+        "permission"
+      ],
+      "description": "Выразить политику доступных ролей один раз и применять её и при описании tools (листинг для task), и при исполнении (executor validation). Зафиксировать capability-профили ролей: auto — dispatcher c собственными tools; nocowboy — companion, не закрытый chat-only профиль.",
+      "notes": "`tool/task.ts` фильтрует types по `primary`, но `KiloTask.validate()` ничего не запрещает: запрет spawn `auto` не является отдельной проверкой executor.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Листинг task-типов и executor используют один источник политики",
+          "verify": "grep + unit test: same policy object",
+          "critical": true
+        },
+        {
+          "check": "Попытка spawn запрещённой роли отклоняется executor'ом",
+          "verify": "bun test test/tool/task (spawn policy)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "review-model-independence",
+      "title": "Политика независимости модели reviewer",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p0-contracts",
+      "priority": "P1",
+      "tags": [
+        "review",
+        "multi-model",
+        "agents"
+      ],
+      "description": "Превратить независимость ревью в проверяемую политику: reviewer получает другую модель, вторая фаза cascade не может совпасть с автором без явного разрешения.",
+      "notes": "`resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Конфигурация reviewer, совпадающая с worker, диагностируется",
+          "verify": "bun test test/nocowboy/review-cascade (independence)",
+          "critical": true
+        },
+        {
+          "check": "Вторая фаза cascade не использует модель автора без explicit opt-in",
+          "verify": "grep + unit test",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "nocowboy-runtime-ports",
+      "title": "@nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p1-runtime",
+      "priority": "P0",
+      "tags": [
+        "architecture",
+        "agents",
+        "permission"
+      ],
+      "description": "Создать @nocowboy/runtime без imports из @/session, @tui и внутренних provider services. Доменные зависимости — только через интерфейсы: AgentCatalog, PolicyPort, SessionPort, EditPort, ModelPort, MemoryPort, TelemetryPort.",
+      "depends_on": [
+        "planner-reviewer-readonly-contract",
+        "agent-catalog-spawn-policy"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "@nocowboy/runtime собирается и не импортирует @/session, @tui, внутренние provider services",
+          "verify": "dependency-cruiser / lint rule + bun run typecheck",
+          "critical": true
+        },
+        {
+          "check": "Все семь портов описаны контрактами (типы + Zod/Effect schema)",
+          "verify": "grep port interfaces",
+          "critical": true
+        },
+        {
+          "check": "Порты покрыты unit-тестами без поднятия engine",
+          "verify": "bun test packages/opencode/test/nocowboy/runtime",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "engine-adapter-package",
+      "title": "@nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p1-runtime",
+      "priority": "P0",
+      "tags": [
+        "architecture",
+        "agents",
+        "permission"
+      ],
+      "description": "Отдельный @nocowboy/engine-adapter связывает порты с Effect layers/InstanceState и текущими schemas. Переносить по одному вертикальному сценарию, начиная с worker + task + permissions; оставить одну точку входа в shared core вместо разрозненных callbacks.",
+      "depends_on": [
+        "nocowboy-runtime-ports"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Вертикаль worker+task+permissions работает через adapter",
+          "verify": "bun test test/nocowboy/tool/task + permissions",
+          "critical": true
+        },
+        {
+          "check": "Единственная точка входа в shared core — нет параллельных callback-путей",
+          "verify": "grep architecture check",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "structured-handoff",
+      "title": "Структурированный Handoff вместо текстового #route",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p1-runtime",
+      "priority": "P1",
+      "tags": [
+        "routing",
+        "agents",
+        "architecture"
+      ],
+      "description": "Заменить `#route:` внутренним структурированным `Handoff { target, reason, context, artifacts }`, сохранив textual parser как compatibility adapter.",
+      "notes": "`session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.",
+      "depends_on": [
+        "engine-adapter-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Handoff — типизированная структура {target,reason,context,artifacts}",
+          "verify": "bun test test/nocowboy/session (structured handoff)",
+          "critical": true
+        },
+        {
+          "check": "Legacy `#route:` продолжает работать как compatibility adapter",
+          "verify": "bun test test/nocowboy/session-router",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "stage-machine",
+      "title": "Детерминированный stage machine: design → plan → implement → verify → accept/fix",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p1-runtime",
+      "priority": "P1",
+      "tags": [
+        "workflow",
+        "ac",
+        "orchestration"
+      ],
+      "description": "Если цепочка AC/review обязательна — реализовать stage machine с детерминированным gate, который проверяет результаты, а не наличие слов APPROVED/DONE. Prompt остаётся подсказкой, не барьером.",
+      "notes": "ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.",
+      "depends_on": [
+        "structured-handoff"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Gate проверяет артефакты/результаты (тесты, diff, AC-evidence), а не слова в тексте",
+          "verify": "bun test test/nocowboy (stage gate)",
+          "critical": true
+        },
+        {
+          "check": "Stage machine не пропускает implement без plan, когда цепочка включена",
+          "verify": "bun test test/nocowboy (stage transitions)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "edit-port-batch-safety",
+      "title": "EditPort — семантика match/batch/stale-read/partial-failure",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p1-runtime",
+      "priority": "P0",
+      "tags": [
+        "task",
+        "safety",
+        "data-loss"
+      ],
+      "description": "Явно определить контракт редактирования: поиск совпадений, объединение блоков, защита от устаревшего чтения, поведение частичного сбоя. Исправить search_replace (первое точное совпадение через indexOf; multi-block одного файла читает файл до фазы записи) и не считать batch атомарной транзакцией.",
+      "notes": "`tool/search_replace.ts:79` — текстовый SEARCH/REPLACE. Должен сохранить точное строковое совпадение, CRLF/BOM/кодировку, diff для permission, LSP/format и ConfigValidation.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Дублирующееся совпадение обнаруживается и обрабатывается по контракту",
+          "verify": "bun test test/tool/search_replace (duplicate match)",
+          "critical": true
+        },
+        {
+          "check": "Несколько блоков одного файла применяются в определённом порядке",
+          "verify": "bun test test/tool/search_replace (batch same file)",
+          "critical": true
+        },
+        {
+          "check": "Устаревшее чтение и частичный сбой не оставляют половинчатого состояния",
+          "verify": "bun test test/tool/search_replace (stale/partial)",
+          "critical": true
+        },
+        {
+          "check": "Round-trip UTF-8 BOM, CRLF и legacy encoding сохранены",
+          "verify": "bun test test/nocowboy (encoding round-trip)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plugin-hook-facade",
+      "title": "Versioned facade + contract tests для experimental hooks",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p2-hooks",
+      "priority": "P2",
+      "tags": [
+        "hooks",
+        "plugin",
+        "architecture"
+      ],
+      "description": "Закрыть экспериментальные hooks versioned facade и contract-тестами: tool.definition, tool.execute.before/after, experimental.chat.system.transform, experimental.session.compacting, experimental.compaction.autocontinue и собственный session.stop. Hooks НЕ покрывают мутацию agent registry, task cancellation/queue и transport semantics — для этого нужен узкий engine adapter.",
+      "depends_on": [
+        "engine-adapter-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Facade покрывает все перечисленные hooks и имеет contract-тесты",
+          "verify": "bun test test/plugin (hook facade)",
+          "critical": true
+        },
+        {
+          "check": "session.stop явно объявлен поддерживаемым adapter seam, а не предполагается в любом upstream",
+          "verify": "grep + docs",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "nocowboy-i18n-package",
+      "title": "@nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p3-ui",
+      "priority": "P1",
+      "tags": [
+        "tui",
+        "ux",
+        "i18n"
+      ],
+      "description": "Сделать словарь независимой архитектурой локализации: stable keys, placeholders и locale context для UI/runtime prompts. Постепенно удалить phrase fallback, начиная с собственных панелей.",
+      "notes": "phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Собственные модули не содержат новых user-facing literals вне словаря",
+          "verify": "grep hardcoded strings + check script",
+          "critical": true
+        },
+        {
+          "check": "locale передаётся через RequestContext, а Agent cacheKey включает lang",
+          "verify": "bun test test/nocowboy (i18n context)",
+          "critical": true
+        },
+        {
+          "check": "Словари RU/EN проходят проверку полноты ключей",
+          "verify": "bun test test/nocowboy (i18n completeness)",
+          "critical": true
+        },
+        {
+          "check": "RU→EN→RU в живой сессии и два проекта с разными locale работают согласованно",
+          "verify": "bun test test/nocowboy (i18n live switch)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "nocowboy-ui-package",
+      "title": "@nocowboy/ui — виджеты через slots + facade view models",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p3-ui",
+      "priority": "P2",
+      "tags": [
+        "tui",
+        "architecture"
+      ],
+      "description": "TUI-виджеты через slots; facade предоставляет view models для agent/model/usage/git/memory. Убрать imports внутренних useLocal/getUsage.",
+      "notes": "Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.",
+      "depends_on": [
+        "nocowboy-i18n-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Виджеты используют slots/facade, а не внутренние useLocal/getUsage",
+          "verify": "grep + bun test test/nocowboy (ui slots)",
+          "critical": true
+        },
+        {
+          "check": "Facade отдаёт agent/model/usage/git/memory view models",
+          "verify": "grep view-model contracts",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "input-port",
+      "title": "InputPort/UI facade — контракт mouse/focus/selection",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p3-ui",
+      "priority": "P2",
+      "tags": [
+        "tui",
+        "ux"
+      ],
+      "description": "Отдельный InputPort/UI facade для mouse/focus/selection с контрактом на button propagation и navigation. Не писать собственный парсер терминального mouse protocol без необходимости.",
+      "notes": "Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.",
+      "depends_on": [
+        "nocowboy-ui-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Handlers монтируются через facade, без прямого залегания в upstream-компоненты",
+          "verify": "grep + bun test test/nocowboy (input port)",
+          "critical": true
+        },
+        {
+          "check": "Контракт на button propagation и navigation покрыт тестами",
+          "verify": "bun test test/nocowboy (input navigation)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "git-balance-async-services",
+      "title": "Git/Balance — асинхронные сервисы, unknown ≠ 0",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p3-ui",
+      "priority": "P2",
+      "tags": [
+        "tui",
+        "cost",
+        "reliability"
+      ],
+      "description": "Вынести Git/balance polling из render-функций в асинхронные services. Ввести GitPort; состояние unknown/stale/error представлять отдельно от 0.",
+      "notes": "Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.",
+      "depends_on": [
+        "nocowboy-ui-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Git/balance читаются вне render, из асинхронного сервиса",
+          "verify": "grep + bun test test/nocowboy (git port)",
+          "critical": true
+        },
+        {
+          "check": "unknown/stale/error не отображаются как 0",
+          "verify": "bun test test/nocowboy (balance status)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "memory-adapter-unified",
+      "title": "Единый MemoryAdapter — статусы, explicit namespace, shutdown flush",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p4-memory",
+      "priority": "P0",
+      "tags": [
+        "memory",
+        "reliability"
+      ],
+      "description": "Свести raw fetch и generic MCP path к одному MemoryAdapter, передавать project/session явно, убрать shell logging endpoint из lifecycle. Ввести наблюдаемое available/degraded/unavailable, structured errors и bounded shutdown flush; проверить изоляцию двух проектов и нескольких child sessions.",
+      "notes": "`nutausik-client.ts` возвращает пустую строку при transport failure и не превращает JSON-RPC/tool error в явный memory status. Session-end операции fire-and-forget; logging hook прописывает shell/python/curl command с literal endpoint, обходя общий client/env override.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Один transport adapter для raw client и generic MCP",
+          "verify": "grep + bun test test/nocowboy (memory adapter)",
+          "critical": true
+        },
+        {
+          "check": "project/session передаются явно в каждом вызове",
+          "verify": "grep call sites",
+          "critical": true
+        },
+        {
+          "check": "available/degraded/unavailable наблюдаемы; structured errors вместо пустой строки",
+          "verify": "bun test test/nocowboy/nutausik",
+          "critical": true
+        },
+        {
+          "check": "Bounded shutdown flush; два проекта и параллельные children не смешивают namespaces",
+          "verify": "bun test test/nocowboy (memory isolation + flush)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "provider-adapters-port",
+      "title": "ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p4-provider",
+      "priority": "P1",
+      "tags": [
+        "provider",
+        "security",
+        "architecture"
+      ],
+      "description": "Сохранить provider baseURL/proxy policy в ProviderAdapters; преобразовывать shared model schema на границе. Разделить capability metadata, billing currency/status и generation protocol.",
+      "notes": "`rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "baseURL/proxy policy сохраняется через ProviderPort",
+          "verify": "bun test test/nocowboy (provider adapter)",
+          "critical": true
+        },
+        {
+          "check": "Shared model schema конвертируется на границе, не протекает в домен",
+          "verify": "grep + unit test",
+          "critical": true
+        },
+        {
+          "check": "capability metadata, billing currency/status и generation protocol разделены",
+          "verify": "grep types",
+          "critical": true
+        },
+        {
+          "check": "rejectUnauthorized:false не является дефолтным контрактом (только explicit opt-in)",
+          "verify": "grep + test",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "cost-balance-semantics",
+      "title": "Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p4-provider",
+      "priority": "P1",
+      "tags": [
+        "cost",
+        "telemetry",
+        "reliability"
+      ],
+      "description": "Различать три показателя: токены из usage, расчёт стоимости по metadata модели и остаток из provider billing API. Balance failure не возвращает 0; parent cost propagation сохраняется.",
+      "depends_on": [
+        "provider-adapters-port"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Три показателя — отдельные типы/статусы, unknown balance не 0",
+          "verify": "bun test test/nocowboy (balance semantics)",
+          "critical": true
+        },
+        {
+          "check": "Parent cost propagation корректен для двух параллельных children",
+          "verify": "bun test test/nocowboy (cost propagation)",
+          "critical": true
+        },
+        {
+          "check": "Resumed child не учитывается повторно",
+          "verify": "bun test test/nocowboy (cost resume)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "upstream-backport-ledger",
+      "title": "Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p5-process",
+      "priority": "P1",
+      "tags": [
+        "upstream",
+        "process",
+        "docs"
+      ],
+      "description": "Для каждого backport фиксировать: upstream SHA → локальная потребность → затронутый contract → adaptation diff → проверка → запись в ledger. Если fix тянет значительную часть session/runtime — оценить цельный совместимый срез, а не раскладывать обязательные зависимости по случайным cherry-pick.",
+      "notes": "В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику.",
+      "depends_on": [
+        "engine-manifest",
+        "fork-merge-profile"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Ledger фиксирует SHA, потребность, contract, diff и результат verify",
+          "verify": "docs/reference/upstream-backport-ledger.md + check script",
+          "critical": true
+        },
+        {
+          "check": "Повторный перенос не возвращает уже исправленную семантику",
+          "verify": "check script detects duplicate backport SHA",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "migration-contract-tests",
+      "title": "Контрактные тесты миграции движка (минимальный набор сценариев)",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p5-process",
+      "priority": "P0",
+      "tags": [
+        "architecture",
+        "quality",
+        "reliability"
+      ],
+      "description": "Минимальные сценарии при будущей миграции, как исполнимые contract-тесты: worker child (fg/bg/resume/cancel/timeout, долгий tool и permission wait не считаются stall); planner/reviewer mutation policy (включая YOLO и delegation); два параллельных child costs, resumed child без повторного учёта; RU/EN switch в живой сессии и два проекта с разными locale; edit round-trip UTF-8 BOM/CRLF/legacy + duplicate/batch/stale/partial; память unavailable/recovered и namespace isolation; compaction при активном goal/checkpoint; mouse click/focus/selection/navigation.",
+      "depends_on": [
+        "engine-adapter-package"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Каждый перечисленный сценарий имеет автоматический contract-тест",
+          "verify": "bun test test/nocowboy/contracts",
+          "critical": true
+        },
+        {
+          "check": "Набор проходит на текущем движке и становится gate для будущей миграции",
+          "verify": "bun test test/nocowboy/contracts",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "backport-compaction-tail",
+      "title": "Backport: сохранение recent tail при compaction + token budgeting/pruning",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "backport",
+      "priority": "P1",
+      "tags": [
+        "compaction",
+        "upstream",
+        "tokens"
+      ],
+      "description": "Портировать сохранение recent tail при compaction, token budgeting и pruning на границах cache invalidation. Переносить вместе с NoCowboy queue/checkpoints.",
+      "depends_on": [
+        "upstream-backport-ledger"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Recent tail сохраняется при compaction",
+          "verify": "bun test test/nocowboy (compaction tail)",
+          "critical": true
+        },
+        {
+          "check": "Token budget/pruning работают на границах cache invalidation",
+          "verify": "bun test test/nocowboy (compaction budget)",
+          "critical": true
+        },
+        {
+          "check": "Очередь prompts и checkpoint contract не теряются",
+          "verify": "bun test test/nocowboy (compaction queue)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "backport-subagent-depth-resume",
+      "title": "Backport: subagent depth limit + resume diagnostics",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "backport",
+      "priority": "P2",
+      "tags": [
+        "subagents",
+        "upstream",
+        "reliability"
+      ],
+      "description": "Взять ограничение глубины subagents и resume diagnostics из upstream, согласовав с нашей depth policy и background/resume bridge.",
+      "depends_on": [
+        "upstream-backport-ledger"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Depth limit согласован с нашей политикой и применяется executor'ом",
+          "verify": "bun test test/tool/task (depth)",
+          "critical": true
+        },
+        {
+          "check": "Resume diagnostics помогают при неверном/просроченном resume",
+          "verify": "bun test test/tool/task (resume diagnostics)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "backport-provider-malformed-config",
+      "title": "Backport: терпимость provider config к malformed model entry",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "backport",
+      "priority": "P2",
+      "tags": [
+        "provider",
+        "upstream",
+        "resilience"
+      ],
+      "description": "Узкий adapter/config backport: provider не падает на malformed model entry, сообщает понятную ошибку и продолжает работу с остальными моделями.",
+      "depends_on": [
+        "upstream-backport-ledger",
+        "provider-adapters-port"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Malformed model entry не ломает загрузку provider",
+          "verify": "bun test test/provider (malformed model entry)",
+          "critical": true
+        },
+        {
+          "check": "Ошибка сообщается структурно, остальные модели доступны",
+          "verify": "bun test test/provider (malformed model entry)",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "tool-capability-config",
+      "title": "Capability-конфиг выбора инструментов вместо проверки имени модели",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "backport",
+      "priority": "P1",
+      "tags": [
+        "tools",
+        "architecture"
+      ],
+      "description": "Заменить проверку имени модели (apply_patch для части gpt-* с исключением edit) capability-конфигурацией. Нет единственной обязательной методики редактирования — поведение зависит от модели, tools и промпта.",
+      "notes": "`tool/registry.ts:344` включает apply_patch для части `gpt-*` и E2E URL, исключая edit; write и search_replace остаются в общем списке.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Выбор edit-инструментов управляется capability-конфигом, не именем модели",
+          "verify": "bun test test/tool/registry (capability)",
+          "critical": true
+        },
+        {
+          "check": "Поведение для gpt-* воспроизводится без model-name ветвления",
+          "verify": "grep registry.ts: no model-name tool switch",
+          "critical": true
         }
       ]
     }
