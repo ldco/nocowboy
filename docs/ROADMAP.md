@@ -126,8 +126,6 @@
   - Fallback: только diff без графа
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
-- ⬜ Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
-  > `script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.
 - ⬜ Ownership-манифест: owned / adapted / generated
 - ⬜ Контракт read-only planner/reviewer — реальное ограничение, а не декларация
   > Подтверждено в коде: `agent.ts:115` defaults начинаются с `* : allow`; planner получает `Permission.merge(defaults, {suggest,plan_enter}, user, META_TOOLS)` без deny edit; reviewer — без deny edit. Только architect имеет `edit: {"*": deny}` и readOnlyBash. `guardPermissions/hardPermissions` повторно применяют правила, а не создают отсутствующий deny.

@@ -53,6 +53,12 @@ export interface MergeConfig {
 
   /** i18n file patterns that need string transformation */
   i18nPatterns: string[]
+
+  /**
+   * When true, the upstream checkout is a read-only reference for this profile:
+   * it is compared, never rewritten in place and never merged into the tree.
+   */
+  readOnlyUpstream?: boolean
 }
 
 export const defaultConfig: MergeConfig = {
@@ -241,4 +247,61 @@ export function resolveBaseBranch(base: string | undefined, current: string): st
   if (base !== "HEAD") return base
   if (current === "HEAD") throw new Error("--base-branch HEAD requires a named branch, but git is in detached HEAD")
   return current
+}
+
+// ---------------------------------------------------------------------------
+// Merge profiles
+// ---------------------------------------------------------------------------
+
+export type ProfileName = "kilocode" | "nocowboy"
+
+export const profiles: Record<ProfileName, MergeConfig> = {
+  /** Legacy Kilo genealogy: upstream opencode, rewritten to @kilocode before merge. */
+  kilocode: defaultConfig,
+  /**
+   * NoCowboy genealogy.
+   *
+   * This profile exists precisely to *not* run the legacy OpenCode→Kilo
+   * transforms. `@nocowboy/*` is NoCowboy's own namespace, so the profile never
+   * rewrites it to `@kilocode/*` (see the empty `packageMappings`). Upstream is
+   * held as a read-only reference: no branding take-theirs and no in-place
+   * transforms — package names and paths are reconciled only at comparison time
+   * (see `utils/normalize.ts`).
+   */
+  nocowboy: {
+    ...defaultConfig,
+    // No write-time renames. The NoCowboy namespace is canonical.
+    packageMappings: [],
+    // No branding take-theirs: upstream is a reference, not a source to rewrite.
+    takeTheirsAndTransform: [],
+    // Upstream is compared, never merged in place.
+    readOnlyUpstream: true,
+    // NoCowboy-specific trees that must be preserved verbatim.
+    kiloDirectories: [
+      "packages/opencode/src/nocowboy",
+      "packages/opencode/test/nocowboy",
+      "packages/opencode/src/kilocode",
+      "script/upstream",
+    ],
+  },
+}
+
+/**
+ * Whether a profile may run the in-place upstream merge. A profile that holds
+ * upstream as a read-only reference (`readOnlyUpstream`) must never inject it
+ * into the working tree.
+ */
+export function canMergeInPlace(config: MergeConfig): boolean {
+  return config.readOnlyUpstream !== true
+}
+
+/**
+ * Load a merge profile by name. Defaults to `nocowboy` — this repo's own
+ * genealogy — so an unqualified call can never accidentally run the legacy
+ * OpenCode→Kilo rewrites.
+ */
+export function loadProfile(name: ProfileName = "nocowboy", overrides?: Partial<MergeConfig>): MergeConfig {
+  const base = profiles[name]
+  if (!base) throw new Error(`unknown merge profile: ${name}`)
+  return { ...base, ...overrides }
 }

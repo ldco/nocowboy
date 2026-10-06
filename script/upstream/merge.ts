@@ -25,7 +25,7 @@ import * as logger from "./utils/logger"
 import * as version from "./utils/version"
 import * as report from "./utils/report"
 import * as worktree from "./utils/worktree"
-import { loadConfig, resolveBaseBranch } from "./utils/config"
+import { canMergeInPlace, loadProfile, resolveBaseBranch, type ProfileName } from "./utils/config"
 import { transformAll as transformPackageNames } from "./transforms/package-names"
 import { preserveAllVersions } from "./transforms/preserve-versions"
 import { keepOursFiles, resetToOurs } from "./transforms/keep-ours"
@@ -55,6 +55,7 @@ interface MergeOptions {
   reportOnly: boolean
   verbose: boolean
   author?: string
+  profile?: string
 }
 
 async function hasMergiraf(): Promise<boolean> {
@@ -171,6 +172,11 @@ function parseArgs(): MergeOptions {
     options.baseBranch = args[baseBranchIdx + 1]
   }
 
+  const profileIdx = args.indexOf("--profile")
+  if (profileIdx !== -1 && args[profileIdx + 1]) {
+    options.profile = args[profileIdx + 1]
+  }
+
   return options
 }
 
@@ -275,7 +281,22 @@ async function main() {
   logger.info(`Current branch: ${currentBranch}`)
 
   const base = resolveBaseBranch(options.baseBranch, currentBranch)
-  const config = loadConfig(base ? { baseBranch: base } : undefined)
+  const profileName = (options.profile ?? "nocowboy") as ProfileName
+  if (profileName !== "nocowboy" && profileName !== "kilocode") {
+    logger.error(`Unknown merge profile "${profileName}" (expected: nocowboy, kilocode)`)
+    process.exit(1)
+  }
+  const config = loadProfile(profileName, base ? { baseBranch: base } : undefined)
+  // The NoCowboy profile holds upstream as a read-only reference: refuse to
+  // inject it into the working tree. Only the legacy Kilo profile may merge in
+  // place; a non-destructive preview (--dry-run) or --report-only is still fine.
+  if (!canMergeInPlace(config) && !options.dryRun && !options.reportOnly) {
+    logger.error(
+      `Profile "${profileName}" holds upstream as a read-only reference; refusing to merge in place.`,
+    )
+    logger.info("Use --profile kilocode for the legacy in-place merge, or `bun script/upstream/compare.ts` for the NoCowboy compare workflow.")
+    process.exit(1)
+  }
   if (options.baseBranch === "HEAD") {
     logger.info(`Resolved --base-branch HEAD to current branch: ${config.baseBranch}`)
   }

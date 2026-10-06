@@ -547,6 +547,11 @@
   `verify:cmd bun run scripts/engine-manifest.ts --check`
   `verify:test packages/opencode/test/nocowboy/engine-manifest.test.ts`
   `verify:file docs/reference/engine-manifest.md`
+- **DONE** Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
+  `verify:test script/upstream/utils/config.test.ts`
+  `verify:test script/upstream/utils/normalize.test.ts`
+  `verify:cmd bun run script/upstream/compare.ts --profile nocowboy --report`
+  `verify:file docs/features/fork-merge-profile.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`

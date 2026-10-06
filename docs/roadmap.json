@@ -3882,7 +3882,7 @@
     {
       "id": "fork-merge-profile",
       "title": "Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-baseline",
       "priority": "P0",
@@ -3892,7 +3892,7 @@
         "process"
       ],
       "description": "Ввести отдельный NoCowboy merge profile: выключить legacy OpenCode→Kilo transforms для этого workflow, хранить upstream как read-only reference, сравнивать нормализованные деревья (package names/paths).",
-      "notes": "`script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.",
+      "notes": "Implemented 2026-10-06. `script/upstream/utils/config.ts` gains a profile registry (`profiles.kilocode` = legacy, `profiles.nocowboy`) and `loadProfile()` (defaults to nocowboy). The NoCowboy profile has `packageMappings: []` (never rewrites @nocowboy/* to @kilocode/*), `takeTheirsAndTransform: []` and `readOnlyUpstream: true` — upstream is a read-only reference, not merged in place. Comparison-time reconciliation lives in `script/upstream/utils/normalize.ts` (NOCOWBOY_NORMALIZATION maps Kilo/opencode names to @nocowboy; normalizeTreePath; compareTrees) and is applied to BOTH trees before diffing, never written to disk. Enforcement is real: `merge.ts` now loads the profile (`--profile`, default nocowboy) via `loadProfile` and refuses the in-place merge when `canMergeInPlace(config)` is false (readOnlyUpstream), so upstream is not injected into working paths; `--profile kilocode` opts into the legacy merge. `script/upstream/compare.ts --profile nocowboy --report` prints the profile and exits 1 if it would rewrite the namespace or write upstream; `--left/--right` runs the normalized tree comparison. Tests: config.test.ts + normalize.test.ts (15 total).",
       "depends_on": [
         "engine-manifest"
       ],
@@ -3911,6 +3911,24 @@
           "check": "Нормализация package names/paths применяется до сравнения деревьев",
           "verify": "compare script exists + test",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "script/upstream/utils/config.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "script/upstream/utils/normalize.test.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run script/upstream/compare.ts --profile nocowboy --report"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/fork-merge-profile.md"
         }
       ]
     },
