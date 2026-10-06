@@ -552,6 +552,10 @@
   `verify:test script/upstream/utils/normalize.test.ts`
   `verify:cmd bun run script/upstream/compare.ts --profile nocowboy --report`
   `verify:file docs/features/fork-merge-profile.md`
+- **DONE** Контракт read-only planner/reviewer — реальное ограничение, а не декларация
+  `verify:test packages/opencode/test/nocowboy/agent-readonly.test.ts`
+  `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
+  `verify:file docs/features/planner-reviewer-readonly-contract.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`

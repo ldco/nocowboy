@@ -3968,7 +3968,7 @@
     {
       "id": "planner-reviewer-readonly-contract",
       "title": "Контракт read-only planner/reviewer — реальное ограничение, а не декларация",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P0",
@@ -3978,7 +3978,7 @@
         "safety"
       ],
       "description": "Сделать read-only planner/reviewer исполняемым инвариантом: встроенный профиль должен запрещать мутации (edit/write/apply_patch/search_replace/мутирующий bash) в режиме по умолчанию; YOLO и явный agent-конфиг остаются единственным осознанным способом снять ограничение (см. 1.0.9-alpha).",
-      "notes": "Подтверждено в коде: `agent.ts:115` defaults начинаются с `* : allow`; planner получает `Permission.merge(defaults, {suggest,plan_enter}, user, META_TOOLS)` без deny edit; reviewer — без deny edit. Только architect имеет `edit: {\"*\": deny}` и readOnlyBash. `guardPermissions/hardPermissions` повторно применяют правила, а не создают отсутствующий deny.",
+      "notes": "Implemented 2026-10-06. planner and reviewer now carry a read-only ceiling built into their agent profiles (packages/opencode/src/nocowboy/agent/index.ts): an explicit `edit: {\"*\": \"deny\"}` (covers edit/write/apply_patch/search_replace, which all ask under the `edit` permission) placed LAST so it wins over defaults/user. Planner also gets `bash: readOnlyBash` (strict allowlist, like architect). Reviewer gets `bash: mutatingBash` — a denylist of filesystem/git/dependency mutators (plus spaced `>`/`>>`) instead of the allowlist, because a strict allowlist would also block the verification commands a reviewer exists to run; read/test/build commands keep working. Both are ceilings (hardRuleset): YOLO lifts them (permission/index.ts consults allowEverything before the veto) and explicit per-agent config merges later in agent.ts, so those remain the only opt-outs. External-directory and config-path protection are unaffected (formally absolute). Tests: agent-readonly.test.ts (5: planner/reviewer deny edit+mutating bash, allow read/verify; architect regression; worker control; explicit config lifts) + existing permission-allow-everything.test.ts (YOLO lift, YOLO external veto, config protection).",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3995,6 +3995,20 @@
           "check": "YOLO и явный agent-config остаются единственным способом снять ограничение; внешняя директория и защита конфигов абсолютны",
           "verify": "bun test test/nocowboy/permission",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/agent-readonly.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/planner-reviewer-readonly-contract.md"
         }
       ]
     },

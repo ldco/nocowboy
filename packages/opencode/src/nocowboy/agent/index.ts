@@ -145,6 +145,73 @@ export const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
   "sort * --output*": "deny",
 }
 
+/**
+ * Mutating shell commands denied to read-only agents that must still run
+ * read/build/verify commands (the reviewer). A strict allowlist (readOnlyBash)
+ * would also block the verification commands a reviewer exists to run, so this
+ * is a denylist: only commands that change the working tree, git history, or
+ * dependencies are denied. Bare `>`/`>>` are matched only with surrounding
+ * spaces so `2>&1` inside a verification pipeline is not caught. Both this and
+ * readOnlyBash are ceilings: YOLO and explicit per-agent config lift them.
+ */
+export const mutatingBash: Record<string, "allow" | "ask" | "deny"> = {
+  // Filesystem mutations.
+  "rm *": "deny",
+  "rmdir *": "deny",
+  "mv *": "deny",
+  "cp *": "deny",
+  "mkdir *": "deny",
+  "touch *": "deny",
+  "chmod *": "deny",
+  "chown *": "deny",
+  "ln *": "deny",
+  "truncate *": "deny",
+  "tee *": "deny",
+  "dd *": "deny",
+  "sed -i *": "deny",
+  "sed * -i *": "deny",
+  "sed --in-place*": "deny",
+  // Write redirection (spaced form only, to spare `2>&1`).
+  "* > *": "deny",
+  "* >> *": "deny",
+  // Git history/working-tree mutations.
+  "git add *": "deny",
+  "git commit *": "deny",
+  "git push *": "deny",
+  "git pull *": "deny",
+  "git fetch *": "deny",
+  "git merge *": "deny",
+  "git rebase *": "deny",
+  "git reset *": "deny",
+  "git checkout *": "deny",
+  "git switch *": "deny",
+  "git restore *": "deny",
+  "git clean *": "deny",
+  "git stash *": "deny",
+  "git cherry-pick *": "deny",
+  "git revert *": "deny",
+  "git tag *": "deny",
+  "git remote *": "deny",
+  "git apply *": "deny",
+  "git am *": "deny",
+  "git init *": "deny",
+  "git config *": "deny",
+  // Dependency mutations.
+  "bun add *": "deny",
+  "bun remove *": "deny",
+  "bun install *": "deny",
+  "bun update *": "deny",
+  "bun link *": "deny",
+  "npm install *": "deny",
+  "npm i *": "deny",
+  "npm ci *": "deny",
+  "npm uninstall *": "deny",
+  "yarn add *": "deny",
+  "yarn remove *": "deny",
+  "pnpm add *": "deny",
+  "pnpm remove *": "deny",
+}
+
 // Always-available meta-tools — every agent has these regardless of groups/config.
 export const META_TOOLS = Permission.fromConfig({
   task: "allow",
@@ -369,6 +436,10 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_REVIEWER_RU : PROMPT_REVIEWER) + routerPrompt,
     model: resolveModel("reviewer", { providerID: "moonshotai", modelID: "kimi-k3" }),
     options: {},
+    // Read-only ceiling: no file mutation. The reviewer still runs read/verify
+    // commands, so its bash policy is the mutation denylist rather than the
+    // readOnlyBash allowlist. Placed LAST (wins over defaults/user); YOLO and
+    // explicit per-agent config lift it.
     permission: Permission.merge(
       defaults,
       Permission.fromConfig({
@@ -378,6 +449,7 @@ export function patchAgents(
       }),
       user,
       META_TOOLS,
+      Permission.fromConfig({ bash: mutatingBash, edit: { "*": "deny" } }),
     ),
     mode: "all",
     native: true,
@@ -425,7 +497,17 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_PLANNER_RU : PROMPT_PLANNER) + routerPrompt,
     model: resolveModel("planner", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
-    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
+    // Read-only ceiling (see architect): mutations are denied by default.
+    // Placed LAST so it wins over defaults/user (a global `permission.edit`
+    // allow cannot re-grant it); YOLO and explicit per-agent config are the
+    // only ways to lift it.
+    permission: Permission.merge(
+      defaults,
+      Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }),
+      user,
+      META_TOOLS,
+      Permission.fromConfig({ bash: readOnlyBash, edit: { "*": "deny" } }),
+    ),
     mode: "all",
     native: true,
   }
