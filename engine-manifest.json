@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "name": "NoCowboy",
+    "rootCommit": "ca721a26f9942817652ee4cbc42bf76da7f5d638",
+    "rootCommitDate": "2026-06-19"
+  },
+  "upstream": {
+    "project": "Kilo Code",
+    "url": "https://github.com/kilo-org/kilocode.git",
+    "declaredVersion": "v7.3.46",
+    "declaredTagSha": "f388b60ab579adef7cf1a6c022082100338d6450",
+    "byteMatchEstablished": false
+  },
+  "provenance": {
+    "kind": "imported-snapshot",
+    "confidence": "declared",
+    "notes": "The fork was imported as a snapshot declaring Kilo Code v7.3.46. A byte-for-byte match between the snapshot and the upstream tag/SHA was NOT established, and there is no .opencode-version marker, so the origin is declared, not verified."
+  },
+  "dependencies": {
+    "@opentui/core": "0.4.1",
+    "@opentui/solid": "0.4.1",
+    "ai": "6.0.168",
+    "@ai-sdk/provider": "3.0.8",
+    "@modelcontextprotocol/sdk": "1.29.0"
+  },
+  "backports": {
+    "ledger": "backport-ledger.json",
+    "count": 13,
+    "byStatus": {
+      "abandoned": 1,
+      "done": 8,
+      "n/a": 4
+    }
+  }
+}

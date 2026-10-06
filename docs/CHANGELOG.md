@@ -543,6 +543,10 @@
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/memory.ts`
   `verify:test packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts`
   `verify:file docs/features/knowledge-graph-stub.md`
+- **DONE** Манифест движка — SHA, provenance, версии зависимостей, ledger портов
+  `verify:cmd bun run scripts/engine-manifest.ts --check`
+  `verify:test packages/opencode/test/nocowboy/engine-manifest.test.ts`
+  `verify:file docs/reference/engine-manifest.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`

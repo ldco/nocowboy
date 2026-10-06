@@ -126,8 +126,6 @@
   - Fallback: только diff без графа
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
-- ⬜ Манифест движка — SHA, provenance, версии зависимостей, ledger портов
-  > Проверено: корень ca721a2 (19.06.2026), `fork of KiloCode v7.3.46`; GitHub tag v7.3.46 = f388b60ab579adef7cf1a6c022082100338d6450, побайтовое соответствие снимку НЕ установлено; remote upstream и .opencode-version отсутствуют. Артефакты: engine-manifest.json + docs/reference/engine-manifest.md.
 - ⬜ Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
   > `script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.
 - ⬜ Ownership-манифест: owned / adapted / generated
