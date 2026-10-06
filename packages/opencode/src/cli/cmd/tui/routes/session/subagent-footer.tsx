@@ -10,7 +10,7 @@ import { Locale } from "@/util/locale"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useCommandPalette } from "../../context/command-palette"
 import { useCommandShortcut } from "../../keymap"
-import { fetchBalance, findBalanceProvider, getBalanceColor } from "@/nocowboy/provider-balance"
+import { balanceAmount, balanceColorOf, fetchBalance, findBalanceProvider } from "@/nocowboy/provider-balance"
 
 export function SubagentFooter() {
   const route = useRouteData("session")
@@ -68,10 +68,10 @@ export function SubagentFooter() {
     (input) => fetchBalance(input.pid, input.key, input.baseURL),
   )
 
-  const balance = createMemo(() => balanceData() ?? 0)
+  const balance = createMemo(() => balanceData())
   const balanceFg = createMemo(() => {
-    const color = getBalanceColor(balance())
-    return theme[color]
+    const color = balanceColorOf(balance())
+    return color ? theme[color] : theme.textMuted
   })
 
   const usage = createMemo(() => {
@@ -131,7 +131,7 @@ export function SubagentFooter() {
               )}
             </Show>
             <text fg={balanceFg()} wrapMode="none">
-              {money.format(balance())}
+              {balanceAmount(balance()) === undefined ? "—" : money.format(balanceAmount(balance())!)}
             </text>
           </box>
           <box flexDirection="row" gap={2}>

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "name": "NoCowboy",
+    "nocowboy_sha": "b51eecaa60e35c22d0d96093062a7f706b336dfe",
+    "root_commit": "ca721a26f9942817652ee4cbc42bf76da7f5d638",
+    "root_commit_date": "2026-06-19",
+    "root_commit_message": "NoCowboy TUI — fork of KiloCode v7.3.46"
+  },
+  "fork_of": {
+    "name": "Kilo Code",
+    "repo": "https://github.com/kilo-org/kilocode",
+    "tag": "v7.3.46",
+    "sha": "f388b60ab579adef7cf1a6c022082100338d6450"
+  },
+  "provenance": {
+    "confidence": "snapshot",
+    "basis": "The NoCowboy root commit ca721a26f9942817652ee4cbc42bf76da7f5d638 is not a descendant of the declared Kilo tag v7.3.46 (f388b60ab5): the tree is an imported snapshot, not a preserved Git ancestor chain.",
+    "upstream_remote": "https://github.com/kilo-org/kilocode.git",
+    "declared_tag_object_present": true,
+    "declared_tag_is_ancestor": false,
+    "preserved_ancestry": false
+  },
+  "dependencies": {
+    "opentui_core": "0.4.1",
+    "opentui_solid": "0.4.1",
+    "ai_sdk": "6.0.168",
+    "mcp_sdk": "1.29.0"
+  },
+  "upstream_backports": [
+    {
+      "id": "backport-compaction-tail",
+      "title": "Backport: сохранение recent tail при compaction + token budgeting/pruning",
+      "status": "done"
+    },
+    {
+      "id": "backport-subagent-depth-resume",
+      "title": "Backport: subagent depth limit + resume diagnostics",
+      "status": "done"
+    },
+    {
+      "id": "backport-provider-malformed-config",
+      "title": "Backport: терпимость provider config к malformed model entry",
+      "status": "done"
+    },
+    {
+      "id": "tool-capability-config",
+      "title": "Capability-конфиг выбора инструментов вместо проверки имени модели",
+      "status": "done"
+    }
+  ],
+  "generated": {
+    "at": "2026-10-06T13:07:45.043Z",
+    "by": "scripts/engine-manifest.ts"
+  }
+}

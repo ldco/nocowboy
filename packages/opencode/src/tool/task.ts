@@ -14,6 +14,7 @@ import { SessionStatus } from "@/session/status"
 import { Config } from "@/config/config"
 import { Provider } from "@/provider/provider"
 import { KiloTask } from "../nocowboy/tool/task"
+import { EngineAdapter } from "../nocowboy/engine-adapter" // nocowboy_change - single engine entry point for ports
 import { KiloCostPropagation } from "../nocowboy/session/cost-propagation"
 import { NoCowboySessionProcessor } from "../nocowboy/session/processor"
 import { NoCowboySession } from "../nocowboy/session"
@@ -26,6 +27,8 @@ import {
 } from "../nocowboy/session/watchdog" // nocowboy_change
 import { errorMessage } from "@/util/error"
 import { secondPhasePrompt } from "@/nocowboy/review/cascade"
+import { missingSpecContractSections } from "@/nocowboy/spec/contract" // nocowboy_change - delegation spec contract
+import { resumeDiagnostic } from "@/nocowboy/tool/resume" // nocowboy_change - resume diagnostics
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Cause, Duration, Effect, Exit, Option, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
@@ -33,6 +36,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import * as Log from "@nocowboy/core/util/log" // nocowboy_change
 
 const logWatchdog = Log.create({ service: "subagent.watchdog" }) // nocowboy_change
+const logContract = Log.create({ service: "nocowboy.spec-contract" }) // nocowboy_change
 
 export interface TaskPromptOps {
   cancel(sessionID: SessionID): Effect.Effect<void>
@@ -151,6 +155,31 @@ export const TaskTool = Tool.define(
         return yield* Effect.fail(new Error("Background subagents require KILO_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true"))
       }
 
+      // nocowboy_change - resolve + validate the target agent BEFORE prompting for
+      // permission: a forbidden (primary) agent must never reach the permission
+      // system, otherwise a doomed spawn could raise a prompt and persist a broad
+      // `task:*` always-allow before the policy rejects it. Executor half of the
+      // single spawn policy (AgentCatalog); the listing half is tool/registry.ts.
+      const next = yield* agent.get(params.subagent_type)
+      if (!next) {
+        return yield* Effect.fail(new Error(`Unknown agent type: ${params.subagent_type} is not a valid agent type`))
+      }
+      const spawnPolicy = EngineAdapter.agentCatalog()
+      if (!spawnPolicy.isSpawnable(next)) {
+        return yield* Effect.fail(spawnPolicy.spawnError(params.subagent_type, next.mode))
+      }
+
+      // nocowboy_change - spec-contract advisory: a delegation prompt should carry
+      // the five-part contract (goal, constraints, acceptance criteria, files to
+      // touch, files to NOT touch) so the subagent needs no extra context.
+      // Advisory only — a missing contract never blocks the delegation.
+      const contractGaps = missingSpecContractSections(params.prompt)
+      if (contractGaps.length > 0) {
+        logContract.warn(
+          `delegation to ${params.subagent_type} is missing spec-contract sections: ${contractGaps.join(", ")}`,
+        )
+      }
+
       if (!ctx.extra?.bypassAgentCheck) {
         yield* ctx.ask({
           permission: id,
@@ -163,12 +192,6 @@ export const TaskTool = Tool.define(
         })
       }
 
-      const next = yield* agent.get(params.subagent_type)
-      if (!next) {
-        return yield* Effect.fail(new Error(`Unknown agent type: ${params.subagent_type} is not a valid agent type`))
-      }
-      KiloTask.validate(next, params.subagent_type)
-
       const canTask = KiloTask.nestedTask()
       const canTodo = next.permission.some((rule) => rule.permission === "todowrite")
 
@@ -176,9 +199,18 @@ export const TaskTool = Tool.define(
       const session = taskID
         ? yield* sessions.get(SessionID.make(taskID)).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
         : undefined
-      if (session && session.parentID !== ctx.sessionID) {
-        return yield* Effect.fail(new Error(`Cannot resume session ${taskID}: not a child of the current session`))
-      }
+      // nocowboy_change - resume diagnostics: a task_id that cannot be resumed
+      // (unknown/expired, or not a child of this session) fails with a clear
+      // reason instead of silently creating a fresh session.
+      const resume = resumeDiagnostic({
+        taskID,
+        found: !!session,
+        parentMatches: session ? session.parentID === ctx.sessionID : undefined,
+      })
+      if (!resume.ok) return yield* Effect.fail(new Error(resume.error))
+      // A stale task_id keeps the resume-or-create fallback, but the notice is
+      // surfaced in the output so the caller never believes it resumed a task.
+      const withResumeNotice = (text: string) => (resume.warning ? `${resume.warning}\n\n${text}` : text)
       const parent = yield* sessions.get(ctx.sessionID)
       const parentAgent = parent.agent
         ? yield* agent.get(parent.agent).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
@@ -489,7 +521,7 @@ export const TaskTool = Tool.define(
             ...metadata,
             jobId: info.id,
           },
-          output: backgroundOutput(nextSession.id),
+          output: withResumeNotice(backgroundOutput(nextSession.id)),
         }
       }
 
@@ -510,7 +542,7 @@ export const TaskTool = Tool.define(
             return {
               title: params.description,
               metadata,
-              output: output(nextSession.id, text),
+              output: withResumeNotice(output(nextSession.id, text)),
             }
           }),
         (costBefore, exit) =>

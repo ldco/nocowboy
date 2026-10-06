@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { parseCascadeModel, resolveReviewCascade, secondPhasePrompt } from "../../src/nocowboy/review/cascade"
+import {
+  diagnoseReviewIndependence,
+  parseCascadeModel,
+  resolveReviewCascade,
+  secondPhasePrompt,
+} from "../../src/nocowboy/review/cascade"
 
 const map = {
   deepseek: "openrouter/qwen3-max",
@@ -26,22 +31,22 @@ describe("resolveReviewCascade", () => {
     expect(resolveReviewCascade({ author: { providerID: "deepseek", modelID: "x" } })).toEqual({})
   })
 
-  test("deepseek author reviews with the mapped qwen model, then the author", () => {
+  test("deepseek author reviews with the mapped qwen model; no second phase by default", () => {
     const result = resolveReviewCascade({
       config: { enabled: true, map },
       author: { providerID: "deepseek", modelID: "deepseek-v4-flash" },
     })
     expect(result.primary).toEqual({ providerID: "openrouter", modelID: "qwen3-max" })
-    expect(result.secondary).toEqual({ providerID: "deepseek", modelID: "deepseek-v4-flash" })
+    expect(result.secondary).toBeUndefined()
   })
 
-  test("qwen author reviews with the mapped deepseek model", () => {
+  test("qwen author reviews with the mapped deepseek model; no second phase by default", () => {
     const result = resolveReviewCascade({
       config: { enabled: true, map },
       author: { providerID: "openrouter", modelID: "qwen/qwen3-max" },
     })
     expect(result.primary).toEqual({ providerID: "deepseek", modelID: "deepseek-v4-pro" })
-    expect(result.secondary).toEqual({ providerID: "openrouter", modelID: "qwen/qwen3-max" })
+    expect(result.secondary).toBeUndefined()
   })
 
   test("an explicit third model drives the second phase", () => {
@@ -101,5 +106,36 @@ describe("secondPhasePrompt", () => {
     expect(prompt).toContain("Review the diff")
     expect(prompt).toContain("Finding: bug at line 3")
     expect(prompt).toContain("First review")
+  })
+})
+
+describe("diagnoseReviewIndependence", () => {
+  const worker = { providerID: "deepseek", modelID: "deepseek-v4-flash" }
+  const reviewer = { providerID: "moonshotai", modelID: "kimi-k3" }
+
+  test("independent when the reviewer is a different model from the worker", () => {
+    expect(diagnoseReviewIndependence({ worker, reviewer }).independent).toBe(true)
+  })
+
+  test("flags a reviewer that resolves to the worker's model", () => {
+    const result = diagnoseReviewIndependence({ worker, reviewer: { ...worker } })
+    expect(result.independent).toBe(false)
+    expect(result.code).toBe("reviewer-equals-worker")
+    expect(result.message).toContain("deepseek/deepseek-v4-flash")
+  })
+
+  test("flags a reviewer that resolves to the author's model", () => {
+    const result = diagnoseReviewIndependence({ reviewer: { ...reviewer }, author: { ...reviewer } })
+    expect(result.independent).toBe(false)
+    expect(result.code).toBe("reviewer-equals-author")
+  })
+
+  test("an explicit allowSameModel suppresses the diagnosis", () => {
+    expect(diagnoseReviewIndependence({ worker, reviewer: { ...worker }, allowSameModel: true }).independent).toBe(true)
+  })
+
+  test("independent when models are unknown (cannot prove a collision)", () => {
+    expect(diagnoseReviewIndependence({}).independent).toBe(true)
+    expect(diagnoseReviewIndependence({ reviewer }).independent).toBe(true)
   })
 })

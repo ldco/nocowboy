@@ -5,16 +5,18 @@ import { createMemo, createResource, createSignal, onCleanup, onMount, Show } fr
 import { useSync } from "@tui/context/sync"
 import { useLocal } from "@tui/context/local"
 import {
-  fetchBalance,
-  findBalanceProvider,
-  getBalanceColor,
-  findBalanceDescriptor,
-  getPeakPricing,
+  balanceAmount,
+  balanceColorOf,
   clearBalanceCache,
+  fetchBalance,
+  findBalanceDescriptor,
+  findBalanceProvider,
+  getPeakPricing,
 } from "@/nocowboy/provider-balance"
 import { RGBA } from "@opentui/core"
 import { appendFileSync } from "node:fs"
 import { t, p } from "@tui/context/i18n"
+import { profileLabel, resolveContextProfile, type ContextProfile } from "@/nocowboy/session/context-profile"
 
 const BLOG = "/tmp/nocowboy-balance.log"
 
@@ -64,10 +66,30 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     }
   })
 
+  // Active context profile — resolved from the config + the current model window
+  // (pure, turn-independent), shown next to the window usage below.
+  const activeProfile = createMemo<ContextProfile | null>(() => {
+    const cur = local.model.current()
+    if (!cur) return null
+    const model = (props.api.state.provider as Provider[]).find((item) => item.id === cur.providerID)?.models[cur.modelID]
+    const context = model?.limit.context ?? 0
+    if (!context) return null
+    const cfg = sync.data.config as { context_profile?: ContextProfile; budget?: { max_tokens?: number } }
+    return resolveContextProfile({
+      requested: cfg?.context_profile,
+      modelContext: context,
+      budgetMaxTokens: cfg?.budget?.max_tokens,
+    }).profile
+  })
+
+  const contextHeader = createMemo(() => {
+    const profile = activeProfile()
+    return profile ? `${t("sidebar.context")} · ${profileLabel(profile)}` : t("sidebar.context")
+  })
+
   const balanceFg = createMemo(() => {
-    const b = balance() ?? 0
-    const color = getBalanceColor(b)
-    return theme()[color]
+    const color = balanceColorOf(balance())
+    return color ? theme()[color] : theme().textMuted
   })
 
   const balanceLabel = createMemo(() => {
@@ -103,7 +125,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
           <b>{balanceLabel()}</b>
         </text>
         <box flexDirection="row" gap={1}>
-          <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+          <text fg={balanceFg()}>{balanceAmount(balance()) === undefined ? "—" : money.format(balanceAmount(balance())!)}</text>
           <Show when={peakInfo()}>
             <text fg={peakInfo()!.isPeak ? brand : theme().success}>
               ({peakInfo()!.label})
@@ -115,7 +137,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
         </box>
       </Show>
       <text fg={theme().text}>
-        <b>{t("sidebar.context")}</b>
+        <b>{contextHeader()}</b>
       </text>
       <text fg={theme().textMuted}>{state().tokens.toLocaleString()} tokens</text>
       <text fg={theme().textMuted}>{state().percent ?? 0}% used</text>

@@ -9,7 +9,7 @@
 
 import { shouldAutoDream, shouldAutoDistill, DREAM_TASK, DISTILL_TASK } from "./session/auto-dream"
 import { saveMetrics } from "./session-metrics"
-import { hasNutausik, autoStartSession, autoEndSession, callTool } from "./nutausik-client"
+import { hasNutausik, autoStartSession, autoEndSession, callTool, flushMemory } from "./nutausik-client"
 import { runAll as runStartupChecks } from "./startup-checks"
 import * as Log from "@nocowboy/core/util/log"
 import * as fs from "node:fs"
@@ -21,6 +21,25 @@ import { McpLifecycle } from "./mcp/lifecycle"
 const log = Log.create({ service: "nutausik.auto-wire" })
 
 const HOOKS_FILE = path.join(homedir(), ".nocowboy", "hooks.json")
+
+/**
+ * PostToolUse logging hook body. Dependency-free (Node + global fetch), and it
+ * resolves the endpoint from NUTAUSIK_MCP_URL with the same default the client
+ * uses — so the env override is honoured instead of a hardcoded shell endpoint.
+ */
+const TOOL_LOG_HOOK_SCRIPT = [
+  'let s="";process.stdin.on("data",d=>s+=d).on("end",async()=>{',
+  "  try{",
+  '    const ctx=JSON.parse(s||"{}");const tool=ctx.tool_name||"";',
+  "    const args=ctx.tool_args||{};let detail=\"\";",
+  '    if(tool==="bash")detail=String(args.command||"").slice(0,80);',
+  '    else if(["edit","write","search_replace"].includes(tool))detail=String(args.filePath||args.file||"").slice(0,80);',
+  '    const msg=detail?tool+" — completed ("+detail+")":tool+" — completed";',
+  '    const url=process.env.NUTAUSIK_MCP_URL||"http://127.0.0.1:9210/mcp";',
+  '    await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method:"tools/call",params:{name:"nutausik_task_log",arguments:{message:msg,phase:"execute",projectDir:process.cwd()}}})});',
+  "  }catch(e){void e}",
+  "});",
+].join("\n")
 
 const NUTAUSIK_PORT = 9210
 // The proxy binds the port itself, moments after it is spawned, so the wait only
@@ -90,11 +109,10 @@ function registerToolLoggingHook(): void {
         event: "PostToolUse",
         matcher: "*",
         type: "command",
-        command: "sh",
-        args: [
-          "-c",
-          'cat | python3 -c "\nimport sys,json,subprocess\nctx=json.loads(sys.stdin.read())\ntool=ctx.get(\'tool_name\',\'\')\nargs=ctx.get(\'tool_args\',{})\n# Extract relevant detail from args\nif tool==\'bash\': detail=\'cmd: \' + args.get(\'command\',\'\')[:80]\nelif tool in (\'edit\',\'write\'): detail=\'file: \' + args.get(\'filePath\',args.get(\'file\',\'\'))[:80]\nelif tool==\'search_replace\': detail=\'file: \' + args.get(\'filePath\',\'\')[:80]\nelse: detail=\'\'\nmsg=f\'{tool} — completed ({detail})\' if detail else f\'{tool} — completed\'\nsubprocess.run([\'curl\',\'-s\',\'-X\',\'POST\',\'http://127.0.0.1:9210/mcp\',\'-H\',\'Content-Type: application/json\',\'-d\',json.dumps({\'jsonrpc\':\'2.0\',\'id\':1,\'method\':\'tools/call\',\'params\':{\'name\':\'nutausik_task_log\',\'arguments\':{\'message\':msg,\'phase\':\'execute\'}}})],capture_output=True)\n"',
-        ],
+        // One-line Node script: no python/curl, and the endpoint honours the same
+        // NUTAUSIK_MCP_URL override the in-process client uses (no literal bypass).
+        command: "node",
+        args: ["-e", TOOL_LOG_HOOK_SCRIPT],
       })
       fs.writeFileSync(HOOKS_FILE, JSON.stringify(config, null, 2))
       log.info("registered PostToolUse logging hook")
@@ -151,7 +169,11 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
  * Auto-ends the NUTAUSIK session, saves handoff, compacts memory.
  */
 export function onSessionEnded(sessionID: string, directory: string): void {
-  autoEndSession(sessionID, directory).catch(() => {})
+  // Bounded shutdown flush: wait (up to 2s) for the session-end writes before the
+  // process goes away, then stop — never blocks indefinitely.
+  autoEndSession(sessionID, directory)
+    .then(() => flushMemory(2000))
+    .catch(() => {})
 
   // Auto-save PM project context as NUTAUSIK memory
   try {
@@ -164,7 +186,7 @@ export function onSessionEnded(sessionID: string, directory: string): void {
         title: `PM session ${sessionID.slice(0, 8)}`,
         content: `Session completed in PM v3 project at ${directory}. PM rules: Tailwind-only, clsx+twMerge, no global CSS, .dark {} class-based, $state/$derived.`,
         tags: "pm,sveltekit,tailwind",
-      }).catch(() => {})
+      }, directory).catch(() => {})
     }
   } catch {} // fire-and-forget
   // Save session metrics (non-blocking, errors ignored)

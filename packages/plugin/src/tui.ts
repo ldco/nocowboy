@@ -584,6 +584,52 @@ export type TuiWorkspace = {
   set: (workspaceID?: string) => void
 }
 
+/**
+ * View models the facade exposes to widgets so a slot plugin never reaches into
+ * internal TUI contexts (`useLocal`, `getUsage`). Each returns a plain, display
+ * ready value; call them inside a memo to stay reactive.
+ */
+export type TuiUsageViewModel = {
+  input: string
+  output: string
+  cached: string
+  terminalBench?: {
+    score: string
+    costPerAttempt: string
+  }
+}
+
+export type TuiModelViewModel = {
+  providerID: string
+  modelID: string
+}
+
+export type TuiAgentViewModel = {
+  name: string
+  mode: string
+}
+
+export type TuiGitViewModel = {
+  branch: string
+}
+
+export type TuiMemoryViewModel = {
+  status: "available" | "degraded" | "unavailable"
+}
+
+export type TuiViewModels = {
+  /** Token usage for a session, already formatted for display. */
+  usage: (sessionID: string) => TuiUsageViewModel
+  /** The currently selected model, or undefined. */
+  model: () => TuiModelViewModel | undefined
+  /** The currently selected agent, or undefined. */
+  agent: () => TuiAgentViewModel | undefined
+  /** Current git branch info, or undefined outside a repository. */
+  git: () => TuiGitViewModel | undefined
+  /** NUTAUSIK memory transport health. */
+  memory: () => TuiMemoryViewModel
+}
+
 export type TuiPluginApi = {
   app: TuiApp
   attention: TuiAttention
@@ -615,6 +661,11 @@ export type TuiPluginApi = {
   readonly tuiConfig: Frozen<TuiConfigView>
   kv: TuiKV
   state: TuiState
+  /**
+   * Facade view models (agent/model/usage/git/memory) for slot widgets. Prefer
+   * these over importing internal TUI contexts.
+   */
+  viewModels: TuiViewModels
   theme: TuiTheme
   client: KiloClient
   event: TuiEventBus

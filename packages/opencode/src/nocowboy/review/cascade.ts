@@ -7,9 +7,11 @@
  *
  *   phase 1 — a reviewer model mapped from the author's model family
  *             (e.g. author deepseek -> reviewer qwen; author qwen -> reviewer deepseek)
- *   phase 2 — a second reviewer for the phase-1 findings. Defaults to the
- *             author's own model (the "previous" model), and can be pointed at a
- *             third model via config.
+ *   phase 2 — an optional second reviewer for the phase-1 findings. It is
+ *             **opt-in**: `second_phase` must name a model, or the literal
+ *             `author` to explicitly reuse the author's model. With no
+ *             `second_phase`, there is no second phase — the cascade never
+ *             silently reuses the author's model.
  *
  * Everything is configuration-driven (config `review.cascade`), never hardcoded.
  * The module is pure so it can be unit-tested without a provider registry.
@@ -24,7 +26,8 @@ export interface ReviewCascadeConfig {
   map?: Record<string, string>
   /**
    * Model for the second review phase: a `provider/model` id, or the literal
-   * `author` to reuse the model that wrote the code. Defaults to the author.
+   * `author` to explicitly reuse the model that wrote the code. There is no
+   * default — the second phase is opt-in.
    */
   second_phase?: string | null
 }
@@ -82,13 +85,10 @@ export function resolveReviewCascade(input: {
   const secondPhaseLower = secondPhase.toLowerCase()
   const secondPhaseDisabled = secondPhaseLower === "none" || secondPhaseLower === "off"
   let secondary: CascadeModel | undefined
-  if (!secondPhaseDisabled) {
-    if (secondPhase.length > 0) {
-      secondary = secondPhaseLower === "author" ? author : parseCascadeModel(secondPhase)
-    } else if (primary) {
-      // Default: the previous model reviews the reviewer.
-      secondary = author
-    }
+  // Explicit opt-in only: the second phase never silently reuses the author's
+  // model. `second_phase` must name a model, or the literal "author" to opt in.
+  if (!secondPhaseDisabled && secondPhase.length > 0) {
+    secondary = secondPhaseLower === "author" ? author : parseCascadeModel(secondPhase)
   }
 
   // Reviewing with the same model that just reviewed adds cost without adding
@@ -98,6 +98,61 @@ export function resolveReviewCascade(input: {
   }
 
   return { primary, secondary }
+}
+
+/**
+ * Review-independence diagnosis — is the reviewer actually a different model?
+ *
+ * `resolveModel` prefers an agent-specific model and otherwise falls back to the
+ * global `cfg.model`, so a reviewer and worker can silently resolve to the *same*
+ * model and the "cross-model" review becomes a self-review. This reports that so
+ * it can be surfaced as a warning instead of being assumed.
+ */
+export interface ReviewIndependenceInput {
+  /** The worker's effective model (agent.worker.model ?? cfg.model). */
+  worker?: { providerID: string; modelID: string } | undefined
+  /** The reviewer's effective model. */
+  reviewer?: { providerID: string; modelID: string } | undefined
+  /** The author of the code under review, when known. */
+  author?: { providerID: string; modelID: string } | undefined
+  /** Explicit opt-in to a same-model review. */
+  allowSameModel?: boolean
+}
+
+export interface ReviewIndependenceDiagnosis {
+  independent: boolean
+  code?: "reviewer-equals-worker" | "reviewer-equals-author"
+  message?: string
+}
+
+function sameModel(
+  a: { providerID: string; modelID: string } | undefined,
+  b: { providerID: string; modelID: string } | undefined,
+): boolean {
+  return !!a && !!b && a.providerID === b.providerID && a.modelID === b.modelID
+}
+
+function ref(model: { providerID: string; modelID: string }): string {
+  return `${model.providerID}/${model.modelID}`
+}
+
+export function diagnoseReviewIndependence(input: ReviewIndependenceInput): ReviewIndependenceDiagnosis {
+  if (input.allowSameModel) return { independent: true }
+  if (sameModel(input.reviewer, input.worker)) {
+    return {
+      independent: false,
+      code: "reviewer-equals-worker",
+      message: `reviewer model ${ref(input.reviewer!)} equals the worker model — the review is not model-independent; set agent.reviewer.model (or review.cascade) to a different model`,
+    }
+  }
+  if (sameModel(input.reviewer, input.author)) {
+    return {
+      independent: false,
+      code: "reviewer-equals-author",
+      message: `reviewer model ${ref(input.reviewer!)} equals the author model — the review is not model-independent`,
+    }
+  }
+  return { independent: true }
 }
 
 /**

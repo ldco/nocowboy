@@ -10,6 +10,14 @@ import { useDialog } from "@tui/ui/dialog"
 import { DialogSelect, type DialogSelectOption } from "@tui/ui/dialog-select"
 import { DialogPrompt } from "@tui/ui/dialog-prompt"
 import { DEFAULT_VECTOR_STORE } from "@nocowboy/indexing/config"
+import {
+  checkVectorStore,
+  needsRebuild,
+  watchRollback,
+  type BackendSwitch,
+  type VectorStore,
+} from "../indexing-vector-store"
+import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useToast } from "@tui/ui/toast"
 import { createEffect, createMemo, createResource, createSignal, Show } from "solid-js"
@@ -41,6 +49,12 @@ type SDK = {
       config: {
         get: (opts?: Record<string, unknown>) => Promise<{ data?: Record<string, unknown> }>
       }
+    }
+    indexing: {
+      status: (
+        opts: { workspace: string | undefined },
+        options?: Record<string, unknown>,
+      ) => Promise<{ data?: unknown }>
     }
   }
 }
@@ -308,11 +322,71 @@ async function showProviderSettings(
   dialog.replace(() => <DialogIndexing useSDK={useSDK} scope={scope} />)
 }
 
+type RebuildAction = "now" | "later" | "cancel"
+
+/**
+ * Ask what to do when a backend change invalidates the existing index. Cancel
+ * keeps the current backend and writes nothing (the vectors live in the old
+ * store; switching silently would strand them).
+ */
+function chooseRebuildAction(dialog: ReturnType<typeof useDialog>): Promise<RebuildAction> {
+  return new Promise((resolve) => {
+    dialog.replace(() => (
+      <DialogSelect
+        title="Index will be rebuilt"
+        options={[
+          { value: "now", title: "Rebuild now", description: "Build the index on the new backend immediately" },
+          { value: "later", title: "Later", description: "Save the backend; rebuild on the next indexing start" },
+          { value: "cancel", title: "Cancel", description: "Keep the current backend — nothing is saved" },
+        ]}
+        onSelect={(option) => resolve(option.value as RebuildAction)}
+      />
+    ))
+  })
+}
+
+/**
+ * After a backend switch is saved, watch the indexing health and revert to the
+ * previous backend if the rebuild fails (bounded; a slow build is not an error).
+ */
+function watchBackend(
+  sdk: SDK,
+  sync: ReturnType<typeof useSync>,
+  toast: ReturnType<typeof useToast>,
+  scope: IndexingScope,
+  workspace: string | undefined,
+  raw: IndexingConfig,
+  updated: IndexingConfig,
+  sw: BackendSwitch,
+): void {
+  void watchRollback(sw, {
+    apply: async (backend) => {
+      await saveScopedIndexing(sdk, sync, scope, raw, { ...updated, vectorStore: backend as VectorStore }, toast)
+    },
+    health: async () => {
+      const res = await sdk.client.indexing.status({ workspace })
+      const state = (res.data as { state?: string } | undefined)?.state
+      if (state === "Error") return "error"
+      // The indexing status uses "Complete" (not "Indexed") once the build is done.
+      if (state === "Complete") return "ok"
+      return "building"
+    },
+    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    attempts: 20,
+    intervalMs: 1500,
+  }).then((outcome) => {
+    if (outcome.status === "reverted") {
+      toast.show({ message: "Index rebuild failed — reverted to the previous vector store", variant: "warning" })
+    }
+  })
+}
+
 function VectorStoreSelect(props: SubDialogProps) {
   const dialog = useDialog()
   const sync = useSync()
   const sdk = props.useSDK()
   const toast = useToast()
+  const project = useProject()
   const indexing = props.indexing
 
   const options: DialogSelectOption<string>[] = Object.entries(VECTOR_STORE_LABELS).map(([value, title]) => ({
@@ -327,11 +401,23 @@ function VectorStoreSelect(props: SubDialogProps) {
       options={options}
       current={indexing.vectorStore ?? DEFAULT_VECTOR_STORE}
       onSelect={async (option) => {
-        const store = option.value as "lancedb" | "qdrant"
+        const store = option.value as VectorStore
+        // A different backend cannot reuse the current index — never switch silently.
+        if (needsRebuild(indexing.vectorStore ?? DEFAULT_VECTOR_STORE, store)) {
+          const action = await chooseRebuildAction(dialog)
+          if (action === "cancel") {
+            dialog.replace(() => <DialogIndexing useSDK={props.useSDK} scope={props.scope} />)
+            return
+          }
+        }
         if (store === "lancedb") {
-          await showLancedbSettings(dialog, sync, sdk, toast, props.useSDK, props.scope, indexing, props.raw)
+          await showLancedbSettings(
+            dialog, sync, sdk, toast, props.useSDK, props.scope, indexing, props.raw, project.workspace.current(),
+          )
         } else {
-          await showQdrantSettings(dialog, sync, sdk, toast, props.useSDK, props.scope, indexing, props.raw)
+          await showQdrantSettings(
+            dialog, sync, sdk, toast, props.useSDK, props.scope, indexing, props.raw, project.workspace.current(),
+          )
         }
       }}
     />
@@ -347,6 +433,7 @@ async function showLancedbSettings(
   scope: IndexingScope,
   indexing: IndexingConfig,
   raw: IndexingConfig,
+  workspace: string | undefined,
 ) {
   const result = await DialogPrompt.show(dialog, "LanceDB — Directory", {
     value: indexing.lancedb?.directory ?? "",
@@ -361,7 +448,17 @@ async function showLancedbSettings(
     vectorStore: "lancedb",
     lancedb: { directory: result.trim() || undefined },
   }
+  const check = checkVectorStore("lancedb", updated)
+  if (!check.ok) {
+    toast.show({ message: check.reason, variant: "error" })
+    dialog.replace(() => <DialogIndexing useSDK={useSDK} scope={scope} />)
+    return
+  }
   await saveScopedIndexing(sdk, sync, scope, raw, updated, toast)
+  const previous = indexing.vectorStore ?? DEFAULT_VECTOR_STORE
+  if (needsRebuild(previous, "lancedb")) {
+    watchBackend(sdk, sync, toast, scope, workspace, raw, updated, { previous, next: "lancedb" })
+  }
   dialog.replace(() => <DialogIndexing useSDK={useSDK} scope={scope} />)
 }
 
@@ -374,6 +471,7 @@ async function showQdrantSettings(
   scope: IndexingScope,
   indexing: IndexingConfig,
   raw: IndexingConfig,
+  workspace: string | undefined,
 ) {
   const currentSettings = indexing.qdrant ?? {}
 
@@ -403,7 +501,17 @@ async function showQdrantSettings(
       apiKey: apiKey.trim() || undefined,
     },
   }
+  const check = checkVectorStore("qdrant", updated)
+  if (!check.ok) {
+    toast.show({ message: check.reason, variant: "error" })
+    dialog.replace(() => <DialogIndexing useSDK={useSDK} scope={scope} />)
+    return
+  }
   await saveScopedIndexing(sdk, sync, scope, raw, updated, toast)
+  const previous = indexing.vectorStore ?? DEFAULT_VECTOR_STORE
+  if (needsRebuild(previous, "qdrant")) {
+    watchBackend(sdk, sync, toast, scope, workspace, raw, updated, { previous, next: "qdrant" })
+  }
   dialog.replace(() => <DialogIndexing useSDK={useSDK} scope={scope} />)
 }
 

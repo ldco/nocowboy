@@ -3,6 +3,10 @@ import type { Provider } from "@/provider/provider"
 import type { MessageV2 } from "@/session/message-v2"
 import { Token } from "@/util/token"
 import type { ModelMessage } from "ai"
+import * as Log from "@nocowboy/core/util/log"
+import { resolveContextProfile } from "./context-profile"
+
+const profileLog = Log.create({ service: "nocowboy.context-profile" })
 
 const COMPACTION_BUFFER = 20_000
 const OUTPUT_CAP = 20_000
@@ -44,10 +48,29 @@ export namespace NoCowboySessionOverflow {
 
   export function limit(input: { cfg: Config.Info; model: Provider.Model; usable: number }) {
     const configured = input.cfg.compaction?.threshold_percent
-    const percent = typeof configured === "number" ? configured : DEFAULT_THRESHOLD_PERCENT
-
     const context = input.model.limit.input || input.model.limit.context
     if (context === 0) return input.usable
+
+    // nocowboy_change - a context profile budgets how much of the window may be
+    // used: deep raises the threshold to its fraction only on a large enough
+    // window (and never beyond `usable` = limit.input - reserved), compact
+    // narrows it. Without a profile the previous behaviour is unchanged.
+    let percent = typeof configured === "number" ? configured : DEFAULT_THRESHOLD_PERCENT
+    const requested = input.cfg.context_profile
+    if (requested) {
+      const resolved = resolveContextProfile({
+        requested,
+        modelContext: context,
+        budgetMaxTokens: input.cfg.budget?.max_tokens,
+      })
+      if (resolved.downgradedFrom) {
+        profileLog.warn(
+          `context profile "${resolved.downgradedFrom}" downgraded to "${resolved.profile}": ${resolved.reason}`,
+        )
+      }
+      const profilePercent = resolved.fraction * 100
+      percent = resolved.profile === "deep" ? profilePercent : Math.min(percent, profilePercent)
+    }
 
     const cap = Math.floor(context * (percent / 100))
     return Math.min(input.usable, cap)

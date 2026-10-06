@@ -12,11 +12,11 @@ import { KiloCostPropagation } from "@/nocowboy/session/cost-propagation"
 import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "@/nocowboy/session/goal"
 import { Autopilot, AUTO_CONTINUE_MAX } from "@/nocowboy/session/autopilot" // nocowboy_change - unattended autopilot continuation
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
-import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
+import { StopHooks } from "@/nocowboy/session/stop-hooks" // nocowboy_change - turn-level stop hooks block the turn
 import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { Suggestion } from "@/nocowboy/suggestion"
 import { Question } from "@/question"
-import { hasRouteDirective, parseRoute } from "./router"
+import { hasHandoff, resolveHandoff } from "@/nocowboy/session/agent-handoff" // nocowboy_change - typed handoff, legacy #route adapted
 import { zod } from "@nocowboy/core/effect-zod"
 import { withStatics } from "@nocowboy/core/schema"
 import { SessionID, MessageID, PartID } from "./schema"
@@ -1686,10 +1686,12 @@ export const layer = Layer.effect(
           .filter((p) => p.type === "text")
           .map((p) => (p as any).text ?? "")
           .join("\n")
-        if (hasRouteDirective(routeText) && !session.parentID) {
-          const route = parseRoute(routeText)
-          if (route) {
-            const exit = yield* Effect.exit(agents.get(route.agent))
+        if (hasHandoff(routeText) && !session.parentID) {
+          // nocowboy_change - the handoff is typed now; resolveHandoff adapts the
+          // legacy `#route:` directive, so behaviour is unchanged for it.
+          const handoff = resolveHandoff(routeText)
+          if (handoff) {
+            const exit = yield* Effect.exit(agents.get(handoff.target))
             const nextAgent: Agent.Info | undefined = exit._tag === "Success" ? exit.value : undefined
             if (nextAgent && nextAgent.mode !== "subagent") {
               const rebridge = yield* runner()
@@ -1699,7 +1701,7 @@ export const layer = Layer.effect(
                 rebridge.run(
                   loop({
                     sessionID: input.sessionID,
-                    agentOverride: route.agent,
+                    agentOverride: handoff.target,
                     snapshotInitialization: undefined,
                   }).pipe(Effect.orDie),
                 ),
@@ -2027,29 +2029,18 @@ export const layer = Layer.effect(
             toolChoice: format.type === "json_schema" ? "required" : undefined,
           })
 
-          // Turn-level stop hook: plugins can block the turn from ending by
-          // returning continue:true (deterministic quality gates). Capped at
-          // 8 consecutive blocks to avoid infinite loops (Claude Code parity).
+          // Turn-level stop hook: a plugin can block the turn from ending by
+          // returning continue:true (deterministic quality gates). The request
+          // is only *decided* here — it is applied after the goal block below,
+          // so an active autopilot run injects at most one continuation per
+          // turn boundary.
           const stop = yield* plugin.trigger(
             "session.stop",
             { sessionID, messageID: handle.message.id, agent: handle.message.agent },
             { continue: false, reason: undefined },
           )
-          // Built-in AC verification: goal agents keep working while they own
-          // incomplete tasks (acceptance criteria not yet met).
-          const acCheck = ACVerificationHook.evaluate({
-            sessionID,
-            agent: handle.message.agent,
-          })
-          if (acCheck.continue && stopHookContinues < 8) {
-            stopHookContinues++
-            yield* Effect.logInfo("AC verification requested continue", { reason: acCheck.reason })
-          } else if (stop.continue && stopHookContinues < 8) {
-            stopHookContinues++
-            yield* Effect.logInfo("session.stop hook requested continue", { reason: stop.reason })
-          } else {
-            stopHookContinues = 0
-          }
+          const stopRequested = stop.continue
+          const stopReason = stop.reason
 
           if (structured !== undefined) {
             handle.message.structured = structured
@@ -2082,6 +2073,7 @@ export const layer = Layer.effect(
           // inflates the turn counter and can stop a run mid-ReAct. The judge
           // runs against the fresh transcript so it sees the step it judges
           // (the top-of-loop `msgs` snapshot predates this step).
+          let continuationInjected = false
           const goal = result !== "stop" && finished ? GoalService.get(sessionID) : undefined
           if (goal) {
             // A goal persisted by an earlier process is restored here: tell the
@@ -2237,7 +2229,55 @@ export const layer = Layer.effect(
               // The queued synthetic message is hidden by scope() unless it is
               // retargeted as an owned follow-up, so the next turn sees it.
               NoCowboySessionPromptQueue.retarget(sessionID, continuation.info.id)
+              continuationInjected = true
               yield* Effect.logInfo("autopilot injected a continuation", { turn: bumped.react })
+            }
+          }
+
+          // Apply the turn-level stop hook. When a plugin asked for another
+          // turn and this turn would otherwise end, the harness persists a
+          // synthetic continuation and the loop runs again — this is what
+          // actually blocks the turn. One continuation per boundary: the goal
+          // block above already injected for an active goal, so the hook never
+          // adds a second one. A blocked/compacted turn or a queued follow-up
+          // is never overridden.
+          if (continuationInjected) {
+            stopHookContinues = 0
+          } else {
+            const decision = StopHooks.decide({
+              requested: stopRequested,
+              reason: stopReason,
+              continues: stopHookContinues,
+              finished: !!finished,
+              blocked: result !== "continue",
+              followupPending: NoCowboySessionPromptQueue.hasFollowup(sessionID),
+            })
+            if (decision.block) {
+              stopHookContinues++
+              const continuation = StopHooks.buildContinuation({
+                sessionID,
+                previous: {
+                  agent: agent.name,
+                  model: {
+                    providerID: model.providerID,
+                    modelID: model.id,
+                    variant: overrideAgent?.variant ?? lastUser.model.variant,
+                  },
+                  tools: lastUser.tools,
+                },
+                reason: decision.reason,
+              })
+              yield* sessions.updateMessage(continuation.info)
+              yield* sessions.updatePart(continuation.part)
+              // The queued synthetic message is hidden by scope() unless it is
+              // retargeted as an owned follow-up, so the next turn sees it.
+              NoCowboySessionPromptQueue.retarget(sessionID, continuation.info.id)
+              yield* Effect.logInfo("turn-level stop hook blocked the turn", {
+                count: stopHookContinues,
+                reason: decision.reason,
+              })
+            } else {
+              stopHookContinues = 0
             }
           }
 

@@ -61,6 +61,8 @@ const always: LazyCommand[] = [
   lazy("profile", "show NoCowboy account profile", async () => (await import("@/nocowboy/cli/cmd/profile")).ProfileCommand),
   lazy("remote", "enable remote connection for real-time session relay", async () => (await import("./cmd/remote")).RemoteCommand),
   lazy("repomap", "generate a repository map (Aider-style)", async () => (await import("./cmd/repomap")).RepoMapCommand),
+  lazy("graph", "build a knowledge graph of the codebase (json | mermaid | html)", async () =>
+    (await import("./cmd/knowledge-graph")).KnowledgeGraphCommand),
   lazy("roadmap", "manage project roadmap (docs/roadmap.json)", async () => (await import("./cmd/roadmap")).RoadmapCommand),
   lazy("roll-call <filter>", "batch-test text models matching a filter for connectivity and latency", async () =>
     (await import("@/nocowboy/cli/cmd/roll-call")).RollCallCommand),

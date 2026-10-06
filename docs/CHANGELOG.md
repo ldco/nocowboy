@@ -263,6 +263,19 @@
   `verify:file docs/features/permission-timeout-feature.md`
 - **DONE** Agent Audit (P2-C1): inventory 21 агентов, name collisions
   `verify:file docs/features/agent-audit.md`
+- **DONE** Deep Context (2M tokens с бюджетированием)
+  `verify:file packages/opencode/src/nocowboy/session/context-profile.ts`
+  `verify:grep packages/opencode/src/config/config.ts context_profile`
+  `verify:grep packages/opencode/src/nocowboy/session/overflow.ts resolveContextProfile`
+  `verify:grep packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/context.tsx profileLabel`
+  `verify:test packages/opencode/test/nocowboy/context-profile.test.ts`
+  `verify:test packages/opencode/test/nocowboy/session/overflow.test.ts`
+  `verify:file docs/features/deep-context-2m.md`
+- **DONE** MCP Framework — merge plugin-registry в NUTAUSIK
+  `verify:file docs/reference/mcp-first-party.md`
+  `verify:grep packages/opencode/src/nocowboy/mcp/launcher.ts resolveCommand`
+  `verify:test packages/opencode/test/nocowboy/mcp-launcher.test.ts`
+  `verify:file docs/features/mcp-framework-merge.md`
 - **DONE** Command deduplication (P2-C3)
   `verify:file docs/features/command-dedup.md`
 - **DONE** Goal judge — интегрировать в agent stop loop (Effect-native)
@@ -272,6 +285,12 @@
 - **DONE** Distill command — сканировать сессии → генерировать skills/commands
   `verify:file docs/features/distill-command.md`
 - **DONE** Self-Being Meta-Cognitive Architecture (P3-SELF)
+  `verify:file docs/features/self-being.md`
+- **DONE** NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
+  `verify:grep packages/opencode/src/mcp/index.ts getPrompt`
+  `verify:grep packages/opencode/src/command/index.ts source: "mcp"`
+  `verify:test packages/opencode/test/mcp/lifecycle.test.ts`
+  `verify:file docs/features/mcp-prompt-support.md`
 - **DONE** Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts
   `verify:file docs/features/instructions-analysis.md`
 - **DONE** Per-task cost tracking с леджером
@@ -304,6 +323,24 @@
   `verify:file docs/features/auto-dream-prog.md`
 - **DONE** UI для выбора модели каждого агента в Settings TUI
   `verify:file docs/features/agent-model-settings-ui.md`
+- **DONE** Lang switcher — переключатель ru/en в TUI Settings
+  `verify:grep packages/opencode/src/cli/cmd/tui/config/tui-schema.ts lang: Schema.optional`
+  `verify:grep packages/opencode/src/nocowboy/cli/cmd/tui/context/i18n-bridge.tsx resolveLanguage`
+  `verify:test packages/opencode/test/nocowboy/tui-language.test.ts`
+  `verify:file docs/features/lang-switcher-ui.md`
+- **DONE** Spec Contract for Delegation — стандартизированный шаблон spec для делегации
+  `verify:file packages/opencode/src/nocowboy/spec/contract.ts`
+  `verify:file .nocowboy/command/spec-contract.md`
+  `verify:grep packages/opencode/src/tool/task.ts missingSpecContractSections`
+  `verify:grep .nocowboy/rules/subagent-discipline.md spec-contract`
+  `verify:test packages/opencode/test/nocowboy/spec-contract.test.ts`
+  `verify:file docs/features/spec-contract-delegation.md`
+- **DONE** Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг
+  `verify:file packages/opencode/src/nocowboy/review/over-engineering.ts`
+  `verify:file .nocowboy/command/ponytail-review.md`
+  `verify:grep .nocowboy/rules/lazy-senior.md ponytail-review`
+  `verify:test packages/opencode/test/nocowboy/over-engineering-review.test.ts`
+  `verify:file docs/features/over-engineering-review.md`
 
 ### Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)
 
@@ -352,6 +389,11 @@
   `verify:file docs/features/goal-loop-controller.md`
 - **DONE** Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls
   `verify:file docs/features/auto-permission-classifier.md`
+- **DONE** Turn-level Stop Hooks — блокировка завершения turn до проверки
+  `verify:file packages/opencode/src/nocowboy/session/stop-hooks.ts`
+  `verify:grep packages/opencode/src/session/prompt.ts StopHooks.decide`
+  `verify:file packages/opencode/test/nocowboy/stop-hooks.test.ts`
+  `verify:file docs/features/stop-hooks-turn-level.md`
 - **DONE** Async Task Spawning — асинхронные под-агенты
   `verify:file docs/features/async-task-spawn.md`
 - **DONE** Task Dependency Chain — авто-запуск задач по зависимостям
@@ -477,11 +519,22 @@
 - **DONE** Нет критических багов — known issues документированы
   `verify:file docs/features/alpha-no-critical-bugs.md`
 
+## v1.0.0-rc — Release Candidate — user testing, performance, docs complete (2026-10)
+
+- **DONE** Performance testing — startup < 500ms, memory < 200MB
+  `verify:cmd bun run scripts/perf-check.ts --assert`
+  `verify:file docs/features/rc-performance-test.md`
+- **DONE** Документация обновлена — CHANGELOG, ROADMAP, README
+  `verify:file docs/README.md`
+  `verify:test packages/opencode/test/nocowboy/docs-index.test.ts`
+
 ## v1.0.0 — Production Release — all tests green, npm published, roadmap verified (2026-11)
 
 - **DONE** Typecheck clean — 0 errors
   `verify:typecheck`
   `verify:file docs/features/release-typecheck-clean.md`
+- **DONE** Roadmap verified — 100% DONE features pass verify
+  `verify:file docs/features/release-roadmap-verified.md`
 
 ## v1.0.6-alpha — Autopilot is a mode, the roadmap is a target — /roadmap owns the finish-the-roadmap goal and is idempotent (an active run is never reset), /autopilot is a non-destructive mode toggle (no-arg arms the active goal, off/pause keeps it), one visible roadmap launcher ([FINISH ROADMAP ▶] on home + palette; the sidebar duplicate that overlapped the session title was removed), restored the run --interactive guard, and user/DX docs (2026-09-25)
 
@@ -531,3 +584,165 @@
   `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
   `verify:test packages/opencode/test/tool/question.test.ts`
   `verify:file docs/features/autonomous-harness-hardening.md`
+
+## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md) (2026-10)
+
+- **DONE** Commitment-Boundary Review — обязательное ревью перед deliverable
+  `verify:file packages/opencode/src/nocowboy/review/commitment.ts`
+  `verify:file .nocowboy/command/commitment-review.md`
+  `verify:grep packages/opencode/src/nocowboy/review/commitment.ts COMMITMENT_VERDICTS`
+  `verify:grep packages/opencode/src/tool/complete_task.ts commitmentInvitation(params.slug)`
+  `verify:test packages/opencode/test/nocowboy/commitment-review.test.ts`
+- **DONE** Манифест движка — SHA, provenance, версии зависимостей, ledger портов
+  `verify:cmd bun run scripts/engine-manifest.ts --check`
+  `verify:file engine-manifest.json`
+  `verify:file scripts/engine-manifest.ts`
+  `verify:test packages/opencode/test/nocowboy/engine-manifest.test.ts`
+  `verify:file docs/reference/engine-manifest.md`
+- **DONE** Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
+  `verify:grep script/upstream/utils/config.ts nocowboyConfig`
+  `verify:file script/upstream/utils/compare-trees.ts`
+  `verify:cmd cd script/upstream && bun test utils/compare-trees.test.ts`
+  `verify:cmd bun run script/upstream/utils/compare-trees.ts --dry-run`
+- **DONE** Ownership-манифест: owned / adapted / generated
+  `verify:file ownership-manifest.json`
+  `verify:file scripts/ownership-manifest.ts`
+  `verify:test packages/opencode/test/nocowboy/ownership-manifest.test.ts`
+  `verify:cmd bun run scripts/ownership-manifest.ts --check`
+  `verify:grep .husky/pre-commit ownership-manifest`
+- **DONE** Контракт read-only planner/reviewer — реальное ограничение, а не декларация
+  `verify:file packages/opencode/test/nocowboy/agent/read-only-agents.test.ts`
+  `verify:test packages/opencode/test/nocowboy/agent/read-only-agents.test.ts`
+  `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
+  `verify:grep packages/opencode/src/nocowboy/agent/index.ts bash: readOnlyBash`
+- **DONE** AgentCatalog и единая политика spawnable agents
+  `verify:file packages/opencode/src/nocowboy/agent/catalog.ts`
+  `verify:grep packages/opencode/src/tool/registry.ts EngineAdapter`
+  `verify:grep packages/opencode/src/tool/task.ts EngineAdapter`
+  `verify:test packages/opencode/test/nocowboy/agent-catalog.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+- **DONE** Политика независимости модели reviewer
+  `verify:file packages/opencode/src/nocowboy/review/cascade.ts`
+  `verify:grep packages/opencode/src/nocowboy/agent/index.ts diagnoseReviewIndependence`
+  `verify:grep packages/opencode/src/nocowboy/review/cascade.ts Explicit opt-in only`
+  `verify:test packages/opencode/test/nocowboy/review-cascade.test.ts`
+- **DONE** @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)
+  `verify:file packages/opencode/src/nocowboy/runtime/ports.ts`
+  `verify:cmd bun run scripts/check-runtime-boundary.ts --check`
+  `verify:grep .husky/pre-commit check-runtime-boundary`
+  `verify:test packages/opencode/test/nocowboy/runtime/ports.test.ts`
+- **DONE** @nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState
+  `verify:file packages/opencode/src/nocowboy/engine-adapter/index.ts`
+  `verify:cmd bun run scripts/check-engine-adapter.ts --check`
+  `verify:grep .husky/pre-commit check-engine-adapter`
+  `verify:test packages/opencode/test/nocowboy/engine-adapter/engine-adapter.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+- **DONE** Структурированный Handoff вместо текстового #route
+  `verify:file packages/opencode/src/nocowboy/session/agent-handoff.ts`
+  `verify:grep packages/opencode/src/session/prompt.ts resolveHandoff`
+  `verify:test packages/opencode/test/nocowboy/handoff.test.ts`
+  `verify:test packages/opencode/test/nocowboy/session-router.test.ts`
+  `verify:file docs/features/structured-handoff.md`
+- **DONE** Детерминированный stage machine: design → plan → implement → verify → accept/fix
+  `verify:file packages/opencode/src/nocowboy/session/stage-machine.ts`
+  `verify:grep packages/opencode/src/nocowboy/session/autopilot.ts roadmapGate`
+  `verify:test packages/opencode/test/nocowboy/stage-machine.test.ts`
+  `verify:test packages/opencode/test/nocowboy/autopilot.test.ts`
+  `verify:file docs/features/stage-machine.md`
+- **DONE** EditPort — семантика match/batch/stale-read/partial-failure
+  `verify:file packages/opencode/src/tool/search_replace.ts`
+  `verify:grep packages/opencode/src/tool/search_replace.ts findUniqueIndex`
+  `verify:test packages/opencode/test/tool/search_replace.test.ts`
+  `verify:test packages/opencode/test/nocowboy/tool-encoding.test.ts`
+- **DONE** Versioned facade + contract tests для experimental hooks
+  `verify:file packages/plugin/src/facade.ts`
+  `verify:grep packages/plugin/src/facade.ts session.stop`
+  `verify:grep packages/plugin/src/index.ts facade.js`
+  `verify:test packages/opencode/test/plugin/hook-facade.test.ts`
+  `verify:file docs/features/plugin-hook-facade.md`
+- **DONE** @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
+  `verify:grep packages/opencode/src/nocowboy/ui/i18n.ts sidebar.usage.cached`
+  `verify:grep packages/opencode/src/nocowboy/agent/index.ts lang: cfg.lang`
+  `verify:test packages/opencode/test/nocowboy/i18n.test.ts`
+  `verify:file docs/features/nocowboy-i18n-package.md`
+- **DONE** @nocowboy/ui — виджеты через slots + facade view models
+  `verify:grep packages/plugin/src/tui.ts TuiViewModels`
+  `verify:grep packages/opencode/src/nocowboy/plugins/sidebar-usage.tsx viewModels.usage`
+  `verify:cmd ! grep -qE 'useLocal|getUsage' packages/opencode/src/nocowboy/plugins/sidebar-usage.tsx`
+  `verify:test packages/opencode/test/nocowboy/plugin-view-models.test.ts`
+  `verify:file docs/features/nocowboy-ui-package.md`
+- **DONE** InputPort/UI facade — контракт mouse/focus/selection
+  `verify:file packages/opencode/src/nocowboy/ui/input-port.ts`
+  `verify:grep packages/opencode/src/nocowboy/components/nocowboy-bars.tsx createButtonPort`
+  `verify:test packages/opencode/test/nocowboy/input-port.test.ts`
+  `verify:file docs/features/input-port.md`
+- **DONE** Git/Balance — асинхронные сервисы, unknown ≠ 0
+  `verify:file packages/opencode/src/nocowboy/git/git-port.ts`
+  `verify:grep packages/opencode/src/nocowboy/components/nocowboy-bars.tsx defaultGitPort`
+  `verify:test packages/opencode/test/nocowboy/git-port.test.ts`
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:file docs/features/git-balance-async-services.md`
+- **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
+  `verify:file packages/opencode/src/nocowboy/memory/adapter.ts`
+  `verify:grep packages/opencode/src/nocowboy/nutausik-client.ts createNutausikAdapter`
+  `verify:grep packages/opencode/src/nocowboy/nutausik-auto-wire.ts NUTAUSIK_MCP_URL`
+  `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
+  `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`
+- **DONE** Объединить MemoryAdapter с generic MCP SDK-транспортом
+  `verify:file packages/opencode/src/nocowboy/memory/scope.ts`
+  `verify:grep packages/opencode/src/mcp/index.ts withMemoryScope`
+  `verify:grep packages/opencode/src/mcp/index.ts sharedMemoryAdapter`
+  `verify:cmd ! grep -q 'PROJECT_SCOPED_MCP' packages/opencode/src/mcp/index.ts`
+  `verify:test packages/opencode/test/nocowboy/memory-transport-unify.test.ts`
+  `verify:test packages/opencode/test/mcp/project-dir.test.ts`
+  `verify:file docs/features/memory-transport-sdk-unify.md`
+- **DONE** ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
+  `verify:file packages/opencode/src/nocowboy/provider/port.ts`
+  `verify:grep packages/opencode/src/nocowboy/provider/port.ts resolveProviderPort`
+  `verify:cmd ! grep -q 'rejectUnauthorized' packages/opencode/src/nocowboy/provider-balance.ts`
+  `verify:test packages/opencode/test/nocowboy/provider/port.test.ts`
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:file docs/features/provider-adapters-port.md`
+- **DONE** Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
+  `verify:grep packages/opencode/src/nocowboy/provider-balance.ts status: "unknown"`
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:test packages/opencode/test/nocowboy/cost-propagation.test.ts`
+  `verify:file docs/features/cost-balance-semantics.md`
+- **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
+  `verify:file backport-ledger.json`
+  `verify:file scripts/backport-ledger.ts`
+  `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
+  `verify:cmd bun run scripts/backport-ledger.ts --check`
+  `verify:test packages/opencode/test/nocowboy/backport-ledger.test.ts`
+  `verify:file docs/reference/upstream-backport-ledger.md`
+- **DONE** Контрактные тесты миграции движка (минимальный набор сценариев)
+  `verify:file packages/opencode/test/nocowboy/contracts/scenarios.ts`
+  `verify:test packages/opencode/test/nocowboy/contracts/migration-contracts.test.ts`
+  `verify:test packages/opencode/test/nocowboy/contracts/worker-child.contract.test.ts`
+  `verify:test packages/opencode/test/nocowboy/contracts/mutation-policy.contract.test.ts`
+  `verify:test packages/opencode/test/nocowboy/contracts/tui-navigation.contract.test.ts`
+- **DONE** Backport: сохранение recent tail при compaction + token budgeting/pruning
+  `verify:file docs/features/backport-compaction-tail.md`
+  `verify:grep packages/opencode/src/session/compaction.ts preserve_recent_tokens`
+  `verify:grep packages/opencode/src/config/config.ts tail_turns`
+  `verify:test packages/opencode/test/session/compaction.test.ts`
+  `verify:test packages/opencode/test/nocowboy/session-compaction-safety.test.ts`
+  `verify:test packages/opencode/test/nocowboy/compaction-payload-recovery.test.ts`
+- **DONE** Backport: subagent depth limit + resume diagnostics
+  `verify:file packages/opencode/src/nocowboy/tool/resume.ts`
+  `verify:grep packages/opencode/src/tool/task.ts resumeDiagnostic`
+  `verify:test packages/opencode/test/nocowboy/resume-diagnostic.test.ts`
+  `verify:test packages/opencode/test/nocowboy/subagent-depth.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+  `verify:file docs/features/backport-subagent-depth-resume.md`
+- **DONE** Backport: терпимость provider config к malformed model entry
+  `verify:file packages/opencode/src/nocowboy/config/provider-models.ts`
+  `verify:grep packages/opencode/src/config/config.ts sanitizeProviderConfig`
+  `verify:test packages/opencode/test/nocowboy/provider-models.test.ts`
+  `verify:file docs/features/backport-provider-malformed-config.md`
+- **DONE** Capability-конфиг выбора инструментов вместо проверки имени модели
+  `verify:file packages/opencode/src/nocowboy/tool/edit-capability.ts`
+  `verify:grep packages/opencode/src/tool/registry.ts resolveEditMethod`
+  `verify:grep packages/opencode/src/config/config.ts edit_method`
+  `verify:test packages/opencode/test/nocowboy/edit-capability.test.ts`
+  `verify:file docs/features/tool-capability-config.md`

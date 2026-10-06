@@ -9,17 +9,22 @@
 
 import * as Log from "@nocowboy/core/util/log"
 import { Instance } from "./instance"
+import { createNutausikAdapter, type MemoryResult, type MemoryStatus } from "./memory/adapter"
 
 const log = Log.create({ service: "nutausik.client" })
 
-/**
- * NUTAUSIK MCP URL.
- * Can be overridden via the NUTAUSIK_MCP_URL env var for testing.
- */
-export const NUTAUSIK_MCP_URL: string =
-  process.env.NUTAUSIK_MCP_URL ?? "http://127.0.0.1:9210/mcp"
+/** The single transport adapter shared by every NUTAUSIK call (direct + MCP SDK). */
+const adapter = createNutausikAdapter()
 
-let reqId = 1
+/** Observable transport health (available | degraded | unavailable). */
+export function memoryStatus(): MemoryStatus {
+  return adapter.status()
+}
+
+/** Bounded shutdown flush for in-flight memory writes. */
+export function flushMemory(timeoutMs?: number): Promise<{ flushed: number; pending: number }> {
+  return adapter.flush(timeoutMs)
+}
 
 /** Проверить, жив ли NUTAUSIK MCP сервер. */
 let _nutausikAlive: boolean | null = null
@@ -33,19 +38,9 @@ async function checkNutausikAlive(): Promise<boolean> {
   // startup and need a fresh answer.
   if (_nutausikAlive === true && now - _lastCheck < CHECK_INTERVAL) return true
   _lastCheck = now
-  try {
-    const res = await fetch(NUTAUSIK_MCP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }),
-      signal: AbortSignal.timeout(3000),
-    })
-    _nutausikAlive = res.ok
-    return _nutausikAlive
-  } catch {
-    _nutausikAlive = false
-    return false
-  }
+  const status = await adapter.probe(3000)
+  _nutausikAlive = status === "available"
+  return _nutausikAlive
 }
 
 /** The project a call belongs to. The MCP server is shared by every instance,
@@ -58,33 +53,20 @@ function currentProjectDir(): string | undefined {
   }
 }
 
-/** Raw JSON-RPC tool call via fetch. Returns the first content text or "". */
-function fireTool(name: string, args: Record<string, unknown> = {}): Promise<string> {
-  const id = reqId++
-  const projectDir = (args.projectDir as string | undefined) ?? currentProjectDir()
-  const payload = projectDir ? { projectDir, ...args } : args
-  return fetch(NUTAUSIK_MCP_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id,
-      method: "tools/call",
-      params: { name, arguments: payload },
-    }),
-    signal: AbortSignal.timeout(5000),
-  })
-    .then((res) => (res.ok ? res.json() : ""))
-    .then((data: unknown) => {
-      const d = data as { result?: { content?: Array<{ text?: string }> } }
-      return d?.result?.content?.[0]?.text ?? ""
-    })
-    .catch(() => "")
+/** Call a tool and get a STRUCTURED result (never a silent "" on failure). */
+export async function callToolResult(
+  name: string,
+  args?: Record<string, unknown>,
+  projectDir?: string,
+): Promise<MemoryResult<string>> {
+  const project = projectDir ?? currentProjectDir() ?? ""
+  return adapter.call(name, args ?? {}, { project })
 }
 
-/** Fire a tool call and parse the result as text. */
+/** Fire a tool call and parse the result as text (empty string on failure). */
 export async function callTool(name: string, args?: Record<string, unknown>, projectDir?: string): Promise<string> {
-  return fireTool(name, { ...(projectDir ? { projectDir } : {}), ...(args ?? {}) })
+  const result = await callToolResult(name, args, projectDir)
+  return result.ok ? result.value : ""
 }
 
 /**

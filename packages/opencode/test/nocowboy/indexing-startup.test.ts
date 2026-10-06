@@ -100,21 +100,31 @@ function inline(directory: string, root: string, hooks: IndexingWorker.Hooks): I
   }
 }
 
+// Time-based budget, not a fixed iteration count: a 100×10ms loop (~1s) is
+// load-sensitive and made this file flaky under contention (the same run takes
+// 6s vs 24s on a busy host). See test/AGENTS.md "Synchronizing With Concurrent
+// Work". Generous enough to ride out a loaded host, bounded so a genuine hang
+// still fails.
+const WAIT_TIMEOUT_MS = 30_000
+
 async function wait(read: () => Promise<KiloIndexing.Status>, state: KiloIndexing.Status["state"]) {
-  for (const _ of Array.from({ length: 100 })) {
-    const status = await read()
-    if (status.state === state) return status
-    await new Promise((resolve) => setTimeout(resolve, 10))
+  const deadline = Date.now() + WAIT_TIMEOUT_MS
+  let last: KiloIndexing.Status | undefined
+  while (Date.now() < deadline) {
+    last = await read()
+    if (last.state === state) return last
+    await new Promise((resolve) => setTimeout(resolve, 25))
   }
-  throw new Error(`indexing did not reach ${state}`)
+  throw new Error(`indexing did not reach ${state} within ${WAIT_TIMEOUT_MS}ms (last state: ${last?.state ?? "unknown"})`)
 }
 
 async function called(init: ReturnType<typeof spyOn<CodeIndexManager, "initialize">>) {
-  for (const _ of Array.from({ length: 100 })) {
+  const deadline = Date.now() + WAIT_TIMEOUT_MS
+  while (Date.now() < deadline) {
     if (init.mock.calls.length > 0) return
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise((resolve) => setTimeout(resolve, 25))
   }
-  throw new Error("indexing initialization did not start")
+  throw new Error(`indexing initialization did not start within ${WAIT_TIMEOUT_MS}ms`)
 }
 
 beforeEach(() => {
@@ -122,13 +132,16 @@ beforeEach(() => {
 })
 
 afterEach(async () => {
+  // Dispose instances BEFORE resetting the worker override: a real
+  // CodeIndexManager must never outlive the test (it would connect to
+  // 127.0.0.1:1, hang disposal for ~10s, and leak warnings into the next test).
+  await disposeAllInstances()
   IndexingWorker.override()
   if (configDir === undefined) delete process.env["NOCOWBOY_CONFIG_DIR"]
   else process.env["NOCOWBOY_CONFIG_DIR"] = configDir
   if (disabled === undefined) delete process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"]
   else process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] = disabled
   global.fetch = fetch
-  await disposeAllInstances()
 })
 
 describe("indexing model catalog", () => {

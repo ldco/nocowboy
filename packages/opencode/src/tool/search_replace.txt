@@ -13,8 +13,9 @@ new code to replace with
 Rules:
 - Each block MUST have a file path on its own line, followed by SEARCH/REPLACE delimiters
 - The SEARCH section must match the existing code exactly (including whitespace and indentation)
-- Multiple blocks can be used in a single call to edit multiple files
-- The tool will fail if a SEARCH block is not found in the file
+- The SEARCH section must match exactly ONE location. If it matches none, or more than one (including overlapping matches), the block fails and nothing is written — add surrounding context so the match is unique
+- Multiple blocks can be used in a single call. Blocks for the same file are applied in order, each against the result of the previous one, and the file is written once
+- If any block fails, no file is written (no partial edit)
 
 Example - renaming a function:
 ```

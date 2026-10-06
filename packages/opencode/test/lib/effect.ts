@@ -37,23 +37,41 @@ const run = <A, E, R, E2>(value: Body<A, E, R | Scope.Scope>, layer: Layer.Layer
   }).pipe(Effect.runPromise)
 
 const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) => {
+  // nocowboy_change - Effect test registration must not fall back to bun's
+  // hardcoded 5000ms: `test(name, fn)` / `test(name, fn, undefined)` ignore the
+  // bunfig `[test] timeout` (60000) and flaked the boot-heavy `it.instance`
+  // tests under load. Always pass a concrete timeout (the bunfig value unless a
+  // test overrides it).
+  const DEFAULT_TEST_TIMEOUT = 60_000
+  const withTimeout = (opts?: number | TestOptions): number | TestOptions => {
+    if (opts === undefined) return DEFAULT_TEST_TIMEOUT
+    if (typeof opts === "number") return opts
+    return opts.timeout === undefined ? { ...opts, timeout: DEFAULT_TEST_TIMEOUT } : opts
+  }
+  const register = (name: string, fn: () => Promise<unknown>, opts?: number | TestOptions) =>
+    test(name, fn, withTimeout(opts))
+  const registerOnly = (name: string, fn: () => Promise<unknown>, opts?: number | TestOptions) =>
+    test.only(name, fn, withTimeout(opts))
+  const registerSkip = (name: string, fn: () => Promise<unknown>, opts?: number | TestOptions) =>
+    test.skip(name, fn, withTimeout(opts))
+
   const effect = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test(name, () => run(value, testLayer), opts)
+    register(name, () => run(value, testLayer), opts)
 
   effect.only = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.only(name, () => run(value, testLayer), opts)
+    registerOnly(name, () => run(value, testLayer), opts)
 
   effect.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.skip(name, () => run(value, testLayer), opts)
+    registerSkip(name, () => run(value, testLayer), opts)
 
   const live = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test(name, () => run(value, liveLayer), opts)
+    register(name, () => run(value, liveLayer), opts)
 
   live.only = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.only(name, () => run(value, liveLayer), opts)
+    registerOnly(name, () => run(value, liveLayer), opts)
 
   live.skip = <A, E2>(name: string, value: Body<A, E2, R | Scope.Scope>, opts?: number | TestOptions) =>
-    test.skip(name, () => run(value, liveLayer), opts)
+    registerSkip(name, () => run(value, liveLayer), opts)
 
   const runInstance = <A, E>(value: Effect.Effect<A, E, unknown>) =>
     Effect.runPromise(value.pipe(Effect.scoped, Effect.provide(liveLayer)) as Effect.Effect<A, E, never>)
@@ -66,11 +84,7 @@ const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) 
   ) => {
     const args = instanceArgs(options, opts)
     const wrapped = typeof value === "function" ? value() : value
-    return test(
-      name,
-      () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
-      args.testOptions,
-    )
+    return register(name, () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))), args.testOptions)
   }
 
   instance.only = <A, E2>(
@@ -81,7 +95,7 @@ const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) 
   ) => {
     const args = instanceArgs(options, opts)
     const wrapped = typeof value === "function" ? value() : value
-    return test.only(
+    return registerOnly(
       name,
       () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,
@@ -96,7 +110,7 @@ const make = <R, E>(testLayer: Layer.Layer<R, E>, liveLayer: Layer.Layer<R, E>) 
   ) => {
     const args = instanceArgs(options, opts)
     const wrapped = typeof value === "function" ? value() : value
-    return test.skip(
+    return registerSkip(
       name,
       () => runInstance(wrapped.pipe(withTmpdirInstance(args.instanceOptions))),
       args.testOptions,

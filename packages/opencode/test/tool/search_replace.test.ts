@@ -1,8 +1,8 @@
-import { describe, expect } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import path from "path"
 import * as fs from "fs/promises"
 import { Cause, Effect, Exit, Layer } from "effect"
-import { SearchReplaceTool, parseSearchReplaceBlocks } from "../../src/tool/search_replace"
+import { SearchReplaceTool, parseSearchReplaceBlocks, findUniqueIndex } from "../../src/tool/search_replace"
 import { LSP } from "@/lsp/lsp"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Format } from "../../src/format"
@@ -65,6 +65,24 @@ const expectFailure = <A, E, R>(effect: Effect.Effect<A, E, R>, message?: string
     expect(Exit.isFailure(exit)).toBe(true)
     if (Exit.isFailure(exit) && message) expect(Cause.pretty(exit.cause)).toContain(message)
   })
+
+describe("findUniqueIndex", () => {
+  test("returns the offset of a unique match", () => {
+    expect(findUniqueIndex("abc", "b", "f")).toBe(1)
+  })
+  test("throws when the search text is not present", () => {
+    expect(() => findUniqueIndex("abc", "z", "f")).toThrow("Could not find SEARCH block content")
+  })
+  test("throws when the search text is ambiguous", () => {
+    expect(() => findUniqueIndex("foo\nfoo\n", "foo", "f")).toThrow("ambiguous")
+  })
+  test("flags overlapping occurrences as ambiguous", () => {
+    expect(() => findUniqueIndex("aaa", "aa", "f")).toThrow("ambiguous")
+  })
+  test("accepts an overlapping-adjacent single occurrence", () => {
+    expect(findUniqueIndex("xax", "a", "f")).toBe(1)
+  })
+})
 
 describe("tool.search_replace parser", () => {
   it.live("parses a single SEARCH/REPLACE block", () =>
@@ -289,6 +307,192 @@ modified
 
         yield* execute({ blocks }, ctx)
         expect(yield* readText(filePath)).toBe("line1\nmodified\nline3\nline4\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "rejects an ambiguous (duplicate) match",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "dup.txt")
+        yield* writeText(filePath, "foo\nfoo\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+foo
+=======
+bar
+>>>>>>> REPLACE`
+
+        yield* expectFailure(execute({ blocks }, ctx), "ambiguous")
+        expect(yield* readText(filePath)).toBe("foo\nfoo\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "applies multiple blocks of one file sequentially",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "multi.txt")
+        yield* writeText(filePath, "a\nb\nc\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+a
+=======
+A
+>>>>>>> REPLACE
+${filePath}
+<<<<<<< SEARCH
+c
+=======
+C
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("A\nb\nC\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "a later block sees the earlier block's output (no stale read)",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "chain.txt")
+        yield* writeText(filePath, "X\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+X
+=======
+Y
+>>>>>>> REPLACE
+${filePath}
+<<<<<<< SEARCH
+Y
+=======
+Z
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("Z\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "leaves no partial state when a later block fails",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "partial.txt")
+        yield* writeText(filePath, "one\ntwo\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+one
+=======
+ONE
+>>>>>>> REPLACE
+${filePath}
+<<<<<<< SEARCH
+this is not present
+=======
+whatever
+>>>>>>> REPLACE`
+
+        yield* expectFailure(execute({ blocks }, ctx), "Could not find SEARCH block content")
+        // The first block was resolved but never written: no half-applied file.
+        expect(yield* readText(filePath)).toBe("one\ntwo\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "preserves CRLF line endings (single block)",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "crlf.txt")
+        yield* writeText(filePath, "line1\r\nline2\r\nline3\r\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+line2
+=======
+LINE2
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("line1\r\nLINE2\r\nline3\r\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "preserves CRLF line endings across a multi-block batch",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "crlf-batch.txt")
+        yield* writeText(filePath, "a\r\nb\r\nc\r\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+a
+=======
+A
+>>>>>>> REPLACE
+${filePath}
+<<<<<<< SEARCH
+c
+=======
+C
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("A\r\nb\r\nC\r\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "groups two spellings of the same path (no stale double write)",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "same.txt")
+        const dotted = `${test.directory}/./same.txt`
+        yield* writeText(filePath, "x\ny\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+x
+=======
+X
+>>>>>>> REPLACE
+${dotted}
+<<<<<<< SEARCH
+y
+=======
+Y
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("X\nY\n")
       }),
     { git: true },
   )

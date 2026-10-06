@@ -11,8 +11,13 @@ import { createWorkspaceProvider } from "@/nocowboy/session-export/workspace-pro
 import { Instance } from "@/nocowboy/instance"
 import { Identity } from "@nocowboy/telemetry"
 import { ensureNutausikRunning } from "@/nocowboy/nutausik-auto-wire"
+import { GlobalBus } from "@/bus/global"
 
 const log = Log.create({ service: "kilocode-bootstrap" })
+
+// Directories whose config-updated listener was already registered, so a
+// repeated bootstrap does not stack listeners on the process-wide bus.
+const configListeners = new Set<string>()
 
 export namespace NocowboyBootstrap {
   export interface Interface {
@@ -69,6 +74,24 @@ export namespace NocowboyBootstrap {
           ),
           Effect.forkDetach,
         )
+        // Rebuild indexing when its config changes. The entry is cached by
+        // directory and previously never re-read the config, so a vector-store
+        // switch did nothing until restart. Registered once per directory and
+        // bound to this instance so the reload runs with the right context.
+        yield* Effect.sync(() => {
+          const dir = Instance.directory
+          if (configListeners.has(dir)) return
+          configListeners.add(dir)
+          const onConfigUpdated = Instance.bind(() => {
+            void import("@/nocowboy/indexing")
+              .then((mod) => mod.KiloIndexing.onConfigUpdated())
+              .catch((err) => log.warn("indexing config reload failed", { err }))
+          })
+          GlobalBus.on("event", (event) => {
+            if (event.payload?.type !== "global.config.updated") return
+            onConfigUpdated()
+          })
+        })
       })
 
       return Service.of({ init })

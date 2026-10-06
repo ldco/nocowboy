@@ -32,6 +32,43 @@ describe("NoCowboySessionOverflow.limit", () => {
   })
 })
 
+describe("NoCowboySessionOverflow.limit — context profile", () => {
+  test("deep raises the threshold to 90% on a large window", () => {
+    const cfg = { context_profile: "deep", budget: { max_tokens: 2_000_000 } } as any
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(2_000_000), usable: 2_000_000 })).toBe(1_800_000)
+  })
+
+  test("deep never exceeds the usable window (limit.input - reserved)", () => {
+    const cfg = { context_profile: "deep", budget: { max_tokens: 2_000_000 } } as any
+    // A small usable window must clamp the deep cap.
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(2_000_000, 1_790_000), usable: 100_000 })).toBe(100_000)
+    // And the cap is deep's fraction of the input limit when the window allows it.
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(2_000_000, 1_790_000), usable: 1_790_000 })).toBe(
+      Math.floor(1_790_000 * 0.9),
+    )
+  })
+
+  test("deep downgrades to standard on a window below the 512k minimum", () => {
+    const cfg = { context_profile: "deep", budget: { max_tokens: 100_000 } } as any
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(100_000), usable: 100_000 })).toBe(80_000)
+  })
+
+  test("deep without a token budget is rejected (downgrades to standard)", () => {
+    const cfg = { context_profile: "deep" } as any
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(2_000_000), usable: 2_000_000 })).toBe(1_600_000)
+  })
+
+  test("compact narrows the window to 50%", () => {
+    const cfg = { context_profile: "compact" } as any
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(100_000), usable: 100_000 })).toBe(50_000)
+  })
+
+  test("an absent profile keeps the previous behaviour", () => {
+    const cfg = { compaction: { threshold_percent: 90 } } as any
+    expect(NoCowboySessionOverflow.limit({ cfg, model: model(100_000), usable: 100_000 })).toBe(90_000)
+  })
+})
+
 describe("NoCowboySessionOverflow.enabled", () => {
   test("is on by default now that the threshold has a default", () => {
     expect(NoCowboySessionOverflow.enabled({ cfg: {} as any, model: model(100_000) })).toBe(true)

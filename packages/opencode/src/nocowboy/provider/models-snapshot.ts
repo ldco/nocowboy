@@ -1,12 +1,17 @@
 import path from "path"
-import { parseModelsSnapshot, type ModelsSnapshot } from "./models-snapshot-shape"
+import { parseModelsSnapshot } from "./models-snapshot-shape"
+import { toModelDescriptors, type ModelDescriptor } from "./port"
 
 const NAME = "models-snapshot.json"
 const FILE = path.resolve(import.meta.dir, "../../provider/models-snapshot.json")
 
-function parse(text: string, source: string): ModelsSnapshot | undefined {
+/**
+ * Parse a snapshot and convert it at this boundary into domain descriptors, so
+ * the external `Record<string, unknown>` shape never reaches a consumer.
+ */
+function parse(text: string, source: string): ModelDescriptor[] | undefined {
   try {
-    return parseModelsSnapshot(text, source).data
+    return toModelDescriptors(parseModelsSnapshot(text, source).data)
   } catch (err) {
     console.warn(`Failed to load models snapshot from ${source}`, err)
     return undefined

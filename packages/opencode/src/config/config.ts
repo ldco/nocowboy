@@ -22,6 +22,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
 import { EffectFlock } from "@nocowboy/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
+import { validateContextProfile } from "../nocowboy/session/context-profile" // nocowboy_change - context profile validation
 import { NonNegativeInt, PositiveInt, type DeepMutable } from "@nocowboy/core/schema"
 import { ConfigAgent } from "./agent"
 import { ConfigAttachment } from "./attachment"
@@ -37,6 +38,7 @@ import { ConfigPaths } from "./paths"
 import { ConfigPermission } from "./permission"
 import { ConfigPlugin } from "./plugin"
 import { ConfigProvider } from "./provider"
+import { sanitizeProviderConfig } from "@/nocowboy/config/provider-models" // nocowboy_change - tolerate malformed model entries
 import { ConfigReference } from "./reference"
 import { ConfigServer } from "./server"
 import { ConfigSkills } from "./skills"
@@ -72,6 +74,16 @@ function mergeConfigConcatArrays(target: Info, source: Info): Info {
 function normalizeLoadedConfig(data: unknown, source: string) {
   if (!isRecord(data)) return data
   const copy = NoCowboyConfig.retireIndexingFlag({ ...data }, source)
+  // nocowboy_change - a malformed provider model entry must not fail the whole
+  // config decode: drop the bad entry, keep the rest, report each drop.
+  for (const error of sanitizeProviderConfig(copy as Record<string, unknown>)) {
+    log.warn("provider model entry ignored — malformed", {
+      path: source,
+      provider: error.provider,
+      model: error.model,
+      message: error.message,
+    })
+  }
   const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
   if (!hadLegacy) return copy
   delete copy.theme
@@ -376,6 +388,13 @@ export const Info = Schema.Struct({
       }),
     }),
   ),
+  // nocowboy_change - context profile: budget how much of a (large) model window a task may occupy
+  context_profile: Schema.optional(
+    Schema.Union([Schema.Literal("compact"), Schema.Literal("standard"), Schema.Literal("deep")]),
+  ).annotate({
+    description:
+      'Context budgeting profile. "standard" (default) keeps the compaction threshold; "compact" narrows the window to 50%; "deep" uses up to 90% on models with a window >=512k and requires budget.max_tokens (deep context without a budget is rejected).',
+  }),
   experimental: Schema.optional(
     Schema.Struct({
       disable_paste_summary: Schema.optional(Schema.Boolean),
@@ -422,6 +441,13 @@ export const Info = Schema.Struct({
       subagent_max_runtime_ms: Schema.optional(NonNegativeInt).annotate({
         description:
           "Absolute wall-clock cap for a subagent in milliseconds, regardless of activity. Set to 0 to disable. Default: 0.",
+      }),
+      // nocowboy_change - tool-capability config: choose the editing tool per model
+      edit_method: Schema.optional(
+        Schema.Record(Schema.String, Schema.Union([Schema.Literal("patch"), Schema.Literal("edit")])),
+      ).annotate({
+        description:
+          "Which editing tool to expose, keyed by model id ('patch' = apply_patch, 'edit' = search/replace). Use '*' as a default for every model. Unset models keep the built-in heuristic (apply_patch for some gpt-* models).",
       }),
     }),
   ),
@@ -1074,6 +1100,14 @@ export const layer = Layer.effect(
         }
         if (Flag.NOCOWBOY_DISABLE_PRUNE) {
           result.compaction = { ...result.compaction, prune: false }
+        }
+        // nocowboy_change - reject an incompatible context profile pair (deep without a token budget)
+        const contextProfileError = validateContextProfile({
+          profile: result.context_profile,
+          budgetMaxTokens: result.budget?.max_tokens,
+        })
+        if (contextProfileError) {
+          warnings.push({ path: "context_profile", message: contextProfileError })
         }
         NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
 

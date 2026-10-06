@@ -601,3 +601,49 @@ describe("subagent hang watchdog config", () => {
     expect(() => decode({ experimental: { subagent_stall_timeout_ms: -1 } })).toThrow()
   })
 })
+
+describe("context profile config", () => {
+  test("decodes context_profile and the token budget", () => {
+    const config = decode({ context_profile: "deep", budget: { max_tokens: 2_000_000 } })
+    expect(config.context_profile).toBe("deep")
+    expect(config.budget?.max_tokens).toBe(2_000_000)
+  })
+
+  test("warns when context_profile deep has no token budget", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await writeConfig(tmp.path, { context_profile: "deep" })
+    await provideTestInstance({
+      directory: tmp.path,
+      fn: async () => {
+        await load()
+        const warnings = await Effect.runPromise(
+          Config.Service.use((svc) => svc.warnings()).pipe(Effect.scoped, Effect.provide(layer)),
+        )
+        expect(warnings.some((w) => w.message.includes("budget.max_tokens"))).toBe(true)
+      },
+    })
+  })
+
+  test("a malformed provider model entry does not break config load", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await writeConfig(tmp.path, {
+      provider: {
+        local: {
+          models: {
+            good: { name: "Good Model" },
+            bad: { cost: { input: "not-a-number" } },
+          },
+        },
+      },
+    })
+    await provideTestInstance({
+      directory: tmp.path,
+      fn: async () => {
+        const config = await load()
+        const models = (config.provider?.local as { models?: Record<string, unknown> } | undefined)?.models
+        expect(models?.good).toBeDefined()
+        expect(models?.bad).toBeUndefined()
+      },
+    })
+  })
+})

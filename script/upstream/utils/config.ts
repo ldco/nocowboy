@@ -53,6 +53,13 @@ export interface MergeConfig {
 
   /** i18n file patterns that need string transformation */
   i18nPatterns: string[]
+
+  /**
+   * When true the upstream checkout is a read-only reference: it must never be
+   * injected into the working paths and no transform may rewrite our names into
+   * the upstream scope. The legacy OpenCode→Kilo updater leaves this off.
+   */
+  upstreamReadOnly?: boolean
 }
 
 export const defaultConfig: MergeConfig = {
@@ -232,6 +239,56 @@ export const defaultConfig: MergeConfig = {
   // i18n translation files that need Kilo branding transforms
   i18nPatterns: ["packages/*/src/i18n/*.ts"],
 }
+
+// nocowboy_change start — NoCowboy merge profile (shared-core adaptation of the
+// inherited Kilo updater; classified as `adapted` in ownership-manifest.json).
+/**
+ * NoCowboy genealogy profile — deliberately NOT the legacy OpenCode→Kilo
+ * updater.
+ *
+ * `defaultConfig` rewrites `opencode-ai`/`@nocowboy/*` into `@kilocode/*` and
+ * targets the anomalyco/opencode line; that is wrong for a
+ * Kilo Code → NoCowboy workflow. This profile:
+ *  - maps only the *inbound* direction (`@kilocode/*` → `@nocowboy/*`); it
+ *    never rewrites our names into `@kilocode/*` (enforced by
+ *    `assertNoLegacyRewrite`),
+ *  - marks the upstream checkout read-only (`upstreamReadOnly`),
+ *  - preserves the NoCowboy-owned directories and their shared-core call sites.
+ */
+export const nocowboyConfig: MergeConfig = {
+  ...defaultConfig,
+  packageMappings: [{ from: "@kilocode", to: "@nocowboy" }],
+  upstreamReadOnly: true,
+  branchPrefix: "nocowboy-merge",
+  kiloDirectories: [
+    ...defaultConfig.kiloDirectories,
+    "packages/opencode/src/nocowboy",
+    "packages/opencode/test/nocowboy",
+  ],
+}
+
+export type MergeProfileName = "legacy-kilo" | "nocowboy"
+
+/** The merge profile for a workflow; defaults to the legacy Kilo updater. */
+export function resolveProfile(name: MergeProfileName): MergeConfig {
+  return name === "nocowboy" ? nocowboyConfig : defaultConfig
+}
+
+/**
+ * Guard against reintroducing the legacy rename in the NoCowboy profile: our
+ * packages must never be rewritten into the upstream `@kilocode/*` scope.
+ * Throws with the offending mappings otherwise.
+ */
+export function assertNoLegacyRewrite(profile: MergeConfig): void {
+  const offenders = profile.packageMappings.filter((m) => m.from.includes("nocowboy") && m.to.includes("kilocode"))
+  if (offenders.length > 0) {
+    throw new Error(
+      `merge profile rewrites @nocowboy/* → @kilocode/*: ${offenders.map((m) => `${m.from}→${m.to}`).join(", ")}`,
+    )
+  }
+}
+
+// nocowboy_change end
 
 export function loadConfig(overrides?: Partial<MergeConfig>): MergeConfig {
   return { ...defaultConfig, ...overrides }

@@ -76,6 +76,29 @@ export interface FileEdit {
   deletions: number
 }
 
+/**
+ * Locate the SEARCH text in the file. The contract is a UNIQUE exact match:
+ *   - 0 matches → not found;
+ *   - 2+ matches → ambiguous (a silent first-match edit is not uniqueness).
+ * Returns the byte offset of the single match.
+ */
+export function findUniqueIndex(content: string, search: string, filePath: string): number {
+  const first = content.indexOf(search)
+  if (first === -1) {
+    throw new Error(
+      `Could not find SEARCH block content in ${filePath}. The search text must match exactly, including whitespace and indentation.`,
+    )
+  }
+  // Search from first+1 (not first+len): an occurrence that OVERLAPS the first
+  // (e.g. "aa" twice in "aaa") is still a second match and must be flagged.
+  if (content.indexOf(search, first + 1) !== -1) {
+    throw new Error(
+      `SEARCH block is ambiguous in ${filePath}: the search text matches multiple locations. Add surrounding context so it matches exactly one place.`,
+    )
+  }
+  return first
+}
+
 function prepareFileEdit(
   filePath: string,
   block: SearchReplaceBlock,
@@ -85,12 +108,7 @@ function prepareFileEdit(
   const old = ending === "\r\n" ? block.search.replaceAll("\n", "\r\n") : block.search
   const replacement = ending === "\r\n" ? block.replace.replaceAll("\n", "\r\n") : block.replace
 
-  const index = contentOld.indexOf(old)
-  if (index === -1) {
-    throw new Error(
-      `Could not find SEARCH block content in ${filePath}. The search text must match exactly, including whitespace and indentation.`,
-    )
-  }
+  const index = findUniqueIndex(contentOld, old, filePath)
 
   const contentNew = contentOld.substring(0, index) + replacement + contentOld.substring(index + old.length)
 
@@ -140,6 +158,20 @@ export const SearchReplaceTool = Tool.define(
 
       const instance = yield* InstanceState.context
 
+      // Contract: blocks are grouped per file and applied sequentially against
+      // the evolving content, then each file is written exactly once. All blocks
+      // are resolved BEFORE any write, so a failing block leaves no partial
+      // state, and a batch is not treated as an atomic transaction across files.
+      const grouped = new Map<string, SearchReplaceBlock[]>()
+      for (const block of parsed) {
+        // Normalize so two spellings of the same path (_dir/./a_ vs _dir/a_) group together.
+        const filePath = path.resolve(instance.directory, block.filePath)
+        yield* assertExternalDirectoryEffect(ctx, filePath)
+        const list = grouped.get(filePath)
+        if (list) list.push(block)
+        else grouped.set(filePath, [block])
+      }
+
       const edits: Array<{
         filePath: string
         newFullContent: string
@@ -154,13 +186,7 @@ export const SearchReplaceTool = Tool.define(
 
       let totalDiff = ""
 
-      for (const block of parsed) {
-        const filePath = path.isAbsolute(block.filePath)
-          ? block.filePath
-          : path.join(instance.directory, block.filePath)
-
-        yield* assertExternalDirectoryEffect(ctx, filePath)
-
+      for (const [filePath, blocks] of grouped) {
         const stats = yield* afs.stat(filePath).pipe(Effect.catch(() => Effect.succeed(undefined)))
         if (!stats || stats.type === "Directory") {
           return yield* Effect.fail(
@@ -178,21 +204,32 @@ export const SearchReplaceTool = Tool.define(
           ),
         )
         const source = Bom.split(read.text)
-        const fileEdit = prepareFileEdit(filePath, block, source.text)
+
+        let current = source.text
+        let diff = ""
+        let additions = 0
+        let deletions = 0
+        for (const block of blocks) {
+          const fileEdit = prepareFileEdit(filePath, block, current)
+          current = fileEdit.newFullContent
+          diff += fileEdit.diff + "\n"
+          additions += fileEdit.additions
+          deletions += fileEdit.deletions
+        }
 
         edits.push({
           filePath,
-          newFullContent: fileEdit.newFullContent,
+          newFullContent: current,
           oldContent: source.text,
-          diff: fileEdit.diff,
-          additions: fileEdit.additions,
-          deletions: fileEdit.deletions,
+          diff,
+          additions,
+          deletions,
           encoding: read.encoding,
           bom: source.bom,
-          filediff: buildFileDiff(filePath, source.text, fileEdit.newFullContent),
+          filediff: buildFileDiff(filePath, source.text, current),
         })
 
-        totalDiff += fileEdit.diff + "\n"
+        totalDiff += diff
       }
 
       const files = edits.map((e) => ({

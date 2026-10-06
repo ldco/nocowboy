@@ -1,5 +1,5 @@
 import { afterEach, describe, expect } from "bun:test"
-import { Effect, Exit, Fiber, Layer } from "effect"
+import { Cause, Effect, Exit, Fiber, Layer } from "effect"
 import { Agent } from "../../src/agent/agent"
 import { BackgroundJob } from "@/background/job"
 import { Activity } from "@/nocowboy/session/activity"
@@ -216,6 +216,43 @@ describe("tool.task", () => {
     },
   )
 
+  // nocowboy_change start - executor enforces the AgentCatalog spawn policy
+  it.instance("execute rejects spawning a primary (non-spawnable) agent", () =>
+    Effect.gen(function* () {
+      const { chat, assistant } = yield* seed()
+      const tool = yield* TaskTool
+      const def = yield* tool.init()
+      const asked: unknown[] = []
+
+      const exit = yield* Effect.exit(
+        def.execute(
+          { description: "delegate", prompt: "do the thing", subagent_type: "auto" },
+          {
+            sessionID: chat.id,
+            messageID: assistant.id,
+            agent: "build",
+            abort: new AbortController().signal,
+            extra: { promptOps: stubOps() },
+            messages: [],
+            metadata: () => Effect.void,
+            ask: (input) => {
+              asked.push(input)
+              return Effect.void
+            },
+          },
+        ),
+      )
+
+      expect(Exit.isFailure(exit)).toBe(true)
+      // The policy runs BEFORE the permission prompt: a forbidden agent must not
+      // reach the permission system (no prompt, no persisted always-allow).
+      expect(asked).toHaveLength(0)
+      const text = Exit.isFailure(exit) ? Cause.pretty(exit.cause) : ""
+      expect(text).toContain("not spawnable")
+    }),
+  )
+  // nocowboy_change end
+
   it.instance("execute resumes an existing task session from task_id", () =>
     Effect.gen(function* () {
       const sessions = yield* Session.Service
@@ -420,6 +457,8 @@ describe("tool.task", () => {
       expect(kids[0]?.id).toBe(result.metadata.sessionId)
       expect(result.metadata.sessionId).not.toBe("ses_missing")
       expect(result.output).toContain(`task_id: ${result.metadata.sessionId}`)
+      // nocowboy_change - a stale task_id is reported, not silently ignored.
+      expect(result.output).toContain("task_id ses_missing was not found")
       expect(seen?.sessionID).toBe(result.metadata.sessionId)
     }),
   )

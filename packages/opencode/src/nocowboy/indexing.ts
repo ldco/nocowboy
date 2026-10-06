@@ -21,6 +21,7 @@ import { indexingWarningKey, type IndexingWarning } from "./indexing-warning"
 import { IndexingWorker } from "./indexing-worker-client"
 import { LanceDBRuntime } from "./lancedb"
 import { indexingWithNoCowboyDefault, resolveNoCowboyIndexingAuth, type NoCowboyIndexingAuth } from "./indexing-auth"
+import { indexingConfigKey } from "./indexing-config-key"
 
 const log = Log.create({ service: "nocowboy-indexing" })
 const auth = makeRuntime(Auth.Service, Auth.defaultLayer)
@@ -315,6 +316,11 @@ export namespace KiloIndexing {
 
   const cache = new Map<string, Cache>()
 
+  // The indexing config the current entries were built from. A config event
+  // compares against this to decide whether a rebuild is actually needed; the
+  // entry is cached by directory, so without it a config write was invisible.
+  let lastIndexingKey: string | undefined
+
   const inert = async (current: () => Status): Promise<Entry> => {
     const publish = async () => {
       await Bus.publish(Instance.current, Event, { status: current() })
@@ -341,6 +347,7 @@ export namespace KiloIndexing {
     const baseline = baselineDirectory(dir)
     const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.get()))
     const globalConfig = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
+    lastIndexingKey = indexingConfigKey({ ...globalConfig.indexing, ...cfg.indexing })
     if (process.env["NOCOWBOY_DISABLE_CODEBASE_INDEXING"] === "vscode-no-workspace") {
       return track(hit, await inert(() => noWorkspace()))
     }
@@ -602,6 +609,42 @@ export namespace KiloIndexing {
       log.error("failed to initialize indexing", { err })
     })
     await current.ready
+  }
+
+  /**
+   * Tear down the cached entry for this directory and rebuild it from the
+   * current config. The old entry is disposed BEFORE the new one boots: the
+   * indexing worker holds one manager per key, so disposing afterwards would
+   * clobber the freshly built one.
+   */
+  export async function reload() {
+    const dir = Instance.directory
+    const existing = cache.get(dir)
+    cache.delete(dir)
+    if (existing) {
+      existing.disposed = true
+      if (existing.entry) await existing.entry.dispose()
+    }
+    await init()
+  }
+
+  /**
+   * React to a `global.config.updated` event: rebuild only when the effective
+   * indexing config actually changed (a tuning-only change is a no-op). This is
+   * the missing link that made a vector-store switch do nothing until restart.
+   */
+  export async function onConfigUpdated() {
+    const cfg = await AppRuntime.runPromise(Config.Service.use((svc) => svc.get()))
+    const globalConfig = await AppRuntime.runPromise(Config.Service.use((svc) => svc.getGlobal()))
+    const key = indexingConfigKey({ ...globalConfig.indexing, ...cfg.indexing })
+    if (lastIndexingKey === undefined) {
+      lastIndexingKey = key
+      return
+    }
+    if (key === lastIndexingKey) return
+    lastIndexingKey = key
+    log.info("indexing configuration changed; rebuilding index", { workspacePath: Instance.directory })
+    await reload()
   }
 
   export async function current(): Promise<Status> {

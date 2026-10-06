@@ -5,6 +5,8 @@ import { afterEach, expect, mock, spyOn } from "bun:test"
 import { Telemetry } from "@nocowboy/telemetry"
 // kilocode_change end
 import { Cause, Effect, Exit, Fiber, Layer } from "effect"
+import { writeFileSync } from "fs"
+import os from "os"
 import path from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { Activity } from "@/nocowboy/session/activity"
@@ -313,6 +315,35 @@ function providerCfg(url: string) {
     },
   }
 }
+
+// nocowboy_change: a stop-hook plugin used by the turn-level stop hook test.
+// It blocks the first turn ("not done") and allows the next, so the harness
+// itself — not the plugin — has to restart the loop with a continuation.
+const stopHookPluginFile = path.join(os.tmpdir(), `nocowboy-stop-hook-plugin-${process.pid}.ts`)
+writeFileSync(
+  stopHookPluginFile,
+  [
+    "let blocks = 0",
+    "export default async () => ({",
+    '  "session.stop": (_input: unknown, output: { continue: boolean; reason?: string }) => {',
+    "    if (blocks < 1) {",
+    "      blocks += 1",
+    "      output.continue = true",
+    '      output.reason = "test gate: not done"',
+    "    }",
+    "  },",
+    "})",
+    "",
+  ].join("\n"),
+)
+
+function stopHookCfg(url: string) {
+  return {
+    ...providerCfg(url),
+    plugin: [pathToFileURL(stopHookPluginFile).href],
+  }
+}
+
 
 const user = Effect.fn("test.user")(function* (sessionID: SessionID, text: string) {
   const session = yield* Session.Service
@@ -836,6 +867,57 @@ it.live("autopilot goal continues across turns without a user message", () =>
       expect(GoalService.get(session.id)).toBeUndefined()
     }),
     { git: true, config: providerCfg },
+  ),
+  30_000,
+)
+
+// nocowboy_change: a turn-level stop hook must actually block the end of the
+// turn. The plugin only asks for another turn; the harness is what persists a
+// synthetic continuation and runs the loop again — this is the proof that the
+// stop-hook counters are no longer a no-op.
+it.live("stop hook blocks the turn end and the harness continues the loop", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ dir, llm }) {
+      const prompt = yield* SessionPrompt.Service
+      const sessions = yield* Session.Service
+      const session = yield* sessions.create({
+        title: "Stop hook",
+        permission: [{ permission: "*", pattern: "*", action: "allow" }],
+      })
+
+      yield* prompt.prompt({
+        sessionID: session.id,
+        agent: "build",
+        noReply: true,
+        parts: [{ type: "text", text: "start" }],
+      })
+      yield* llm.text("turn one")
+
+      const result = yield* prompt.loop({ sessionID: session.id })
+      expect(result.info.role).toBe("assistant")
+
+      const msgs = yield* MessageV2.filterCompactedEffect(session.id)
+      const userMsgs = msgs.filter((m) => m.info.role === "user")
+      const assistants = msgs.filter((m) => m.info.role === "assistant")
+
+      // Exactly one real (human) user message; the rest was injected by the
+      // harness because the hook refused the turn end.
+      const realUser = userMsgs.filter(
+        (m) => !m.parts.some((p) => p.type === "text" && p.synthetic === true),
+      )
+      expect(realUser).toHaveLength(1)
+      const synthetic = userMsgs
+        .flatMap((m) => m.parts)
+        .filter((p): p is MessageV2.TextPart => p.type === "text" && p.synthetic === true)
+      expect(synthetic.length).toBeGreaterThanOrEqual(1)
+      expect(synthetic.some((p) => p.text.includes("<stop-hook-continue"))).toBe(true)
+      expect(synthetic.some((p) => p.text.includes("test gate: not done"))).toBe(true)
+
+      // The blocked turn was followed by another model turn, with no human input.
+      expect(assistants.length).toBeGreaterThanOrEqual(2)
+      void dir
+    }),
+    { git: true, config: stopHookCfg },
   ),
   30_000,
 )

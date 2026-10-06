@@ -34,6 +34,7 @@ import * as Log from "@nocowboy/core/util/log"
 import { LspTool } from "./lsp"
 import * as Truncate from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
+import { resolveEditMethod } from "@/nocowboy/tool/edit-capability" // nocowboy_change - tool-capability config
 import { Glob } from "@nocowboy/core/util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -51,9 +52,9 @@ import { Instruction } from "../session/instruction"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
+import { EngineAdapter } from "../nocowboy/engine-adapter" // nocowboy_change - single engine entry point for ports
 import { Git } from "@/git"
 import { Skill } from "../skill"
-import { Permission } from "@/permission"
 import { SessionStatus } from "@/session/status"
 import { Reference } from "@/reference/reference"
 import { BackgroundJob } from "@/background/job"
@@ -326,10 +327,10 @@ export const layer: Layer.Layer<
     })
 
     const describeTask = Effect.fn("ToolRegistry.describeTask")(function* (agent: Agent.Info) {
-      const items = (yield* agents.list()).filter((item) => item.mode !== "primary")
-      const filtered = items.filter(
-        (item) => Permission.evaluate("task", item.name, agent.permission).action !== "deny",
-      )
+      // nocowboy_change - the task vertical reaches the engine only through EngineAdapter.
+      const items = EngineAdapter.agentCatalog().spawnable(yield* agents.list())
+      const policy = EngineAdapter.policy(agent.permission)
+      const filtered = items.filter((item) => policy.evaluate({ permission: "task", pattern: item.name }) !== "deny")
       const list = filtered.toSorted((a, b) => a.name.localeCompare(b.name))
       const description = list
         .map(
@@ -341,14 +342,21 @@ export const layer: Layer.Layer<
     })
 
     const tools: Interface["tools"] = Effect.fn("ToolRegistry.tools")(function* (input) {
+      // nocowboy_change - tool-capability config picks patch vs edit instead of the
+      // model-name check; the legacy heuristic is the fallback (see edit-capability).
+      const cfg = yield* config.get()
+      const usePatch =
+        resolveEditMethod({
+          modelID: input.modelID,
+          e2e: !!process.env["NOCOWBOY_E2E_LLM_URL"],
+          table: cfg.experimental?.edit_method,
+        }) === "patch"
+
       const filtered = (yield* all()).filter((tool) => {
         if (tool.id === WebSearchTool.id) {
           return webSearchEnabled(input.providerID, { exa: flags.enableExa, parallel: flags.enableParallel })
         }
 
-        const usePatch =
-          !!process.env["NOCOWBOY_E2E_LLM_URL"] ||
-          (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
         if (tool.id === ApplyPatchTool.id) return usePatch
         if (tool.id === EditTool.id) return !usePatch
 

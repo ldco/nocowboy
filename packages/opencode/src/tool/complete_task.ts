@@ -11,8 +11,8 @@ import { LSP } from "@/lsp/lsp"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Effect, Schema } from "effect"
 import { filterDiagnostics } from "./diagnostics"
-
-const NUTAUSIK_DEFAULT = "http://127.0.0.1:9210/mcp"
+import { callToolResult } from "../nocowboy/nutausik-client" // nocowboy_change - one MemoryAdapter transport
+import { commitmentInvitation } from "../nocowboy/review/commitment" // nocowboy_change - once-per-deliverable commitment review
 
 export const Parameters = Schema.Struct({
   slug: Schema.String.annotate({
@@ -137,41 +137,14 @@ export const CompleteTaskTool = Tool.define(
             // Constitution unavailable — skip check
           }
 
-          // Step 4: No errors → forward to nutausik_task_done
-          const nutausikUrl = process.env.NUTAUSIK_MCP_URL ?? NUTAUSIK_DEFAULT
-          let nutausikResult = ""
-
-          const response: Response = yield* Effect.tryPromise({
-            try: () =>
-              fetch(nutausikUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  jsonrpc: "2.0",
-                  id: 1,
-                  method: "tools/call",
-                  params: {
-                    name: "nutausik_task_done",
-                    arguments: {
-                      slug: params.slug,
-                      ac_verified: params.ac_verified,
-                    },
-                  },
-                }),
-                signal: AbortSignal.timeout(5000),
-              }),
-            catch: (err) =>
-              new Error(
-                `NUTAUSIK unavailable: ${err instanceof Error ? err.message : String(err)}`,
-              ),
-          })
-
-          if (response.ok) {
-            const data: any = yield* Effect.tryPromise(() => response.json())
-            nutausikResult = data?.result?.content?.[0]?.text ?? "Task completed"
-          } else {
-            nutausikResult = `NUTAUSIK returned HTTP ${response.status}`
-          }
+          // Step 4: No errors → forward to nutausik_task_done through the one
+          // MemoryAdapter transport (structured result, env-overridable endpoint).
+          const doneResult = yield* Effect.promise(() =>
+            callToolResult("nutausik_task_done", { slug: params.slug, ac_verified: params.ac_verified }),
+          )
+          const nutausikResult = doneResult.ok
+            ? doneResult.value || "Task completed"
+            : `NUTAUSIK unavailable: ${doneResult.error.message}`
 
           const constitutionBlock =
             constitutionWarnings.length > 0
@@ -182,6 +155,10 @@ export const CompleteTaskTool = Tool.define(
                 ].join("\n")
               : ""
 
+          // Commitment-Boundary Review — requested exactly once per deliverable
+          // (task slug): a fresh model reads the diff and returns ship/fix-first/rethink.
+          const commitmentBlock = commitmentInvitation(params.slug)
+
           return {
             title: "Task completed",
             metadata: { slug: params.slug, ac_verified: params.ac_verified },
@@ -191,6 +168,7 @@ export const CompleteTaskTool = Tool.define(
               "",
               "Verification passed — no LSP errors found.",
               constitutionBlock,
+              commitmentBlock,
             ].join("\n"),
           }
         }).pipe(Effect.orDie),

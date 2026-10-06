@@ -1,6 +1,8 @@
 import { Permission } from "@/permission"
 import { NamedError } from "@nocowboy/core/util/error"
 import { Glob } from "@nocowboy/core/util/glob"
+import * as Log from "@nocowboy/core/util/log"
+import { diagnoseReviewIndependence } from "../review/cascade"
 import * as Truncate from "../../tool/truncate"
 import { Config } from "../../config/config"
 import { Provider } from "../../provider/provider"
@@ -8,6 +10,8 @@ import type { Info as AgentInfo } from "../../agent/agent"
 import { Schema } from "effect"
 import path from "path"
 import { Global } from "@nocowboy/core/global"
+
+const log = Log.create({ service: "agent.independence" })
 
 import PROMPT_NOCOWBOY from "../../agent/prompt/nocowboy.txt"
 import PROMPT_NOCOWBOY_RU from "../../agent/prompt/nocowboy.ru.txt"
@@ -123,7 +127,22 @@ export const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
   "git branch --list *": "allow",
   "git branch -a *": "allow",
   "git branch -r *": "allow",
-  "git remote -v *": "allow",
+  "git remote -v": "allow",
+  // Non-mutating verification commands: read-only agents (architect, planner,
+  // reviewer) must still be able to run tests and read-only checks. Anything
+  // that can write stays denied by the "*": "deny" default and the shell-metachar
+  // patterns below.
+  "bun test": "allow",
+  "bun test *": "allow",
+  "bun run typecheck*": "allow",
+  "bun run scripts/verify-roadmap.ts*": "allow",
+  // NOTE: trailing " *" (space before wildcard) is required — it matches the
+  // bare command and trailing args, but NOT "--checkX", which would fall through
+  // to each script's write branch (they gate writes on `includes("--check")`).
+  "bun run scripts/generate-docs.ts --check *": "allow",
+  "bun run scripts/ownership-manifest.ts --check *": "allow",
+  "bun run scripts/engine-manifest.ts --check *": "allow",
+  "bun run scripts/quality-ratchet.ts": "allow",
   "gh *": "ask",
   "*\n*": "deny",
   "*<(*": "deny",
@@ -143,6 +162,24 @@ export const readOnlyBash: Record<string, "allow" | "ask" | "deny"> = {
   "sort * -o *": "deny",
   "sort --output*": "deny",
   "sort * --output*": "deny",
+  // Write/exec bypasses inside otherwise-allowed read commands. These stay LAST
+  // so they win over the allows above (Permission.evaluate returns the last
+  // matching rule). Found by the reviewer trying to break the read-only ceiling.
+  "*--out*": "deny", // git log/diff/show --output=<file>; --outdir / --out-dir (--out* covers --output/--outdir)
+  "bun test *outfile*": "deny", // bun test --reporter-outfile=<file> (single-dash -outfile); scoped to the flag's owner
+  "rg --pre*": "deny", // rg --pre <cmd> executes a command
+  "rg *--pre*": "deny",
+  "rg * --pre *": "deny",
+  "bun test -u": "deny",
+  "bun test -u *": "deny",
+  "bun test * -u": "deny",
+  "bun test * -u *": "deny",
+  "bun test --update-snapshots*": "deny",
+  "bun test *--update-snapshots*": "deny",
+  "bun test --coverage*": "deny", // may write a coverage directory
+  "bun test *--coverage*": "deny",
+  "bun run scripts/quality-ratchet.ts --update*": "deny", // rewrites the baseline
+  "bun run scripts/quality-ratchet.ts *--update*": "deny",
 }
 
 // Always-available meta-tools — every agent has these regardless of groups/config.
@@ -184,6 +221,8 @@ export function cacheKey(cfg: Config.Info) {
     mcp: cfg.mcp,
     mode: cfg.mode,
     permission: cfg.permission,
+    // nocowboy_change - locale is part of the key so a language switch rebuilds agents
+    lang: cfg.lang,
   })
 }
 
@@ -369,6 +408,10 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_REVIEWER_RU : PROMPT_REVIEWER) + routerPrompt,
     model: resolveModel("reviewer", { providerID: "moonshotai", modelID: "kimi-k3" }),
     options: {},
+    // Read-only ceiling goes LAST: Permission.evaluate returns the last matching
+    // rule, so a global `permission.bash`/`permission.edit` allow cannot silently
+    // re-grant a mutation. YOLO and an explicit agent-level config still lift it
+    // (see permission/index.ts). Enforced as hardRuleset by hardPermissions().
     permission: Permission.merge(
       defaults,
       Permission.fromConfig({
@@ -378,6 +421,10 @@ export function patchAgents(
       }),
       user,
       META_TOOLS,
+      Permission.fromConfig({
+        bash: readOnlyBash,
+        edit: { "*": "deny" },
+      }),
     ),
     mode: "all",
     native: true,
@@ -425,7 +472,18 @@ export function patchAgents(
     prompt: (lang === "ru" ? PROMPT_PLANNER_RU : PROMPT_PLANNER) + routerPrompt,
     model: resolveModel("planner", { providerID: "deepseek", modelID: "deepseek-v4-pro" }),
     options: {},
-    permission: Permission.merge(defaults, Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }), user, META_TOOLS),
+    // Read-only ceiling LAST (same rationale as reviewer): deny mutations,
+    // allow only non-mutating bash; liftable by YOLO or explicit agent config.
+    permission: Permission.merge(
+      defaults,
+      Permission.fromConfig({ suggest: "allow", plan_enter: "allow" }),
+      user,
+      META_TOOLS,
+      Permission.fromConfig({
+        bash: readOnlyBash,
+        edit: { "*": "deny" },
+      }),
+    ),
     mode: "all",
     native: true,
   }
@@ -447,6 +505,17 @@ export function patchAgents(
     if (agents.compaction) agents.compaction.prompt = PROMPT_COMPACTION_RU
     if (agents.title) agents.title.prompt = PROMPT_TITLE_RU
     if (agents.summary) agents.summary.prompt = PROMPT_SUMMARY_RU
+  }
+
+  // nocowboy_change - a reviewer that resolves to the same model as the worker
+  // is a silent self-review; surface it as a warning instead of assuming the
+  // configured models differ.
+  const independence = diagnoseReviewIndependence({
+    worker: agents.worker?.model,
+    reviewer: agents.reviewer?.model,
+  })
+  if (!independence.independent) {
+    log.warn(independence.message ?? "review is not model-independent", { code: independence.code })
   }
 
   hardenSystemAgents(agents)

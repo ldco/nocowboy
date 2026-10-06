@@ -26,6 +26,28 @@ if [ -f "$ROOT/scripts/quality-ratchet.ts" ] && command -v bun &>/dev/null; then
   bun run "$ROOT/scripts/quality-ratchet.ts" || exit 1
 fi
 
+# ── Ownership manifest (fast, blocking) ──
+# A new shared-core change (a nocowboy_change marker or a @/nocowboy import
+# outside the owned roots) must be classified in ownership-manifest.json.
+if [ -f "$ROOT/scripts/ownership-manifest.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  bun run "$ROOT/scripts/ownership-manifest.ts" --check || exit 1
+fi
+
+# ── @nocowboy/runtime dependency boundary (fast, blocking) ──
+# The runtime port core must import only effect/zod and its own files.
+if [ -f "$ROOT/scripts/check-runtime-boundary.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  bun run "$ROOT/scripts/check-runtime-boundary.ts" --check || exit 1
+fi
+
+# ── engine-adapter single entry point (fast, blocking) ──
+# Port implementations are reached only through @nocowboy/engine-adapter.
+if [ -f "$ROOT/scripts/check-engine-adapter.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  bun run "$ROOT/scripts/check-engine-adapter.ts" --check || exit 1
+fi
+
 # ── Roadmap verification ──
 # Priority: repo-local scripts (the format this repo's docs use) → dev source → global
 

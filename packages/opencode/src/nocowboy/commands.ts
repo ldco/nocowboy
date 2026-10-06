@@ -1,5 +1,6 @@
 // All CommandModules in one place so help.ts and generate-cli-docs.ts can
 import { RepoMapCommand } from "../cli/cmd/repomap"
+import { KnowledgeGraphCommand } from "../cli/cmd/knowledge-graph"
 import { InitCommand } from "../cli/cmd/init"
 // introspect them without importing index.ts (which has startup side effects).
 // When upstream adds a new command to index.ts, add it here too.
@@ -55,6 +56,7 @@ export const commands = [
   AcpCommand,
   McpCommand,
   RepoMapCommand,
+  KnowledgeGraphCommand,
   InitCommand,
   TuiThreadCommand,
   AttachCommand,

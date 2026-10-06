@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { I18n, phrases, translatePhrase } from "../../src/nocowboy/ui/i18n"
+import { resolveLanguage } from "../../src/nocowboy/ui/language"
+import { cacheKey as agentCacheKey } from "../../src/nocowboy/agent/index"
+import type { Config } from "../../src/config/config"
 
 // The dictionary is typed as Record<I18n.Key, string>, so a missing translation is
 // a type error; this also guards against silently adding a key to only one locale.
@@ -27,6 +32,47 @@ describe("i18n dictionary", () => {
     expect(I18n.getStrings("ru")["sessions.allWorktrees"]).toContain("worktree")
     expect(I18n.getStrings("ru")["sidebar.templates"]).toBe("Шаблоны")
     expect(I18n.getStrings("en")["sidebar.templates"]).toBe("Templates")
+  })
+
+  test("the sidebar usage labels are translated in both locales", () => {
+    const ru = I18n.getStrings("ru")
+    const en = I18n.getStrings("en")
+    expect(en["sidebar.usage"]).toBe("Token Usage")
+    expect(ru["sidebar.usage"]).toBe("Использование токенов")
+    expect(ru["sidebar.usage.cached"]).toBe("Из кэша")
+    expect(en["sidebar.usage.cached"]).toBe("Cached")
+    expect(ru["sidebar.share"]).toBe("Поделиться")
+    expect(en["sidebar.share"]).toBe("Share")
+  })
+
+  test("the own usage sidebar uses keys, not hardcoded literals", () => {
+    const src = readFileSync(path.join(import.meta.dir, "../../src/nocowboy/plugins/sidebar-usage.tsx"), "utf-8")
+    for (const literal of ["Token Usage", ">Input<", ">Output<", ">Cached<", "Cost / attempt"]) {
+      expect(src, `sidebar-usage.tsx still has the literal ${literal}`).not.toContain(literal)
+    }
+    expect(src).toContain('t("sidebar.usage")')
+    expect(src).toContain('t("sidebar.usage.cached")')
+  })
+})
+
+describe("locale in the agent cache key and cross-project consistency", () => {
+  test("the agent cache key includes lang, so a language switch rebuilds agents", () => {
+    expect(agentCacheKey({ lang: "ru" } as Config.Info)).not.toBe(agentCacheKey({ lang: "en" } as Config.Info))
+    expect(agentCacheKey({ lang: "ru" } as Config.Info)).toBe(agentCacheKey({ lang: "ru" } as Config.Info))
+  })
+
+  test("RU→EN→RU returns to the same strings", () => {
+    const ru1 = I18n.getStrings("ru")["sidebar.settings"]
+    const en = I18n.getStrings("en")["sidebar.settings"]
+    const ru2 = I18n.getStrings("ru")["sidebar.settings"]
+    expect(ru1).toBe(ru2)
+    expect(ru1).not.toBe(en)
+  })
+
+  test("two projects with different locale resolve independently", () => {
+    expect(resolveLanguage({ config: "ru" })).toBe("ru")
+    expect(resolveLanguage({ config: "en" })).toBe("en")
+    expect(resolveLanguage({ tui: "en", config: "ru" })).toBe("en")
   })
 })
 

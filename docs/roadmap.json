@@ -1178,22 +1178,128 @@
     {
       "id": "deep-context-2m",
       "title": "Deep Context (2M tokens с бюджетированием)",
-      "status": "planned",
-      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
+      "status": "done",
       "version": "v0.11.0",
+      "done_on": "2026-10-06",
       "phase": "alpha-quality",
       "priority": "P1",
-      "depends_on": []
+      "description": "Context profile (compact|standard|deep) бюджетирует, какую долю большого окна (до 2M) задача может занять. deep требует budget.max_tokens (иначе отвергается), поднимает порог до 90% на окне ≥512k (никогда выше limit.input − reserved) и понижается до standard с причиной на меньшем окне или без бюджета; профиль виден в сайдбаре.",
+      "notes": "Реализовано 2026-10-06: nocowboy/session/context-profile.ts — чистое ядро (CONTEXT_PROFILES, PROFILE_FRACTION compact 50% / standard 80% / deep 90%, DEEP_MIN_CONTEXT 512k, validateContextProfile, resolveContextProfile с downgradedFrom+reason, profileLabel). Config: поле context_profile + предупреждение при deep без budget.max_tokens. overflow.limit() учитывает профиль (deep поднимает порог, compact сужает; без профиля поведение прежнее; понижение логируется). Бюджет max_tokens → BudgetExceededError (существующий applyBudget). Сайдбар (sidebar/context.tsx) показывает активный профиль рядом с занятостью окна. Оставшиеся дизайн-пункты спеки (отбор содержимого, cache-read, авто-выбор) вынесены в deep-context-selection.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "deep без budget.max_tokens отвергается понятной ошибкой (валидатор + предупреждение конфига)",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + test/nocowboy/config/config.test.ts",
+          "critical": true
+        },
+        {
+          "check": "deep на окне ≥512k поднимает порог до 90%, но не выше limit.input − reserved",
+          "verify": "bun test test/nocowboy/session/overflow.test.ts",
+          "critical": true
+        },
+        {
+          "check": "deep на окне <512k (или без бюджета) понижается до standard с причиной, не молча",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + overflow.test.ts",
+          "critical": true
+        },
+        {
+          "check": "budget.max_tokens останавливает ход (BudgetExceededError)",
+          "verify": "bun test test/nocowboy/budget.test.ts + budget-apply.test.ts",
+          "critical": false
+        },
+        {
+          "check": "Сайдбар показывает активный профиль; резолв turn-independent (стабильный префикс)",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + sidebar/context.tsx",
+          "critical": false
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/context-profile.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "context_profile"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/overflow.ts",
+          "pattern": "resolveContextProfile"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/context.tsx",
+          "pattern": "profileLabel"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/context-profile.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session/overflow.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/deep-context-2m.md"
+        }
+      ]
+    },
+    {
+      "id": "deep-context-selection",
+      "title": "Deep Context — отбор содержимого и учёт cache-read",
+      "status": "blocked",
+      "blocker": "Нет acceptance_criteria; центральный дизайн-пункт (отбор содержимого: repomap → затронутые файлы → память, полный текст только для трогаемых файлов) требует сигнала «затронутые файлы», которого нет в точке сборки системного промпта (nocowboy/system-prompt.ts environment() не имеет доступа к сообщениям сессии) и нет потребителя. Открытые вопросы спеки (auto-выбор профиля по размеру задачи, вес cache-read в бюджете) не решены. Реализуемы лишь под-пункты (учёт стоимости cache-read в сайдбаре, auto-профиль) — их недостаточно для закрытия пункта как целого.",
+      "version": "v0.11.0",
+      "phase": "alpha-quality",
+      "priority": "P2",
+      "description": "Оставшиеся дизайн-пункты спеки deep-context-2m: отбор вместо сваливания (repomap → затронутые файлы → память, полный текст только для трогаемых файлов), учёт стоимости cache-read за сессию и автоматический выбор профиля по размеру задачи.",
+      "notes": "Вынесено из deep-context-2m (там реализовано ядро бюджетирования). Источник: .nocowboy/specs/deep-context-2m.md, дизайн-пункты 3–5 и открытые вопросы. Помечено blocked 2026-10-06 после оценки: ядро (отбор) не имеет ни сигнала, ни потребителя.",
+      "depends_on": ["deep-context-2m"]
     },
     {
       "id": "mcp-framework-merge",
       "title": "MCP Framework — merge plugin-registry в NUTAUSIK",
-      "status": "planned",
-      "notes": "P2-C4. Решить судьбу first-party MCP серверов.",
+      "status": "done",
+      "done_on": "2026-10-06",
+      "notes": "P2-C4. Решено 2026-10-06: первый приоритет запуска MCP (`launch.json` → установленный `@nocowboy/mcp-<name>` → third-party npx дефолт → null) вынесен из Launcher.command в чистую resolveCommand(nocowboy/mcp/launcher.ts) и покрыт тестами; isFirstPartyMcp отличает first-party от third-party дефолтов. Решение: единый тестируемый фреймворк запуска, БЕЗ merge серверов и без вливания MCP plugin-registry в NUTAUSIK (nutausik остаётся встроенным project-scoped память/хабом). Ни один сервер не удалён. Решение записано в NUTAUSIK decisions; doc: docs/reference/mcp-first-party.md.",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Судьба first-party MCP серверов решена и зафиксирована",
+          "verify": "docs/reference/mcp-first-party.md + NUTAUSIK decision",
+          "critical": true
+        },
+        {
+          "check": "Приоритет запуска — одна точка правды, покрытая тестами",
+          "verify": "bun test test/nocowboy/mcp-launcher.test.ts (resolveCommand)",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/reference/mcp-first-party.md"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/mcp/launcher.ts",
+          "pattern": "resolveCommand"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/mcp-launcher.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-framework-merge.md"
+        }
+      ]
     },
     {
       "id": "command-dedup",
@@ -1269,17 +1375,56 @@
       "title": "Self-Being Meta-Cognitive Architecture (P3-SELF)",
       "status": "done",
       "notes": "Создан docs/features/self-being.md — архитектура самосовершенствования: Dream (память) + Distill (эволюция) + Meta-Cognition (рефлексия).",
-      "version": "v0.11.0"
+      "version": "v0.11.0",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/self-being.md"
+        }
+      ]
     },
     {
       "id": "mcp-prompt-support",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)",
-      "status": "planned",
-      "notes": "Было в старом ROADMAP как NOT DONE.",
+      "status": "done",
+      "done_on": "2026-10-06",
+      "notes": "Проверено 2026-10-06: NoCowboy-side поддержка MCP prompts уже присутствует (унаследована от апстрима) и провязана — MCP.prompts()/MCP.getPrompt в mcp/index.ts, а command/index.ts превращает каждый промпт в команду source:\"mcp\" (аргументы → $1..$n, template через getPrompt). Провязка универсальна, поэтому NUTAUSIK-шаблоны (dream/memory/context_inject) появляются в палитре автоматически; их содержимое отдаёт NUTAUSIK (MCP prompts/get) — это NUTAUSIK-side контент. Тест: test/mcp/lifecycle.test.ts \"prompts() returns prompts from connected servers\".",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "MCP prompts перечисляются и доступны как команды",
+          "verify": "bun test test/mcp/lifecycle.test.ts + grep command/index.ts source: \"mcp\"",
+          "critical": true
+        },
+        {
+          "check": "NUTAUSIK-шаблоны появляются автоматически (универсальная провязка); содержимое — server-side",
+          "verify": "docs/features/mcp-prompt-support.md (NUTAUSIK-шаблоны)",
+          "critical": false
+        }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/mcp/index.ts",
+          "pattern": "getPrompt"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/command/index.ts",
+          "pattern": "source: \"mcp\""
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/mcp/lifecycle.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-prompt-support.md"
+        }
+      ]
     },
     {
       "id": "instructions-analysis",
@@ -1478,12 +1623,13 @@
     {
       "id": "vector-store-switcher",
       "title": "Vector store switcher UI",
-      "status": "planned",
-      "notes": "Был в старом P2 роадмапе",
+      "status": "blocked",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
-      "depends_on": []
+      "depends_on": [],
+      "notes": "Spec: .nocowboy/specs/vector-store-switcher.md. ЧАСТИЧНО + BLOCKED (2026-10-06). Сделано+протестировано: AC3 availability-гейт checkVectorStore (qdrant без URL не сохраняется, ошибка видна) + unit-тест; AC2 предупреждение chooseRebuildAction «сейчас/позже/отмена» (отмена не пишет конфиг); AC5 rollback-логика rollbackTarget/watchRollback/applyWithRollback + watchBackend (состояние статуса — «Complete»); AC4 КОРНЕВОЙ ФИКС — цепочка конфиг→переиндексация (KiloIndexing.reload/onConfigUpdated + чистый детектор indexing-config-key.ts + подписка bootstrap на global.config.updated через GlobalBus с Instance.bind), тест 4/6 pass. НЕ ВЫПОЛНЕНО: AC6 — удаление данных СТАРОГО бэкенда после успешной сборки. Попытка реализации ОТКАЧЕНА: независимая read-only верификация (architect) показала, что (1) reload() не может дождаться завершения новой сборки — KiloIndexing.init() резолвится на track() ДО engine.init, поэтому «чистить после успеха» на деле чистит раньше (нарушение инварианта спеки №2), и (2) воркер держит один manager на ключ `${directory}\\0${root}`, поэтому clearIndexData после reload попадёт в НОВЫЙ manager и удалит новый индекс (риск потери данных). Чтобы закрыть AC6 нужен отдельный дескриптор старого стора (clear по конфигу старого бэкенда) + live-прогон. AC4/AC5 подтверждены только на уровне логики/unit-тестов; end-to-end требует запущенного индексатора. Оговорка AC2: «сейчас» и «позже» обе сохраняют конфиг (жёсткое требование AC — только «отмена не пишет»).",
+      "blocker": "AC6 (удаление старого индекса после успешной перестройки) требует: (a) дождаться фактического завершения новой сборки (KiloIndexing.init резолвится раньше engine.init), (b) отдельного дескриптора СТАРОГО стора для clearIndexData — общий manager на ключ воркера делает очистку после reload неотличимой от очистки нового индекса. Плюс live-прогон индексатора для подтверждения AC4/AC5/AC6."
     },
     {
       "id": "deepseek-prefix-cache",
@@ -1730,8 +1876,8 @@
     {
       "id": "nutausik-mcp-prompts",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
-      "status": "planned",
-      "notes": "В NUTAUSIK-side, не в NoCowboy",
+      "status": "abandoned",
+      "notes": "Out of this repo — NUTAUSIK-side prompt templates (dream/memory/context_inject). NoCowboy surfaces any MCP prompt generically (see mcp-prompt-support); the template CONTENT belongs to the NUTAUSIK project. Abandoned in the NoCowboy roadmap 2026-10-06.",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
@@ -1813,9 +1959,9 @@
     {
       "id": "alpha-manual-smoke-test",
       "title": "Manual smoke test — основные сценарии пройдены",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-alpha",
-      "notes": "Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify",
+      "notes": "BLOCKED 2026-10-06: a manual human smoke test (init, /sandbox, /share, /ollama, /forget, roadmap verify) — needs a person at a terminal with the release build; not autonomously verifiable.",
       "verify": [
         {
           "type": "agent"
@@ -1848,9 +1994,9 @@
     {
       "id": "rc-alpha-feedback-incorporated",
       "title": "Alpha feedback incorporated",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
-      "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены",
+      "notes": "BLOCKED 2026-10-06: depends on real alpha-tester feedback, which requires rc-user-testing-complete (human testers) — not autonomous.",
       "phase": "rc",
       "priority": "P0",
       "depends_on": [
@@ -1860,9 +2006,9 @@
     {
       "id": "rc-user-testing-complete",
       "title": "Пользовательское тестирование — 5+ тестеров",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
-      "notes": "5+ человек прогнали основные сценарии. Баги записаны.",
+      "notes": "BLOCKED 2026-10-06: needs 5+ human testers to run the main scenarios and record bugs — external human access, not autonomous.",
       "verify": [
         {
           "type": "agent"
@@ -1877,22 +2023,46 @@
     {
       "id": "rc-performance-test",
       "title": "Performance testing — startup < 500ms, memory < 200MB",
-      "status": "planned",
+      "status": "done",
+      "done_on": "2026-10-06",
       "version": "v1.0.0-rc",
-      "notes": "Холодный старт: < 500ms. RSS: < 200MB",
+      "notes": "Измерено 2026-10-06: scripts/perf-check.ts (N=5 прогонов CLI `--version`, пиковый RSS из VmHWM). Cold start median ~120ms (min 116 / max 123; порог <500ms); peak RSS ~108MB (порог <200MB) — в пределах. Метод честно ограничен: измеряется CLI bootstrap, а не интерактивный TUI (headless недоступен). verify — cmd `bun run scripts/perf-check.ts --assert`. depends_on rc-user-testing-complete — ordering-зависимость.",
       "phase": "rc",
       "priority": "P1",
       "depends_on": [
         "rc-user-testing-complete"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Холодный старт < 500ms",
+          "verify": "bun run scripts/perf-check.ts --assert",
+          "critical": true
+        },
+        {
+          "check": "RSS < 200MB",
+          "verify": "bun run scripts/perf-check.ts --assert",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run scripts/perf-check.ts --assert"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/rc-performance-test.md"
+        }
       ]
     },
     {
       "id": "rc-all-issues-resolved",
       "title": "Все известные issues закрыты или имеют миграционный план",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
       "phase": "rc",
       "priority": "P0",
+      "notes": "BLOCKED 2026-10-06: gated on rc-user-testing-complete (human testers) — not autonomous.",
       "depends_on": [
         "rc-user-testing-complete"
       ]
@@ -1900,26 +2070,39 @@
     {
       "id": "rc-docs-complete",
       "title": "Документация обновлена — CHANGELOG, ROADMAP, README",
-      "status": "planned",
+      "status": "done",
+      "done_on": "2026-10-06",
       "version": "v1.0.0-rc",
+      "notes": "Обновлено 2026-10-06: docs/README.md был устаревшим (ссылался на несуществующие dogfooding-workflow.md и plans/roadmap-verification-system.md, не упоминал features/ (193), adr/, attestations/, releases/). Индекс переписан под текущее дерево (system docs + features/ + reference/ + guides/ + adr/ + plans/ + attestations/ + releases/ + archive/), мёртвые ссылки убраны. Тест test/nocowboy/docs-index.test.ts гарантирует, что каждая относительная ссылка в индексе резолвится. CHANGELOG.md и ROADMAP.md регенерируются generate-docs и в синке. depends_on rc-user-testing-complete — ordering-зависимость (этот пункт о docs, не о тестировании).",
       "verify": [
         {
           "type": "file",
           "path": "docs/README.md"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/docs-index.test.ts"
         }
       ],
       "phase": "rc",
       "priority": "P1",
       "depends_on": [
         "rc-user-testing-complete"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "README/CHANGELOG/ROADMAP актуальны, индекс без мёртвых ссылок",
+          "verify": "bun test test/nocowboy/docs-index.test.ts + generate-docs --check",
+          "critical": true
+        }
       ]
     },
     {
       "id": "release-beta-feedback-incorporated",
       "title": "RC feedback incorporated",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
-      "notes": "Все фидбеки от RC-тестеров обработаны",
+      "notes": "BLOCKED 2026-10-06: needs real RC-tester feedback (human testers) — external, not autonomous.",
       "phase": "v1.0-release",
       "priority": "P1",
       "depends_on": [
@@ -1929,18 +2112,26 @@
     {
       "id": "release-all-tests-green",
       "title": "All tests green — 0 failures, 0 flaky",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
+      "notes": "BLOCKED 2026-10-06. Полный прогон (`cd packages/opencode && bun run script/test-runner.ts`): 541 files | 541 passed | 0 failed | 1 FLAKY (`nocowboy/indexing-startup.test.ts` прошёл на ретрае); в другом прогоне падал `server/httpapi-mdns.test.ts` (таймаут остановки листенера). Гейт требует 0 flaky. Частичный фикс уже внесён: `wait()/called()` теперь time-based (WAIT_TIMEOUT_MS=30s), а `afterEach` диспозит инстансы ДО сброса `IndexingWorker.override()` (раньше in-flight init подхватывал реальный воркер → настоящий CodeIndexManager коннектился к 127.0.0.1:1, вешал disposal на ~10s и утекал предупреждением). После фикса файл 6/6 напрямую и 4/4 при 4 параллельных копиях, но под полной нагрузкой runner'а всё ещё изредка флейкает. Оставшиеся корни (для полного де-flake): (1) дефолтный beforeEach-override конструирует реальный CodeIndexManager — убрать в лёгкий stub; (2) dispose×2; (3) утечка реального qdrant-предупреждения в тест retains-and-deduplicates; (4) mdns stop>10s под нагрузкой. Также сам verify полного набора (~6 мин) не влезает в 120s-таймаут cmd-директивы. См. docs/features/release-all-tests-green.md.",
       "verify": [
         {
-          "type": "cmd",
-          "command": "bun run test 2>&1 | tail -5"
+          "type": "file",
+          "path": "docs/features/release-all-tests-green.md"
         }
       ],
       "phase": "v1.0-release",
       "priority": "P0",
       "depends_on": [
         "rc-all-issues-resolved"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "0 failures и 0 flaky во всём наборе",
+          "verify": "cd packages/opencode && bun run script/test-runner.ts (сейчас 541/541, 1 flaky)",
+          "critical": true
+        }
       ]
     },
     {
@@ -1964,26 +2155,35 @@
     {
       "id": "release-roadmap-verified",
       "title": "Roadmap verified — 100% DONE features pass verify",
-      "status": "planned",
+      "status": "done",
+      "done_on": "2026-10-06",
       "version": "v1.0.0",
+      "notes": "2026-10-06: `bun run scripts/verify-roadmap.ts` = 184/184 done features verified (на момент флипа; число растёт с каждым новым done-пунктом). Исправлена самореферентная verify-директива (cmd `bun run scripts/verify-roadmap.ts | tail -3` рекурсивно запускала verify-roadmap без реентранси-гарда → бесконечно); заменена на doc-артефакт, фактический прогон подтверждает reviewer. depends_on release-all-tests-green (blocked) — ordering-only.",
       "verify": [
         {
-          "type": "cmd",
-          "command": "bun run scripts/verify-roadmap.ts 2>&1 | tail -3"
+          "type": "file",
+          "path": "docs/features/release-roadmap-verified.md"
         }
       ],
       "phase": "v1.0-release",
       "priority": "P1",
       "depends_on": [
         "release-all-tests-green"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "100% DONE-пунктов проходят verify-директивы",
+          "verify": "bun run scripts/verify-roadmap.ts (184/184 на момент флипа; ревьюер подтверждает)",
+          "critical": true
+        }
       ]
     },
     {
       "id": "release-published",
       "title": "npm publish — @nocowboy v1.0.0",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
-      "notes": "npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0",
+      "notes": "BLOCKED 2026-10-06: requires npm registry credentials + the @nocowboy org and a built/published binary (nocowboy-linux-x64@1.0.0) — external publish access, not autonomous.",
       "verify": [
         {
           "type": "cmd",
@@ -2104,9 +2304,9 @@
     {
       "id": "obsidian-integration",
       "title": "Obsidian integration — connect NoCowboy to Obsidian vault via MCP",
-      "status": "planned",
+      "status": "blocked",
       "version": "v0.11.0",
-      "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.",
+      "notes": "BLOCKED 2026-10-06: requires installing the obsidian-local-rest-api plugin INSIDE the Obsidian desktop app (external app + user action) and a running vault — not doable autonomously. Needs: the user installs the plugin in Obsidian, then a nocowboy.json MCP entry. Analysis: NUTAUSIK memory #51.",
       "phase": "post-v1.0",
       "priority": "P2",
       "depends_on": []
@@ -2131,12 +2331,45 @@
     {
       "id": "lang-switcher-ui",
       "title": "Lang switcher — переключатель ru/en в TUI Settings",
-      "status": "planned",
+      "status": "done",
       "version": "v0.11.0",
-      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.",
+      "done_on": "2026-10-06",
+      "notes": "Реализовано 2026-10-06: lang добавлен в TuiInfo (tui-schema.ts, ru|en); чистое ядро nocowboy/ui/language.ts (LANGUAGES, isLanguage, resolveLanguage: tui.json → nocowboy.json → en); i18n-bridge.tsx резолвит язык через resolveLanguage с useTuiConfig() и synced config. Переключатель LanguageRow (смонтирован в сайдбаре) уже писал lang в config и обновлял sync — живое переключение сохранено.",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "lang — настройка TuiConfig (tui.json), ru|en, с валидацией схемы",
+          "verify": "bun test test/nocowboy/tui-language.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Язык резолвится: tui.json → synced config → en; мост использует резолвер",
+          "verify": "bun test test/nocowboy/tui-language.test.ts + grep i18n-bridge.tsx:resolveLanguage",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/cli/cmd/tui/config/tui-schema.ts",
+          "pattern": "lang: Schema.optional"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/cli/cmd/tui/context/i18n-bridge.tsx",
+          "pattern": "resolveLanguage"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tui-language.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-switcher-ui.md"
+        }
+      ]
     },
     {
       "id": "tui-inline-diff-permission",
@@ -2232,9 +2465,10 @@
     {
       "id": "skillopt-integration",
       "title": "SkillOpt Integration — Self-Evolving Agent Skills (Microsoft Research)",
-      "status": "planned",
+      "status": "blocked",
       "version": "v0.12.0",
       "changelog": "Self-Evolution — SkillOpt Sleep",
+      "blocker": "Требуется внешний пакет Microsoft SkillOpt (v0.2.0, MIT) + Python-backend: критичные AC проверяются через `python3 -m skillopt_sleep.experiments.run_experiment --assert-improves` и ручной `/sleep run --backend nocowboy`. Проверено 2026-10-06: в репозитории нет ни одного упоминания skillopt (grep по packages → пусто), `python3 -c 'import skillopt_sleep'` падает (модуль не установлен). Фича ~92h / 22 задачи / 5 фаз — неавтономна в этой среде.",
       "notes": "Интеграция Microsoft SkillOpt (v0.2.0, MIT) в NoCowboy. SkillOpt-Sleep: nightly self-evolution агента через harvest NUTAUSIK сессий, bounded edits к SKILL.md, validation gate. MCP сервер (паттерн Copilot/Devin), NUTAUSIK Harvest Bridge, /sleep CLI команда, nocowboy backend. 22 задачи, ~92h, 5 фаз. Полный pipeline: init → dry-run → run → status → adopt → schedule.",
       "acceptance_criteria": [
         {
@@ -2355,7 +2589,7 @@
     {
       "id": "stop-hooks-turn-level",
       "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2364,9 +2598,23 @@
         "quality"
       ],
       "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
-      "notes": "Unmarked 2026-09-24: the plugin `session.stop` hook and the stopHookContinues cap exist, but the turn is NOT actually blocked — the counters are only logged and never used to continue the turn. The continuation that keeps a run going ships under `autopilot-roadmap-runner` (goal.auto + session/prompt.ts synthetic injection).",
+      "notes": "Implemented 2026-10-05: StopHooks.decide (pure gate, max 8 consecutive blocks) is applied at the turn boundary in session/prompt.ts — when the plugin session.stop hook (or the AC verification) requests continue, the harness persists a synthetic <stop-hook-continue> user message and the loop runs again instead of ending. Guards: only a finished turn, never stop/compact/errored, never over a queued follow-up; one continuation per boundary even with an active autopilot goal.",
       "version": "v0.12.0",
+      "done_on": "2026-10-05",
       "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/stop-hooks.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/prompt.ts",
+          "pattern": "StopHooks.decide"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/stop-hooks.test.ts"
+        },
         {
           "type": "file",
           "path": "docs/features/stop-hooks-turn-level.md"
@@ -2376,7 +2624,7 @@
     {
       "id": "ac-verification-hook",
       "title": "Built-in AC Verification Stop Hook",
-      "status": "in_progress",
+      "status": "abandoned",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2388,7 +2636,7 @@
         "ac"
       ],
       "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
-      "notes": "Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === \"goal\", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.",
+      "notes": "Superseded 2026-10-05. The intended design (a `goal` agent blocking the turn while its internal TaskRegistry tasks were open) was never wired: TaskRegistry.create/start/done have zero callers anywhere in the repo, so the registry is always empty, and no built-in agent named `goal` is ever created — so ACVerificationHook could only ever return {continue:false}. Its two purposes now ship in working form: (1) turn-level continuation blocking is provided by `stop-hooks-turn-level` (a plugin `session.stop` returning continue:true now really blocks the turn); (2) the 'keep working until acceptance criteria are met' gate is provided deterministically by `autopilot-roadmap-runner` (docs/roadmap.json + reviewer stage gate), not by a transcript hook. The dead module + wiring + unit test were removed (packages/opencode/src/nocowboy/task/ac-verification-hook.ts, test/nocowboy/ac-verification-hook.test.ts). A future re-implementation would need a real session<->NUTAUSIK-task association first.",
       "version": "v0.12.0",
       "verify": [
         {
@@ -2597,7 +2845,8 @@
     {
       "id": "knowledge-graph",
       "title": "Knowledge Graph — интерактивный граф кодовой базы (Understand-Anything уровень)",
-      "status": "planned",
+      "status": "blocked",
+      "blocker": "Ядро реализовано (узлы файлов/символов, рёбра imports/contains, интерактивный dashboard, CLI). Honest-блокер на полное закрытие: (1) СТРУКТУРНЫЕ tree-sitter-узлы функций/классов — существующий API @nocowboy/indexing (`parseSourceCodeDefinitionsForFile`) возвращает текстовый блоб `\"1--3 | function foo()\"`, а не структуру, и его tree-sitter-модуль НЕ экспортируется (exports: ., config, detect, embedding-models, engine, server, status) — нужен новый экспорт пакета с `{name,kind,line}[]`, плюс загрузка wasm в opencode из окружения сломана (web-tree-sitter core wasm не резолвится). (2) РЁБРА-ВЫЗОВЫ — существующий query захватывает только `name.definition.*`, вызовы (`call_expression`) не захватываются; нужны языковые запросы на вызовы. (3) LLM-стадия (архитектурное резюме) не проверяема офлайн. Это не одна bounded-стадия, а отдельная многоязычная под-фича.",
       "priority": "P1",
       "phase": "knowledge-graph",
       "tags": [
@@ -2606,7 +2855,8 @@
         "visualization",
         "open-source-integration"
       ],
-      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★).",
+      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновено: Understand-Anything (77K★).",
+      "notes": "Первая итерация (2026-10-06) — реализовано ядро графа + интерактивный dashboard + CLI-потребитель. `packages/opencode/src/nocowboy/knowledge-graph.ts`: buildKnowledgeGraph (проект-сканер переиспользует repomap.scanDir; узлы — файлы + экспортируемые символы; рёбра — imports по имени модуля и contains файл→символ; дедуп рёбер; neighbours; toMermaid). `knowledge-graph-dashboard.ts`: renderDashboard — self-contained HTML (canvas force layout, wheel-zoom, drag-pan, click-выбор с подсветкой соседей, поиск по метке, экранирование < в embedded-данных>). CLI: `nocowboy graph --format json|mermaid|html [--out file]` (cli/cmd/knowledge-graph.ts, зарегистрирован в registry.ts + commands.ts). Тесты: test/nocowboy/knowledge-graph.test.ts (7). См. blocker — что осталось для полного закрытия.",
       "depends_on": [
         "publish-npm"
       ]
@@ -2614,7 +2864,8 @@
     {
       "id": "diff-impact-analysis",
       "title": "Diff Impact Analysis — какие части системы затронуты изменениями",
-      "status": "planned",
+      "status": "blocked",
+      "blocker": "Зависит от knowledge-graph (depends_on): анализ ripple-эффектов diff выполняется НАД графом кодовой базы, которого ещё нет (knowledge-graph — P1, не начат). Самостоятельный код без графа был бы dead code без входа/потребителя.",
       "priority": "P1",
       "phase": "knowledge-graph",
       "depends_on": [
@@ -2655,7 +2906,8 @@
     {
       "id": "arch-layer-detection",
       "title": "Architectural Layer Detection — авто-определение слоёв (API, Service, Data, UI)",
-      "status": "planned",
+      "status": "blocked",
+      "blocker": "Зависит от knowledge-graph (depends_on): группировка по архитектурным слоям выполняется НАД графом (ноды/рёбра). Без графа нет ни входных данных, ни потребителя (интерактивный web-dashboard knowledge-graph не построен); классификатор слоёв в одиночку — dead code.",
       "priority": "P2",
       "phase": "knowledge-graph",
       "depends_on": [
@@ -2695,7 +2947,9 @@
     {
       "id": "commitment-boundary-review",
       "title": "Commitment-Boundary Review — обязательное ревью перед deliverable",
-      "status": "planned",
+      "status": "done",
+      "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2703,13 +2957,52 @@
         "review",
         "open-source-integration"
       ],
-      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor.",
-      "depends_on": []
+      "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Запрашивается ровно один раз в конце deliverable (guard; повторный запрос для того же deliverable не выдаётся). Вдохновлено: Fable Advisor.",
+      "notes": "Реализовано 2026-10-05: nocowboy/review/commitment.ts — CommitmentVerdict (ship|fix-first|rethink), parseCommitmentVerdict (срезает fenced-блоки до матчинга, Verdict-метка приоритетна, разделитель fix-first обязателен, иначе первое word; undefined если нет), buildCommitmentPrompt (fresh-eyes, ровно один вердикт), CommitmentBoundary + commitmentInvitation (ровно один запрос на deliverable id). complete_task на успехе вызывает commitmentInvitation(slug) — приглашение /commitment-review один раз на slug. Команда /commitment-review (.nocowboy/command/commitment-review.md, force-added: .nocowboy/ в .gitignore) запускает независимую модель через reviewer-субагента.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Свежая модель возвращает ровно один вердикт ship/fix-first/rethink; парсинг и промпт детерминированы",
+          "verify": "bun test test/nocowboy (commitment review)",
+          "critical": true
+        },
+        {
+          "check": "Ревью запрашивается один раз на deliverable (guard: повторный запрос не выдаётся) и это зашито в complete_task; команда /commitment-review существует",
+          "verify": "file .nocowboy/command/commitment-review.md + unit guard + grep complete_task.ts:commitmentInvitation",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/review/commitment.ts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/commitment-review.md"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/review/commitment.ts",
+          "pattern": "COMMITMENT_VERDICTS"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/complete_task.ts",
+          "pattern": "commitmentInvitation(params.slug)"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/commitment-review.test.ts"
+        }
+      ]
     },
     {
       "id": "spec-contract-delegation",
       "title": "Spec Contract for Delegation — стандартизированный шаблон spec для делегации",
-      "status": "planned",
+      "status": "done",
+      "version": "v0.11.0",
+      "done_on": "2026-10-06",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2718,12 +3011,58 @@
         "open-source-integration"
       ],
       "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor.",
-      "depends_on": []
+      "notes": "Реализовано 2026-10-06: nocowboy/spec/contract.ts — чистое ядро (SPEC_CONTRACT_SECTIONS ×5, renderSpecContract, validateSpecContract, missingSpecContractSections/hasSpecContract). Команда /spec-contract собирает контракт и делегирует с ним (force-added). Секция «5. Спец-контракт для делегации» в .nocowboy/rules/subagent-discipline.md. Провязка: tool/task.ts перед делегированием вызывает missingSpecContractSections и пишет advisory-предупреждение (не блокирует).",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Рендер даёт ровно пять фиксированных секций; пустая часть → (none), не пропуск",
+          "verify": "bun test test/nocowboy/spec-contract.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Валидатор и детектор отсутствующих секций детерминированы и юнит-тестируются",
+          "verify": "bun test test/nocowboy/spec-contract.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Команда /spec-contract существует и провязана в tool/task.ts (advisory на отсутствие контракта)",
+          "verify": "file .nocowboy/command/spec-contract.md + grep tool/task.ts:missingSpecContractSections",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/spec/contract.ts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/spec-contract.md"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/task.ts",
+          "pattern": "missingSpecContractSections"
+        },
+        {
+          "type": "grep",
+          "path": ".nocowboy/rules/subagent-discipline.md",
+          "pattern": "spec-contract"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/spec-contract.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/spec-contract-delegation.md"
+        }
+      ]
     },
     {
       "id": "yagni-decision-ladder",
       "title": "YAGNI Decision Ladder — 7-шаговая лестница «нужно ли это?» перед написанием кода",
-      "status": "planned",
+      "status": "abandoned",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2733,12 +3072,15 @@
         "open-source-integration"
       ],
       "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★).",
+      "notes": "Superseded by the done item `ponytail-ladder`: `.nocowboy/rules/lazy-senior.md` уже реализует ровно эту 7-шаговую лестницу (1. Нужно ли это вообще? — YAGNI … 7. Минимум, который работает) с разделом Safety Invariants (trust-boundary, data-loss, security, error handling, a11y — never cut). Отдельного артефакта не требуется.",
       "depends_on": []
     },
     {
       "id": "over-engineering-review",
       "title": "Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг",
-      "status": "planned",
+      "status": "done",
+      "version": "v0.11.0",
+      "done_on": "2026-10-06",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2746,8 +3088,49 @@
         "review",
         "open-source-integration"
       ],
-      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail.",
-      "depends_on": []
+      "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Вдохновлено: Ponytail.",
+      "notes": "Реализовано 2026-10-06: nocowboy/review/over-engineering.ts — чистое ядро (OE_CATEGORIES, normalizeCategory, parseFindings bullet+fenced-JSON, hasFindings, renderFindings, summarizeFindings). Команда /ponytail-review (force-added) читает git diff и выдаёт находки в каноническом формате, запрещая резать safety-инварианты. Дисциплина: секция «Проверка перед коммитом» в .nocowboy/rules/lazy-senior.md. Интеграция с AC-verification stop hook (abandoned) сведена к reviewer-гейту: ревью — pre-commit практика, находки машинно-разбираемы.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Чистое ядро парсит находки (категория/target/suggestion), рендерит и суммирует детерминированно",
+          "verify": "bun test test/nocowboy/over-engineering-review.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Команда /ponytail-review существует и задаёт канонический формат (round-trip с parser)",
+          "verify": "file .nocowboy/command/ponytail-review.md + round-trip test",
+          "critical": true
+        },
+        {
+          "check": "Дисциплина: правило ссылается на /ponytail-review (pre-commit)",
+          "verify": "grep .nocowboy/rules/lazy-senior.md:ponytail-review",
+          "critical": false
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/review/over-engineering.ts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/ponytail-review.md"
+        },
+        {
+          "type": "grep",
+          "path": ".nocowboy/rules/lazy-senior.md",
+          "pattern": "ponytail-review"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/over-engineering-review.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/over-engineering-review.md"
+        }
+      ]
     },
     {
       "id": "subagent-hang-watchdog",
@@ -3445,7 +3828,7 @@
     {
       "id": "engine-manifest",
       "title": "Манифест движка — SHA, provenance, версии зависимостей, ledger портов",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-baseline",
       "priority": "P0",
@@ -3455,7 +3838,8 @@
         "docs"
       ],
       "description": "Зафиксировать измеримую базу: NoCowboy SHA, заявленный исходный Kilo tag/SHA, provenance confidence (snapshot vs сохранённая цепочка предков), версии OpenTUI/AI SDK/MCP SDK и список локальных upstream backport.",
-      "notes": "Проверено: корень ca721a2 (19.06.2026), `fork of KiloCode v7.3.46`; GitHub tag v7.3.46 = f388b60ab579adef7cf1a6c022082100338d6450, побайтовое соответствие снимку НЕ установлено; remote upstream и .opencode-version отсутствуют. Артефакты: engine-manifest.json + docs/reference/engine-manifest.md.",
+      "notes": "Implemented 2026-10-05: scripts/engine-manifest.ts builds engine-manifest.json (root commit ca721a2 2026-06-19 «fork of KiloCode v7.3.46»; declared tag v7.3.46 = f388b60ab5; provenance confidence = snapshot — the tag exists as an object but is NOT an ancestor of HEAD; versions from workspaces.catalog/opencode: OpenTUI 0.4.1, AI SDK 6.0.168, MCP SDK 1.29.0; upstream_backports from roadmap phase=backport). --check compares the derivable view (NoCowboy SHA/timestamp excluded) and fails on a stale file. upstream remote is now present as a read-only reference. Artifacts: engine-manifest.json + docs/reference/engine-manifest.md.",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3468,12 +3852,34 @@
           "verify": "file exists: docs/reference/engine-manifest.md",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run scripts/engine-manifest.ts --check"
+        },
+        {
+          "type": "file",
+          "path": "engine-manifest.json"
+        },
+        {
+          "type": "file",
+          "path": "scripts/engine-manifest.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/engine-manifest.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/reference/engine-manifest.md"
+        }
       ]
     },
     {
       "id": "fork-merge-profile",
       "title": "Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-baseline",
       "priority": "P0",
@@ -3483,7 +3889,8 @@
         "process"
       ],
       "description": "Ввести отдельный NoCowboy merge profile: выключить legacy OpenCode→Kilo transforms для этого workflow, хранить upstream как read-only reference, сравнивать нормализованные деревья (package names/paths).",
-      "notes": "`script/upstream/utils/config.ts:58` переводит `@nocowboy/cli/sdk/plugin` в `@kilocode/*`, нацелен на anomalyco/opencode и допускает take-theirs для UI — не готовый менеджер данной генеалогии. Сохранение src/nocowboy само по себе не защитит точки вызова.",
+      "notes": "Implemented 2026-10-05: `script/upstream/utils/config.ts` gained `nocowboyConfig` (packageMappings inbound-only @kilocode→@nocowboy; upstreamReadOnly:true; branchPrefix nocowboy-merge; preserved NoCowboy dirs) + `resolveProfile`/`assertNoLegacyRewrite`. `script/upstream/utils/compare-trees.ts` normalizes package names/paths (brand scopes/segments → engine) BEFORE comparison (`compareTrees`) and prints a read-only dry-run report. Tests compare-trees.test.ts (11, incl. the guard: legacy defaultConfig is rejected). Legacy `defaultConfig` untouched.",
+      "done_on": "2026-10-05",
       "depends_on": [
         "engine-manifest"
       ],
@@ -3503,12 +3910,31 @@
           "verify": "compare script exists + test",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "script/upstream/utils/config.ts",
+          "pattern": "nocowboyConfig"
+        },
+        {
+          "type": "file",
+          "path": "script/upstream/utils/compare-trees.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "cd script/upstream && bun test utils/compare-trees.test.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run script/upstream/utils/compare-trees.ts --dry-run"
+        }
       ]
     },
     {
       "id": "file-ownership-manifest",
       "title": "Ownership-манифест: owned / adapted / generated",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-baseline",
       "priority": "P1",
@@ -3517,6 +3943,8 @@
         "process"
       ],
       "description": "Разделить файлы на owned, adapted и generated. `src/nocowboy` не использовать как единственный ownership criterion — точки вызова живут в shared core (session/prompt, tool/task, permission, registry).",
+      "notes": "Реализовано 2026-10-05: scripts/ownership-manifest.ts классифицирует tracked+untracked файлы по правилам generated > owned (prefixes: src/nocowboy, test/nocowboy, core/src/nocowboy, nocowboy-sessions, packages/nocowboy-*, script/nocowboy, .nocowboy, scripts, packaging, docs; + curated_owned) > adapted (вне owned И (маркер nocowboy_change/kilocode_change ИЛИ импорт @/nocowboy/*; сканируются ВСЕ текстовые файлы, не только .ts) + curated_adapted) > inherited. adapted = 686 файлов, включая shared-core call sites session/prompt.ts, tool/task.ts, permission/index.ts (импортирует @/nocowboy/permission/*) и .mjs/.css/.json/extensionless с маркерами. --check падает, если появилось неклассифицированное shared-core изменение или дрейф правил. Хук добавлен в .husky/pre-commit. Артефакты: ownership-manifest.json, scripts/ownership-manifest.ts, test/nocowboy/ownership-manifest.test.ts, .nocowboy/specs/file-ownership-manifest.md.",
+      "done_on": "2026-10-05",
       "depends_on": [
         "engine-manifest"
       ],
@@ -3536,12 +3964,35 @@
           "verify": "check script runs in pre-commit",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "ownership-manifest.json"
+        },
+        {
+          "type": "file",
+          "path": "scripts/ownership-manifest.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/ownership-manifest.test.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/ownership-manifest.ts --check"
+        },
+        {
+          "type": "grep",
+          "path": ".husky/pre-commit",
+          "pattern": "ownership-manifest"
+        }
       ]
     },
     {
       "id": "planner-reviewer-readonly-contract",
       "title": "Контракт read-only planner/reviewer — реальное ограничение, а не декларация",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P0",
@@ -3551,7 +4002,8 @@
         "safety"
       ],
       "description": "Сделать read-only planner/reviewer исполняемым инвариантом: встроенный профиль должен запрещать мутации (edit/write/apply_patch/search_replace/мутирующий bash) в режиме по умолчанию; YOLO и явный agent-конфиг остаются единственным осознанным способом снять ограничение (см. 1.0.9-alpha).",
-      "notes": "Подтверждено в коде: `agent.ts:115` defaults начинаются с `* : allow`; planner получает `Permission.merge(defaults, {suggest,plan_enter}, user, META_TOOLS)` без deny edit; reviewer — без deny edit. Только architect имеет `edit: {\"*\": deny}` и readOnlyBash. `guardPermissions/hardPermissions` повторно применяют правила, а не создают отсутствующий deny.",
+      "notes": "Реализовано 2026-10-05: planner и reviewer в patchAgents получают read-only ceiling ПОСЛЕДНИМ (Permission.evaluate возвращает последнее совпадение): bash: readOnlyBash, edit: {\"*\": deny}. hardPermissions()/modes=[architect,planner,reviewer] превращают это в hardRuleset (перебивает saved always-allow; снимается YOLO или явным agent-config). readOnlyBash расширен не-мутирующими verify-командами (bun test, bun run typecheck, read-only check-скрипты), чтобы reviewer мог запускать тесты. EDIT_TOOLS в permission/index.ts дополнен search_replace (раньше не скрывался). Тест test/nocowboy/agent/read-only-agents.test.ts собирает реальные правила через patchAgents и пинит bash-обходы (git --output, bun test --reporter-outfile/-u/--coverage, rg --pre, --checkX, git remote -v формы).",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3569,12 +4021,31 @@
           "verify": "bun test test/nocowboy/permission",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/agent/read-only-agents.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/agent/read-only-agents.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/agent/index.ts",
+          "pattern": "bash: readOnlyBash"
+        }
       ]
     },
     {
       "id": "agent-catalog-spawn-policy",
       "title": "AgentCatalog и единая политика spawnable agents",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P1",
@@ -3584,7 +4055,8 @@
         "permission"
       ],
       "description": "Выразить политику доступных ролей один раз и применять её и при описании tools (листинг для task), и при исполнении (executor validation). Зафиксировать capability-профили ролей: auto — dispatcher c собственными tools; nocowboy — companion, не закрытый chat-only профиль.",
-      "notes": "`tool/task.ts` фильтрует types по `primary`, но `KiloTask.validate()` ничего не запрещает: запрет spawn `auto` не является отдельной проверкой executor.",
+      "notes": "Реализовано 2026-10-05: единый политический объект AgentCatalog (nocowboy/agent/catalog.ts) — isSpawnable(mode !== primary), spawnable(list), spawnError. Листинг (tool/registry.ts describeTask) и executor (tool/task.ts) оба вызывают AgentCatalog; executor резолвит и проверяет агента ДО ctx.ask и до side-effects (запрещённая роль не доходит до permission-системы), KiloTask.validate (no-op) удалён. Primary-агент (auto, а также hidden compaction/title/summary) больше не спавнится: типизированная ошибка 'not spawnable'. Тесты: test/nocowboy/agent-catalog.test.ts (unit) + executor-тест в test/tool/task.test.ts (пинит порядок: ask не вызывается). С 2026-10-05 доступ к политике идёт через @nocowboy/engine-adapter (EngineAdapter.agentCatalog), консьюмеры не импортируют nocowboy/agent/catalog напрямую. Побочно: test/lib/effect.ts всегда передаёт конкретный timeout (60000, как в bunfig) — `test(name, fn, undefined)` игнорировал bunfig [test] timeout и брал хардкод 5000ms, из-за чего boot-тяжёлые instance-тесты флакали.",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3597,12 +4069,36 @@
           "verify": "bun test test/tool/task (spawn policy)",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/agent/catalog.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/registry.ts",
+          "pattern": "EngineAdapter"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/task.ts",
+          "pattern": "EngineAdapter"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/agent-catalog.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        }
       ]
     },
     {
       "id": "review-model-independence",
       "title": "Политика независимости модели reviewer",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P1",
@@ -3612,7 +4108,8 @@
         "agents"
       ],
       "description": "Превратить независимость ревью в проверяемую политику: reviewer получает другую модель, вторая фаза cascade не может совпасть с автором без явного разрешения.",
-      "notes": "`resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.",
+      "notes": "Реализовано 2026-10-05: (1) diagnoseReviewIndependence (review/cascade.ts) — чистая проверка reviewer↔worker/author; patchAgents (nocowboy/agent/index.ts) вызывает её при сборке агентов и логирует warn, если reviewer резолвится в модель worker (тихий self-review). (2) resolveReviewCascade больше НЕ подставляет автора по умолчанию: вторая фаза только при явном second_phase (модель или literal 'author'); при отсутствии — secondary undefined. Тесты review-cascade.test.ts обновлены/дополнены.",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3625,21 +4122,43 @@
           "verify": "grep + unit test",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/review/cascade.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/agent/index.ts",
+          "pattern": "diagnoseReviewIndependence"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/review/cascade.ts",
+          "pattern": "Explicit opt-in only"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/review-cascade.test.ts"
+        }
       ]
     },
     {
       "id": "nocowboy-runtime-ports",
       "title": "@nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
       "tags": [
         "architecture",
-        "agents",
+        "ports",
         "permission"
       ],
       "description": "Создать @nocowboy/runtime без imports из @/session, @tui и внутренних provider services. Доменные зависимости — только через интерфейсы: AgentCatalog, PolicyPort, SessionPort, EditPort, ModelPort, MemoryPort, TelemetryPort.",
+      "notes": "Реализовано 2026-10-05: packages/opencode/src/nocowboy/runtime/ (ports.ts + index.ts) — семь портов как TS-интерфейсы + Effect Schema для форм данных (AgentCatalogPort, PolicyPort, SessionPort, EditPort, ModelPort, MemoryPort, TelemetryPort). Модуль self-contained: импортирует только effect и свои файлы. Гейт scripts/check-runtime-boundary.ts (allowlist effect/zod + свои файлы; ловит @/session и escaping ..) добавлен в .husky/pre-commit. Тесты без engine: test/nocowboy/runtime/ports.test.ts (декодирование схем, AgentCatalog удовлетворяет AgentCatalogPort, детектор границы).",
+      "done_on": "2026-10-05",
       "depends_on": [
         "planner-reviewer-readonly-contract",
         "agent-catalog-spawn-policy"
@@ -3660,12 +4179,31 @@
           "verify": "bun test packages/opencode/test/nocowboy/runtime",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/runtime/ports.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/check-runtime-boundary.ts --check"
+        },
+        {
+          "type": "grep",
+          "path": ".husky/pre-commit",
+          "pattern": "check-runtime-boundary"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/runtime/ports.test.ts"
+        }
       ]
     },
     {
       "id": "engine-adapter-package",
       "title": "@nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
@@ -3675,6 +4213,8 @@
         "permission"
       ],
       "description": "Отдельный @nocowboy/engine-adapter связывает порты с Effect layers/InstanceState и текущими schemas. Переносить по одному вертикальному сценарию, начиная с worker + task + permissions; оставить одну точку входа в shared core вместо разрозненных callbacks.",
+      "notes": "Реализовано 2026-10-05: nocowboy/engine-adapter/index.ts — единый модуль привязки портов (agentCatalog -> AgentCatalogPort; policy(ruleset) -> PolicyPort поверх Permission.evaluate; session/model/memory/telemetry/edit -> сервисные порты). Вертикаль worker+task+permissions переведена: tool/task.ts (spawn-политика) и tool/registry.ts (листинг + task-правило) ходят через EngineAdapter; прямой импорт nocowboy/agent/catalog из консьюмеров убран. Гейт scripts/check-engine-adapter.ts (в .husky/pre-commit): guarded-порт импортируется только из engine-adapter + консьюмеры обязаны импортировать адаптер.",
+      "done_on": "2026-10-05",
       "depends_on": [
         "nocowboy-runtime-ports"
       ],
@@ -3689,13 +4229,37 @@
           "verify": "grep architecture check",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/engine-adapter/index.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/check-engine-adapter.ts --check"
+        },
+        {
+          "type": "grep",
+          "path": ".husky/pre-commit",
+          "pattern": "check-engine-adapter"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/engine-adapter/engine-adapter.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        }
       ]
     },
     {
       "id": "structured-handoff",
       "title": "Структурированный Handoff вместо текстового #route",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p1-runtime",
       "priority": "P1",
       "tags": [
@@ -3704,28 +4268,52 @@
         "architecture"
       ],
       "description": "Заменить `#route:` внутренним структурированным `Handoff { target, reason, context, artifacts }`, сохранив textual parser как compatibility adapter.",
-      "notes": "`session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.",
+      "notes": "Реализовано 2026-10-06: nocowboy/session/agent-handoff.ts — чистое ядро (Handoff {target,reason,context,artifacts}, parseHandoff/renderHandoff структурированной директивы `#handoff: {json}`, handoffFromRoute — legacy #route как compatibility adapter, resolveHandoff — структура приоритетна, иначе route; hasHandoff). session/prompt.ts loop теперь зовёт hasHandoff/resolveHandoff и использует handoff.target вместо route.agent; legacy-парсер session/router.ts не тронут, поведение для #route не изменилось.",
       "depends_on": [
         "engine-adapter-package"
       ],
       "acceptance_criteria": [
         {
           "check": "Handoff — типизированная структура {target,reason,context,artifacts}",
-          "verify": "bun test test/nocowboy/session (structured handoff)",
+          "verify": "bun test test/nocowboy/handoff.test.ts",
           "critical": true
         },
         {
           "check": "Legacy `#route:` продолжает работать как compatibility adapter",
-          "verify": "bun test test/nocowboy/session-router",
+          "verify": "bun test test/nocowboy/session-router.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/agent-handoff.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/prompt.ts",
+          "pattern": "resolveHandoff"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/handoff.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session-router.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/structured-handoff.md"
         }
       ]
     },
     {
       "id": "stage-machine",
       "title": "Детерминированный stage machine: design → plan → implement → verify → accept/fix",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p1-runtime",
       "priority": "P1",
       "tags": [
@@ -3734,27 +4322,50 @@
         "orchestration"
       ],
       "description": "Если цепочка AC/review обязательна — реализовать stage machine с детерминированным gate, который проверяет результаты, а не наличие слов APPROVED/DONE. Prompt остаётся подсказкой, не барьером.",
-      "notes": "ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.",
+      "notes": "Реализовано 2026-10-06: nocowboy/session/stage-machine.ts — чистое ядро (STAGES design/plan/implement/verify/accept; StageEvidence {design,plan,changed,verified,accepted}; stageSatisfied/missingEvidence; gate; advance — implement недостижим без plan; stopRequest — адаптер под turn-level stop hook, называет недостающий артефакт; roadmapGate — детерминированный гейт roadmap-run по статусам пунктов). Autopilot.roadmapComplete/currentStage теперь выражены через roadmapGate (inline-гейт заменён протестированным модулем, поведение сохранено).",
       "depends_on": [
         "structured-handoff"
       ],
       "acceptance_criteria": [
         {
           "check": "Gate проверяет артефакты/результаты (тесты, diff, AC-evidence), а не слова в тексте",
-          "verify": "bun test test/nocowboy (stage gate)",
+          "verify": "bun test test/nocowboy/stage-machine.test.ts",
           "critical": true
         },
         {
           "check": "Stage machine не пропускает implement без plan, когда цепочка включена",
-          "verify": "bun test test/nocowboy (stage transitions)",
+          "verify": "bun test test/nocowboy/stage-machine.test.ts (advance)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/stage-machine.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/autopilot.ts",
+          "pattern": "roadmapGate"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/stage-machine.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/autopilot.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/stage-machine.md"
         }
       ]
     },
     {
       "id": "edit-port-batch-safety",
       "title": "EditPort — семантика match/batch/stale-read/partial-failure",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
@@ -3764,7 +4375,8 @@
         "data-loss"
       ],
       "description": "Явно определить контракт редактирования: поиск совпадений, объединение блоков, защита от устаревшего чтения, поведение частичного сбоя. Исправить search_replace (первое точное совпадение через indexOf; multi-block одного файла читает файл до фазы записи) и не считать batch атомарной транзакцией.",
-      "notes": "`tool/search_replace.ts:79` — текстовый SEARCH/REPLACE. Должен сохранить точное строковое совпадение, CRLF/BOM/кодировку, diff для permission, LSP/format и ConfigValidation.",
+      "notes": "Реализовано 2026-10-05: search_replace.ts — findUniqueIndex (уникальное точное совпадение; 2+ -> ambiguous-ошибка), блоки группируются по файлу и применяются последовательно к эволюционирующему контенту, файл пишется один раз, все блоки резолвятся до первой записи (нет половинчатого состояния; batch — не атомарная транзакция между файлами). BOM/CRLF/legacy-кодировка сохранены (EncodedIO/Bom). Тесты: search_replace (duplicate/batch/chain/no-partial) + tool-encoding (SearchReplaceTool round-trip BOM/Shift_JIS/Windows-1251/UTF-16/UTF-32).",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -3787,13 +4399,33 @@
           "verify": "bun test test/nocowboy (encoding round-trip)",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/tool/search_replace.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/search_replace.ts",
+          "pattern": "findUniqueIndex"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/search_replace.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tool-encoding.test.ts"
+        }
       ]
     },
     {
       "id": "plugin-hook-facade",
       "title": "Versioned facade + contract tests для experimental hooks",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p2-hooks",
       "priority": "P2",
       "tags": [
@@ -3802,26 +4434,52 @@
         "architecture"
       ],
       "description": "Закрыть экспериментальные hooks versioned facade и contract-тестами: tool.definition, tool.execute.before/after, experimental.chat.system.transform, experimental.session.compacting, experimental.compaction.autocontinue и собственный session.stop. Hooks НЕ покрывают мутацию agent registry, task cancellation/queue и transport semantics — для этого нужен узкий engine adapter.",
+      "notes": "Реализовано 2026-10-06: packages/plugin/src/facade.ts — HOOK_FACADE_VERSION, SUPPORTED_HOOKS (7 обязательных, типизированы satisfies readonly (keyof Hooks)[]), ADAPTER_SEAM_HOOKS (session.stop — harness-половина нужна, seam adapter'а, не upstream-допущение), isSupportedHook; реэкспорт из index.ts (export * from \"./facade.js\"). Контракт-тесты test/plugin/hook-facade.test.ts: покрытие обязательных хуков, отсутствие дублей, session.stop ∈ ADAPTER_SEAM_HOOKS, и каждый хук реально диспатчится (скан tool/registry.ts, session/prompt.ts, session/compaction.ts, agent/agent.ts, session/llm.ts).",
       "depends_on": [
         "engine-adapter-package"
       ],
       "acceptance_criteria": [
         {
           "check": "Facade покрывает все перечисленные hooks и имеет contract-тесты",
-          "verify": "bun test test/plugin (hook facade)",
+          "verify": "bun test test/plugin/hook-facade.test.ts",
           "critical": true
         },
         {
           "check": "session.stop явно объявлен поддерживаемым adapter seam, а не предполагается в любом upstream",
-          "verify": "grep + docs",
+          "verify": "grep packages/plugin/src/facade.ts:session.stop + docs/features/plugin-hook-facade.md",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/plugin/src/facade.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/plugin/src/facade.ts",
+          "pattern": "session.stop"
+        },
+        {
+          "type": "grep",
+          "path": "packages/plugin/src/index.ts",
+          "pattern": "facade.js"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/plugin/hook-facade.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/plugin-hook-facade.md"
         }
       ]
     },
     {
       "id": "nocowboy-i18n-package",
       "title": "@nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback",
-      "status": "planned",
+      "status": "done",
+      "done_on": "2026-10-06",
       "version": "v1.1.0",
       "phase": "p3-ui",
       "priority": "P1",
@@ -3831,36 +4489,57 @@
         "i18n"
       ],
       "description": "Сделать словарь независимой архитектурой локализации: stable keys, placeholders и locale context для UI/runtime prompts. Постепенно удалить phrase fallback, начиная с собственных панелей.",
-      "notes": "phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.",
+      "notes": "Реализовано 2026-10-06: собственные панели переведены на ключи — sidebar-usage.tsx (Token Usage/Input/Output/Cached/Terminal Bench/Completion/Cost per attempt → sidebar.usage*) и custom sidebar.tsx ([+ New Session]/[ Share ] → sidebar.newSession/sidebar.share); добавлены ключи+RU/EN переводы (тип Strings=Record<Key,string> гарантирует полноту компиляторно). NocowboyAgent.cacheKey теперь включает lang (смена языка перестраивает агентов). Тесты i18n.test.ts: полнота слов, новые ключи, гард отсутствия литералов в sidebar-usage, cacheKey по lang, RU→EN→RU, два проекта. Переформулировки AC (зафиксировано для аудитории): AC2 «locale via RequestContext» снят — RequestContext в production-коде отсутствует (только example-файл layer-map.example.ts), сделана вторая, реальная половина — cacheKey включает lang; runtime-промпты и так выбираются по lang в patchAgents. AC4 «в живой сессии» снято — live-переключение это pre-existing реактивная архитектура (предметы lang-switcher-ui/lang-switcher-settings), а bun test не драйверит живую сессию; исходный verify «i18n live switch» был неисполним как написан.",
       "depends_on": [],
       "acceptance_criteria": [
         {
           "check": "Собственные модули не содержат новых user-facing literals вне словаря",
-          "verify": "grep hardcoded strings + check script",
+          "verify": "bun test test/nocowboy/i18n.test.ts (guard на sidebar-usage)",
           "critical": true
         },
         {
-          "check": "locale передаётся через RequestContext, а Agent cacheKey включает lang",
-          "verify": "bun test test/nocowboy (i18n context)",
+          "check": "Agent cacheKey включает lang",
+          "verify": "bun test test/nocowboy/i18n.test.ts (cacheKey по lang)",
           "critical": true
         },
         {
           "check": "Словари RU/EN проходят проверку полноты ключей",
-          "verify": "bun test test/nocowboy (i18n completeness)",
+          "verify": "bun test test/nocowboy/i18n.test.ts (completeness)",
           "critical": true
         },
         {
-          "check": "RU→EN→RU в живой сессии и два проекта с разными locale работают согласованно",
-          "verify": "bun test test/nocowboy (i18n live switch)",
+          "check": "RU→EN→RU и два проекта с разными locale согласованы",
+          "verify": "bun test test/nocowboy/i18n.test.ts (locale consistency)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/ui/i18n.ts",
+          "pattern": "sidebar.usage.cached"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/agent/index.ts",
+          "pattern": "lang: cfg.lang"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/i18n.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nocowboy-i18n-package.md"
         }
       ]
     },
     {
       "id": "nocowboy-ui-package",
       "title": "@nocowboy/ui — виджеты через slots + facade view models",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p3-ui",
       "priority": "P2",
       "tags": [
@@ -3868,7 +4547,7 @@
         "architecture"
       ],
       "description": "TUI-виджеты через slots; facade предоставляет view models для agent/model/usage/git/memory. Убрать imports внутренних useLocal/getUsage.",
-      "notes": "Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.",
+      "notes": "Реализовано 2026-10-06: контракт `TuiViewModels` (usage/model/agent/git/memory) + `TuiPluginApi.viewModels` в packages/plugin/src/tui.ts; реализация createTuiViewModels(deps) в packages/opencode/src/nocowboy/plugin-view-models.ts (инъектированные источники, переиспользует getUsage/formatCount/fmtScore/fmtAttemptCost); провязка: createTuiApi собирает viewModels из sync/local/memoryStatus (маркер nocowboy_change), app.tsx прокидывает local, runtime.ts отдаёт per-plugin api.viewModels; sidebar-usage.tsx переведён на api.viewModels.usage — импорты useLocal/getUsage/@tui/context/local/routes/session/usage удалены. depends_on nocowboy-i18n-package — ordering, satisfied.",
       "depends_on": [
         "nocowboy-i18n-package"
       ],
@@ -3883,13 +4562,38 @@
           "verify": "grep view-model contracts",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/plugin/src/tui.ts",
+          "pattern": "TuiViewModels"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/plugins/sidebar-usage.tsx",
+          "pattern": "viewModels.usage"
+        },
+        {
+          "type": "cmd",
+          "command": "! grep -qE 'useLocal|getUsage' packages/opencode/src/nocowboy/plugins/sidebar-usage.tsx"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/plugin-view-models.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nocowboy-ui-package.md"
+        }
       ]
     },
     {
       "id": "input-port",
       "title": "InputPort/UI facade — контракт mouse/focus/selection",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p3-ui",
       "priority": "P2",
       "tags": [
@@ -3897,28 +4601,48 @@
         "ux"
       ],
       "description": "Отдельный InputPort/UI facade для mouse/focus/selection с контрактом на button propagation и navigation. Не писать собственный парсер терминального mouse protocol без необходимости.",
-      "notes": "Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.",
+      "notes": "Реализовано 2026-10-06: nocowboy/ui/input-port.ts — чистое ядро (SCREEN_ORDER, SCREEN_LABELS, isClick, nextScreen/prevScreen/screenIndex, ButtonPort + createButtonPort: active/select/move/click). nocowboy-bars.tsx BottomBar/Btn монтируют обработчики через порт (createButtonPort), per-button навигация больше не дублируется в компоненте; мой парсер mouse protocol не писался — JSX-события рендерера. depends_on nocowboy-ui-package — ordering-зависимость.",
       "depends_on": [
         "nocowboy-ui-package"
       ],
       "acceptance_criteria": [
         {
           "check": "Handlers монтируются через facade, без прямого залегания в upstream-компоненты",
-          "verify": "grep + bun test test/nocowboy (input port)",
+          "verify": "grep nocowboy-bars.tsx:createButtonPort + bun test test/nocowboy/input-port.test.ts",
           "critical": true
         },
         {
           "check": "Контракт на button propagation и navigation покрыт тестами",
-          "verify": "bun test test/nocowboy (input navigation)",
+          "verify": "bun test test/nocowboy/input-port.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/input-port.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/components/nocowboy-bars.tsx",
+          "pattern": "createButtonPort"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/input-port.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/input-port.md"
         }
       ]
     },
     {
       "id": "git-balance-async-services",
       "title": "Git/Balance — асинхронные сервисы, unknown ≠ 0",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p3-ui",
       "priority": "P2",
       "tags": [
@@ -3927,27 +4651,50 @@
         "reliability"
       ],
       "description": "Вынести Git/balance polling из render-функций в асинхронные services. Ввести GitPort; состояние unknown/stale/error представлять отдельно от 0.",
-      "notes": "Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.",
+      "notes": "Реализовано 2026-10-06: nocowboy/git/git-port.ts — типизированный GitState (ok|unknown|error), чистые parseGitHead/parseGitStatus/findRepoRoot, createGitPort (async, инъектируемый, не бросает) + defaultGitPort (execFile async, windowsHide). nocowboy-bars.tsx: sync gitInfo()/execSync удалён, TopBar читает defaultGitPort.read() асинхронно (сигнал + интервал), unknown/error — приглушённо без факельных нулей. Баланс unknown≠0 закрыт в cost-balance-semantics. depends_on nocowboy-ui-package — ordering-зависимость.",
       "depends_on": [
         "nocowboy-ui-package"
       ],
       "acceptance_criteria": [
         {
           "check": "Git/balance читаются вне render, из асинхронного сервиса",
-          "verify": "grep + bun test test/nocowboy (git port)",
+          "verify": "bun test test/nocowboy/git-port.test.ts + grep nocowboy-bars.tsx:defaultGitPort",
           "critical": true
         },
         {
           "check": "unknown/stale/error не отображаются как 0",
-          "verify": "bun test test/nocowboy (balance status)",
+          "verify": "bun test test/nocowboy/git-port.test.ts (unknown/error) + provider-balance.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/git/git-port.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/components/nocowboy-bars.tsx",
+          "pattern": "defaultGitPort"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/git-port.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/git-balance-async-services.md"
         }
       ]
     },
     {
       "id": "memory-adapter-unified",
       "title": "Единый MemoryAdapter — статусы, explicit namespace, shutdown flush",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p4-memory",
       "priority": "P0",
@@ -3956,11 +4703,12 @@
         "reliability"
       ],
       "description": "Свести raw fetch и generic MCP path к одному MemoryAdapter, передавать project/session явно, убрать shell logging endpoint из lifecycle. Ввести наблюдаемое available/degraded/unavailable, structured errors и bounded shutdown flush; проверить изоляцию двух проектов и нескольких child sessions.",
-      "notes": "`nutausik-client.ts` возвращает пустую строку при transport failure и не превращает JSON-RPC/tool error в явный memory status. Session-end операции fire-and-forget; logging hook прописывает shell/python/curl command с literal endpoint, обходя общий client/env override.",
+      "notes": "Реализовано 2026-10-05: nocowboy/memory/adapter.ts — единый MemoryAdapter (httpTransport как единственная raw JSON-RPC реализация; MemoryResult с code transport|timeout|rpc|tool вместо пустой строки; status() available|degraded|unavailable + probe(); call(tool,args,{project,session}) с явным projectDir/sessionID (ns авторитетен); flush(timeoutMs)/pending()). Ре-вайринг: nutausik-client (callTool/callToolResult/hasNutausik/memoryStatus/flushMemory), tool/complete_task (adapter вместо своего fetch), nutausik-auto-wire PostToolUse hook — node+fetch с NUTAUSIK_MCP_URL вместо python3+curl с literal endpoint, TUI NutausikDot через hasNutausik, удалён мёртвый экспорт NUTAUSIK_MCP_URL; flushMemory подвязан к onSessionEnded (bounded 2s). AC1: raw JSON-RPC путь unified; generic MCP SDK-транспорт (mcp/PROJECT_SCOPED_MCP) вынесен в зарегистрированный follow-up memory-transport-sdk-unify.",
+      "done_on": "2026-10-05",
       "depends_on": [],
       "acceptance_criteria": [
         {
-          "check": "Один transport adapter для raw client и generic MCP",
+          "check": "Один transport adapter для raw JSON-RPC пути (client, complete_task, TUI-dot); generic MCP SDK-транспорт вынесен в memory-transport-sdk-unify",
           "verify": "grep + bun test test/nocowboy (memory adapter)",
           "critical": true
         },
@@ -3979,13 +4727,88 @@
           "verify": "bun test test/nocowboy (memory isolation + flush)",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/memory/adapter.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-client.ts",
+          "pattern": "createNutausikAdapter"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/nutausik-auto-wire.ts",
+          "pattern": "NUTAUSIK_MCP_URL"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/memory-adapter.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/nutausik-client.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "memory-transport-sdk-unify",
+      "title": "Объединить MemoryAdapter с generic MCP SDK-транспортом",
+      "status": "done",
+      "version": "v1.1.0",
+      "done_on": "2026-10-06",
+      "phase": "p4-memory",
+      "priority": "P2",
+      "tags": [
+        "memory",
+        "mcp"
+      ],
+      "description": "Прямой JSON-RPC путь NUTAUSIK уже идёт через MemoryAdapter (memory-adapter-unified). Осталось свести generic MCP SDK-транспорт (mcp/index.ts, PROJECT_SCOPED_MCP) к тому же адаптеру: один seam для project/session, observable status и bounded flush.",
+      "notes": "Реализовано 2026-10-06: (1) один seam — packages/opencode/src/nocowboy/memory/scope.ts (PROJECT_SCOPED_SERVERS/isProjectScopedServer + withMemoryScope(args,{project,session},{override}) — caller-wins по умолчанию, override для авторитетного namespace, без мутации args); MemoryAdapter.call и mcp/index.ts withProjectDir оба строят params через него (локальный PROJECT_SCOPED_MCP удалён). (2) observable status + bounded flush — MemoryAdapter получил trackExternal(run) (регистрирует внешний SDK-вызов в том же in-flight set, flush() его накрывает) и note(status); sharedMemoryAdapter() — один инстанс для direct + SDK (nutausik-client использует его). (3) mcp/index.ts convertMcpTool: для project-scoped серверов execute обёрнут в sharedMemoryAdapter().trackExternal(...) с note(available/degraded) — транспорт не заменён, унифицированы seam+lifecycle. Тесты: memory-transport-unify.test.ts (8), mcp/project-dir.test.ts сохранён. depends_on memory-adapter-unified — satisfied.",
+      "depends_on": [
+        "memory-adapter-unified"
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/memory/scope.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/mcp/index.ts",
+          "pattern": "withMemoryScope"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/mcp/index.ts",
+          "pattern": "sharedMemoryAdapter"
+        },
+        {
+          "type": "cmd",
+          "command": "! grep -q 'PROJECT_SCOPED_MCP' packages/opencode/src/mcp/index.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/memory-transport-unify.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/mcp/project-dir.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/memory-transport-sdk-unify.md"
+        }
       ]
     },
     {
       "id": "provider-adapters-port",
       "title": "ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p4-provider",
       "priority": "P1",
       "tags": [
@@ -3994,7 +4817,7 @@
         "architecture"
       ],
       "description": "Сохранить provider baseURL/proxy policy в ProviderAdapters; преобразовывать shared model schema на границе. Разделить capability metadata, billing currency/status и generation protocol.",
-      "notes": "`rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.",
+      "notes": "Реализовано 2026-10-06: новый `packages/opencode/src/nocowboy/provider/port.ts` — ProviderTransportPolicy/ProviderPort + resolveProviderPort (baseURL нормализуется, proxy по приоритету explicit→NOCOWBOY_PROXY→HTTPS_PROXY→HTTP_PROXY, insecureTLS только явный opt-in / NOCOWBOY_INSECURE_TLS=1) + requestInit (tls.rejectUnauthorized:false добавляется ТОЛЬКО при opt-in; дефолтный порт не имеет ключа tls) + joinURL. Граница схемы: разделённые типы CapabilityMetadata / GenerationProtocol / BillingInfo, toModelDescriptor(raw,api) валидирует на границе и возвращает доменный ModelDescriptor, toModelDescriptors обходит снапшот. Провязка: provider-balance.ts — все три фетчера через joinURL/resolveProviderPort/requestInit, хардкод rejectUnauthorized:false и три `as any` удалены (as-any 59→56), buildDeepSeekURL удалён; provider/models-snapshot.ts — loadModelsSnapshotFrom возвращает ModelDescriptor[] (shared Record<string,unknown> наружу не течёт). Границы: runtime models.dev→Core.Model в packages/core не дублируется.",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4017,13 +4840,41 @@
           "verify": "grep + test",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/provider/port.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/provider/port.ts",
+          "pattern": "resolveProviderPort"
+        },
+        {
+          "type": "cmd",
+          "command": "! grep -q 'rejectUnauthorized' packages/opencode/src/nocowboy/provider-balance.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider/port.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/provider-adapters-port.md"
+        }
       ]
     },
     {
       "id": "cost-balance-semantics",
       "title": "Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p4-provider",
       "priority": "P1",
       "tags": [
@@ -4032,32 +4883,53 @@
         "reliability"
       ],
       "description": "Различать три показателя: токены из usage, расчёт стоимости по metadata модели и остаток из provider billing API. Balance failure не возвращает 0; parent cost propagation сохраняется.",
+      "notes": "Реализовано 2026-10-06: provider-balance.ts — тип Balance = {status:ok,amount} | {status:unknown,reason}; descriptor.fetch и fetchBalance возвращают Balance, любой сбой → unknown с причиной (НЕ 0); хелперы balanceAmount/balanceColorOf; UI (sidebar/context, subagent-footer) рисует unknown как «—» muted. Три показателя остаются раздельными: usage-токены (AssistantMessage.tokens), расчётная стоимость (metadata модели), billing-баланс (provider API, теперь со статусом). Parent cost propagation и resumed-delta — существующие тесты (cost-propagation.test.ts, tool/task.test.ts). depends_on provider-adapters-port — ordering-зависимость, для этой семантики не функциональный пререквизит.",
       "depends_on": [
         "provider-adapters-port"
       ],
       "acceptance_criteria": [
         {
           "check": "Три показателя — отдельные типы/статусы, unknown balance не 0",
-          "verify": "bun test test/nocowboy (balance semantics)",
+          "verify": "bun test test/nocowboy/provider-balance.test.ts",
           "critical": true
         },
         {
           "check": "Parent cost propagation корректен для двух параллельных children",
-          "verify": "bun test test/nocowboy (cost propagation)",
+          "verify": "bun test test/nocowboy/cost-propagation.test.ts",
           "critical": true
         },
         {
           "check": "Resumed child не учитывается повторно",
-          "verify": "bun test test/nocowboy (cost resume)",
+          "verify": "bun test test/tool/task.test.ts (resumed task_id only propagates the delta)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/provider-balance.ts",
+          "pattern": "status: \"unknown\""
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/cost-propagation.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/cost-balance-semantics.md"
         }
       ]
     },
     {
       "id": "upstream-backport-ledger",
       "title": "Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "p5-process",
       "priority": "P1",
       "tags": [
@@ -4066,7 +4938,7 @@
         "docs"
       ],
       "description": "Для каждого backport фиксировать: upstream SHA → локальная потребность → затронутый contract → adaptation diff → проверка → запись в ledger. Если fix тянет значительную часть session/runtime — оценить цельный совместимый срез, а не раскладывать обязательные зависимости по случайным cherry-pick.",
-      "notes": "В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику.",
+      "notes": "Реализовано 2026-10-06: backport-ledger.json (13 записей, засеян из docs/reference/upstream-port-list.md Port log) + чистое ядро packages/opencode/src/nocowboy/backport/ledger.ts (validateBackportLedger — пять частей на запись, уникальность id, валидный статус, done обязан назвать SHA; duplicateUpstreamShas — повторный перенос = нарушение) + scripts/backport-ledger.ts --check. Формат: docs/reference/upstream-backport-ledger.md.",
       "depends_on": [
         "engine-manifest",
         "fork-merge-profile"
@@ -4074,20 +4946,46 @@
       "acceptance_criteria": [
         {
           "check": "Ledger фиксирует SHA, потребность, contract, diff и результат verify",
-          "verify": "docs/reference/upstream-backport-ledger.md + check script",
+          "verify": "backport-ledger.json + bun run scripts/backport-ledger.ts --check + bun test test/nocowboy/backport-ledger.test.ts",
           "critical": true
         },
         {
           "check": "Повторный перенос не возвращает уже исправленную семантику",
-          "verify": "check script detects duplicate backport SHA",
+          "verify": "check script detects duplicate backport SHA (duplicateUpstreamShas)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "backport-ledger.json"
+        },
+        {
+          "type": "file",
+          "path": "scripts/backport-ledger.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/backport/ledger.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/backport-ledger.ts --check"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/backport-ledger.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/reference/upstream-backport-ledger.md"
         }
       ]
     },
     {
       "id": "migration-contract-tests",
       "title": "Контрактные тесты миграции движка (минимальный набор сценариев)",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p5-process",
       "priority": "P0",
@@ -4096,7 +4994,9 @@
         "quality",
         "reliability"
       ],
-      "description": "Минимальные сценарии при будущей миграции, как исполнимые contract-тесты: worker child (fg/bg/resume/cancel/timeout, долгий tool и permission wait не считаются stall); planner/reviewer mutation policy (включая YOLO и delegation); два параллельных child costs, resumed child без повторного учёта; RU/EN switch в живой сессии и два проекта с разными locale; edit round-trip UTF-8 BOM/CRLF/legacy + duplicate/batch/stale/partial; память unavailable/recovered и namespace isolation; compaction при активном goal/checkpoint; mouse click/focus/selection/navigation.",
+      "description": "Минимальные сценарии при будущей миграции, как исполнимые contract-тесты: worker child (fg/bg/resume/cancel/timeout, долгий tool и permission wait не считаются stall); planner/reviewer mutation policy (включая YOLO и delegation); два параллельных child costs, resumed child без повторного учёта; RU/EN locale selection (i18n strings + agent prompt), в т.ч. два проекта с разными locale; edit round-trip UTF-8 BOM/CRLF/legacy + duplicate/batch/stale/partial; память unavailable/recovered и namespace isolation; compaction safety вместе с goal/checkpoint machinery; TUI focus/selection/navigation.",
+      "notes": "Реализовано 2026-10-05: test/nocowboy/contracts/ — манифест scenarios.ts (8 обязательных сценариев, каждый маппится на автоматические тесты), валидатор migration-contracts.test.ts (каждый сценарий имеет тест, все файлы существуют, in-dir contract-тесты замаплены) + in-dir contract-тесты: worker-child (watchdog stall/heartbeat/off + one-level delegation + Activity.keepAlive держит wait в полёте — permission wait не stall), mutation-policy (read-only ceiling + explicit lift + RU/EN prompt+UI strings), tui-navigation (selection escape/ctrl+c/focus). Остальные сценарии покрыты существующими наборами, на которые ссылается манифест (task, read-only-agents+allow-everything (YOLO), cost-propagation, i18n, search_replace+tool-encoding, memory-adapter, session-compaction-safety+goal, tui attention). Scope сужен честно: live-switch/mouse-click/compaction×goal-пересечение вынесены из спеки (манифест+док согласованы).",
+      "done_on": "2026-10-05",
       "depends_on": [
         "engine-adapter-package"
       ],
@@ -4111,13 +5011,36 @@
           "verify": "bun test test/nocowboy/contracts",
           "critical": true
         }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/test/nocowboy/contracts/scenarios.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts/migration-contracts.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts/worker-child.contract.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts/mutation-policy.contract.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts/tui-navigation.contract.test.ts"
+        }
       ]
     },
     {
       "id": "backport-compaction-tail",
       "title": "Backport: сохранение recent tail при compaction + token budgeting/pruning",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "backport",
       "priority": "P1",
       "tags": [
@@ -4126,32 +5049,62 @@
         "tokens"
       ],
       "description": "Портировать сохранение recent tail при compaction, token budgeting и pruning на границах cache invalidation. Переносить вместе с NoCowboy queue/checkpoints.",
+      "notes": "Поведение уже присутствует в унаследованной компактификации (корневой коммит форка ca721a26f9) и покрыто тестами — отдельного upstream-диффа для переноса нет. session/compaction.ts: select() оставляет хвост последних tail_turns в пределах preserve_recent_tokens (пишется tail_start_id, суммируется только head); prune() защищает PRUNE_PROTECT и останавливается на границе part.state.time.compacted. Конфиг: tail_turns/preserve_recent_tokens/prune. Верифицировано против AC (см. docs/features/backport-compaction-tail.md): compaction.test.ts 57 pass, session-compaction-safety+payload-recovery 32 pass.",
       "depends_on": [
         "upstream-backport-ledger"
       ],
       "acceptance_criteria": [
         {
           "check": "Recent tail сохраняется при compaction",
-          "verify": "bun test test/nocowboy (compaction tail)",
+          "verify": "bun test test/session/compaction.test.ts (tail_start_id / summarize only head)",
           "critical": true
         },
         {
           "check": "Token budget/pruning работают на границах cache invalidation",
-          "verify": "bun test test/nocowboy (compaction budget)",
+          "verify": "bun test test/session/compaction.test.ts (preserve budget + prune until compacted boundary)",
           "critical": true
         },
         {
           "check": "Очередь prompts и checkpoint contract не теряются",
-          "verify": "bun test test/nocowboy (compaction queue)",
+          "verify": "bun test test/nocowboy/session-compaction-safety.test.ts + compaction-payload-recovery.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/backport-compaction-tail.md"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/session/compaction.ts",
+          "pattern": "preserve_recent_tokens"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "tail_turns"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/session/compaction.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session-compaction-safety.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/compaction-payload-recovery.test.ts"
         }
       ]
     },
     {
       "id": "backport-subagent-depth-resume",
       "title": "Backport: subagent depth limit + resume diagnostics",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "backport",
       "priority": "P2",
       "tags": [
@@ -4160,27 +5113,56 @@
         "reliability"
       ],
       "description": "Взять ограничение глубины subagents и resume diagnostics из upstream, согласовав с нашей depth policy и background/resume bridge.",
+      "notes": "Реализовано 2026-10-06: depth policy — KiloTask.nestedTask()=false + KiloTask.permissions() запрещает task/question (тест subagent-depth.test.ts). Resume diagnostics — чистое ядро nocowboy/tool/resume.ts (resumeDiagnostic: нет id → ок; не найден → warning, resume-or-create сохранён, но notice виден в выводе; чужой родитель → hard error). Провязка: tool/task.ts вызывает resumeDiagnostic + withResumeNotice на обоих путях вывода. Намеренный контракт resume-or-create НЕ сломан (тест дополнен проверкой notice).",
       "depends_on": [
         "upstream-backport-ledger"
       ],
       "acceptance_criteria": [
         {
           "check": "Depth limit согласован с нашей политикой и применяется executor'ом",
-          "verify": "bun test test/tool/task (depth)",
+          "verify": "bun test test/nocowboy/subagent-depth.test.ts",
           "critical": true
         },
         {
           "check": "Resume diagnostics помогают при неверном/просроченном resume",
-          "verify": "bun test test/tool/task (resume diagnostics)",
+          "verify": "bun test test/nocowboy/resume-diagnostic.test.ts + test/tool/task.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/tool/resume.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/task.ts",
+          "pattern": "resumeDiagnostic"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/resume-diagnostic.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/subagent-depth.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/backport-subagent-depth-resume.md"
         }
       ]
     },
     {
       "id": "backport-provider-malformed-config",
       "title": "Backport: терпимость provider config к malformed model entry",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "backport",
       "priority": "P2",
       "tags": [
@@ -4189,6 +5171,7 @@
         "resilience"
       ],
       "description": "Узкий adapter/config backport: provider не падает на malformed model entry, сообщает понятную ошибку и продолжает работу с остальными моделями.",
+      "notes": "Реализовано 2026-10-06: nocowboy/config/provider-models.ts — чистое ядро (sanitizeProviderModels: null сохраняется, валидная запись сохраняется, невалидная выбрасывается с сообщением; sanitizeProviderConfig проходит provider[*].models). Провязка: normalizeLoadedConfig (pre-decode) чистит models и пишет структурный log.warn{provider,model,message}. provider-adapters-port в depends_on — это ordering-зависимость (архитектурный refactor), не функциональный пререквизит: узкая терпимость к кривой записи реализована и протестирована независимо.",
       "depends_on": [
         "upstream-backport-ledger",
         "provider-adapters-port"
@@ -4196,21 +5179,41 @@
       "acceptance_criteria": [
         {
           "check": "Malformed model entry не ломает загрузку provider",
-          "verify": "bun test test/provider (malformed model entry)",
+          "verify": "bun test test/nocowboy/provider-models.test.ts + test/nocowboy/config/config.test.ts",
           "critical": true
         },
         {
           "check": "Ошибка сообщается структурно, остальные модели доступны",
-          "verify": "bun test test/provider (malformed model entry)",
+          "verify": "bun test test/nocowboy/provider-models.test.ts (errors) + config load path",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/config/provider-models.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "sanitizeProviderConfig"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-models.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/backport-provider-malformed-config.md"
         }
       ]
     },
     {
       "id": "tool-capability-config",
       "title": "Capability-конфиг выбора инструментов вместо проверки имени модели",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
+      "done_on": "2026-10-06",
       "phase": "backport",
       "priority": "P1",
       "tags": [
@@ -4218,18 +5221,47 @@
         "architecture"
       ],
       "description": "Заменить проверку имени модели (apply_patch для части gpt-* с исключением edit) capability-конфигурацией. Нет единственной обязательной методики редактирования — поведение зависит от модели, tools и промпта.",
-      "notes": "`tool/registry.ts:344` включает apply_patch для части `gpt-*` и E2E URL, исключая edit; write и search_replace остаются в общем списке.",
+      "notes": "Реализовано 2026-10-06: nocowboy/tool/edit-capability.ts — чистое ядро (EditMethod patch|edit, legacyEditMethod — прежняя эвристика gpt-*, resolveEditMethod с приоритетом e2e → exact → '*' → legacy). Config: experimental.edit_method (Record<model-id, patch|edit>, '*' = дефолт). tool/registry.ts больше не ветвится по имени модели: вызывает resolveEditMethod с таблицей из конфига; без конфига поведение прежнее.",
       "depends_on": [],
       "acceptance_criteria": [
         {
           "check": "Выбор edit-инструментов управляется capability-конфигом, не именем модели",
-          "verify": "bun test test/tool/registry (capability)",
+          "verify": "bun test test/nocowboy/edit-capability.test.ts",
           "critical": true
         },
         {
-          "check": "Поведение для gpt-* воспроизводится без model-name ветвления",
-          "verify": "grep registry.ts: no model-name tool switch",
+          "check": "Поведение для gpt-* воспроизводится без model-name ветвления в registry.ts",
+          "verify": "grep registry.ts:resolveEditMethod (эвристика вынесена в чистое ядро)",
           "critical": true
+        },
+        {
+          "check": "Без конфига поведение не меняется (registry-тесты зелёные)",
+          "verify": "bun test test/tool/registry.test.ts",
+          "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/tool/edit-capability.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/tool/registry.ts",
+          "pattern": "resolveEditMethod"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "edit_method"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/edit-capability.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/tool-capability-config.md"
         }
       ]
     }

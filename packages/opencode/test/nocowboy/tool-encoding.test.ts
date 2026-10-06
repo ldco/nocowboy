@@ -20,6 +20,7 @@ import { Instruction } from "../../src/session/instruction"
 import { LSP } from "../../src/lsp/lsp"
 import { MessageID, SessionID } from "../../src/session/schema"
 import { ReadTool } from "../../src/tool/read"
+import { SearchReplaceTool } from "../../src/tool/search_replace"
 import * as Tool from "../../src/tool/tool"
 import { Truncate } from "../../src/tool/truncate"
 import { WriteTool } from "../../src/tool/write"
@@ -78,6 +79,13 @@ const runEdit = (args: Tool.InferParameters<typeof EditTool>) =>
 const runPatch = (args: Tool.InferParameters<typeof ApplyPatchTool>) =>
   Effect.gen(function* () {
     const info = yield* ApplyPatchTool
+    const tool = yield* info.init()
+    return yield* tool.execute(args, ctx)
+  })
+
+const runSearchReplace = (args: Tool.InferParameters<typeof SearchReplaceTool>) =>
+  Effect.gen(function* () {
+    const info = yield* SearchReplaceTool
     const tool = yield* info.init()
     return yield* tool.execute(args, ctx)
   })
@@ -285,6 +293,42 @@ describe("tool encoding preservation", () => {
             yield* markRead(filepath)
 
             yield* runEdit({ filePath: filepath, oldString, newString })
+
+            const decoded = yield* loadDecoded(filepath, encoding)
+            const expected = original.replace(oldString, newString)
+            expect(decoded).toBe(expected)
+
+            const bytes = yield* loadBytes(filepath)
+            expect(bytes.equals(encodeBytes(expected, encoding))).toBe(true)
+          }),
+        ),
+      )
+    }
+  })
+
+  describe("SearchReplaceTool preserves existing file encoding across edits", () => {
+    const cases: Array<[string, string, string, string, string]> = [
+      ["UTF-8 with BOM", UTF8_BOM, samples.utf8 + "\n second line", "world", "earth"],
+      ["Shift_JIS", "Shift_JIS", samples.shiftJis, "日本語", "ニホンゴ"],
+      ["Windows-1251", "windows-1251", samples.windows1251, "мир", "планета"],
+      ["UTF-16 LE", "utf-16le", samples.utf8 + "\n second line", "world", "earth"],
+      ["UTF-32 LE", "utf-32le", samples.utf8 + "\n second line", "world", "earth"],
+    ]
+
+    for (const [label, encoding, original, oldString, newString] of cases) {
+      it.live(`preserves ${label} through search_replace`, () =>
+        provideTmpdirInstance((dir) =>
+          Effect.gen(function* () {
+            const filepath = path.join(dir, "doc.txt")
+            yield* putEncoded(filepath, original, encoding)
+
+            const blocks = `${filepath}
+<<<<<<< SEARCH
+${oldString}
+=======
+${newString}
+>>>>>>> REPLACE`
+            yield* runSearchReplace({ blocks })
 
             const decoded = yield* loadDecoded(filepath, encoding)
             const expected = original.replace(oldString, newString)

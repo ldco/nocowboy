@@ -2,6 +2,7 @@
 // Extracted from sidebar/context.tsx and subagent-footer.tsx to eliminate duplication.
 
 import { appendFileSync } from "node:fs"
+import { joinURL, requestInit, resolveProviderPort } from "./provider/port"
 
 const BLOG = "/tmp/nocowboy-balance.log"
 
@@ -10,6 +11,23 @@ const BLOG = "/tmp/nocowboy-balance.log"
 // ---------------------------------------------------------------------------
 
 export type BalanceColor = "success" | "warning" | "error"
+
+/**
+ * The result of a balance lookup.
+ *
+ * A FAILED lookup is `unknown`, never a made-up `0`: zero is a real balance, so
+ * returning it on failure would display "no funds" when we simply do not know
+ * (network error, bad key, provider without a balance API).
+ */
+export type Balance = { status: "ok"; amount: number } | { status: "unknown"; reason: string }
+
+export function okBalance(amount: number): Balance {
+  return { status: "ok", amount }
+}
+
+export function unknownBalance(reason: string): Balance {
+  return { status: "unknown", reason }
+}
 
 export interface BalanceThresholds {
   /** Below this amount → warning (yellow). Default: 10 */
@@ -24,8 +42,8 @@ export interface BalanceProviderDescriptor {
   id: string
   /** Return true if this descriptor handles the given provider/model. */
   match: (providerID: string, modelID: string) => boolean
-  /** Fetch the current USD balance. Returns 0 on failure. */
-  fetch: (apiKey: string, baseURL?: string) => Promise<number>
+  /** Fetch the current USD balance. Returns `unknown` on failure — never a fake 0. */
+  fetch: (apiKey: string, baseURL?: string) => Promise<Balance>
   /** Human-readable label shown in the UI. */
   label: string
 }
@@ -52,36 +70,29 @@ export function getBalanceProviders(): readonly BalanceProviderDescriptor[] {
 // Built-in providers
 // ---------------------------------------------------------------------------
 
-function buildDeepSeekURL(baseURL: string | undefined, defaultHost: string, defaultPath: string): string {
-  if (baseURL && baseURL.trim().length > 0) {
-    return `${baseURL.replace(/\/+$/, "")}${defaultPath}`
-  }
-  return `${defaultHost}${defaultPath}`
-}
-
 registerBalanceProvider({
   id: "deepseek",
   match: (pid, mid) => pid === "deepseek" || mid.toLowerCase().includes("deepseek"),
   label: "DeepSeek",
-  fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
+  fetch: async (apiKey: string, baseURL?: string): Promise<Balance> => {
     try {
-      const url = buildDeepSeekURL(baseURL, "https://api.deepseek.com", "/user/balance")
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const port = resolveProviderPort({ id: "deepseek", baseURL })
+      const url = joinURL(port.transport.baseURL, "https://api.deepseek.com", "/user/balance")
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK status=${res.status}\n`)
-        return 0
+        return unknownBalance(`HTTP ${res.status}`)
       }
       const raw = await res.text()
       appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK raw=${raw.substring(0, 500)}\n`)
       const data = JSON.parse(raw) as { balance_infos?: Array<{ currency: string; total_balance: string }> }
       const usd = (data.balance_infos ?? []).find((b) => b.currency === "USD")
-      return usd ? parseFloat(usd.total_balance) : 0
+      if (!usd) return unknownBalance("no USD balance in response")
+      const amount = parseFloat(usd.total_balance)
+      return Number.isFinite(amount) ? okBalance(amount) : unknownBalance("unparseable balance")
     } catch (e: any) {
       appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK err=${e?.message}\n`)
-      return 0
+      return unknownBalance(e?.message ?? "network error")
     }
   },
 })
@@ -100,25 +111,25 @@ registerBalanceProvider({
     )
   },
   label: "Kimi",
-  fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
+  fetch: async (apiKey: string, baseURL?: string): Promise<Balance> => {
     try {
-      const host = baseURL?.trim() ? baseURL.replace(/\/+$/, "") : "https://api.moonshot.ai"
-      const url = `${host}/v1/users/me/balance`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const port = resolveProviderPort({ id: "kimi", baseURL })
+      const url = joinURL(port.transport.baseURL, "https://api.moonshot.ai", "/v1/users/me/balance")
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} KIMI status=${res.status}\n`)
-        return 0
+        return unknownBalance(`HTTP ${res.status}`)
       }
       const raw = await res.text()
       appendFileSync(BLOG, `${new Date().toISOString()} KIMI raw=${raw.substring(0, 500)}\n`)
       const data = JSON.parse(raw) as { data?: { available_balance?: number } }
-      return data.data?.available_balance ?? 0
+      const amount = data.data?.available_balance
+      return typeof amount === "number" && Number.isFinite(amount)
+        ? okBalance(amount)
+        : unknownBalance("no balance in response")
     } catch (e: any) {
       appendFileSync(BLOG, `${new Date().toISOString()} KIMI err=${e?.message}\n`)
-      return 0
+      return unknownBalance(e?.message ?? "network error")
     }
   },
 })
@@ -130,9 +141,10 @@ registerBalanceProvider({
   // id only.
   match: (pid) => pid.toLowerCase() === "openrouter",
   label: "OpenRouter",
-  fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
+  fetch: async (apiKey: string, baseURL?: string): Promise<Balance> => {
     try {
-      const base = baseURL?.trim() ? baseURL.replace(/\/+$/, "") : undefined
+      const port = resolveProviderPort({ id: "openrouter", baseURL })
+      const base = port.transport.baseURL
       // The OpenAI-compatible base is https://openrouter.ai/api/v1; tolerate a
       // custom base that already points at the API root.
       const url = base
@@ -140,23 +152,21 @@ registerBalanceProvider({
           ? `${base}/credits`
           : `${base}/api/v1/credits`
         : "https://openrouter.ai/api/v1/credits"
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER status=${res.status}\n`)
-        return 0
+        return unknownBalance(`HTTP ${res.status}`)
       }
       const raw = await res.text()
       appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER raw=${raw.substring(0, 500)}\n`)
       const data = JSON.parse(raw) as { data?: { total_credits?: number; total_usage?: number } }
-      const credits = data.data?.total_credits ?? 0
-      const usage = data.data?.total_usage ?? 0
-      return Math.max(0, credits - usage)
+      if (typeof data.data?.total_credits !== "number") return unknownBalance("no credits in response")
+      const credits = data.data.total_credits
+      const usage = typeof data.data?.total_usage === "number" ? data.data.total_usage : 0
+      return okBalance(Math.max(0, credits - usage))
     } catch (e: any) {
       appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER err=${e?.message}\n`)
-      return 0
+      return unknownBalance(e?.message ?? "network error")
     }
   },
 })
@@ -166,7 +176,7 @@ registerBalanceProvider({
 // ---------------------------------------------------------------------------
 const cacheTTL = 5 * 60 * 1000 // 5 minutes
 
-const balanceCache = new Map<string, { value: number; ts: number }>()
+const balanceCache = new Map<string, { value: Balance; ts: number }>()
 
 function cacheKey(providerID: string, apiKey: string): string {
   // Use providerID + first 8 chars of apiKey for caching
@@ -174,7 +184,7 @@ function cacheKey(providerID: string, apiKey: string): string {
 }
 
 /** Read cached balance. Returns undefined if missing or expired. */
-function cachedBalance(key: string): number | undefined {
+function cachedBalance(key: string): Balance | undefined {
   const entry = balanceCache.get(key)
   if (!entry) return undefined
   if (Date.now() - entry.ts > cacheTTL) {
@@ -184,7 +194,7 @@ function cachedBalance(key: string): number | undefined {
   return entry.value
 }
 
-function setCachedBalance(key: string, value: number): void {
+function setCachedBalance(key: string, value: Balance): void {
   balanceCache.set(key, { value, ts: Date.now() })
 }
 
@@ -368,19 +378,34 @@ export function findBalanceProvider(
  * Uses the in-memory cache (5-minute TTL). On cache miss, calls the
  * provider's fetch function and caches the result.
  *
- * Returns 0 on any failure (network error, missing API key, etc.).
+ * Returns {@link Balance}: `unknown` on any failure (network error, missing API
+ * key, provider without a balance API) — NEVER a fabricated `0`.
  */
-export async function fetchBalance(providerID: string, apiKey: string, baseURL?: string): Promise<number> {
-  if (!apiKey) return 0
+export async function fetchBalance(providerID: string, apiKey: string, baseURL?: string): Promise<Balance> {
+  if (!apiKey) return unknownBalance("no api key")
 
   const ck = cacheKey(providerID.toLowerCase(), apiKey)
   const cached = cachedBalance(ck)
   if (cached !== undefined) return cached
 
   const desc = registry.find((bp) => sameProvider(bp.id, providerID))
-  if (!desc) return 0
+  if (!desc) return unknownBalance("provider has no balance API")
 
   const value = await desc.fetch(apiKey, baseURL)
   setCachedBalance(ck, value)
   return value
+}
+
+/** The numeric balance, or undefined when the lookup is unknown. */
+export function balanceAmount(balance: Balance | undefined): number | undefined {
+  return balance?.status === "ok" ? balance.amount : undefined
+}
+
+/**
+ * Theme color for a balance. Returns undefined for an unknown/absent balance so
+ * the UI renders it muted instead of painting a fake red "no funds".
+ */
+export function balanceColorOf(balance: Balance | undefined, thresholds?: BalanceThresholds): BalanceColor | undefined {
+  const amount = balanceAmount(balance)
+  return amount === undefined ? undefined : getBalanceColor(amount, thresholds)
 }

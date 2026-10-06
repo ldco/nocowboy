@@ -31,16 +31,6 @@ const ModelState = z
   .passthrough()
 
 export namespace KiloTask {
-  /**
-   * Allow all agents (primary, subagent, all) to be used as subagents.
-   * P3 refactor removed dedicated subagent types. Primary agents like worker are
-   * the designated delegation targets for reviewer/planner via the task tool.
-   * Nested subagent prevention is handled by nestedTask() returning false.
-   */
-  export function validate(_info: Agent.Info, _name: string) {
-    // No rejection — all agent modes can be subagents
-  }
-
   /** Kilo keeps delegation one level deep to avoid recursive subagent chains. */
   export function nestedTask(): false {
     return false

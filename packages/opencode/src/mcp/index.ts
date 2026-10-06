@@ -36,6 +36,8 @@ import { Effect, Exit, Layer, Option, Context, Schema, Stream } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
 import { Instance } from "@/nocowboy/instance"
+import { isProjectScopedServer, withMemoryScope } from "@/nocowboy/memory/scope" // nocowboy_change — one project/session seam
+import { sharedMemoryAdapter } from "@/nocowboy/memory/adapter" // nocowboy_change — shared status + bounded flush
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { CrossSpawnSpawner } from "@nocowboy/core/cross-spawn-spawner"
 
@@ -173,7 +175,10 @@ function listTools(key: string, client: MCPClient, timeout: number) {
 // belongs to. One server process is shared by every NoCowboy instance, so
 // without this the project would be decided by whichever instance happened to
 // spawn the server first.
-const PROJECT_SCOPED_MCP = new Set(["nutausik"])
+//
+// nocowboy_change — the project/session seam lives in `@/nocowboy/memory/scope`
+// and is shared with the direct JSON-RPC MemoryAdapter, so the two transports
+// cannot drift.
 
 function currentProjectDir(): string | undefined {
   try {
@@ -185,18 +190,16 @@ function currentProjectDir(): string | undefined {
 
 /**
  * Attach the calling project to a project-scoped MCP call. Exported for tests.
- * A caller-supplied `projectDir` always wins.
+ * A caller-supplied `projectDir` always wins. Delegates to the one seam
+ * (`withMemoryScope`) shared with the direct JSON-RPC MemoryAdapter.
  */
 export function withProjectDir(
   serverName: string,
   args: Record<string, unknown> | undefined,
   directory: string | undefined,
 ): Record<string, unknown> {
-  const params = { ...(args ?? {}) }
-  if (directory && PROJECT_SCOPED_MCP.has(serverName) && params.projectDir === undefined) {
-    params.projectDir = directory
-  }
-  return params
+  if (!isProjectScopedServer(serverName)) return { ...(args ?? {}) }
+  return withMemoryScope(args, { project: directory })
 }
 
 // Convert MCP tool definition to AI SDK Tool type
@@ -211,24 +214,39 @@ function convertMcpTool(mcpTool: MCPToolDef, client: MCPClient, timeout?: number
     additionalProperties: false,
   }
 
-  const projectScoped = serverName !== undefined && PROJECT_SCOPED_MCP.has(serverName)
+  const projectScoped = serverName !== undefined && isProjectScopedServer(serverName)
 
   return dynamicTool({
     description: mcpTool.description ?? "",
     inputSchema: jsonSchema(schema),
     execute: async (args: unknown) => {
       const params = withProjectDir(serverName ?? "", args as Record<string, unknown> | undefined, projectScoped ? currentProjectDir() : undefined)
-      return client.callTool(
-        {
-          name: mcpTool.name,
-          arguments: params,
-        },
-        CallToolResultSchema,
-        {
-          resetTimeoutOnProgress: true,
-          timeout,
-        },
-      )
+      const call = () =>
+        client.callTool(
+          {
+            name: mcpTool.name,
+            arguments: params,
+          },
+          CallToolResultSchema,
+          {
+            resetTimeoutOnProgress: true,
+            timeout,
+          },
+        )
+      if (!projectScoped) return call()
+      // nocowboy_change — track the SDK call in the shared MemoryAdapter, so
+      // status reflects it and shutdown's bounded flush covers it too.
+      const adapter = sharedMemoryAdapter()
+      return adapter.trackExternal(async () => {
+        try {
+          const result = await call()
+          adapter.note(result.isError ? "degraded" : "available")
+          return result
+        } catch (error) {
+          adapter.note("degraded")
+          throw error
+        }
+      })
     },
   })
 }

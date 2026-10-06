@@ -65,6 +65,9 @@ export const Attention = Schema.Struct({
 export const TuiInfo = Schema.Struct({
   $schema: Schema.optional(Schema.String),
   theme: Schema.optional(Schema.String),
+  lang: Schema.optional(Schema.Literals(["ru", "en"])).annotate({
+    description: "Interface language for this TUI (ru or en). Overrides the project config language.",
+  }),
   keybinds: Schema.optional(TuiKeybind.KeybindOverrides),
   plugin: Schema.optional(Schema.Array(ConfigPlugin.Spec)),
   plugin_enabled: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
