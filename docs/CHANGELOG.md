@@ -560,6 +560,11 @@
   `verify:test packages/opencode/test/nocowboy/agent-catalog.test.ts`
   `verify:test packages/opencode/test/tool/task.test.ts`
   `verify:file docs/features/agent-catalog-spawn-policy.md`
+- **DONE** @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)
+  `verify:test packages/opencode/test/nocowboy/runtime/ports.test.ts`
+  `verify:test packages/opencode/test/nocowboy/runtime/agent-catalog.test.ts`
+  `verify:test packages/opencode/test/nocowboy/runtime/no-forbidden-imports.test.ts`
+  `verify:file docs/features/nocowboy-runtime-ports.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`

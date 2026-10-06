@@ -101,6 +101,7 @@
     "@nocowboy/gateway": "workspace:*",
     "@nocowboy/indexing": "workspace:*",
     "@nocowboy/plugin": "workspace:*",
+    "@nocowboy/runtime": "workspace:*",
     "@nocowboy/sdk": "workspace:*",
     "@nocowboy/telemetry": "workspace:*",
     "@nocowboy/ui": "workspace:*",

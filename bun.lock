@@ -142,13 +142,20 @@
         "typescript": "catalog:",
       },
     },
+    "packages/nocowboy-runtime": {
+      "name": "@nocowboy/runtime",
+      "version": "0.0.0-stub",
+      "dependencies": {
+        "effect": "catalog:",
+      },
+    },
     "packages/nocowboy-telemetry": {
       "name": "@nocowboy/telemetry",
       "version": "0.0.0-stub",
     },
     "packages/opencode": {
       "name": "nocowboy-tui",
-      "version": "0.14.0",
+      "version": "1.0.9-alpha",
       "bin": {
         "nocowboy": "./bin/nocowboy",
       },
@@ -189,6 +196,7 @@
         "@nocowboy/gateway": "workspace:*",
         "@nocowboy/indexing": "workspace:*",
         "@nocowboy/plugin": "workspace:*",
+        "@nocowboy/runtime": "workspace:*",
         "@nocowboy/sdk": "workspace:*",
         "@nocowboy/telemetry": "workspace:*",
         "@nocowboy/ui": "workspace:*",
@@ -925,6 +933,8 @@
     "@nocowboy/llm": ["@nocowboy/llm@workspace:packages/llm"],
 
     "@nocowboy/plugin": ["@nocowboy/plugin@workspace:packages/plugin"],
+
+    "@nocowboy/runtime": ["@nocowboy/runtime@workspace:packages/nocowboy-runtime"],
 
     "@nocowboy/sdk": ["@nocowboy/sdk@workspace:packages/sdk/js"],
 

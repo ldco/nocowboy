@@ -17,6 +17,7 @@ links="
 @nocowboy/gateway:packages/nocowboy-gateway
 @nocowboy/telemetry:packages/nocowboy-telemetry
 @nocowboy/http-recorder:packages/http-recorder
+@nocowboy/runtime:packages/nocowboy-runtime
 nocowboy-tui:packages/opencode
 "
 

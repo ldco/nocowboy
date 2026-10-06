@@ -4085,7 +4085,7 @@
     {
       "id": "nocowboy-runtime-ports",
       "title": "@nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
@@ -4115,7 +4115,26 @@
           "verify": "bun test packages/opencode/test/nocowboy/runtime",
           "critical": true
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/runtime/ports.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/runtime/agent-catalog.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/runtime/no-forbidden-imports.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nocowboy-runtime-ports.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New workspace package packages/nocowboy-runtime (@nocowboy/runtime, effect-only dep) with seven ports expressed as Effect-Schema contracts + interfaces: AgentCatalog (or isSpawnable/spawnable/describe + AgentCatalogEntry), PolicyPort (PolicyRule/PolicyDecision), SessionPort (SessionContext), EditPort (EditPlan/EditBlock/EditErrorCode), ModelPort (ModelRef), MemoryPort (MemoryResult/MemoryCallContext/MemoryStatus), TelemetryPort (TelemetryEvent). index.ts is a pure `export *` — no @/session, @tui or provider imports (enforced by a unit test that scans real import specifiers). Wired into the workspace (root package.json workspaces + opencode dependency @nocowboy/runtime workspace:*), so `bun run typecheck` now covers it (10 packages). Tests: test/nocowboy/runtime/ (19: ports schema round-trip, agent-catalog policy, no-forbidden-imports)."
     },
     {
       "id": "engine-adapter-package",

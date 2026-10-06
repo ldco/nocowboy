@@ -129,7 +129,6 @@
 - ⬜ Ownership-манифест: owned / adapted / generated
 - ⬜ Политика независимости модели reviewer
   > `resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.
-- ⬜ @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)
 - ⬜ @nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState
 - ⬜ Структурированный Handoff вместо текстового #route
   > `session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.
