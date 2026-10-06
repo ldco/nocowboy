@@ -531,3 +531,14 @@
   `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
   `verify:test packages/opencode/test/tool/question.test.ts`
   `verify:file docs/features/autonomous-harness-hardening.md`
+
+## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md) (2026-10)
+
+- **DONE** Knowledge Graph — стаб-контракт GraphProvider (in-memory fallback)
+  `verify:file packages/opencode/src/nocowboy/knowledge-graph/provider.ts`
+  `verify:file packages/opencode/src/nocowboy/knowledge-graph/memory.ts`
+  `verify:test packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts`
+- **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
+  `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
+  `verify:file backport-ledger.json`
+  `verify:cmd bun run scripts/backport-ledger.ts --check`

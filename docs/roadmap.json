@@ -1183,7 +1183,57 @@
       "version": "v0.11.0",
       "phase": "alpha-quality",
       "priority": "P1",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Бюджетирование контекста до 2M токенов с явным порогом",
+          "verify": "bun test test/nocowboy (context budget)",
+          "critical": true
+        },
+        {
+          "check": "Переполнение деградирует детерминированно, без потери system prompt",
+          "verify": "bun test test/nocowboy (context overflow)",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Явный бюджет токенов 2M + порог деградации",
+        "Интеграция с checkpoint-validator",
+        "Тест на переполнение"
+      ]
+    },
+    {
+      "id": "deep-context-selection",
+      "title": "Deep Context Selection — сигнал затронутых файлов для контекста",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "alpha-quality",
+      "priority": "P1",
+      "tags": [
+        "context",
+        "deep-context",
+        "knowledge-graph"
+      ],
+      "description": "Выбирать в глубокий контекст только затронутые diff-ом файлы и их соседей, а не весь репозиторий. Сигнал берётся из diff + опционально knowledge-graph-stub (impacted), сам по себе граф не требуется.",
+      "notes": "Отделено от knowledge-graph: сначала проектируется сигнал затронутых файлов, потом интеграция.",
+      "depends_on": [],
+      "subfeatures": [
+        "Сигнал затронутых файлов из git diff",
+        "Ранжирование соседей через impacted() при наличии графа",
+        "Fallback: только diff без графа"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Контекст включает изменённые файлы и их ближайших импортёров при наличии графа",
+          "verify": "bun test test/nocowboy (deep context selection)",
+          "critical": true
+        },
+        {
+          "check": "Без графа механизм деградирует до diff-only и не падает",
+          "verify": "bun test test/nocowboy (deep context selection)",
+          "critical": true
+        }
+      ]
     },
     {
       "id": "mcp-framework-merge",
@@ -1193,7 +1243,24 @@
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "First-party MCP серверы имеют единый реестр и приоритет (launcher precedence)",
+          "verify": "bun test test/nocowboy/mcp-launcher.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Конфликт имён серверов решается детерминированно и логируется",
+          "verify": "bun test test/nocowboy (mcp registry)",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Реестр first-party MCP серверов",
+        "Приоритет запуска/дедуп имён",
+        "Тест launcher precedence"
+      ]
     },
     {
       "id": "command-dedup",
@@ -1279,7 +1346,24 @@
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "NUTAUSIK MCP отдаёт prompt templates (dream, memory, context_inject)",
+          "verify": "bun test test/nocowboy (mcp prompts)",
+          "critical": true
+        },
+        {
+          "check": "Неизвестный prompt → явная ошибка, не пустой ответ",
+          "verify": "bun test test/nocowboy (mcp prompts)",
+          "critical": false
+        }
+      ],
+      "subfeatures": [
+        "Описать prompt templates на стороне NUTAUSIK",
+        "Прокинуть в MCP get/list",
+        "Тест неизвестного prompt"
+      ]
     },
     {
       "id": "instructions-analysis",
@@ -1483,7 +1567,24 @@
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Переключение backend индексинга применяется без рестарта (config→reindex chain)",
+          "verify": "bun test test/nocowboy/indexing-vector-store.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Старый индекс безопасно очищается только после успешной пересборки; rollback не теряет новый индекс",
+          "verify": "bun test test/nocowboy (vector store rollback)",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Config→reindex chain без рестарта",
+        "Безопасная очистка старого backend после rebuild",
+        "Rollback-тест"
+      ]
     },
     {
       "id": "deepseek-prefix-cache",
@@ -1730,8 +1831,8 @@
     {
       "id": "nutausik-mcp-prompts",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)",
-      "status": "planned",
-      "notes": "В NUTAUSIK-side, не в NoCowboy",
+      "status": "abandoned",
+      "notes": "Abandoned as duplicate: overlaps mcp-prompt-support; NUTAUSIK-side work, not in NoCowboy.",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
@@ -1813,7 +1914,7 @@
     {
       "id": "alpha-manual-smoke-test",
       "title": "Manual smoke test — основные сценарии пройдены",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-alpha",
       "notes": "Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify",
       "verify": [
@@ -1825,7 +1926,8 @@
       "priority": "P1",
       "depends_on": [
         "alpha-no-critical-bugs"
-      ]
+      ],
+      "blocker": "Нужен ручной прогон в терминале; в автономной среде недоступен."
     },
     {
       "id": "alpha-no-critical-bugs",
@@ -1848,19 +1950,20 @@
     {
       "id": "rc-alpha-feedback-incorporated",
       "title": "Alpha feedback incorporated",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
       "notes": "Все фидбеки от alpha-тестеров обработаны и исправлены",
       "phase": "rc",
       "priority": "P0",
       "depends_on": [
         "publish-npm"
-      ]
+      ],
+      "blocker": "Фидбек alpha-тестеров недоступен."
     },
     {
       "id": "rc-user-testing-complete",
       "title": "Пользовательское тестирование — 5+ тестеров",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
       "notes": "5+ человек прогнали основные сценарии. Баги записаны.",
       "verify": [
@@ -1872,7 +1975,8 @@
       "priority": "P0",
       "depends_on": [
         "rc-alpha-feedback-incorporated"
-      ]
+      ],
+      "blocker": "Внешние тестеры не запускались."
     },
     {
       "id": "rc-performance-test",
@@ -1884,18 +1988,36 @@
       "priority": "P1",
       "depends_on": [
         "rc-user-testing-complete"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Benchmark измеряет cold start < 500ms и RSS < 200MB на целевом runner",
+          "verify": "bun run scripts/perf-check.ts",
+          "critical": true
+        },
+        {
+          "check": "Проверяется exit code дочернего CLI; отсутствие зависимостей → fail, а не ложный pass",
+          "verify": "bun run scripts/perf-check.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Починить benchmark (RSS/exit code)",
+        "Пороги 500ms/200MB",
+        "Fail при отсутствии зависимостей"
       ]
     },
     {
       "id": "rc-all-issues-resolved",
       "title": "Все известные issues закрыты или имеют миграционный план",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
       "phase": "rc",
       "priority": "P0",
       "depends_on": [
         "rc-user-testing-complete"
-      ]
+      ],
+      "blocker": "Нет полного инвентаря issues и их закрытия."
     },
     {
       "id": "rc-docs-complete",
@@ -1912,24 +2034,42 @@
       "priority": "P1",
       "depends_on": [
         "rc-user-testing-complete"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "README/CHANGELOG/ROADMAP сгенерированы из roadmap.json и синхронны (--check)",
+          "verify": "bun run scripts/generate-docs.ts --check",
+          "critical": true
+        },
+        {
+          "check": "Документы не содержат ложных roadmap-утверждений",
+          "verify": "bun run scripts/verify-roadmap.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "generate-docs из JSON",
+        "--check в pre-commit",
+        "Убрать ложные roadmap-утверждения"
       ]
     },
     {
       "id": "release-beta-feedback-incorporated",
       "title": "RC feedback incorporated",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
       "notes": "Все фидбеки от RC-тестеров обработаны",
       "phase": "v1.0-release",
       "priority": "P1",
       "depends_on": [
         "release-all-tests-green"
-      ]
+      ],
+      "blocker": "Фидбек beta-тестеров недоступен."
     },
     {
       "id": "release-all-tests-green",
       "title": "All tests green — 0 failures, 0 flaky",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
       "verify": [
         {
@@ -1941,7 +2081,8 @@
       "priority": "P0",
       "depends_on": [
         "rc-all-issues-resolved"
-      ]
+      ],
+      "blocker": "Полный прогон тестов не продемонстрирован как релизный гейт."
     },
     {
       "id": "release-typecheck-clean",
@@ -1969,19 +2110,36 @@
       "verify": [
         {
           "type": "cmd",
-          "command": "bun run scripts/verify-roadmap.ts 2>&1 | tail -3"
+          "command": "bun run scripts/verify-roadmap.ts"
         }
       ],
       "phase": "v1.0-release",
       "priority": "P1",
       "depends_on": [
         "release-all-tests-green"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "verify-roadmap проверяет exit code реально (без | tail, маскирующего падение)",
+          "verify": "bun run scripts/verify-roadmap.ts",
+          "critical": true
+        },
+        {
+          "check": "100% DONE features проходят свои verify-директивы",
+          "verify": "bun run scripts/verify-roadmap.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Убрать | tail без pipefail из verify-roadmap",
+        "Проверять exit code",
+        "Полный прогон verify"
       ]
     },
     {
       "id": "release-published",
       "title": "npm publish — @nocowboy v1.0.0",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
       "notes": "npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0",
       "verify": [
@@ -1995,7 +2153,8 @@
       "depends_on": [
         "release-roadmap-verified",
         "release-beta-feedback-incorporated"
-      ]
+      ],
+      "blocker": "Релизные гейты не выполнены."
     },
     {
       "id": "ponytail-ladder",
@@ -2109,7 +2268,24 @@
       "notes": "Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "MCP-коннектор к Obsidian vault отвечает на list/read",
+          "verify": "ручная проверка MCP",
+          "critical": true
+        },
+        {
+          "check": "Ошибка коннектора не блокирует остальные MCP",
+          "verify": "bun test test/nocowboy (mcp isolation)",
+          "critical": false
+        }
+      ],
+      "subfeatures": [
+        "MCP-запись в nocowboy.json",
+        "Коннектор list/read vault",
+        "Тест изоляции ошибок MCP"
+      ]
     },
     {
       "id": "agent-model-settings-ui",
@@ -2136,7 +2312,24 @@
       "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.",
       "phase": "post-v1.0",
       "priority": "P2",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Переключение ru/en на лету из Settings без рестарта",
+          "verify": "bun test test/nocowboy/tui-language.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Все ключи существуют в обеих локалях (нет пустых строк)",
+          "verify": "bun test test/nocowboy/i18n.test.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "lang в TuiConfig",
+        "Кнопка Settings → Language",
+        "Переключение на лету + тест ключей"
+      ]
     },
     {
       "id": "tui-inline-diff-permission",
@@ -2371,6 +2564,23 @@
           "type": "file",
           "path": "docs/features/stop-hooks-turn-level.md"
         }
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Turn реально продолжается при exit-коде hook, а не только логируется счётчик",
+          "verify": "bun test test/nocowboy/stop-hooks.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Cap блокировок (<=8) соблюдается",
+          "verify": "bun test test/nocowboy/stop-hooks.test.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Использовать счётчик блокировок для реального продолжения turn",
+        "Cap <= 8",
+        "Интеграционный тест"
       ]
     },
     {
@@ -2395,6 +2605,23 @@
           "type": "file",
           "path": "docs/features/ac-verification-hook.md"
         }
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Hook достижим для реальной роли (не мёртвая ветка agent === 'goal')",
+          "verify": "bun test test/nocowboy (ac hook reachable)",
+          "critical": true
+        },
+        {
+          "check": "После turn проверяются AC активной задачи; провал блокирует завершение",
+          "verify": "bun test test/nocowboy (ac hook)",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Сделать hook достижимым для реальной роли",
+        "Связать с AC активной задачи",
+        "Тест блокировки завершения"
       ]
     },
     {
@@ -2595,20 +2822,84 @@
       ]
     },
     {
-      "id": "knowledge-graph",
-      "title": "Knowledge Graph — интерактивный граф кодовой базы (Understand-Anything уровень)",
-      "status": "planned",
-      "priority": "P1",
+      "id": "knowledge-graph-stub",
+      "title": "Knowledge Graph — стаб-контракт GraphProvider (in-memory fallback)",
+      "status": "done",
+      "version": "v1.1.0",
       "phase": "knowledge-graph",
+      "priority": "P1",
       "tags": [
         "knowledge-graph",
         "code-analysis",
-        "visualization",
-        "open-source-integration"
+        "graph-contract"
       ],
-      "description": "Tree-sitter + LLM pipeline: project-scanner → file-analyzer → architecture-analyzer. Ноды (файлы, функции, классы) + рёбра (зависимости, вызовы). Интерактивная web-dashboard с zoom/search/click. Вдохновлено: Understand-Anything (77K★).",
+      "description": "Минимальный интерфейс-контракт графа: snapshot()/impacted(changedFiles, depth)/layer(file) плюс in-memory fallback, который возвращает безопасные валидные структуры и не падает. Каждое ребро несёт confidence exact|heuristic; неоднозначный basename не резолвится в один файл. Тяжёлый AST-парсер вынесен в отдельный долгосрочный пункт knowledge-graph-ast-engine.",
+      "notes": "Заменил жёсткий блокер knowledge-graph. Зависимые модули (diff-impact-analysis, arch-layer-detection) зависят только от этого контракта, а не от тяжёлого парсера.",
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/knowledge-graph/provider.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/knowledge-graph/memory.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts"
+        }
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "GraphProvider с snapshot()/impacted()/layer(); пустой граф → валидные пустые структуры",
+          "verify": "bun test test/nocowboy/knowledge-graph-stub.test.ts",
+          "critical": true
+        },
+        {
+          "check": "impacted() обходит обратные import-рёбра на заданную глубину и не падает на мусорном входе",
+          "verify": "bun test test/nocowboy/knowledge-graph-stub.test.ts",
+          "critical": true
+        },
+        {
+          "check": "confidence exact|heuristic сохраняется вдоль пути; неоднозначный basename не угадывается",
+          "verify": "bun test test/nocowboy/knowledge-graph-stub.test.ts",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "knowledge-graph-ast-engine",
+      "title": "Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "knowledge-graph",
+      "priority": "P2",
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "tree-sitter"
+      ],
+      "description": "Полноценный глубокий AST-парсер: структурные определения {name,kind,line}[], рёбра вызовов по языковым запросам, LLM-сводка архитектуры. Заменяет наполнение snapshot() в GraphProvider, не трогая consumers.",
+      "notes": "Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.",
       "depends_on": [
-        "publish-npm"
+        "knowledge-graph-stub"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Структурные определения {name,kind,line}[] для TS/JS через tree-sitter",
+          "verify": "bun test test/nocowboy (ast extract)",
+          "critical": true
+        },
+        {
+          "check": "Call edges по языковым запросам с confidence exact|heuristic",
+          "verify": "bun test test/nocowboy (call edges)",
+          "critical": true
+        },
+        {
+          "check": "AST provider удовлетворяет GraphProvider и заменяет in-memory без правок consumers",
+          "verify": "bun test test/nocowboy/knowledge-graph-stub.test.ts + typecheck",
+          "critical": true
+        }
       ]
     },
     {
@@ -2618,14 +2909,36 @@
       "priority": "P1",
       "phase": "knowledge-graph",
       "depends_on": [
-        "knowledge-graph"
+        "knowledge-graph-stub"
       ],
       "tags": [
         "knowledge-graph",
         "code-analysis",
         "open-source-integration"
       ],
-      "description": "Перед коммитом: показать, какие модули затронет diff (ripple effects). Интегрировано с knowledge graph. Вдохновлено: Understand-Anything."
+      "description": "Перед коммитом показать, какие модули затронет diff (ripple effects). Работает поверх лёгкого GraphProvider (knowledge-graph-stub), без тяжёлого AST.",
+      "subfeatures": [
+        "impacted() поверх GraphProvider: BFS обратных import-рёбер на depth 1–2",
+        "Формат вывода: файл + distance + confidence (exact|heuristic)",
+        "CLI-подкоманда impact --changed <files> + опциональный pre-commit вывод"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "Дан changelist → возвращены затронутые файлы (importers) по рёбрам графа",
+          "verify": "bun test test/nocowboy (diff impact)",
+          "critical": true
+        },
+        {
+          "check": "Каждый результат помечен distance и confidence; unknown input → [] без падения",
+          "verify": "bun test test/nocowboy (diff impact)",
+          "critical": true
+        },
+        {
+          "check": "CLI не падает на пустом графе (stub) и печатает 'no impact'",
+          "verify": "bun run src/cli/cmd/knowledge-graph.ts impact --changed <files>",
+          "critical": false
+        }
+      ]
     },
     {
       "id": "tree-sitter-parsing",
@@ -2634,7 +2947,7 @@
       "priority": "P1",
       "phase": "knowledge-graph",
       "depends_on": [
-        "knowledge-graph"
+        "knowledge-graph-stub"
       ],
       "tags": [
         "knowledge-graph",
@@ -2659,14 +2972,31 @@
       "priority": "P2",
       "phase": "knowledge-graph",
       "depends_on": [
-        "knowledge-graph"
+        "knowledge-graph-stub"
       ],
       "tags": [
         "knowledge-graph",
         "architecture",
         "open-source-integration"
       ],
-      "description": "Автоматическая группировка по архитектурным слоям с цветовой легендой. Вдохновлено: Understand-Anything."
+      "description": "Автоматическая группировка по архитектурным слоям с цветовой легендой. Вдохновлено: Understand-Anything.",
+      "subfeatures": [
+        "Настраиваемые path rules → layer(file): first match wins",
+        "Группировка/цветовая легенда слоёв в dashboard",
+        "Unknown path → null (слой не выдумывается)"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "layer(file) классифицирует путь по настраиваемым path rules",
+          "verify": "bun test test/nocowboy (arch layer)",
+          "critical": true
+        },
+        {
+          "check": "Неизвестный путь → null, а не выдуманный слой",
+          "verify": "bun test test/nocowboy (arch layer)",
+          "critical": true
+        }
+      ]
     },
     {
       "id": "cost-routing-doctrine",
@@ -2704,7 +3034,24 @@
         "open-source-integration"
       ],
       "description": "Свежая модель (не та, что вела сессию) читает diff с нуля и возвращает ship / fix-first / rethink. Всегда один раз в конце deliverable. Вдохновлено: Fable Advisor.",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Reviewer-gate обязателен: deliverable не закрывается без ship/fix-first/rethink",
+          "verify": "bun test test/nocowboy/commitment-review.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Reviewer использует другую модель, чем ведущая сессия",
+          "verify": "bun test test/nocowboy (review model)",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "Обязательный reviewer-gate перед deliverable",
+        "Ship/fix-first/rethink отчёт",
+        "Тест обязательности"
+      ]
     },
     {
       "id": "spec-contract-delegation",
@@ -2718,12 +3065,29 @@
         "open-source-integration"
       ],
       "description": "5-part spec: goal, constraints, acceptance criteria, files to touch, files to NOT touch. Контекстно-независимая делегация. Вдохновлено: Fable Advisor.",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "validateSpecContract отклоняет контракт с пустой частью (5 частей обязательны)",
+          "verify": "bun test test/nocowboy/spec-contract.test.ts",
+          "critical": true
+        },
+        {
+          "check": "task пишет предупреждение при отсутствии контракта",
+          "verify": "bun test test/nocowboy/spec-contract.test.ts",
+          "critical": false
+        }
+      ],
+      "subfeatures": [
+        "renderSpecContract/validateSpecContract",
+        "Предупреждение в task при отсутствии контракта",
+        "Тест пустых частей"
+      ]
     },
     {
       "id": "yagni-decision-ladder",
       "title": "YAGNI Decision Ladder — 7-шаговая лестница «нужно ли это?» перед написанием кода",
-      "status": "planned",
+      "status": "abandoned",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -2733,7 +3097,8 @@
         "open-source-integration"
       ],
       "description": "1) Нужно ли это? 2) Уже в кодовой базе? 3) В stdlib? 4) Нативное API платформы? 5) Установленная зависимость? 6) Одна строка? 7) Минимум. Безопасность: валидация, обработка ошибок, security — never cut. Вдохновлено: Ponytail (94K★).",
-      "depends_on": []
+      "depends_on": [],
+      "notes": "Abandoned: this is a policy, not a NoCowboy implementation — it lives in .nocowboy/rules/lazy-senior.md (7-rung ladder) and /ponytail-review, not as roadmap code."
     },
     {
       "id": "over-engineering-review",
@@ -2747,7 +3112,24 @@
         "open-source-integration"
       ],
       "description": "Агент читает текущий diff и возвращает список того, что можно удалить/упростить. Интегрируется с AC-verification stop hook. Вдохновлено: Ponytail.",
-      "depends_on": []
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "/ponytail-review парсит findings в каноническом формате",
+          "verify": "bun test test/nocowboy/over-engineering-review.test.ts",
+          "critical": true
+        },
+        {
+          "check": "Находки не блокируют безопасность (safety invariants не режутся)",
+          "verify": "bun test test/nocowboy/over-engineering-review.test.ts",
+          "critical": true
+        }
+      ],
+      "subfeatures": [
+        "/ponytail-review команда",
+        "parseFindings канонический формат",
+        "Тест findings"
+      ]
     },
     {
       "id": "subagent-hang-watchdog",
@@ -3391,7 +3773,16 @@
       "title": "Автономная работа больше не упирается в человека: suggest/question, YOLO и Auto",
       "status": "done",
       "version": "v1.0.9-alpha",
-      "tags": ["autopilot", "subagent", "suggest", "question", "yolo", "permission", "agents", "prompt"],
+      "tags": [
+        "autopilot",
+        "subagent",
+        "suggest",
+        "question",
+        "yolo",
+        "permission",
+        "agents",
+        "prompt"
+      ],
       "description": "Три связанных дефекта автономного режима. (1) suggest и question парковались на промис, который может разрешить только человек; в сабагент-сессии или в автопилот/roadmap-прогоне человека нет, промис не разрешался никогда, и весь конвейер (родитель, ждущий task-результат) вставал намертво. Добавлен NoCowboySession.noHumanReason (сабагент по parents-map или активный autopilot-goal); оба инструмента теперь мгновенно возвращают инструкцию «продолжай сам» вместо блокировки. (2) YOLO не снимал встроенные read-only потолки architect/planner/reviewer (hardRuleset veto и ruleset deny проверялись раньше гранта), поэтому в yolo-режиме read-only агент не мог выполнить git add/commit или nocowboy roadmap generate и останавливался с просьбой к пользователю. Permission.ask переставлен: YOLO читается до veto/deny и снимает политику агентов; абсолютными остаются внешние директории, защита конфигов и явные deny из верхнеуровневого permission-конфига. (3) Встроенный auto-промпт утверждал «ты НЕ делаешь инженерную работу сам» — переписан на «работай сам по умолчанию, task — исключение для настоящего параллелизма».",
       "done_at": "2026-10-02",
       "verify": [
@@ -4056,7 +4447,7 @@
     {
       "id": "upstream-backport-ledger",
       "title": "Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p5-process",
       "priority": "P1",
@@ -4066,11 +4457,8 @@
         "docs"
       ],
       "description": "Для каждого backport фиксировать: upstream SHA → локальная потребность → затронутый contract → adaptation diff → проверка → запись в ledger. Если fix тянет значительную часть session/runtime — оценить цельный совместимый срез, а не раскладывать обязательные зависимости по случайным cherry-pick.",
-      "notes": "В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику.",
-      "depends_on": [
-        "engine-manifest",
-        "fork-merge-profile"
-      ],
+      "notes": "В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику. Ledger + validator imported from the audited dump (green zone) and pass: 13 entries, no duplicate upstream SHA (bun run scripts/backport-ledger.ts --check).",
+      "depends_on": [],
       "acceptance_criteria": [
         {
           "check": "Ledger фиксирует SHA, потребность, contract, diff и результат verify",
@@ -4081,6 +4469,20 @@
           "check": "Повторный перенос не возвращает уже исправленную семантику",
           "verify": "check script detects duplicate backport SHA",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/backport/ledger.ts"
+        },
+        {
+          "type": "file",
+          "path": "backport-ledger.json"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run scripts/backport-ledger.ts --check"
         }
       ]
     },

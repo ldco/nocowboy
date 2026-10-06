@@ -18,18 +18,34 @@
   `verify:file packages/opencode/src/sync/turso-sync.ts`
 - ⬜ Deep Context (2M tokens с бюджетированием)
   > checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.
+  - Явный бюджет токенов 2M + порог деградации
+  - Интеграция с checkpoint-validator
+  - Тест на переполнение
 - ⬜ MCP Framework — merge plugin-registry в NUTAUSIK
   > P2-C4. Решить судьбу first-party MCP серверов.
+  - Реестр first-party MCP серверов
+  - Приоритет запуска/дедуп имён
+  - Тест launcher precedence
 - ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
   > Было в старом ROADMAP как NOT DONE.
+  - Описать prompt templates на стороне NUTAUSIK
+  - Прокинуть в MCP get/list
+  - Тест неизвестного prompt
 - ⬜ Vector store switcher UI
   > Был в старом P2 роадмапе
-- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject templates)
-  > В NUTAUSIK-side, не в NoCowboy
+  - Config→reindex chain без рестарта
+  - Безопасная очистка старого backend после rebuild
+  - Rollback-тест
 - ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP
   > Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.
+  - MCP-запись в nocowboy.json
+  - Коннектор list/read vault
+  - Тест изоляции ошибок MCP
 - ⬜ Lang switcher — переключатель ru/en в TUI Settings
   > i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.
+  - lang в TuiConfig
+  - Кнопка Settings → Language
+  - Переключение на лету + тест ключей
 
 ---
 
@@ -47,52 +63,81 @@
   `verify:file docs/features/skillopt-integration.md`
 - ⬜ Turn-level Stop Hooks — блокировка завершения turn до проверки
   > Unmarked 2026-09-24: the plugin `session.stop` hook and the stopHookContinues cap exist, but the turn is NOT actually blocked — the counters are only logged and never used to continue the turn. The continuation that keeps a run going ships under `autopilot-roadmap-runner` (goal.auto + session/prompt.ts synthetic injection).
+  - Использовать счётчик блокировок для реального продолжения turn
+  - Cap <= 8
+  - Интеграционный тест
   `verify:file docs/features/stop-hooks-turn-level.md`
 - ⬜ Built-in AC Verification Stop Hook
   > Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === "goal", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.
+  - Сделать hook достижимым для реальной роли
+  - Связать с AC активной задачи
+  - Тест блокировки завершения
   `verify:file docs/features/ac-verification-hook.md`
 
 ---
 
 ## v1.0.0-alpha — Alpha Release — internal testing, all features done, no critical bugs
 
-- ⬜ Manual smoke test — основные сценарии пройдены
+- 🚫 Manual smoke test — основные сценарии пройдены
   > Проверить: init, /sandbox, /share, /ollama, /forget, roadmap verify
+  > **Блокер:** Нужен ручной прогон в терминале; в автономной среде недоступен.
   `verify:agent`
 
 ---
 
 ## v1.0.0-rc — Release Candidate — user testing, performance, docs complete
 
-- ⬜ Alpha feedback incorporated
+- 🚫 Alpha feedback incorporated
   > Все фидбеки от alpha-тестеров обработаны и исправлены
-- ⬜ Пользовательское тестирование — 5+ тестеров
+  > **Блокер:** Фидбек alpha-тестеров недоступен.
+- 🚫 Пользовательское тестирование — 5+ тестеров
   > 5+ человек прогнали основные сценарии. Баги записаны.
+  > **Блокер:** Внешние тестеры не запускались.
   `verify:agent`
 - ⬜ Performance testing — startup < 500ms, memory < 200MB
   > Холодный старт: < 500ms. RSS: < 200MB
-- ⬜ Все известные issues закрыты или имеют миграционный план
+  - Починить benchmark (RSS/exit code)
+  - Пороги 500ms/200MB
+  - Fail при отсутствии зависимостей
+- 🚫 Все известные issues закрыты или имеют миграционный план
+  > **Блокер:** Нет полного инвентаря issues и их закрытия.
 - ⬜ Документация обновлена — CHANGELOG, ROADMAP, README
+  - generate-docs из JSON
+  - --check в pre-commit
+  - Убрать ложные roadmap-утверждения
   `verify:file docs/README.md`
 
 ---
 
 ## v1.0.0 — Production Release — all tests green, npm published, roadmap verified
 
-- ⬜ RC feedback incorporated
+- 🚫 RC feedback incorporated
   > Все фидбеки от RC-тестеров обработаны
-- ⬜ All tests green — 0 failures, 0 flaky
+  > **Блокер:** Фидбек beta-тестеров недоступен.
+- 🚫 All tests green — 0 failures, 0 flaky
+  > **Блокер:** Полный прогон тестов не продемонстрирован как релизный гейт.
   `verify:cmd bun run test 2>&1 | tail -5`
 - ⬜ Roadmap verified — 100% DONE features pass verify
-  `verify:cmd bun run scripts/verify-roadmap.ts 2>&1 | tail -3`
-- ⬜ npm publish — @nocowboy v1.0.0
+  - Убрать | tail без pipefail из verify-roadmap
+  - Проверять exit code
+  - Полный прогон verify
+  `verify:cmd bun run scripts/verify-roadmap.ts`
+- 🚫 npm publish — @nocowboy v1.0.0
   > npm publish --tag latest. Binary: nocowboy-linux-x64@1.0.0
+  > **Блокер:** Релизные гейты не выполнены.
   `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
 
 ---
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
 
+- ⬜ Deep Context Selection — сигнал затронутых файлов для контекста
+  > Отделено от knowledge-graph: сначала проектируется сигнал затронутых файлов, потом интеграция.
+  - Сигнал затронутых файлов из git diff
+  - Ранжирование соседей через impacted() при наличии графа
+  - Fallback: только diff без графа
+- ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
+  > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
 - ⬜ Манифест движка — SHA, provenance, версии зависимостей, ledger портов
   > Проверено: корень ca721a2 (19.06.2026), `fork of KiloCode v7.3.46`; GitHub tag v7.3.46 = f388b60ab579adef7cf1a6c022082100338d6450, побайтовое соответствие снимку НЕ установлено; remote upstream и .opencode-version отсутствуют. Артефакты: engine-manifest.json + docs/reference/engine-manifest.md.
 - ⬜ Профиль merge/backport — upstream read-only reference, без legacy OpenCode→Kilo transforms
@@ -126,8 +171,6 @@
 - ⬜ ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
   > `rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.
 - ⬜ Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
-- ⬜ Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
-  > В истории уже есть release `0.14.0 — Security Hardening & Upstream Harvest` и annotations с upstream SHA: выборочный harvest используется. Повторный перенос способен вернуть старую семантику.
 - ⬜ Контрактные тесты миграции движка (минимальный набор сценариев)
 - ⬜ Backport: сохранение recent tail при compaction + token budgeting/pruning
 - ⬜ Backport: subagent depth limit + resume diagnostics
