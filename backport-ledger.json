@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "T0.1-empty-task-result",
+      "upstream_shas": ["bf7848cb48"],
+      "need": "Reviewer <task_result> came back empty because the subagent result extractor surfaced a synthetic marker part (broke the reviewer-attestation pipeline).",
+      "contracts": ["packages/opencode/src/tool/task.ts"],
+      "adaptation": "92e1ecd83f",
+      "verify": "bun test test/tool/task.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "T0.2-minimatch-redos",
+      "upstream_shas": ["34b10a672b"],
+      "need": "Remote ReDoS via agent search patterns; root cause is brace-expansion.",
+      "contracts": ["package.json", "packages/core/package.json", "packages/opencode/package.json", "packages/nocowboy-indexing/package.json"],
+      "adaptation": "01efd1e012",
+      "verify": "bun.lock pins minimatch 10.2.6 / brace-expansion 5.0.9",
+      "status": "done"
+    },
+    {
+      "id": "T0.3-config-exfiltration",
+      "upstream_shas": ["b793bf788f", "032f3bb"],
+      "need": "Malicious repo could exfiltrate {env:} secrets and read arbitrary files via our own markdown substitution.",
+      "contracts": ["packages/opencode/src/config/variable.ts", "packages/opencode/src/nocowboy/config/markdown.ts"],
+      "adaptation": "d2e69a0b2b",
+      "verify": "bun test test/nocowboy/config/config.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "T0.7-transcript-flush-on-exit",
+      "upstream_shas": ["b2735bf"],
+      "need": "Final session messages were lost on shutdown because pending uploads were not flushed.",
+      "contracts": ["packages/opencode/src/nocowboy-sessions/ingest-queue.ts"],
+      "adaptation": "e56482a0d0",
+      "verify": "bun test test/nocowboy/sessions/ingest-queue.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "T0.8-checkpoint-restore-data-loss",
+      "upstream_shas": ["16f8e7e"],
+      "need": "A failed checkpoint restore could half-mutate the workspace.",
+      "contracts": ["packages/opencode/src/nocowboy/session/revert.ts", "packages/opencode/src/snapshot/index.ts"],
+      "adaptation": "52e01a2b2f",
+      "verify": "bun test test/snapshot/snapshot.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "T0.10-subagent-phantom-deny",
+      "upstream_shas": ["3a99f36"],
+      "need": "The read-only parent bash allowlist was projected onto writable subagents.",
+      "contracts": ["packages/opencode/src/nocowboy/tool/task.ts"],
+      "adaptation": "37889c07f9",
+      "verify": "bun test test/nocowboy/tool/task-inherited.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "T0.5-powershell-dashdash-bypass",
+      "upstream_shas": ["a0a760e"],
+      "need": "Bash permission bypass for bare -- commands on PowerShell.",
+      "contracts": ["packages/opencode/src/permission/index.ts"],
+      "adaptation": "9416ce84f2 (reverted in 3ab2d5b778)",
+      "verify": "n/a — PowerShell is not a build target",
+      "status": "abandoned"
+    },
+    {
+      "id": "data-loss-schema-jsonc",
+      "upstream_shas": ["0d830cb"],
+      "need": "$schema injection rewrote comment-first JSONC on every read.",
+      "contracts": ["packages/opencode/src/config/config.ts"],
+      "adaptation": "4901cad0f8",
+      "verify": "bun test test/nocowboy/config/config.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "data-loss-readonly-db-recovery",
+      "upstream_shas": ["0fe46ec"],
+      "need": "Fatal 'readonly database' startup crash when nocowboy-owned db files lost write permissions.",
+      "contracts": ["packages/core/src/nocowboy/db-preflight.ts"],
+      "adaptation": "4901cad0f8",
+      "verify": "bun test test/nocowboy/db-preflight.test.ts",
+      "status": "done"
+    },
+    {
+      "id": "data-loss-windows-snapshot-patch",
+      "upstream_shas": ["1310c12"],
+      "need": "Windows snapshot diff could drop a malformed patch.",
+      "contracts": ["packages/opencode/src/snapshot/index.ts"],
+      "adaptation": "none",
+      "verify": "n/a — Windows is not a build target",
+      "status": "n/a"
+    },
+    {
+      "id": "T0.6-pty-credential-leak",
+      "upstream_shas": ["none"],
+      "need": "Local server credentials leaking into spawned PTY processes.",
+      "contracts": ["packages/opencode/src/pty/index.ts"],
+      "adaptation": "none (already present pre-port)",
+      "verify": "packages/opencode/src/pty/index.ts removes NOCOWBOY_SERVER_PASSWORD/USERNAME",
+      "status": "n/a"
+    },
+    {
+      "id": "T0.4-sandbox-confinement-tail",
+      "upstream_shas": ["none"],
+      "need": "Post-fork v7.3.x sandbox confinement (bubblewrap/seatbelt/network isolation).",
+      "contracts": ["packages/opencode/src/nocowboy/sandbox.ts"],
+      "adaptation": "none (different architecture — Docker wrapper; filesystem containment already via AppFileSystem.contains)",
+      "verify": "n/a — no OS-sandbox subsystem in this tree",
+      "status": "n/a"
+    },
+    {
+      "id": "T0.9-ask-plan-catch-all",
+      "upstream_shas": ["none"],
+      "need": "Broad allow rules granted mutating tools to read-only modes.",
+      "contracts": ["packages/opencode/src/permission/index.ts", "packages/opencode/src/nocowboy/agent/index.ts"],
+      "adaptation": "none (ask/plan agents removed; read-only agents merge restrictive rules last)",
+      "verify": "bun test test/nocowboy/server/permission-allow-everything.test.ts",
+      "status": "n/a"
+    }
+  ]
+}
