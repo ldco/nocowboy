@@ -560,6 +560,10 @@
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`
   `verify:file docs/features/edit-port-batch-safety.md`
+- **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
+  `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
+  `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`
+  `verify:file docs/features/memory-adapter-unified.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`

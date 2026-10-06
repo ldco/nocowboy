@@ -6,6 +6,7 @@ import { AppRuntime } from "@/effect/app-runtime"
 import { Auth } from "@/auth"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { SessionExport } from "@/nocowboy/session-export"
+import { MemoryAdapter } from "@/nocowboy/memory-adapter"
 
 const log = Log.create({ service: "nocowboy.cli" })
 
@@ -44,6 +45,14 @@ export namespace NocowboyCli {
     Telemetry.trackCliExit(process.exitCode != null ? Number(process.exitCode) : 0)
     try {
       await SessionExport.shutdown()
+      // Drain in-flight NUTAUSIK memory writes (bounded) so session-end data is
+      // not lost to fire-and-forget. Never blocks exit longer than the timeout.
+      try {
+        const flushed = await MemoryAdapter.flush({ timeoutMs: 2000 })
+        if (flushed.timedOut) log.warn("memory adapter flush timed out", { pending: flushed.pending })
+      } catch (err) {
+        log.warn("memory adapter flush failed", { err })
+      }
       // Bound telemetry shutdown so an unreachable endpoint (offline, firewall,
       // DNS adblock resolving the host to 0.0.0.0) cannot block process exit on
       // short-lived commands like `kilo --help` / `kilo --version` (#9788).

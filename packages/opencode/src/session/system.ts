@@ -175,13 +175,13 @@ export const layer = Layer.effect(
         // 4. DYNAMIC BLOCK — varies per session/message, always at end
         const nutausikAlive = yield* Effect.promise(() => hasNutausik()).pipe(Effect.catch(() => Effect.succeed(false)))
         if (nutausikAlive) {
-          const text = yield* Effect.promise(() => fetchContext()).pipe(Effect.catch(() => Effect.succeed("")))
+          const text = yield* Effect.promise(() => fetchContext(ctx.directory)).pipe(Effect.catch(() => Effect.succeed("")))
           if (text) lines.push(text)
 
-          const cohText = yield* Effect.promise(() => fetchCoherenceCheck()).pipe(Effect.catch(() => Effect.succeed("")))
+          const cohText = yield* Effect.promise(() => fetchCoherenceCheck(ctx.directory)).pipe(Effect.catch(() => Effect.succeed("")))
           if (cohText) lines.push(cohText)
 
-          const handoffText = yield* Effect.promise(() => fetchHandoff()).pipe(Effect.catch(() => Effect.succeed("")))
+          const handoffText = yield* Effect.promise(() => fetchHandoff(ctx.directory)).pipe(Effect.catch(() => Effect.succeed("")))
           if (handoffText) lines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 

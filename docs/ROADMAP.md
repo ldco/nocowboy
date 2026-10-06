@@ -146,8 +146,6 @@
   > Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.
 - ⬜ Git/Balance — асинхронные сервисы, unknown ≠ 0
   > Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.
-- ⬜ Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
-  > `nutausik-client.ts` возвращает пустую строку при transport failure и не превращает JSON-RPC/tool error в явный memory status. Session-end операции fire-and-forget; logging hook прописывает shell/python/curl command с literal endpoint, обходя общий client/env override.
 - ⬜ ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
   > `rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.
 - ⬜ Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс

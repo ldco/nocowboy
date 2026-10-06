@@ -4402,7 +4402,7 @@
     {
       "id": "memory-adapter-unified",
       "title": "Единый MemoryAdapter — статусы, explicit namespace, shutdown flush",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p4-memory",
       "priority": "P0",
@@ -4411,7 +4411,7 @@
         "reliability"
       ],
       "description": "Свести raw fetch и generic MCP path к одному MemoryAdapter, передавать project/session явно, убрать shell logging endpoint из lifecycle. Ввести наблюдаемое available/degraded/unavailable, structured errors и bounded shutdown flush; проверить изоляцию двух проектов и нескольких child sessions.",
-      "notes": "`nutausik-client.ts` возвращает пустую строку при transport failure и не превращает JSON-RPC/tool error в явный memory status. Session-end операции fire-and-forget; logging hook прописывает shell/python/curl command с literal endpoint, обходя общий client/env override.",
+      "notes": "Implemented 2026-10-06. New single transport `packages/opencode/src/nocowboy/memory-adapter.ts` (MemoryAdapter): every NUTAUSIK/PM call goes through one `request()` (raw client AND the PM MCP path), status is observable (`available|degraded|unavailable`), failures are structured MemoryError codes (transport/timeout/http/rpc/invalid-response/bad-request) instead of an empty string, and projectDir (required) + sessionID travel explicitly in every JSON-RPC argument. In-flight calls are tracked per `${projectDir}\\0${sessionID}` namespace and drained by a bounded `MemoryAdapter.flush()` wired into NocowboyCli.shutdown (2000ms). nutausik-client.ts is now a thin layer over the adapter (no raw fetch; `callTool` returns structured results; fetch* helpers take an explicit directory). The shell/python/curl PostToolUse logging hook (literal endpoint bypassing the client/env override) was removed from nutausik-auto-wire.ts. Tests: memory-adapter.test.ts (15 tests: status/errors/explicit-context/isolation/flush + source guards that the shell endpoint is gone and the client has no raw fetch) + nutausik-client.test.ts (2, probe caching preserved).",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4433,6 +4433,20 @@
           "check": "Bounded shutdown flush; два проекта и параллельные children не смешивают namespaces",
           "verify": "bun test test/nocowboy (memory isolation + flush)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/memory-adapter.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/nutausik-client.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/memory-adapter-unified.md"
         }
       ]
     },

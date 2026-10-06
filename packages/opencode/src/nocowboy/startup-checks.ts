@@ -29,9 +29,9 @@ export async function roadmapSpecCheck(projectRoot: string): Promise<void> {
     // created another [Spec] task for the same feature (12 duplicates each when
     // this was fixed). Ask NUTAUSIK what already exists and only add the missing
     // ones: task_list returns one line per task as "<slug> <status> <title>".
-    const listed = await callTool("nutausik_task_list", { status: "planning" }, projectRoot)
+    const listed = await callTool("nutausik_task_list", { status: "planning" }, { projectDir: projectRoot })
     const existing = new Set(
-      (listed ?? "")
+      (listed.ok ? listed.text : "")
         .split("\n")
         .map((line) => line.trim())
         .filter(Boolean)
@@ -48,8 +48,8 @@ export async function roadmapSpecCheck(projectRoot: string): Promise<void> {
           goal: `Write a spec for "${feature.title}"`,
           acceptance_criteria: `Spec exists at .nocowboy/specs/${feature.id}.md`,
         },
-        projectRoot,
-      ).catch(() => {})
+        { projectDir: projectRoot },
+      ).then((r) => { if (!r.ok) log.warn("spec task creation failed", { id: feature.id, code: r.error.code }) })
     }
   } catch {
     log.warn("roadmap spec check failed")
