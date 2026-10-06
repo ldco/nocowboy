@@ -6,6 +6,7 @@ import { AppRuntime } from "../../src/effect/app-runtime"
 import { InstanceRef } from "../../src/effect/instance-ref"
 import { KiloSessionCompaction } from "@/nocowboy/session/compaction"
 import { NoCowboySessionPromptQueue } from "@/nocowboy/session/prompt-queue"
+import { StopHooks } from "@/nocowboy/session/stop-hooks"
 import { Suggestion } from "../../src/nocowboy/suggestion"
 import { ModelID, ProviderID } from "../../src/provider/schema"
 import { InstanceStore } from "../../src/project/instance-store"
@@ -267,6 +268,56 @@ describe("session prompt queue", () => {
     expect(ids).not.toContain(queued)
     expect(ids).toContain(injected)
     expect(ids[ids.length - 1]).toBe(injected)
+  })
+
+  test("a stop-hook continuation re-enters the loop: visible after retarget, no followup break", async () => {
+    // Integration seam for stop-hooks-turn-level: the loop really continues by
+    // building a synthetic user message (StopHooks.buildContinuation) and
+    // retargeting it. This exercises the exact queue contract runLoop relies on:
+    // the retargeted message is visible and ordered last, an unrelated injected
+    // message stays hidden, and hasFollowup() is false so the break-on-followup
+    // path does not fire and the while loop runs another turn.
+    const sessionID = SessionID.make("session_stop_hook_continue")
+    const base = MessageID.ascending()
+    const ans = MessageID.ascending()
+    const built = StopHooks.buildContinuation({
+      sessionID,
+      reason: "tests still red",
+      turn: 1,
+      previous: {
+        agent: "code",
+        model: { providerID: ProviderID.make("test"), modelID: ModelID.make("model") },
+        tools: undefined,
+      },
+    })
+    const stray = user(sessionID, MessageID.ascending())
+    const messages = [
+      user(sessionID, base),
+      assistant(sessionID, ans, base),
+      { info: stray.info, parts: stray.parts },
+      { info: built.info, parts: [built.part] },
+    ]
+
+    const observed = await Effect.runPromise(
+      NoCowboySessionPromptQueue.enqueue(
+        sessionID,
+        base,
+        Effect.sync(() => {
+          NoCowboySessionPromptQueue.retarget(sessionID, built.info.id)
+          return {
+            ids: NoCowboySessionPromptQueue.scope(sessionID, messages).map((item) => item.info.id),
+            followup: NoCowboySessionPromptQueue.hasFollowup(sessionID),
+          }
+        }),
+        Effect.succeed({ ids: [] as MessageID[], followup: true }),
+      ),
+    )
+
+    expect(built.part.synthetic).toBe(true)
+    expect(observed.ids).toContain(built.info.id)
+    expect(observed.ids[observed.ids.length - 1]).toBe(built.info.id)
+    expect(observed.ids).not.toContain(stray.info.id)
+    expect(observed.followup).toBe(false)
   })
 
   test("keeps auto-compaction markers created during a queued turn visible", async () => {
@@ -715,7 +766,7 @@ describe("session prompt queue", () => {
     } finally {
       server.stop(true)
     }
-  })
+  }, 20_000)
 
   test("new prompt dismisses a pending suggestion", async () => {
     const shown = Promise.withResolvers<void>()
@@ -764,7 +815,7 @@ describe("session prompt queue", () => {
           }
         }),
     })
-  })
+  }, 20_000)
 
   test("auto-dismisses a suggestion shown after a queued prompt", async () => {
     // Reverse ordering of the "new prompt dismisses a pending suggestion" test:

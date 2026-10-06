@@ -352,6 +352,8 @@
   `verify:file docs/features/goal-loop-controller.md`
 - **DONE** Auto-Permission Classifier — трёхуровневая система авто-одобрения tool calls
   `verify:file docs/features/auto-permission-classifier.md`
+- **DONE** Turn-level Stop Hooks — блокировка завершения turn до проверки
+  `verify:file docs/features/stop-hooks-turn-level.md`
 - **DONE** Async Task Spawning — асинхронные под-агенты
   `verify:file docs/features/async-task-spawn.md`
 - **DONE** Task Dependency Chain — авто-запуск задач по зависимостям
@@ -538,7 +540,9 @@
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/provider.ts`
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/memory.ts`
   `verify:test packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts`
+  `verify:file docs/features/knowledge-graph-stub.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`
   `verify:cmd bun run scripts/backport-ledger.ts --check`
+  `verify:file docs/features/upstream-backport-ledger.md`

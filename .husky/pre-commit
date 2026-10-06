@@ -3,6 +3,15 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 
+# Git exports GIT_DIR/GIT_INDEX_FILE/GIT_WORK_TREE to hook processes. The
+# roadmap verifier below runs tests that create their own throwaway git repos;
+# if these variables leak, `git commit` inside a temp repo uses THIS repo's
+# index and dies with `invalid object ... for '.husky/commit-msg'`, blocking a
+# clean commit. Isolate nested git operations from the parent repo's env.
+# $ROOT is already resolved above, and every later git call runs from $ROOT, so
+# working-tree discovery still finds the correct repository.
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_OBJECT_DIRECTORY GIT_COMMON_DIR GIT_PREFIX
+
 # ── Pipeline integrity check ──
 # Перенесён в .husky/commit-msg: git не пишет COMMIT_EDITMSG до pre-commit,
 # поэтому при `commit -m` здесь читалось сообщение ПРОШЛОГО коммита и

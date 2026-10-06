@@ -2548,7 +2548,7 @@
     {
       "id": "stop-hooks-turn-level",
       "title": "Turn-level Stop Hooks — блокировка завершения turn до проверки",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "tags": [
@@ -2556,8 +2556,8 @@
         "hooks",
         "quality"
       ],
-      "description": "Расширение hooks system: Stop hook может заблокировать завершение turn (exit 0=pass, 1=continue, 2=block). Макс 8 блоков.",
-      "notes": "Unmarked 2026-09-24: the plugin `session.stop` hook and the stopHookContinues cap exist, but the turn is NOT actually blocked — the counters are only logged and never used to continue the turn. The continuation that keeps a run going ships under `autopilot-roadmap-runner` (goal.auto + session/prompt.ts synthetic injection).",
+      "description": "Расширение hooks system: Stop hook (плагинный `session.stop` + встроенная AC-проверка) может заблокировать завершение turn, вернув `{continue:true, reason}`. Turn реально продолжается синтетической инъекцией. Макс 8 последовательных продолжений.",
+      "notes": "Implemented 2026-10-06. `StopHooks.decide` (pure, capped at STOP_HOOK_MAX=8) replaces the log-only counter in SessionPrompt.runLoop; on a continue decision the loop injects a synthetic user message (`StopHooks.buildContinuation` via the shared `Autopilot.buildMessage`) so the turn really re-enters. The autopilot goal injection is suppressed for that turn to avoid a double continuation. Tests: test/nocowboy/stop-hooks.test.ts (8 tests). The continuation that keeps an unattended run going still ships under autopilot-roadmap-runner (goal.auto); stop hooks are the deterministic quality-gate channel on top of it.",
       "version": "v0.12.0",
       "verify": [
         {
@@ -2847,6 +2847,10 @@
         {
           "type": "test",
           "path": "packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/knowledge-graph-stub.md"
         }
       ],
       "acceptance_criteria": [
@@ -4483,6 +4487,10 @@
         {
           "type": "cmd",
           "command": "bun run scripts/backport-ledger.ts --check"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/upstream-backport-ledger.md"
         }
       ]
     },

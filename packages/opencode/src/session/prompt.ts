@@ -13,6 +13,7 @@ import { GoalService, isRestoredFromPreviousRun, restoredGoalNotice } from "@/no
 import { Autopilot, AUTO_CONTINUE_MAX } from "@/nocowboy/session/autopilot" // nocowboy_change - unattended autopilot continuation
 import { NoCowboySessionProcessor } from "@/nocowboy/session/processor"
 import { ACVerificationHook } from "@/nocowboy/task/ac-verification-hook"
+import { StopHooks, STOP_HOOK_MAX } from "@/nocowboy/session/stop-hooks" // nocowboy_change - real turn-level stop continuation
 import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { Suggestion } from "@/nocowboy/suggestion"
 import { Question } from "@/question"
@@ -2041,15 +2042,16 @@ export const layer = Layer.effect(
             sessionID,
             agent: handle.message.agent,
           })
-          if (acCheck.continue && stopHookContinues < 8) {
-            stopHookContinues++
-            yield* Effect.logInfo("AC verification requested continue", { reason: acCheck.reason })
-          } else if (stop.continue && stopHookContinues < 8) {
-            stopHookContinues++
-            yield* Effect.logInfo("session.stop hook requested continue", { reason: stop.reason })
-          } else {
-            stopHookContinues = 0
-          }
+          // Turn-level stop hooks: a plugin `session.stop` hook (or the built-in
+          // AC check) may block the turn from ending. `decide` is the pure gate
+          // that enforces the ≤8 consecutive-continuation cap.
+          const stopDecision = StopHooks.decide({
+            stop: { continue: stop.continue, reason: stop.reason },
+            ac: acCheck,
+            continues: stopHookContinues,
+            max: STOP_HOOK_MAX,
+          })
+          stopHookContinues = stopDecision.count
 
           if (structured !== undefined) {
             handle.message.structured = structured
@@ -2074,6 +2076,39 @@ export const layer = Layer.effect(
               closeReasons.set(sessionID, "error")
               return "break" as const
             }
+          }
+
+          // Real continuation for the turn-level stop hook. The hook requested
+          // another turn, so actually re-enter the loop by injecting a synthetic
+          // user message. Without this the counter above would only be logged
+          // and the turn would end anyway.
+          let stopHookContinued = false
+          if (stopDecision.continue && finished && !handle.message.error && result !== "stop") {
+            const continuation = StopHooks.buildContinuation({
+              sessionID,
+              reason: stopDecision.reason,
+              turn: stopDecision.count,
+              max: STOP_HOOK_MAX,
+              previous: {
+                agent: agent.name,
+                model: {
+                  providerID: model.providerID,
+                  modelID: model.id,
+                  variant: overrideAgent?.variant ?? lastUser.model.variant,
+                },
+                tools: lastUser.tools,
+              },
+            })
+            yield* sessions.updateMessage(continuation.info)
+            yield* sessions.updatePart(continuation.part)
+            // The queued synthetic message is hidden by scope() unless it is
+            // retargeted as an owned follow-up, so the next turn sees it.
+            NoCowboySessionPromptQueue.retarget(sessionID, continuation.info.id)
+            stopHookContinued = true
+            yield* Effect.logInfo("stop hook continued the turn", {
+              reason: stopDecision.reason,
+              turn: stopDecision.count,
+            })
           }
 
           // nocowboy_change - Goal judge + autopilot continuation. Evaluated once
@@ -2197,6 +2232,9 @@ export const layer = Layer.effect(
             // progress across many turns) stops the injection instead of burning
             // tokens forever.
             if (
+              // A stop hook already injected this turn's continuation; do not
+              // also inject the goal one, or the loop would start two turns.
+              !stopHookContinued &&
               stall.action !== "stop" &&
               // A roadmap goal needs no judge: its stop is deterministic, so it
               // must keep going even when the judge model cannot be resolved.

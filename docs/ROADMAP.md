@@ -61,12 +61,6 @@
   - Skill Framework Bridge (перезагрузка скиллов после adopt)
   - Benchmark validation (SearchQA, gbrain-evals, deterministic experiment)
   `verify:file docs/features/skillopt-integration.md`
-- ⬜ Turn-level Stop Hooks — блокировка завершения turn до проверки
-  > Unmarked 2026-09-24: the plugin `session.stop` hook and the stopHookContinues cap exist, but the turn is NOT actually blocked — the counters are only logged and never used to continue the turn. The continuation that keeps a run going ships under `autopilot-roadmap-runner` (goal.auto + session/prompt.ts synthetic injection).
-  - Использовать счётчик блокировок для реального продолжения turn
-  - Cap <= 8
-  - Интеграционный тест
-  `verify:file docs/features/stop-hooks-turn-level.md`
 - ⬜ Built-in AC Verification Stop Hook
   > Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === "goal", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.
   - Сделать hook достижимым для реальной роли

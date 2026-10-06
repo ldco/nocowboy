@@ -246,19 +246,16 @@ export namespace Autopilot {
   }
 
   /**
-   * Build the synthetic user message that restarts the loop. It copies the
-   * agent/model/tools of the previous user message so the next turn resolves
-   * the same way, and marks the text part `synthetic` so the UI can tell it
-   * apart from a real instruction.
+   * Build a synthetic user message from raw text. It copies the agent/model/
+   * tools of the previous user message so the next turn resolves the same way,
+   * and marks the text part `synthetic` so the UI can tell it apart from a real
+   * instruction. Shared by the autopilot continuation and the stop-hook
+   * continuation (same re-entry mechanism, different instruction text).
    */
-  export function buildContinuation(input: {
+  export function buildMessage(input: {
     sessionID: SessionID
-    goal: Goal
+    text: string
     previous: Pick<MessageV2.User, "agent" | "model" | "tools">
-    /** Roadmap items currently `in_progress` (see readRoadmap). */
-    inProgress?: string[]
-    /** Add the strong stall nudge (see stallAction). */
-    escalate?: boolean
     now?: number
   }): { info: MessageV2.User; part: MessageV2.TextPart } {
     const now = input.now ?? Date.now()
@@ -276,6 +273,30 @@ export namespace Autopilot {
       sessionID: input.sessionID,
       messageID: info.id,
       type: "text",
+      text: input.text,
+      synthetic: true,
+      time: { start: now, end: now },
+    }
+    return { info, part }
+  }
+
+  /**
+   * Build the synthetic user message that restarts the loop for a goal.
+   */
+  export function buildContinuation(input: {
+    sessionID: SessionID
+    goal: Goal
+    previous: Pick<MessageV2.User, "agent" | "model" | "tools">
+    /** Roadmap items currently `in_progress` (see readRoadmap). */
+    inProgress?: string[]
+    /** Add the strong stall nudge (see stallAction). */
+    escalate?: boolean
+    now?: number
+  }): { info: MessageV2.User; part: MessageV2.TextPart } {
+    return buildMessage({
+      sessionID: input.sessionID,
+      previous: input.previous,
+      now: input.now,
       text: continuationText({
         condition: input.goal.condition,
         turn: input.goal.react,
@@ -283,9 +304,6 @@ export namespace Autopilot {
         inProgress: input.inProgress,
         escalate: input.escalate,
       }),
-      synthetic: true,
-      time: { start: now, end: now },
-    }
-    return { info, part }
+    })
   }
 }
