@@ -125,12 +125,14 @@ function checkTest(args: string[]): string | null {
   const resolved = resolvePath(path);
   if (!existsSync(resolved)) return `test not found: ${resolved}`;
   const rel = relative(PACKAGES_OPENCODE, resolved);
-  const result = runCmd(`bun test "${rel}" 2>&1 | tail -10`, PACKAGES_OPENCODE);
+  // runSpawn (array args, no shell) — a `| tail` pipeline without pipefail would
+  // mask a failing test behind tail's exit 0 and report a false green.
+  const result = runSpawn("bun", ["test", rel], PACKAGES_OPENCODE);
   return result.ok ? null : `test failed:\n${result.out}`;
 }
 
 function checkTypecheck(): string | null {
-  const result = runCmd("bun run typecheck 2>&1 | tail -10", PACKAGES_OPENCODE);
+  const result = runSpawn("bun", ["run", "typecheck"], PACKAGES_OPENCODE);
   return result.ok ? null : result.out;
 }
 
