@@ -354,6 +354,8 @@
   `verify:file docs/features/auto-permission-classifier.md`
 - **DONE** Turn-level Stop Hooks — блокировка завершения turn до проверки
   `verify:file docs/features/stop-hooks-turn-level.md`
+- **DONE** Built-in AC Verification Stop Hook
+  `verify:file docs/features/ac-verification-hook.md`
 - **DONE** Async Task Spawning — асинхронные под-агенты
   `verify:file docs/features/async-task-spawn.md`
 - **DONE** Task Dependency Chain — авто-запуск задач по зависимостям

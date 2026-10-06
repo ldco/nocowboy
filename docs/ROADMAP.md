@@ -61,12 +61,6 @@
   - Skill Framework Bridge (перезагрузка скиллов после adopt)
   - Benchmark validation (SearchQA, gbrain-evals, deterministic experiment)
   `verify:file docs/features/skillopt-integration.md`
-- ⬜ Built-in AC Verification Stop Hook
-  > Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === "goal", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.
-  - Сделать hook достижимым для реальной роли
-  - Связать с AC активной задачи
-  - Тест блокировки завершения
-  `verify:file docs/features/ac-verification-hook.md`
 
 ---
 

@@ -2586,7 +2586,7 @@
     {
       "id": "ac-verification-hook",
       "title": "Built-in AC Verification Stop Hook",
-      "status": "in_progress",
+      "status": "done",
       "priority": "P1",
       "phase": "autonomous-loop-v0.12",
       "depends_on": [
@@ -2597,8 +2597,8 @@
         "quality",
         "ac"
       ],
-      "description": "После каждого turn: проверка AC текущей NUTAUSIK-задачи. Все AC пройдены → turn ends. Интеграция с verify system.",
-      "notes": "Unmarked 2026-09-24: ACVerificationHook is unreachable — it returns early unless agent === \"goal\", and no agent named `goal` is registered. The autopilot goal (goal.auto) now provides the continuation it was meant to drive. See `autopilot-roadmap-runner`.",
+      "description": "Встроенный AC-check в turn-level stop hook: если сессия под активным goal завершает turn, а в core TaskRegistry остались open/in_progress задачи, hook запрашивает продолжение. Провал блокирует завершение turn (через StopHooks.decide + синтетическую инъекцию).",
+      "notes": "Fixed 2026-10-06. The old guard `agent === 'goal'` was dead code — no agent is registered as \"goal\". The hook is now reachable for any real work agent while a session goal is active (GoalService.get), and skips internal turns (compaction/title/summary). It reads unfinished tasks from the core TaskRegistry and returns their id/status/summary. Wiring: SessionPrompt.runLoop feeds the output into StopHooks.decide, which injects a real continuation (stop-hooks-turn-level). Tests: test/nocowboy/ac-verification-hook.test.ts (5) incl. the evaluate→decide→buildContinuation chain that proves a failing check blocks the turn end. Data source caveat: the core TaskRegistry has no in-src producer yet (task tool consumes NUTAUSIK tasks); when it is empty the check is a no-op, which is the correct (nothing to verify) behavior.",
       "version": "v0.12.0",
       "verify": [
         {
