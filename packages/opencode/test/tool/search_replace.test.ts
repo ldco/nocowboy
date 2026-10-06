@@ -1,5 +1,6 @@
 import { describe, expect } from "bun:test"
 import path from "path"
+import iconv from "iconv-lite"
 import * as fs from "fs/promises"
 import { Cause, Effect, Exit, Layer } from "effect"
 import { SearchReplaceTool, parseSearchReplaceBlocks } from "../../src/tool/search_replace"
@@ -289,6 +290,151 @@ modified
 
         yield* execute({ blocks }, ctx)
         expect(yield* readText(filePath)).toBe("line1\nmodified\nline3\nline4\n")
+      }),
+    { git: true },
+  )
+})
+
+describe("tool.search_replace contract", () => {
+  it.instance(
+    "rejects an ambiguous (duplicate) SEARCH match and writes nothing",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "dupe.txt")
+        yield* writeText(filePath, "foo bar\nfoo baz\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+foo
+=======
+qux
+>>>>>>> REPLACE`
+
+        yield* expectFailure(execute({ blocks }, ctx), "multiple matches")
+        expect(yield* readText(filePath)).toBe("foo bar\nfoo baz\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "applies multiple blocks for the same file in order (each sees the previous result)",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "chain.txt")
+        yield* writeText(filePath, "alpha\n")
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+alpha
+=======
+beta
+>>>>>>> REPLACE
+${filePath}
+<<<<<<< SEARCH
+beta
+=======
+gamma
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+        expect(yield* readText(filePath)).toBe("gamma\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "round-trips a UTF-8 BOM and CRLF line endings",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "bom-crlf.txt")
+        const bom = Buffer.from([0xef, 0xbb, 0xbf])
+        yield* Effect.promise(() =>
+          fs.writeFile(filePath, Buffer.concat([bom, Buffer.from("line1\r\nline2\r\n", "utf-8")])),
+        )
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+line1
+line2
+=======
+LINE1
+LINE2
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+
+        const raw = yield* Effect.promise(() => fs.readFile(filePath))
+        expect(raw.subarray(0, 3).equals(bom)).toBe(true)
+        expect(raw.subarray(3).toString("utf-8")).toBe("LINE1\r\nLINE2\r\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "round-trips a legacy windows-1251 encoding",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const { ctx } = makeCtx()
+        const filePath = path.join(test.directory, "legacy.txt")
+        const original = "Привет, мир! Это тест кириллицы.\r\n"
+        yield* Effect.promise(() => fs.writeFile(filePath, iconv.encode(original, "windows-1251")))
+
+        const blocks = `${filePath}
+<<<<<<< SEARCH
+Привет
+=======
+Пока
+>>>>>>> REPLACE`
+
+        yield* execute({ blocks }, ctx)
+
+        const raw = yield* Effect.promise(() => fs.readFile(filePath))
+        expect(raw.toString("utf-8").startsWith("\uFEFF")).toBe(false)
+        expect(iconv.decode(raw, "windows-1251")).toBe("Пока, мир! Это тест кириллицы.\r\n")
+      }),
+    { git: true },
+  )
+
+  it.instance(
+    "aborts on a stale read without writing a half batch",
+    () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const fileA = path.join(test.directory, "a.txt")
+        const fileB = path.join(test.directory, "b.txt")
+        yield* writeText(fileA, "aaa\n")
+        yield* writeText(fileB, "bbb\n")
+
+        // The permission prompt is the window between read and write: mutate B
+        // there to simulate a concurrent change (stale read).
+        const ctx: ToolCtx = {
+          ...baseCtx,
+          ask: () => Effect.promise(() => fs.writeFile(fileB, "bbb-CHANGED\n", "utf-8")),
+        }
+
+        const blocks = `${fileA}
+<<<<<<< SEARCH
+aaa
+=======
+AAA
+>>>>>>> REPLACE
+${fileB}
+<<<<<<< SEARCH
+bbb
+=======
+BBB
+>>>>>>> REPLACE`
+
+        yield* expectFailure(execute({ blocks }, ctx), "stale read")
+        expect(yield* readText(fileA)).toBe("aaa\n")
+        expect(yield* readText(fileB)).toBe("bbb-CHANGED\n")
       }),
     { git: true },
   )

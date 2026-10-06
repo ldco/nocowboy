@@ -10,10 +10,11 @@ import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { File } from "../file"
-import { Snapshot } from "@/snapshot"
 import * as EncodedIO from "../nocowboy/tool/encoded-io"
+import * as Encoding from "../nocowboy/encoding"
 import * as Bom from "@/util/bom"
-import { trimDiff, buildFileDiff } from "./edit"
+import { EditPort } from "../nocowboy/tool/edit-port"
+import { trimDiff } from "./edit"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { filterDiagnostics } from "./diagnostics"
 import { ConfigValidation } from "../nocowboy/config-validation"
@@ -68,52 +69,28 @@ export function parseSearchReplaceBlocks(input: string): SearchReplaceBlock[] {
   return blocks
 }
 
-export interface FileEdit {
+export const Parameters = Schema.Struct({
+  blocks: Schema.String.annotate({
+    description:
+      "One or more Aider-style SEARCH/REPLACE blocks. Each block has a file path, <<<<<<< SEARCH, the exact code to find, =======, the replacement code, and >>>>>>> REPLACE. The SEARCH text must match exactly one location; multiple blocks for the same file apply in order.",
+  }),
+})
+
+interface PreparedEdit {
   filePath: string
+  oldContent: string
   newFullContent: string
   diff: string
   additions: number
   deletions: number
+  encoding: string
+  bom: boolean
 }
 
-function prepareFileEdit(
-  filePath: string,
-  block: SearchReplaceBlock,
-  contentOld: string,
-): FileEdit {
-  const ending = contentOld.includes("\r\n") ? "\r\n" : "\n"
-  const old = ending === "\r\n" ? block.search.replaceAll("\n", "\r\n") : block.search
-  const replacement = ending === "\r\n" ? block.replace.replaceAll("\n", "\r\n") : block.replace
-
-  const index = contentOld.indexOf(old)
-  if (index === -1) {
-    throw new Error(
-      `Could not find SEARCH block content in ${filePath}. The search text must match exactly, including whitespace and indentation.`,
-    )
-  }
-
-  const contentNew = contentOld.substring(0, index) + replacement + contentOld.substring(index + old.length)
-
-  const diff = trimDiff(
-    createTwoFilesPatch(filePath, filePath, contentOld, contentNew),
-  )
-
-  let additions = 0
-  let deletions = 0
-  for (const change of diffLines(contentOld, contentNew)) {
-    if (change.added) additions += change.count || 0
-    if (change.removed) deletions += change.count || 0
-  }
-
-  return { filePath, newFullContent: contentNew, diff, additions, deletions }
+/** One file's blocks, in the order they appeared in the call. */
+interface FileGroup {
+  blocks: Array<{ search: string; replace: string }>
 }
-
-export const Parameters = Schema.Struct({
-  blocks: Schema.String.annotate({
-    description:
-      "One or more Aider-style SEARCH/REPLACE blocks. Each block has a file path, <<<<<<< SEARCH, the exact code to find, =======, the replacement code, and >>>>>>> REPLACE.",
-  }),
-})
 
 export const SearchReplaceTool = Tool.define(
   "search_replace",
@@ -140,26 +117,31 @@ export const SearchReplaceTool = Tool.define(
 
       const instance = yield* InstanceState.context
 
-      const edits: Array<{
-        filePath: string
-        newFullContent: string
-        oldContent: string
-        diff: string
-        additions: number
-        deletions: number
-        encoding: string
-        bom: boolean
-        filediff: Snapshot.FileDiff
-      }> = []
-
-      let totalDiff = ""
-
+      // Group blocks by resolved file path, preserving first-seen order, so a
+      // file is read once and its blocks apply sequentially (batch contract).
+      const order: string[] = []
+      const groups = new Map<string, FileGroup>()
       for (const block of parsed) {
         const filePath = path.isAbsolute(block.filePath)
           ? block.filePath
           : path.join(instance.directory, block.filePath)
 
         yield* assertExternalDirectoryEffect(ctx, filePath)
+
+        let group = groups.get(filePath)
+        if (!group) {
+          group = { blocks: [] }
+          groups.set(filePath, group)
+          order.push(filePath)
+        }
+        group.blocks.push({ search: block.search, replace: block.replace })
+      }
+
+      const edits: PreparedEdit[] = []
+      let totalDiff = ""
+
+      for (const filePath of order) {
+        const group = groups.get(filePath)!
 
         const stats = yield* afs.stat(filePath).pipe(Effect.catch(() => Effect.succeed(undefined)))
         if (!stats || stats.type === "Directory") {
@@ -178,21 +160,47 @@ export const SearchReplaceTool = Tool.define(
           ),
         )
         const source = Bom.split(read.text)
-        const fileEdit = prepareFileEdit(filePath, block, source.text)
+
+        // The parser normalizes block line endings to LF; re-apply the file's
+        // own ending so exact matching works on CRLF files too.
+        const ending = source.text.includes("\r\n") ? "\r\n" : "\n"
+        const blocksForFile = group.blocks.map((b) => ({
+          search: ending === "\r\n" ? b.search.replaceAll("\n", "\r\n") : b.search,
+          replace: ending === "\r\n" ? b.replace.replaceAll("\n", "\r\n") : b.replace,
+        }))
+
+        let contentNew: string
+        try {
+          contentNew = EditPort.applyBlocks(source.text, blocksForFile, filePath).content
+        } catch (error) {
+          return yield* Effect.fail(
+            new Error(
+              `search_replace verification failed: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          )
+        }
+
+        const diff = trimDiff(createTwoFilesPatch(filePath, filePath, source.text, contentNew))
+
+        let additions = 0
+        let deletions = 0
+        for (const change of diffLines(source.text, contentNew)) {
+          if (change.added) additions += change.count || 0
+          if (change.removed) deletions += change.count || 0
+        }
 
         edits.push({
           filePath,
-          newFullContent: fileEdit.newFullContent,
           oldContent: source.text,
-          diff: fileEdit.diff,
-          additions: fileEdit.additions,
-          deletions: fileEdit.deletions,
+          newFullContent: contentNew,
+          diff,
+          additions,
+          deletions,
           encoding: read.encoding,
           bom: source.bom,
-          filediff: buildFileDiff(filePath, source.text, fileEdit.newFullContent),
         })
 
-        totalDiff += fileEdit.diff + "\n"
+        totalDiff += diff + "\n"
       }
 
       const files = edits.map((e) => ({
@@ -219,20 +227,36 @@ export const SearchReplaceTool = Tool.define(
         },
       })
 
-      for (const edit of edits) {
-        const next = Bom.split(edit.newFullContent)
-        const desiredBom = edit.bom || next.bom
-        const contentNew = next.text
+      // Commit the whole batch through the EditPort contract: stale-read guard
+      // for every file before the first write, then write with rollback so a
+      // mid-batch failure cannot leave a half-applied state.
+      const plans: EditPort.EditPlan[] = edits.map((e) => {
+        const next = Bom.split(e.newFullContent)
+        return {
+          filePath: e.filePath,
+          oldContent: e.oldContent,
+          newContent: next.text,
+          encoding: e.encoding,
+          bom: e.bom || next.bom,
+        }
+      })
 
-        yield* EncodedIO.write(edit.filePath, Bom.join(contentNew, desiredBom), edit.encoding)
+      const io: EditPort.BatchIO = {
+        readText: async (filePath) => Bom.split((await Encoding.read(filePath)).text).text,
+        writeText: async (filePath, text, encoding, bom) =>
+          Encoding.write(filePath, Bom.join(text, bom), encoding),
+      }
 
-        if (yield* format.file(edit.filePath)) {
-          yield* Bom.syncFile(afs, edit.filePath, desiredBom)
+      yield* Effect.promise(() => EditPort.commitBatch(plans, io))
+
+      for (const plan of plans) {
+        if (yield* format.file(plan.filePath)) {
+          yield* Bom.syncFile(afs, plan.filePath, plan.bom)
         }
 
-        yield* bus.publish(File.Event.Edited, { file: edit.filePath })
+        yield* bus.publish(File.Event.Edited, { file: plan.filePath })
         yield* bus.publish(FileWatcher.Event.Updated, {
-          file: edit.filePath,
+          file: plan.filePath,
           event: "change",
         })
       }

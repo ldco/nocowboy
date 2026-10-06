@@ -4163,7 +4163,7 @@
     {
       "id": "edit-port-batch-safety",
       "title": "EditPort — семантика match/batch/stale-read/partial-failure",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
@@ -4173,7 +4173,7 @@
         "data-loss"
       ],
       "description": "Явно определить контракт редактирования: поиск совпадений, объединение блоков, защита от устаревшего чтения, поведение частичного сбоя. Исправить search_replace (первое точное совпадение через indexOf; multi-block одного файла читает файл до фазы записи) и не считать batch атомарной транзакцией.",
-      "notes": "`tool/search_replace.ts:79` — текстовый SEARCH/REPLACE. Должен сохранить точное строковое совпадение, CRLF/BOM/кодировку, diff для permission, LSP/format и ConfigValidation.",
+      "notes": "Implemented 2026-10-06. EditPort contract (packages/opencode/src/nocowboy/tool/edit-port.ts): findMatch requires exactly one occurrence (duplicate -> duplicate-match error, not a silent first-match edit); applyBlocks applies a file's blocks sequentially against the evolving content; commitBatch validates every file against the bytes it was read from and aborts on a stale read before any write, and on a mid-batch write failure restores already-written files (no half state). search_replace.ts now groups blocks per file (reads once), uses EditPort for match/batch and commitBatch for the write phase, and preserves exact string match, CRLF/BOM/legacy encoding, the permission diff, LSP/format and ConfigValidation. The tool description documents the contract. Tests: test/tool/search_replace.test.ts (18, incl. duplicate/ordered-same-file/BOM+CRLF/1251/stale-read) and test/nocowboy/edit-port.test.ts (9, incl. rollback).",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4195,6 +4195,20 @@
           "check": "Round-trip UTF-8 BOM, CRLF и legacy encoding сохранены",
           "verify": "bun test test/nocowboy (encoding round-trip)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/search_replace.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/edit-port.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/edit-port-batch-safety.md"
         }
       ]
     },

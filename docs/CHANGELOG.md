@@ -547,6 +547,10 @@
   `verify:cmd bun run scripts/engine-manifest.ts --check`
   `verify:test packages/opencode/test/nocowboy/engine-manifest.test.ts`
   `verify:file docs/reference/engine-manifest.md`
+- **DONE** EditPort — семантика match/batch/stale-read/partial-failure
+  `verify:test packages/opencode/test/tool/search_replace.test.ts`
+  `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`
+  `verify:file docs/features/edit-port-batch-safety.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`

@@ -141,8 +141,6 @@
   > `session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.
 - ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix
   > ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.
-- ⬜ EditPort — семантика match/batch/stale-read/partial-failure
-  > `tool/search_replace.ts:79` — текстовый SEARCH/REPLACE. Должен сохранить точное строковое совпадение, CRLF/BOM/кодировку, diff для permission, LSP/format и ConfigValidation.
 - ⬜ Versioned facade + contract tests для experimental hooks
 - ⬜ @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
   > phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.
