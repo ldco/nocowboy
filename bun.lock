@@ -107,6 +107,13 @@
         "@typescript/native-preview": "catalog:",
       },
     },
+    "packages/nocowboy-engine-adapter": {
+      "name": "@nocowboy/engine-adapter",
+      "version": "0.0.0-stub",
+      "dependencies": {
+        "@nocowboy/runtime": "workspace:*",
+      },
+    },
     "packages/nocowboy-gateway": {
       "name": "@nocowboy/gateway",
       "version": "0.0.0-stub",
@@ -193,6 +200,7 @@
         "@lydell/node-pty": "catalog:",
         "@modelcontextprotocol/sdk": "1.29.0",
         "@morphllm/morphsdk": "0.2.166",
+        "@nocowboy/engine-adapter": "workspace:*",
         "@nocowboy/gateway": "workspace:*",
         "@nocowboy/indexing": "workspace:*",
         "@nocowboy/plugin": "workspace:*",
@@ -923,6 +931,8 @@
     "@neon-rs/load": ["@neon-rs/load@0.0.4", "", {}, "sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw=="],
 
     "@nocowboy/core": ["@nocowboy/core@workspace:packages/core"],
+
+    "@nocowboy/engine-adapter": ["@nocowboy/engine-adapter@workspace:packages/nocowboy-engine-adapter"],
 
     "@nocowboy/gateway": ["@nocowboy/gateway@workspace:packages/nocowboy-gateway"],
 

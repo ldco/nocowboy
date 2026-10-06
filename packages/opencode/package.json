@@ -98,6 +98,7 @@
     "@lydell/node-pty": "catalog:",
     "@modelcontextprotocol/sdk": "1.29.0",
     "@morphllm/morphsdk": "0.2.166",
+    "@nocowboy/engine-adapter": "workspace:*",
     "@nocowboy/gateway": "workspace:*",
     "@nocowboy/indexing": "workspace:*",
     "@nocowboy/plugin": "workspace:*",

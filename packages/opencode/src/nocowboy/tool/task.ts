@@ -10,7 +10,7 @@ import type { Agent } from "../../agent/agent"
 import type { Config } from "../../config/config"
 import { Provider } from "../../provider/provider"
 import { resolveReviewCascade } from "../review/cascade"
-import { AgentCatalog } from "@/nocowboy/agent/catalog"
+import { spawnPolicy } from "@/nocowboy/engine-adapter"
 import z from "zod"
 
 const log = Log.create({ service: "kilocode-task-model" })
@@ -34,14 +34,14 @@ const ModelState = z
 export namespace KiloTask {
   /**
    * Executor half of the spawn policy. The task tool *lists* subagent types via
-   * AgentCatalog.spawnable (tool/registry.ts); this *executor* rejects any role
+   * the engine adapter (tool/registry.ts); this *executor* rejects any role
    * the listing would not offer (primary roles such as `auto`, or a role marked
    * NEVER_SPAWNABLE). Nested subagent prevention is handled by nestedTask().
    */
   export function validate(info: Agent.Info, name: string) {
     // Executor enforcement of the same spawn policy the task tool lists from
-    // (AgentCatalog). A role the listing never offered must not be executable.
-    if (!AgentCatalog.isSpawnable(info)) {
+    // (via the engine adapter). A role the listing never offered must not be executable.
+    if (!spawnPolicy(() => [info]).canSpawn(info)) {
       throw new Error(
         `Agent type "${name}" cannot be spawned as a subagent (it is ${
           info.mode === "primary" ? "the primary dispatcher" : "not spawnable"

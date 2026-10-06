@@ -4139,7 +4139,7 @@
     {
       "id": "engine-adapter-package",
       "title": "@nocowboy/engine-adapter — привязка портов к Effect layers/InstanceState",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P0",
@@ -4163,7 +4163,26 @@
           "verify": "grep architecture check",
           "critical": true
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/engine-adapter/adapter.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/engine-adapter/binding.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/engine-adapter-package.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New workspace package packages/nocowboy-engine-adapter (@nocowboy/engine-adapter, dep @nocowboy/runtime) binds the runtime ports to engine primitives: `createEngineAdapter({listAgents, evaluatePolicy, session})` returns {spawn, agentCatalog, policy, session}; `createSpawnPolicy(listAgents)` is the single spawn-policy view. Engine-side single entry point: src/nocowboy/engine-adapter.ts (`engineAdapter(...)` + `spawnPolicy(...)`) built from Agent.Service + Permission.evaluate. Rewired so BOTH the task listing (tool/registry.ts describeTask) and the executor (KiloTask.validate) go through the adapter — no parallel callback paths; the concrete nocowboy/agent/catalog.ts is now a re-export of the runtime policy (no duplicate). Wiring: root workspaces + opencode dep @nocowboy/engine-adapter workspace:* + bun.lock + scripts/fix-symlinks.sh. Tests: test/nocowboy/engine-adapter/ (6) + tool/task.test.ts (vertical)."
     },
     {
       "id": "structured-handoff",

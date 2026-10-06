@@ -18,6 +18,7 @@ links="
 @nocowboy/telemetry:packages/nocowboy-telemetry
 @nocowboy/http-recorder:packages/http-recorder
 @nocowboy/runtime:packages/nocowboy-runtime
+@nocowboy/engine-adapter:packages/nocowboy-engine-adapter
 nocowboy-tui:packages/opencode
 "
 

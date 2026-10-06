@@ -51,7 +51,7 @@ import { Instruction } from "../session/instruction"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
-import { AgentCatalog } from "@/nocowboy/agent/catalog"
+import { engineAdapter } from "@/nocowboy/engine-adapter"
 import { Git } from "@/git"
 import { Skill } from "../skill"
 import { Permission } from "@/permission"
@@ -327,11 +327,12 @@ export const layer: Layer.Layer<
     })
 
     const describeTask = Effect.fn("ToolRegistry.describeTask")(function* (agent: Agent.Info) {
-      const items = AgentCatalog.spawnable(yield* agents.list())
+      const adapter = engineAdapter({ agents: yield* agents.list(), agent, session: { directory: "" } })
+      const items = adapter.spawn.spawnable()
       const filtered = items.filter(
         (item) => Permission.evaluate("task", item.name, agent.permission).action !== "deny",
       )
-      return AgentCatalog.describe(filtered)
+      return adapter.spawn.describe(filtered)
     })
 
     const tools: Interface["tools"] = Effect.fn("ToolRegistry.tools")(function* (input) {
