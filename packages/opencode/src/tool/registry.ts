@@ -51,6 +51,7 @@ import { Instruction } from "../session/instruction"
 import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
+import { AgentCatalog } from "@/nocowboy/agent/catalog"
 import { Git } from "@/git"
 import { Skill } from "../skill"
 import { Permission } from "@/permission"
@@ -326,18 +327,11 @@ export const layer: Layer.Layer<
     })
 
     const describeTask = Effect.fn("ToolRegistry.describeTask")(function* (agent: Agent.Info) {
-      const items = (yield* agents.list()).filter((item) => item.mode !== "primary")
+      const items = AgentCatalog.spawnable(yield* agents.list())
       const filtered = items.filter(
         (item) => Permission.evaluate("task", item.name, agent.permission).action !== "deny",
       )
-      const list = filtered.toSorted((a, b) => a.name.localeCompare(b.name))
-      const description = list
-        .map(
-          (item) =>
-            `- ${item.name}: ${item.description ?? "This subagent should only be called manually by the user."}`,
-        )
-        .join("\n")
-      return ["Available agent types and the tools they have access to:", description].join("\n")
+      return AgentCatalog.describe(filtered)
     })
 
     const tools: Interface["tools"] = Effect.fn("ToolRegistry.tools")(function* (input) {

@@ -1181,3 +1181,48 @@ describe("tool.task cost propagation", () => {
   )
 })
 // kilocode_change end
+
+describe("tool.task spawn policy (AgentCatalog)", () => {
+  it.instance(
+    "description omits the primary dispatcher (auto) and lists spawnable roles",
+    () =>
+      Effect.gen(function* () {
+        const agent = yield* Agent.Service
+        const build = yield* agent.get("build")
+        const registry = yield* ToolRegistry.Service
+        const description =
+          (yield* registry.tools({ ...ref, agent: build })).find((tool) => tool.id === TaskTool.id)?.description ?? ""
+        // auto is primary → never listed.
+        expect(description).not.toContain("- auto:")
+        // worker/reviewer are mode "all" → spawnable and listed.
+        expect(description).toContain("- worker:")
+        expect(description).toContain("- reviewer:")
+      }),
+  )
+
+  it.instance(
+    "execute rejects spawning a role the listing never offers",
+    () =>
+      Effect.gen(function* () {
+        const { chat, assistant } = yield* seed()
+        const tool = yield* TaskTool
+        const def = yield* tool.init()
+        const exit = yield* def
+          .execute(
+            { description: "route badly", prompt: "do it", subagent_type: "auto" },
+            {
+              sessionID: chat.id,
+              messageID: assistant.id,
+              agent: "build",
+              abort: new AbortController().signal,
+              extra: { promptOps: stubOps(), bypassAgentCheck: true },
+              messages: [],
+              metadata: () => Effect.void,
+              ask: () => Effect.void,
+            },
+          )
+          .pipe(Effect.exit)
+        expect(Exit.isFailure(exit)).toBe(true)
+      }),
+  )
+})

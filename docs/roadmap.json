@@ -4015,7 +4015,7 @@
     {
       "id": "agent-catalog-spawn-policy",
       "title": "AgentCatalog и единая политика spawnable agents",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P1",
@@ -4025,7 +4025,7 @@
         "permission"
       ],
       "description": "Выразить политику доступных ролей один раз и применять её и при описании tools (листинг для task), и при исполнении (executor validation). Зафиксировать capability-профили ролей: auto — dispatcher c собственными tools; nocowboy — companion, не закрытый chat-only профиль.",
-      "notes": "`tool/task.ts` фильтрует types по `primary`, но `KiloTask.validate()` ничего не запрещает: запрет spawn `auto` не является отдельной проверкой executor.",
+      "notes": "Implemented 2026-10-06. New single policy module `packages/opencode/src/nocowboy/agent/catalog.ts` (AgentCatalog): `isSpawnable` (not primary-only, never `auto`) + `spawnable` (name-sorted) + `describe`. Both sides now consume it: the task tool *listing* (tool/registry.ts describeTask) calls `AgentCatalog.spawnable(agents.list())` then applies the caller's task-permission deny; the task tool *executor* (KiloTask.validate in nocowboy/tool/task.ts) throws for a role `AgentCatalog.isSpawnable` rejects, closing the gap where `validate` was a no-op and `auto` could be spawned even though it was never listed. `nocowboy` stays spawnable (companion, mode all), `auto` never is. Tests: agent-catalog.test.ts (6, incl. a single-source test asserting a role is listed iff the executor would allow it) + tool/task.test.ts (2 new: description omits auto/lists worker+reviewer; execute rejects `auto`).",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4037,6 +4037,20 @@
           "check": "Попытка spawn запрещённой роли отклоняется executor'ом",
           "verify": "bun test test/tool/task (spawn policy)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/agent-catalog.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/agent-catalog-spawn-policy.md"
         }
       ]
     },

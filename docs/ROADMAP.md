@@ -127,8 +127,6 @@
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
 - ⬜ Ownership-манифест: owned / adapted / generated
-- ⬜ AgentCatalog и единая политика spawnable agents
-  > `tool/task.ts` фильтрует types по `primary`, но `KiloTask.validate()` ничего не запрещает: запрет spawn `auto` не является отдельной проверкой executor.
 - ⬜ Политика независимости модели reviewer
   > `resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.
 - ⬜ @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)

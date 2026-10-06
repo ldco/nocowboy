@@ -556,6 +556,10 @@
   `verify:test packages/opencode/test/nocowboy/agent-readonly.test.ts`
   `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`
   `verify:file docs/features/planner-reviewer-readonly-contract.md`
+- **DONE** AgentCatalog и единая политика spawnable agents
+  `verify:test packages/opencode/test/nocowboy/agent-catalog.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+  `verify:file docs/features/agent-catalog-spawn-policy.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`
