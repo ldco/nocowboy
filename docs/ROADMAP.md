@@ -98,3 +98,14 @@
   `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
 
 ---
+
+## v1.2.0 — Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts)
+
+- ⬜ Svelte 5 Runes conditional directive — запрет legacy Svelte 3/4 в Svelte/SvelteKit workspace
+  > Источник — директива CONDITIONAL DIRECTIVE: SVELTE & SVELTEKIT ENVIRONMENT (2026-10-07). Полный текст — в .nocowboy/specs/svelte5-runes-enforcement.md. Триггер: svelte.config.js / deps svelte|@sveltejs/kit / правки .svelte,+page.svelte,+layout.svelte,+server.ts. Реализация: conditional instruction injection (config-injector/system-prompt) + правилом .nocowboy/rules/svelte5.md; puppetmaster knowledge.ts уже несёт SVELTE 5 RUNES API для PM v3.
+  `verify:file docs/features/svelte5-runes-enforcement.md`
+- ⬜ PMSHOPS архитектурный аудит — доменная изоляция, framework-agnostic зависимости, строгие границы (Drizzle↔zod)
+  > План: STEP 1 scan+violation report (.svelte с leak-логикой, fragile wrappers, Drizzle/zod coverage); STEP 2 extract в src/lib/domain/ (cart.ts, shipping.ts, pricing.ts, payments.ts) + zod-парсеры; STEP 3 fitness-функции в tests/architecture/domain-boundaries.test.ts; STEP 4 check/test/lint. Sanity-гейты перед коммитом: (a) доменную функцию можно скопировать в другой фреймворк/CLI без правок = YES; (b) все внешние границы под schema-валидаторами = YES; (c) .svelte свободны от бизнес-формул = YES. Полный текст — .nocowboy/specs/pmshops-architecture-audit.md. PM-контекст: knowledge.ts (PM v3, SvelteKit+Tailwind v4) + rules 1-10.
+  `verify:file docs/features/pmshops-architecture-audit.md`
+
+---

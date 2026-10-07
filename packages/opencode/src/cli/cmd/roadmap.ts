@@ -90,12 +90,14 @@ function resolvePath(ref: string): string {
   return join(PROJECT_ROOT, ref)
 }
 
-function runCmd(cmd: string, cwd?: string): { ok: boolean; out: string } {
+function runCmd(cmd: string, cwd?: string, timeoutMs = 120_000): { ok: boolean; out: string } {
   try {
-    const out = execSync(cmd, { cwd: cwd ?? PROJECT_ROOT, encoding: "utf-8", stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 })
+    const out = execSync(cmd, { cwd: cwd ?? PROJECT_ROOT, encoding: "utf-8", stdio: ["ignore", "pipe", "pipe"], timeout: timeoutMs })
     return { ok: true, out: out.trim() }
   } catch (e: any) {
-    return { ok: false, out: e.stderr?.trim() ?? e.message ?? String(e) }
+    // `??` must not be used on stderr: an aborted execSync reports an empty
+    // string (not null), so `??` would keep "" and silently swallow the error.
+    return { ok: false, out: e.stderr?.trim() || e.message || String(e) }
   }
 }
 
@@ -378,7 +380,10 @@ function verifyRoadmap(): number {
   // generateDocs: one format, one implementation.
   const repoVerifier = join(PROJECT_ROOT, "scripts", "verify-roadmap.ts")
   if (existsSync(repoVerifier)) {
-    const result = runCmd(`bun run "${repoVerifier}"`)
+    // The verifier runs the whole test suite (minutes), so give it headroom:
+    // the default 2-minute runCmd timeout aborts a GREEN roadmap and the
+    // aborted execSync then yields a silent false exit 1.
+    const result = runCmd(`bun run "${repoVerifier}"`, PROJECT_ROOT, 900_000)
     if (result.out) process.stdout.write(result.out + EOL)
     return result.ok ? 0 : 1
   }

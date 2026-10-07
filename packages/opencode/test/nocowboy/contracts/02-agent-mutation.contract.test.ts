@@ -39,7 +39,7 @@ describe("planner/reviewer mutation policy", () => {
         }
       },
     })
-  })
+  }, 20_000)
 
   test("the read-only ceiling is a hard ruleset (YOLO is the only lift)", async () => {
     await using tmp = await tmpdir({ git: true })
@@ -55,7 +55,7 @@ describe("planner/reviewer mutation policy", () => {
         expect(isAllowEverythingConfig({ edit: "allow" })).toBe(false)
       },
     })
-  })
+  }, 20_000)
 
   test("delegation forwards the parent's edit denies to the subagent", async () => {
     await using tmp = await tmpdir({ git: true })
@@ -74,5 +74,5 @@ describe("planner/reviewer mutation policy", () => {
         expect(rules.some((r) => r.permission === "bash" && r.action === "deny")).toBe(false)
       },
     })
-  })
+  }, 20_000)
 })

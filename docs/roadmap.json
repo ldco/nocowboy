@@ -157,6 +157,11 @@
       "tag": "v1.1.0",
       "date": "2026-10",
       "description": "Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)"
+    },
+    {
+      "tag": "v1.2.0",
+      "date": "2026-10",
+      "description": "Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts)"
     }
   ],
   "features": [
@@ -5280,6 +5285,107 @@
         {
           "type": "file",
           "path": "docs/features/knowledge-graph-llm-summary.md"
+        }
+      ]
+    },
+    {
+      "id": "svelte5-runes-enforcement",
+      "title": "Svelte 5 Runes conditional directive — запрет legacy Svelte 3/4 в Svelte/SvelteKit workspace",
+      "status": "planned",
+      "version": "v1.2.0",
+      "phase": "frontend",
+      "priority": "P2",
+      "tags": [
+        "harness",
+        "frontend",
+        "svelte",
+        "sveltekit",
+        "rules",
+        "convention"
+      ],
+      "description": "Когда рабочее пространство содержит svelte.config.js, зависимости svelte или @sveltejs/kit, либо идёт генерация/правка .svelte / +page.svelte / +layout.svelte / +server.ts — harness обязан инжектить conditional directive, требующую Svelte 5 Runes ($props, $state, $derived, $derived.by, $effect, $bindable, snippets, native events) и запрещающую legacy-синтаксис (export let, $:, <slot>, on:, createEventDispatcher, Svelte stores для локальной реактивности).",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Директива инжектится условно — только при Svelte/SvelteKit-триггере, а не в каждый промпт",
+          "verify": "bun test test/nocowboy (svelte conditional rule)",
+          "critical": true
+        },
+        {
+          "check": "Legacy-синтаксис запрещён явно: export let, $:, <slot>, on:, createEventDispatcher, writable для локальной реактивности",
+          "verify": "grep ruleset: все запреты присутствуют",
+          "critical": true
+        },
+        {
+          "check": "SvelteKit-архитектура: типизированные load через ./$types, use:enhance, data через $props()",
+          "verify": "bun test test/nocowboy (sveltekit rule)",
+          "critical": false
+        }
+      ],
+      "notes": "Источник — директива CONDITIONAL DIRECTIVE: SVELTE & SVELTEKIT ENVIRONMENT (2026-10-07). Полный текст — в .nocowboy/specs/svelte5-runes-enforcement.md. Триггер: svelte.config.js / deps svelte|@sveltejs/kit / правки .svelte,+page.svelte,+layout.svelte,+server.ts. Реализация: conditional instruction injection (config-injector/system-prompt) + правилом .nocowboy/rules/svelte5.md; puppetmaster knowledge.ts уже несёт SVELTE 5 RUNES API для PM v3.",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/svelte5-runes-enforcement.md"
+        }
+      ]
+    },
+    {
+      "id": "pmshops-architecture-audit",
+      "title": "PMSHOPS архитектурный аудит — доменная изоляция, framework-agnostic зависимости, строгие границы (Drizzle↔zod)",
+      "status": "planned",
+      "version": "v1.2.0",
+      "phase": "frontend",
+      "priority": "P1",
+      "tags": [
+        "frontend",
+        "architecture",
+        "sveltekit",
+        "domain",
+        "drizzle",
+        "zod",
+        "fitness-tests",
+        "audit"
+      ],
+      "description": "Аудит PMSHOPS (SvelteKit + Drizzle) на три незыблемых инварианта: (1) Pure Domain Isolation — ноль бизнес/расчётной логики в .svelte, вся логика (корзина, доставка, CDEK, YooKassa, скидки) в чистых framework-agnostic TS-модулях src/lib/domain/*; (2) Framework-Agnostic Dependencies — никаких svelte-*/@sveltejs/* обёрток для не-UI задач (даты, валюты, числа, валидация), только Intl/date-fns/zod; (3) Strict Boundary Contracts — все таблицы Drizzle и API-payloads валидируются/инферятся через zod/drizzle-zod, нет raw request.json()/formData() без parse. Плюс fitness-функции и запрет утечки сырых DB-сущностей с секретами в клиентские ответы.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Pure Domain Isolation: .svelte не содержит расчётных формул/state-machine; логика в чистых TS-модулях src/lib/domain/* без импортов svelte/$state/$props/$app/*",
+          "verify": "fitness-тест domain purity: src/lib/domain/**/*.ts без svelte-импортов",
+          "critical": true
+        },
+        {
+          "check": "Framework-Agnostic Dependencies: нет svelte-*/@sveltejs/* обёрток для не-UI (даты/валюты/числа/валидация); используются Intl/zod/date-fns",
+          "verify": "аудит package.json + grep импортов запрещённых обёрток в .svelte",
+          "critical": true
+        },
+        {
+          "check": "Strict Boundary Contracts: у каждой Drizzle-таблицы/payload есть zod-схема (drizzle-zod createInsertSchema/createSelectSchema или явная); все +server.ts / form actions парсят input через schema.parse/safeParse",
+          "verify": "grep raw request.json()/formData() без parse = 0; покрытие схем",
+          "critical": true
+        },
+        {
+          "check": "Fitness-тесты: tests/architecture/domain-boundaries.test.ts — domain purity, component purity (нет импортов DB/ORM/секретов/запрещённых обёрток), покрытие unit-тестами критичных доменных функций (нули, отрицательные количества, границы)",
+          "verify": "bun test tests/architecture/",
+          "critical": true
+        },
+        {
+          "check": "DB entity leakage: таблицы маппятся в типизированные DTO/доменные сущности; сырые DB-сущности с секретами не уходят в клиентские ответы",
+          "verify": "аудит ответов API/load на утечку внутренних полей",
+          "critical": false
+        },
+        {
+          "check": "Verification: svelte-check/check + тесты (unit + architecture) + lint проходят с нулём ошибок и предупреждений",
+          "verify": "npm run check && тесты && lint",
+          "critical": true
+        }
+      ],
+      "notes": "План: STEP 1 scan+violation report (.svelte с leak-логикой, fragile wrappers, Drizzle/zod coverage); STEP 2 extract в src/lib/domain/ (cart.ts, shipping.ts, pricing.ts, payments.ts) + zod-парсеры; STEP 3 fitness-функции в tests/architecture/domain-boundaries.test.ts; STEP 4 check/test/lint. Sanity-гейты перед коммитом: (a) доменную функцию можно скопировать в другой фреймворк/CLI без правок = YES; (b) все внешние границы под schema-валидаторами = YES; (c) .svelte свободны от бизнес-формул = YES. Полный текст — .nocowboy/specs/pmshops-architecture-audit.md. PM-контекст: knowledge.ts (PM v3, SvelteKit+Tailwind v4) + rules 1-10.",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/pmshops-architecture-audit.md"
         }
       ]
     }
