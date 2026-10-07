@@ -35,6 +35,16 @@ if [ -f "$ROOT/scripts/quality-ratchet.ts" ] && command -v bun &>/dev/null; then
   bun run "$ROOT/scripts/quality-ratchet.ts" || exit 1
 fi
 
+# ── Ownership manifest gate ──
+# Every staged path must have an ownership class (owned/adapted/generated), so a
+# new shared-core file cannot land unclassified. Also fails when the manifest
+# drifts from its defining module.
+if [ -f "$ROOT/scripts/ownership-manifest.ts" ] && command -v bun &>/dev/null; then
+  cd "$ROOT"
+  bun run "$ROOT/scripts/ownership-manifest.ts" --check || exit 1
+  bun run "$ROOT/scripts/ownership-manifest.ts" --check-staged || exit 1
+fi
+
 # ── Roadmap verification ──
 # Priority: repo-local scripts (the format this repo's docs use) → dev source → global
 

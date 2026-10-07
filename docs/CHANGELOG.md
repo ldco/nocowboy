@@ -552,6 +552,11 @@
   `verify:test script/upstream/utils/normalize.test.ts`
   `verify:cmd bun run script/upstream/compare.ts --profile nocowboy --report`
   `verify:file docs/features/fork-merge-profile.md`
+- **DONE** Ownership-манифест: owned / adapted / generated
+  `verify:cmd bun run scripts/ownership-manifest.ts --check`
+  `verify:test packages/opencode/test/nocowboy/ownership-manifest.test.ts`
+  `verify:file ownership-manifest.json`
+  `verify:file docs/reference/ownership-manifest.md`
 - **DONE** Контракт read-only planner/reviewer — реальное ограничение, а не декларация
   `verify:test packages/opencode/test/nocowboy/agent-readonly.test.ts`
   `verify:test packages/opencode/test/nocowboy/server/permission-allow-everything.test.ts`

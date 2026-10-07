@@ -3957,7 +3957,7 @@
     {
       "id": "file-ownership-manifest",
       "title": "Ownership-манифест: owned / adapted / generated",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-baseline",
       "priority": "P1",
@@ -3985,7 +3985,26 @@
           "verify": "check script runs in pre-commit",
           "critical": true
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "cmd",
+          "command": "bun run scripts/ownership-manifest.ts --check"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/ownership-manifest.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "ownership-manifest.json"
+        },
+        {
+          "type": "file",
+          "path": "docs/reference/ownership-manifest.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. `ownership-manifest.json` (root) is the serialization of the pure classifier in packages/opencode/src/nocowboy/ownership/manifest.ts. Classes: generated (docs/ROADMAP.md|CHANGELOG.md|BACKLOG.md, docs/features/**, engine-manifest.json, ownership-manifest.json), owned (src/nocowboy/**, kilocode/**, nocowboy test dirs, packages/nocowboy-*/**, scripts/**, .nocowboy/**, docs/**), adapted (the broad `packages/**` fork surface + repo-root/tooling files). Priority generated > owned > adapted; anything else is unclassified. `callSites` lists shared-core call sites (session/prompt.ts, session/processor.ts, session/system.ts, tool/task.ts, tool/registry.ts, permission/index.ts, agent/agent.ts) and the validator requires each to classify as adapted — ownership is NOT derived only from src/nocowboy. scripts/ownership-manifest.ts: default writes, `--check` verifies sync/validity, `--check-staged` is the gate. The gate runs in .husky/pre-commit, so a new shared-core file cannot land unclassified. Tests: test/nocowboy/ownership-manifest.test.ts (12)."
     },
     {
       "id": "planner-reviewer-readonly-contract",
