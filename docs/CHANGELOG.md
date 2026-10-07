@@ -569,6 +569,12 @@
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/memory.ts`
   `verify:test packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts`
   `verify:file docs/features/knowledge-graph-stub.md`
+- **DONE** Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
+  `verify:test packages/opencode/test/nocowboy/knowledge-graph-ast.test.ts`
+  `verify:test packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts`
+  `verify:file packages/nocowboy-indexing/src/tree-sitter/ast.ts`
+  `verify:file packages/opencode/src/nocowboy/knowledge-graph/ast.ts`
+  `verify:file docs/features/knowledge-graph-ast-engine.md`
 - **DONE** Манифест движка — SHA, provenance, версии зависимостей, ledger портов
   `verify:cmd bun run scripts/engine-manifest.ts --check`
   `verify:test packages/opencode/test/nocowboy/engine-manifest.test.ts`

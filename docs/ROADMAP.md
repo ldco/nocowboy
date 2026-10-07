@@ -99,8 +99,6 @@
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
 
-- ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
-  > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
 - ⬜ Versioned facade + contract tests для experimental hooks
 - ⬜ @nocowboy/ui — виджеты через slots + facade view models
   > Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.
@@ -110,5 +108,7 @@
   > Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.
 - ⬜ Backport: subagent depth limit + resume diagnostics
 - ⬜ Backport: терпимость provider config к malformed model entry
+- ⬜ LLM-сводка архитектуры по AST-графу
+  > Вынесено из knowledge-graph-ast-engine (2026-10-07): в описании была LLM-сводка, но AC её не требовали. Отслеживается отдельно, статус ast-engine не обещает её.
 
 ---

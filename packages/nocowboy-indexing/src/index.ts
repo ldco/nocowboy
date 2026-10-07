@@ -11,3 +11,7 @@ export {
 
 export type { IndexingConfig as IndexingConfigInfo } from "./config.js"
 export type { IndexingStatus as IndexingStatusInfo, IndexingStatusState as IndexingStatusStateInfo } from "./status.js"
+
+// Structured AST extraction (knowledge-graph engine): definitions + call edges.
+export { parseDefinitionsForFile, parseCallEdgesForFile, MODULE_SCOPE } from "./tree-sitter/ast.js"
+export type { AstDefinition, AstCallEdge } from "./tree-sitter/ast.js"

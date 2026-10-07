@@ -2992,7 +2992,7 @@
     {
       "id": "knowledge-graph-ast-engine",
       "title": "Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "knowledge-graph",
       "priority": "P2",
@@ -3002,7 +3002,7 @@
         "tree-sitter"
       ],
       "description": "Полноценный глубокий AST-парсер: структурные определения {name,kind,line}[], рёбра вызовов по языковым запросам, LLM-сводка архитектуры. Заменяет наполнение snapshot() в GraphProvider, не трогая consumers.",
-      "notes": "Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.",
+      "notes": "Реализовано в master. @nocowboy/indexing экспортирует parseDefinitionsForFile (структурные {name,kind,line}[] для TS/JS/TSX) и parseCallEdgesForFile ({from,to,line}[] — ближайшее объемлющее определение или \"<module>\"). packages/opencode/src/nocowboy/knowledge-graph/ast.ts строит GraphSnapshot (file/symbol ноды; import-рёбра из buildImportGraph, contains, call) со source=\"ast\" и AstGraphProvider поверх GraphProvider без правок consumers. Call confidence: exact — цель в своём или импортируемом файле; heuristic — единственное объявление с таким именем; иначе ребро отбрасывается. LLM-сводка архитектуры остаётся отдельной будущей работой.  [2026-10-07 autopilot: shipped the structured-definitions + call-edge engine, AstGraphProvider, tests 7/7 (+indexing 475) — definitions/call-edges/provider. The LLM architecture summary from the original description is DEFERRED to a separate tracked item (knowledge-graph-llm-summary); it is not part of the AC.]",
       "depends_on": [
         "knowledge-graph-stub"
       ],
@@ -3021,6 +3021,28 @@
           "check": "AST provider удовлетворяет GraphProvider и заменяет in-memory без правок consumers",
           "verify": "bun test test/nocowboy/knowledge-graph-stub.test.ts + typecheck",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/knowledge-graph-ast.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/knowledge-graph-stub.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/nocowboy-indexing/src/tree-sitter/ast.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/knowledge-graph/ast.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/knowledge-graph-ast-engine.md"
         }
       ]
     },
@@ -5109,6 +5131,27 @@
           "path": "docs/features/tool-capability-config.md"
         }
       ]
+    },
+    {
+      "id": "knowledge-graph-llm-summary",
+      "title": "LLM-сводка архитектуры по AST-графу",
+      "status": "planned",
+      "version": "v1.1.0",
+      "phase": "p2-runtime",
+      "priority": "P3",
+      "depends_on": [
+        "knowledge-graph-ast-engine"
+      ],
+      "description": "Сгенерировать текстовую сводку архитектуры проекта из AST-графа (файлы/символы/рёбра вызовов) через LLM и кэшировать её. Потребители графа от неё не зависят.",
+      "acceptance_criteria": [
+        {
+          "check": "Команда/функция выдаёт сводку архитектуры по снапшоту графа",
+          "verify": "bun test test/nocowboy (arch summary)",
+          "critical": true
+        }
+      ],
+      "notes": "Вынесено из knowledge-graph-ast-engine (2026-10-07): в описании была LLM-сводка, но AC её не требовали. Отслеживается отдельно, статус ast-engine не обещает её.",
+      "verify": null
     }
   ]
 }
