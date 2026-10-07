@@ -3044,7 +3044,7 @@
     {
       "id": "commitment-boundary-review",
       "title": "Commitment-Boundary Review — обязательное ревью перед deliverable",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -3070,7 +3070,18 @@
         "Обязательный reviewer-gate перед deliverable",
         "Ship/fix-first/rethink отчёт",
         "Тест обязательности"
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/commitment-review.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/commitment-boundary-review.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New pure module packages/opencode/src/nocowboy/review/commitment.ts: COMMITMENT_PROMPT (fresh reviewer reads the diff cold), `parseCommitmentVerdict` (explicit `VERDICT: ship|fix-first|rethink` line, or the first bare verdict; else undefined), `checkCommitmentGate({report, reviewer, author, allowSameModel})` — blocks closing a deliverable without a verdict, and blocks when the reviewer model equals the author unless explicitly allowed, and `canCloseDeliverable` (only `ship` closes). `/commitment-review` command added. Tests: test/nocowboy/commitment-review.test.ts (9). Reuses the review independence policy (different model from the author)."
     },
     {
       "id": "spec-contract-delegation",
