@@ -631,6 +631,11 @@
   `verify:test packages/opencode/test/nocowboy/tui-language.test.ts`
   `verify:file packages/opencode/src/nocowboy/ui/language.ts`
   `verify:file docs/features/nocowboy-i18n-package.md`
+- **DONE** @nocowboy/ui — виджеты через slots + facade view models
+  `verify:test packages/opencode/test/nocowboy/plugin-view-models.test.ts`
+  `verify:file packages/opencode/src/nocowboy/plugin-view-models.ts`
+  `verify:file packages/plugin/src/tui.ts`
+  `verify:file docs/features/nocowboy-ui-package.md`
 - **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
   `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
   `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`

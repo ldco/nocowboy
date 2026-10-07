@@ -1,5 +1,6 @@
 import type { TuiDialogSelectOption, TuiPluginApi, TuiRouteDefinition, TuiSlotProps } from "@nocowboy/plugin/tui"
 import type { useEvent } from "@tui/context/event"
+import type { useLocal } from "@tui/context/local"
 import type { useRoute } from "@tui/context/route"
 import type { useSDK } from "@tui/context/sdk"
 import type { useSync } from "@tui/context/sync"
@@ -18,6 +19,8 @@ import type { useToast } from "../ui/toast"
 import { InstallationVersion } from "@nocowboy/core/installation/version"
 import * as Keymap from "../keymap"
 import { createCommandShim } from "./command-shim"
+import { createTuiViewModels } from "@/nocowboy/plugin-view-models" // nocowboy_change — façade view models
+import { memoryStatus } from "@/nocowboy/nutausik-client" // nocowboy_change — memory transport health
 
 type RouteEntry = {
   key: symbol
@@ -37,6 +40,7 @@ type Input = {
   event: ReturnType<typeof useEvent>
   sdk: ReturnType<typeof useSDK>
   sync: ReturnType<typeof useSync>
+  local: ReturnType<typeof useLocal> // nocowboy_change — façade view models
   theme: ReturnType<typeof useTheme>
   toast: ReturnType<typeof useToast>
   renderer: TuiPluginApi["renderer"]
@@ -330,6 +334,16 @@ export function createTuiApi(input: Input): TuiPluginApi {
       },
     },
     state: stateApi(input.sync),
+    // nocowboy_change — façade view models so widgets avoid internal contexts
+    viewModels: createTuiViewModels({
+      messages: (sessionID) => input.sync.data.message[sessionID] ?? [],
+      model: () => input.local.model.current(),
+      agent: () => input.local.agent.current(),
+      vcsBranch: () => input.sync.data.vcs?.branch,
+      terminalBench: (providerID, modelID) =>
+        input.sync.data.provider.find((p) => p.id === providerID)?.models[modelID]?.terminalBench,
+      memoryStatus: () => memoryStatus(),
+    }),
     get client() {
       return input.sdk.client
     },

@@ -4655,7 +4655,7 @@
     {
       "id": "nocowboy-ui-package",
       "title": "@nocowboy/ui — виджеты через slots + facade view models",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p3-ui",
       "priority": "P2",
@@ -4664,7 +4664,7 @@
         "architecture"
       ],
       "description": "TUI-виджеты через slots; facade предоставляет view models для agent/model/usage/git/memory. Убрать imports внутренних useLocal/getUsage.",
-      "notes": "Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.",
+      "notes": "Facade view models: @nocowboy/plugin/tui gains TuiViewModels + TuiPluginApi.viewModels (usage/model/agent/git/memory); packages/opencode/src/nocowboy/plugin-view-models.ts createTuiViewModels(deps) builds them from injected sources (unit-testable without a renderer). Wired in cli/cmd/tui/plugin/api.tsx (createTuiApi.builds viewModels from sync/local/memoryStatus), app.tsx (passes local), plugin/runtime.ts (per-plugin api.viewModels). sidebar-usage.tsx now reads api.viewModels.usage — internal useLocal/getUsage/formatCount/fmtScore/fmtAttemptCost imports removed.",
       "depends_on": [
         "nocowboy-i18n-package"
       ],
@@ -4678,6 +4678,24 @@
           "check": "Facade отдаёт agent/model/usage/git/memory view models",
           "verify": "grep view-model contracts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/plugin-view-models.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/plugin-view-models.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/plugin/src/tui.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nocowboy-ui-package.md"
         }
       ]
     },

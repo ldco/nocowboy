@@ -322,6 +322,13 @@ export function createTuiPluginApi(opts: Opts = {}): HostPluginApi {
       lsp: opts.state?.lsp ?? (() => []),
       mcp: opts.state?.mcp ?? (() => []),
     },
+    viewModels: {
+      usage: () => ({ input: "0", output: "0", cached: "0" }),
+      model: () => undefined,
+      agent: () => undefined,
+      git: () => undefined,
+      memory: () => ({ status: "unavailable" }),
+    },
     theme: {
       get current() {
         return opts.theme?.current ?? themeCurrent()

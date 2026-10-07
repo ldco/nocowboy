@@ -321,6 +321,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     event,
     sdk,
     sync,
+    local,
     theme: themeState,
     toast,
     renderer,

@@ -620,6 +620,7 @@ function pluginApi(runtime: RuntimeState, plugin: PluginEntry, scope: PluginScop
     tuiConfig: api.tuiConfig,
     kv: api.kv,
     state: api.state,
+    viewModels: api.viewModels, // nocowboy_change — façade view models
     theme,
     get client() {
       return api.client

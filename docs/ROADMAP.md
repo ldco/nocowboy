@@ -99,8 +99,6 @@
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
 
-- ⬜ @nocowboy/ui — виджеты через slots + facade view models
-  > Готовая основа — `@nocowboy/plugin/tui` и `slots.register`; но `sidebar-usage` импортирует внутренние `useLocal` и `getUsage`, slots пока не дают полной автономии.
 - ⬜ InputPort/UI facade — контракт mouse/focus/selection
   > Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.
 - ⬜ Git/Balance — асинхронные сервисы, unknown ≠ 0
