@@ -4807,7 +4807,7 @@
     {
       "id": "tool-capability-config",
       "title": "Capability-конфиг выбора инструментов вместо проверки имени модели",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "backport",
       "priority": "P1",
@@ -4816,7 +4816,7 @@
         "architecture"
       ],
       "description": "Заменить проверку имени модели (apply_patch для части gpt-* с исключением edit) capability-конфигурацией. Нет единственной обязательной методики редактирования — поведение зависит от модели, tools и промпта.",
-      "notes": "`tool/registry.ts:344` включает apply_patch для части `gpt-*` и E2E URL, исключая edit; write и search_replace остаются в общем списке.",
+      "notes": "Implemented 2026-10-06. New pure module packages/opencode/src/nocowboy/tool/capabilities.ts (`selectEditCapability` + `DEFAULT_TOOL_CAPABILITIES`): an ordered list of {match (glob over providerID/modelID), tool: edit|apply_patch} rules with a fallback; defaults reproduce the legacy gpt behavior exactly (gpt-* except gpt-4/oss -> apply_patch; else edit). Config seam: new config.experimental.tool_capabilities (edited with a nocowboy_change marker). tool/registry.ts no longer branches on the model name — it calls selectEditCapability (the E2E `NOCOWBOY_E2E_LLM_URL` override is passed as `force`). Tests: test/nocowboy/tool-capabilities.test.ts (5) incl. a source guard that registry.ts has no model-name switch, + tool/registry.test.ts.",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4828,6 +4828,20 @@
           "check": "Поведение для gpt-* воспроизводится без model-name ветвления",
           "verify": "grep registry.ts: no model-name tool switch",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tool-capabilities.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/registry.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/tool-capability-config.md"
         }
       ]
     }

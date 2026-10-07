@@ -406,6 +406,25 @@ export const Info = Schema.Struct({
         description:
           "Tool-specific permission timeouts. Key is tool name pattern (e.g. 'bash', 'edit', 'write'). Falls back to permission_timeout if not set.",
       }),
+      // nocowboy_change — capability-based edit-tool selection (replaces model-name checks)
+      tool_capabilities: Schema.optional(
+        Schema.Struct({
+          edit: Schema.optional(
+            Schema.mutable(
+              Schema.Array(
+                Schema.Struct({
+                  match: Schema.String,
+                  tool: Schema.Literals(["edit", "apply_patch"]),
+                }),
+              ),
+            ),
+          ),
+          default_edit_tool: Schema.optional(Schema.Literals(["edit", "apply_patch"])),
+        }),
+      ).annotate({
+        description:
+          "Select the edit tool by model capability instead of model name. `edit` is an ordered list of { match (glob over providerID/modelID), tool } rules; the first match wins, else default_edit_tool.",
+      }),
       // nocowboy_change — subagent hang watchdog timeouts (0 = disabled)
       stream_idle_timeout_ms: Schema.optional(NonNegativeInt).annotate({
         description:

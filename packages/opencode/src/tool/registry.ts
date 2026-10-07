@@ -52,6 +52,7 @@ import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { Bus } from "../bus"
 import { Agent } from "../agent/agent"
 import { engineAdapter } from "@/nocowboy/engine-adapter"
+import { selectEditCapability } from "@/nocowboy/tool/capabilities" // nocowboy_change
 import { Git } from "@/git"
 import { Skill } from "../skill"
 import { Permission } from "@/permission"
@@ -336,14 +337,21 @@ export const layer: Layer.Layer<
     })
 
     const tools: Interface["tools"] = Effect.fn("ToolRegistry.tools")(function* (input) {
+      // Capability-based edit-tool selection (no model-name branching here): the
+      // rules live in config.experimental.tool_capabilities with defaults that
+      // reproduce the legacy gpt behavior.
+      const editCapability = selectEditCapability({
+        providerID: input.providerID,
+        modelID: input.modelID,
+        config: (yield* config.get()).experimental?.tool_capabilities,
+        force: process.env["NOCOWBOY_E2E_LLM_URL"] ? "apply_patch" : undefined,
+      })
+      const usePatch = editCapability === "apply_patch"
       const filtered = (yield* all()).filter((tool) => {
         if (tool.id === WebSearchTool.id) {
           return webSearchEnabled(input.providerID, { exa: flags.enableExa, parallel: flags.enableParallel })
         }
 
-        const usePatch =
-          !!process.env["NOCOWBOY_E2E_LLM_URL"] ||
-          (input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4"))
         if (tool.id === ApplyPatchTool.id) return usePatch
         if (tool.id === EditTool.id) return !usePatch
 

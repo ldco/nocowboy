@@ -594,3 +594,7 @@
 - **DONE** Контрактные тесты миграции движка (минимальный набор сценариев)
   `verify:test packages/opencode/test/nocowboy/contracts`
   `verify:file docs/features/migration-contract-tests.md`
+- **DONE** Capability-конфиг выбора инструментов вместо проверки имени модели
+  `verify:test packages/opencode/test/nocowboy/tool-capabilities.test.ts`
+  `verify:test packages/opencode/test/tool/registry.test.ts`
+  `verify:file docs/features/tool-capability-config.md`

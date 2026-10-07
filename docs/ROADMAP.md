@@ -145,7 +145,5 @@
 - ⬜ Backport: сохранение recent tail при compaction + token budgeting/pruning
 - ⬜ Backport: subagent depth limit + resume diagnostics
 - ⬜ Backport: терпимость provider config к malformed model entry
-- ⬜ Capability-конфиг выбора инструментов вместо проверки имени модели
-  > `tool/registry.ts:344` включает apply_patch для части `gpt-*` и E2E URL, исключая edit; write и search_replace остаются в общем списке.
 
 ---
