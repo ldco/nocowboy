@@ -4623,7 +4623,7 @@
     {
       "id": "migration-contract-tests",
       "title": "Контрактные тесты миграции движка (минимальный набор сценариев)",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p5-process",
       "priority": "P0",
@@ -4647,7 +4647,18 @@
           "verify": "bun test test/nocowboy/contracts",
           "critical": true
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/migration-contract-tests.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New suite test/nocowboy/contracts/ (8 files, 31 tests) pinning the engine's behaviour as migration contracts: 01 worker child (ToolBusy long tool/permission wait never a stall; watchdog timeouts), 02 planner/reviewer mutation policy (edit+mutating bash deny; hard-ruleset ceiling; YOLO is the lift; delegation forwards parent edit denies), 03 subagent cost (two children add up; resumed child not double-counted), 04 RU/EN locale switching (independent tables), 05 edit round-trip (duplicate/batch/stale/partial + UTF-8 BOM/CRLF/windows-1251), 06 memory transport (unavailable→recovered + namespace isolation), 07 compaction/checkpoint boundary + goal persistence, 08 TUI navigation (keybind data surface + prompt focus/selection capture). Each scenario asserts the nearest pure/observable seam; the end-to-end variants remain in their focused suites (tool/task, permission-allow-everything, search_replace). The suite is wired as a roadmap verify directive, so it is the migration gate."
     },
     {
       "id": "backport-compaction-tail",

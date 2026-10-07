@@ -145,7 +145,6 @@
 - ⬜ ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
   > `rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.
 - ⬜ Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
-- ⬜ Контрактные тесты миграции движка (минимальный набор сценариев)
 - ⬜ Backport: сохранение recent tail при compaction + token budgeting/pruning
 - ⬜ Backport: subagent depth limit + resume diagnostics
 - ⬜ Backport: терпимость provider config к malformed model entry

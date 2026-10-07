@@ -583,3 +583,6 @@
   `verify:file backport-ledger.json`
   `verify:cmd bun run scripts/backport-ledger.ts --check`
   `verify:file docs/features/upstream-backport-ledger.md`
+- **DONE** Контрактные тесты миграции движка (минимальный набор сценариев)
+  `verify:test packages/opencode/test/nocowboy/contracts`
+  `verify:file docs/features/migration-contract-tests.md`
