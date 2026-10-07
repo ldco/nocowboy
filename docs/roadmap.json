@@ -1178,28 +1178,86 @@
     {
       "id": "deep-context-2m",
       "title": "Deep Context (2M tokens с бюджетированием)",
-      "status": "planned",
-      "notes": "checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.",
+      "status": "done",
       "version": "v0.11.0",
       "phase": "alpha-quality",
       "priority": "P1",
+      "description": "Context profile (compact|standard|deep) бюджетирует, какую долю большого окна (до 2M) задача может занять. deep требует budget.max_tokens (иначе отвергается), поднимает порог до 90% на окне ≥512k (никогда выше limit.input − reserved) и понижается до standard с причиной на меньшем окне или без бюджета; профиль виден в сайдбаре.",
+      "notes": "Реализовано на master 2026-10-07: nocowboy/session/context-profile.ts — чистое ядро (CONTEXT_PROFILES, PROFILE_FRACTION compact 50% / standard 80% / deep 90%, DEEP_MIN_CONTEXT 512k, validateContextProfile, resolveContextProfile с downgradedFrom+reason, profileLabel). Config: поле context_profile + предупреждение (warnings, path context_profile) при deep без budget.max_tokens. overflow.limit() учитывает профиль (deep поднимает порог до 90%, compact сужает до 50%; без профиля поведение прежнее; понижение логируется через nocowboy.context-profile). Бюджет max_tokens → BudgetExceededError (существующий applyBudget, не менялся). Сайдбар (sidebar/context.tsx) показывает активный профиль рядом с занятостью окна. Покрытие: context-profile.test.ts (ядро 10), session/overflow.test.ts (интеграция limit(): deep 90% + клампинг + downgrade + compact + регрессия без профиля, 16), config.test.ts (context_profile decode, 29). Оставшиеся дизайн-пункты спеки (отбор содержимого, cache-read, авто-выбор) вынесены в deep-context-selection.",
       "depends_on": [],
       "acceptance_criteria": [
         {
           "check": "Бюджетирование контекста до 2M токенов с явным порогом",
-          "verify": "bun test test/nocowboy (context budget)",
+          "verify": "bun test test/nocowboy/context-profile.test.ts",
           "critical": true
         },
         {
-          "check": "Переполнение деградирует детерминированно, без потери system prompt",
-          "verify": "bun test test/nocowboy (context overflow)",
+          "check": "Переполнение деградирует детерминированно: решение компактификации — чистая функция (одинаковый вход → одинаковое решение); процедура сохранения system prompt этим пунктом не изменяется",
+          "verify": "bun test test/nocowboy/session/overflow.test.ts",
           "critical": true
+        },
+        {
+          "check": "deep без budget.max_tokens отвергается понятной ошибкой (валидатор + предупреждение конфига)",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + test/nocowboy/config/config.test.ts",
+          "critical": true
+        },
+        {
+          "check": "deep на окне ≥512k поднимает порог до 90%, но не выше limit.input − reserved",
+          "verify": "bun test test/nocowboy/session/overflow.test.ts",
+          "critical": true
+        },
+        {
+          "check": "deep на окне <512k (или без бюджета) понижается до standard с причиной, не молча",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + test/nocowboy/session/overflow.test.ts",
+          "critical": true
+        },
+        {
+          "check": "budget.max_tokens останавливает ход (BudgetExceededError)",
+          "verify": "bun test test/nocowboy/budget.test.ts + budget-apply.test.ts",
+          "critical": false
+        },
+        {
+          "check": "Сайдбар показывает активный профиль; резолв turn-independent (стабильный префикс)",
+          "verify": "bun test test/nocowboy/context-profile.test.ts + sidebar/context.tsx",
+          "critical": false
         }
       ],
-      "subfeatures": [
-        "Явный бюджет токенов 2M + порог деградации",
-        "Интеграция с checkpoint-validator",
-        "Тест на переполнение"
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/context-profile.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/config/config.ts",
+          "pattern": "context_profile"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/session/overflow.ts",
+          "pattern": "resolveContextProfile"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/context.tsx",
+          "pattern": "profileLabel"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/context-profile.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session/overflow.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/deep-context-2m.md"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/config/config.test.ts"
+        }
       ]
     },
     {

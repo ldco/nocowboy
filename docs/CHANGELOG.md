@@ -263,6 +263,15 @@
   `verify:file docs/features/permission-timeout-feature.md`
 - **DONE** Agent Audit (P2-C1): inventory 21 агентов, name collisions
   `verify:file docs/features/agent-audit.md`
+- **DONE** Deep Context (2M tokens с бюджетированием)
+  `verify:file packages/opencode/src/nocowboy/session/context-profile.ts`
+  `verify:grep packages/opencode/src/config/config.ts context_profile`
+  `verify:grep packages/opencode/src/nocowboy/session/overflow.ts resolveContextProfile`
+  `verify:grep packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/context.tsx profileLabel`
+  `verify:test packages/opencode/test/nocowboy/context-profile.test.ts`
+  `verify:test packages/opencode/test/nocowboy/session/overflow.test.ts`
+  `verify:file docs/features/deep-context-2m.md`
+  `verify:test packages/opencode/test/nocowboy/config/config.test.ts`
 - **DONE** Command deduplication (P2-C3)
   `verify:file docs/features/command-dedup.md`
 - **DONE** Goal judge — интегрировать в agent stop loop (Effect-native)

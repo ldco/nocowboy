@@ -22,6 +22,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
 import { EffectFlock } from "@nocowboy/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
+import { validateContextProfile } from "../nocowboy/session/context-profile" // nocowboy_change - context profile validation
 import { NonNegativeInt, PositiveInt, type DeepMutable } from "@nocowboy/core/schema"
 import { ConfigAgent } from "./agent"
 import { ConfigAttachment } from "./attachment"
@@ -273,6 +274,13 @@ export const Info = Schema.Struct({
   ).annotate({
     description:
       "Per-session cost budget. Before a turn runs, compare the session's cumulative cost/tokens against these caps and warn, downgrade to a cheaper model, or abort.",
+  }),
+  // nocowboy_change - context profile: budget how much of a (large) model window a task may occupy
+  context_profile: Schema.optional(
+    Schema.Union([Schema.Literal("compact"), Schema.Literal("standard"), Schema.Literal("deep")]),
+  ).annotate({
+    description:
+      'Context budgeting profile. "standard" (default) keeps the compaction threshold; "compact" narrows the window to 50%; "deep" uses up to 90% on models with a window ≥512k and requires budget.max_tokens (deep context without a budget is rejected).',
   }),
   username: Schema.optional(Schema.String).annotate({
     description: "Custom username to display in conversations instead of system username",
@@ -1093,6 +1101,14 @@ export const layer = Layer.effect(
         }
         if (Flag.NOCOWBOY_DISABLE_PRUNE) {
           result.compaction = { ...result.compaction, prune: false }
+        }
+        // nocowboy_change - reject an incompatible context profile pair (deep without a token budget)
+        const contextProfileError = validateContextProfile({
+          profile: result.context_profile,
+          budgetMaxTokens: result.budget?.max_tokens,
+        })
+        if (contextProfileError) {
+          warnings.push({ path: "context_profile", message: contextProfileError })
         }
         NoCowboyDefaultPlugins.apply(result, { disabled: Flag.NOCOWBOY_DISABLE_DEFAULT_PLUGINS, log })
 

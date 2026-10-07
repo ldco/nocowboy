@@ -16,11 +16,6 @@
   - CLI: tausik turso setup/sync/status
   - turso секция в NutausikConfig (url, authToken, syncInterval)
   `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ Deep Context (2M tokens с бюджетированием)
-  > checkpoint-validator.ts имеет частичное бюджетирование, но не 2M.
-  - Явный бюджет токенов 2M + порог деградации
-  - Интеграция с checkpoint-validator
-  - Тест на переполнение
 - ⬜ MCP Framework — merge plugin-registry в NUTAUSIK
   > P2-C4. Решить судьбу first-party MCP серверов.
   - Реестр first-party MCP серверов

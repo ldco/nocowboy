@@ -601,3 +601,16 @@ describe("subagent hang watchdog config", () => {
     expect(() => decode({ experimental: { subagent_stall_timeout_ms: -1 } })).toThrow()
   })
 })
+
+// nocowboy_change — context profile config surface (deep-context-2m)
+describe("context_profile config", () => {
+  test("accepts compact|standard|deep", () => {
+    expect(decode({ context_profile: "compact" }).context_profile).toBe("compact")
+    expect(decode({ context_profile: "standard" }).context_profile).toBe("standard")
+    expect(decode({ context_profile: "deep", budget: { max_tokens: 2_000_000 } }).context_profile).toBe("deep")
+  })
+
+  test("rejects an unknown profile", () => {
+    expect(() => decode({ context_profile: "huge" })).toThrow()
+  })
+})
