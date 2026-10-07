@@ -5,12 +5,13 @@ import { createMemo, createResource, createSignal, onCleanup, onMount, Show } fr
 import { useSync } from "@tui/context/sync"
 import { useLocal } from "@tui/context/local"
 import {
-  fetchBalance,
-  findBalanceProvider,
-  getBalanceColor,
-  findBalanceDescriptor,
-  getPeakPricing,
+  balanceAmount,
+  balanceColorOf,
   clearBalanceCache,
+  fetchBalance,
+  findBalanceDescriptor,
+  findBalanceProvider,
+  getPeakPricing,
 } from "@/nocowboy/provider-balance"
 import { RGBA } from "@opentui/core"
 import { appendFileSync } from "node:fs"
@@ -87,9 +88,8 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
   })
 
   const balanceFg = createMemo(() => {
-    const b = balance() ?? 0
-    const color = getBalanceColor(b)
-    return theme()[color]
+    const color = balanceColorOf(balance())
+    return color ? theme()[color] : theme().textMuted
   })
 
   const balanceLabel = createMemo(() => {
@@ -125,7 +125,7 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
           <b>{balanceLabel()}</b>
         </text>
         <box flexDirection="row" gap={1}>
-          <text fg={balanceFg()}>{money.format(balance() ?? 0)}</text>
+          <text fg={balanceFg()}>{balanceAmount(balance()) === undefined ? "—" : money.format(balanceAmount(balance())!)}</text>
           <Show when={peakInfo()}>
             <text fg={peakInfo()!.isPeak ? brand : theme().success}>
               ({peakInfo()!.label})

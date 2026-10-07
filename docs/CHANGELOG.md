@@ -618,6 +618,11 @@
   `verify:test packages/opencode/test/nocowboy/provider/models-snapshot.test.ts`
   `verify:file packages/opencode/src/nocowboy/provider/port.ts`
   `verify:file docs/features/provider-adapters-port.md`
+- **DONE** Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:test packages/opencode/test/nocowboy/cost-propagation.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+  `verify:file docs/features/cost-balance-semantics.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`

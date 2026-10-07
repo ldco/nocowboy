@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
+  balanceAmount,
+  balanceColorOf,
   findBalanceDescriptor,
   findBalanceProvider,
   fetchBalance,
@@ -220,21 +222,89 @@ describe("provider-balance", () => {
       try {
         clearBalanceCache()
         const value = await fetchBalance("openrouter", "sk-or-test-key-0001")
-        expect(value).toBe(17.5)
+        expect(value).toEqual({ status: "ok", amount: 17.5 })
         expect(calledURL).toBe("https://openrouter.ai/api/v1/credits")
       } finally {
         globalThis.fetch = original
       }
     })
 
-    test("fetchBalance returns 0 when the credit response is an error", async () => {
+    test("fetchBalance returns unknown (not 0) when the credit response is an error", async () => {
       const original = globalThis.fetch
       globalThis.fetch = (async () => new Response("nope", { status: 401 })) as unknown as typeof fetch
       try {
         clearBalanceCache()
-        expect(await fetchBalance("openrouter", "sk-or-test-key-0002")).toBe(0)
+        const value = await fetchBalance("openrouter", "sk-or-test-key-0002")
+        expect(value.status).toBe("unknown")
+        // A failed lookup is not a fake zero.
+        expect(value).not.toEqual({ status: "ok", amount: 0 })
       } finally {
         globalThis.fetch = original
+      }
+    })
+
+    test("fetchBalance is unknown without an API key or a balance provider", async () => {
+      clearBalanceCache()
+      expect((await fetchBalance("openrouter", "")).status).toBe("unknown")
+      expect((await fetchBalance("openai", "sk-x")).status).toBe("unknown")
+    })
+
+    test("balanceColorOf mutes an unknown/absent balance instead of painting it red", () => {
+      expect(balanceColorOf({ status: "ok", amount: 100 })).toBe("success")
+      expect(balanceColorOf({ status: "ok", amount: 0 })).toBe("error")
+      expect(balanceColorOf({ status: "unknown", reason: "network" })).toBeUndefined()
+      expect(balanceColorOf(undefined)).toBeUndefined()
+    })
+
+    test("balanceAmount is the number only for an ok balance", () => {
+      expect(balanceAmount({ status: "ok", amount: 5 })).toBe(5)
+      expect(balanceAmount({ status: "unknown", reason: "x" })).toBeUndefined()
+      expect(balanceAmount(undefined)).toBeUndefined()
+    })
+  })
+
+  describe("provider port integration", () => {
+    test("a custom baseURL flows through the port into the fetch URL (no tls override by default)", async () => {
+      const original = globalThis.fetch
+      let calledURL = ""
+      let calledInit: { tls?: unknown } | undefined
+      globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+        calledURL = String(url)
+        calledInit = init as { tls?: unknown }
+        return new Response(JSON.stringify({ balance_infos: [{ currency: "USD", total_balance: "12.5" }] }), {
+          status: 200,
+        })
+      }) as unknown as typeof fetch
+      try {
+        clearBalanceCache()
+        const value = await fetchBalance("deepseek", "sk-ds-test-0001", "https://custom.deepseek.example/v1")
+        expect(value).toEqual({ status: "ok", amount: 12.5 })
+        expect(calledURL).toBe("https://custom.deepseek.example/v1/user/balance")
+        // AC4: the default transport carries no tls override at the fetch boundary.
+        expect(calledInit?.tls).toBeUndefined()
+      } finally {
+        globalThis.fetch = original
+      }
+    })
+
+    test("NOCOWBOY_INSECURE_TLS opt-in attaches rejectUnauthorized:false at the fetch", async () => {
+      const original = globalThis.fetch
+      const previous = process.env.NOCOWBOY_INSECURE_TLS
+      let calledInit: { tls?: unknown } | undefined
+      globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+        calledInit = init as { tls?: unknown }
+        return new Response(JSON.stringify({ data: { available_balance: 7 } }), { status: 200 })
+      }) as unknown as typeof fetch
+      try {
+        process.env.NOCOWBOY_INSECURE_TLS = "1"
+        clearBalanceCache()
+        const value = await fetchBalance("kimi", "sk-kimi-test-0001")
+        expect(value).toEqual({ status: "ok", amount: 7 })
+        expect(calledInit?.tls).toEqual({ rejectUnauthorized: false })
+      } finally {
+        globalThis.fetch = original
+        if (previous === undefined) delete process.env.NOCOWBOY_INSECURE_TLS
+        else process.env.NOCOWBOY_INSECURE_TLS = previous
       }
     })
   })

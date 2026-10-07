@@ -4771,7 +4771,7 @@
     {
       "id": "cost-balance-semantics",
       "title": "Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p4-provider",
       "priority": "P1",
@@ -4781,6 +4781,7 @@
         "reliability"
       ],
       "description": "Различать три показателя: токены из usage, расчёт стоимости по metadata модели и остаток из provider billing API. Balance failure не возвращает 0; parent cost propagation сохраняется.",
+      "notes": "Реализовано 2026-10-07 (in_progress до независимой верификации): provider-balance.ts — тип Balance = {status:ok,amount} | {status:unknown,reason}; descriptor.fetch и fetchBalance возвращают Balance, любой сбой → unknown с причиной (НЕ 0); хелперы balanceAmount/balanceColorOf; UI (sidebar/context, subagent-footer) рисует unknown как «—» muted. Три показателя остаются раздельными: usage-токены (AssistantMessage.tokens), расчётная стоимость (metadata модели), billing-баланс (provider API, теперь со статусом). Parent cost propagation и resumed-delta — существующие тесты (cost-propagation.test.ts, tool/task.test.ts). depends_on provider-adapters-port — ordering-зависимость, для этой семантики не функциональный пререквизит.",
       "depends_on": [
         "provider-adapters-port"
       ],
@@ -4799,6 +4800,24 @@
           "check": "Resumed child не учитывается повторно",
           "verify": "bun test test/nocowboy (cost resume)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/cost-propagation.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/cost-balance-semantics.md"
         }
       ]
     },
