@@ -7,6 +7,7 @@ import { useTheme } from "@tui/context/theme"
 import { useSync } from "@tui/context/sync"
 import { Clipboard } from "@tui/util/clipboard"
 import { sidebarOpen, toggle as toggleSidebar } from "@/nocowboy/cli/cmd/tui/context/sidebar-state"
+import { createButtonPort, SCREEN_LABELS, type ButtonPort, type ScreenKey } from "@/nocowboy/ui/input-port" // nocowboy_change - button propagation + navigation contract
 
 function shortPath(p: string): string {
   const home = process.env.HOME || "/home/" + (process.env.USER || "user")
@@ -54,20 +55,6 @@ interface ScreenCtx {
 
 const ScreenCtx = createContext<ScreenCtx>()
 
-const builtinButtons = [
-  { key: "chat",    label: "Chat" },
-  
-  
-]
-
-const appButtons = [
-  { key: "api",     label: "API" },
-  { key: "git",     label: "Git" },
-  { key: "db",      label: "DB" },
-  { key: "files",   label: "Files" },
-  { key: "edit",    label: "Edit" },
-]
-
 export function ScreenProvider(props: { children: JSX.Element }) {
   const [screen, setScreen] = createSignal<Screen>("chat")
   globalSetScreen = setScreen as unknown as ((s: Screen) => void)
@@ -109,16 +96,20 @@ export function TopBar() {
   )
 }
 
-function Btn(props: { label: string; active: boolean; onClick: () => void }) {
+function Btn(props: { port: ButtonPort; screenKey: ScreenKey }) {
   const { theme } = useTheme()
   return (
     <text
-      fg={props.active ? brandOrange : theme.textMuted}
+      fg={props.port.active(props.screenKey) ? brandOrange : theme.textMuted}
       paddingLeft={1}
       paddingRight={1}
-      onMouseDown={(evt: MouseEvent) => { evt.preventDefault?.(); props.onClick() }}
+      onMouseDown={(evt: { button?: number; preventDefault?: () => void }) => {
+        // Handlers are mounted through the port: only a consumed click calls
+        // preventDefault, so right/middle clicks propagate.
+        if (props.port.click({ button: evt.button, key: props.screenKey }).handled) evt.preventDefault?.()
+      }}
     >
-      {props.label}
+      {SCREEN_LABELS[props.screenKey]}
     </text>
   )
 }
@@ -126,27 +117,14 @@ function Btn(props: { label: string; active: boolean; onClick: () => void }) {
 export function BottomBar() {
   const { theme } = useTheme()
   const { screen, setScreen } = useScreen()
+  const port = createButtonPort({
+    screen: () => screen() as ScreenKey,
+    setScreen: (next) => setScreen(next as Screen),
+  })
 
   return (
     <box flexDirection="row" height={1} backgroundColor={theme.background} shouldFill>
-      <For each={builtinButtons}>
-        {(b) => (
-          <Btn
-            label={b.label}
-            active={screen() === b.key}
-            onClick={() => setScreen(b.key as Screen)}
-          />
-        )}
-      </For>
-      <For each={appButtons}>
-        {(b) => (
-          <Btn
-            label={b.label}
-            active={screen() === b.key}
-            onClick={() => setScreen(b.key as Screen)}
-          />
-        )}
-      </For>
+      <For each={port.order}>{(key) => <Btn port={port} screenKey={key} />}</For>
       <text flexGrow={1} />
       <SidebarToggle />
       {sidebarOpen() && <text selectable={false} fg={theme.textMuted}> ⇄ ⇅ alt+arrows</text>}

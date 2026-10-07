@@ -636,6 +636,11 @@
   `verify:file packages/opencode/src/nocowboy/plugin-view-models.ts`
   `verify:file packages/plugin/src/tui.ts`
   `verify:file docs/features/nocowboy-ui-package.md`
+- **DONE** InputPort/UI facade — контракт mouse/focus/selection
+  `verify:test packages/opencode/test/nocowboy/input-port.test.ts`
+  `verify:file packages/opencode/src/nocowboy/ui/input-port.ts`
+  `verify:file packages/opencode/src/nocowboy/components/nocowboy-bars.tsx`
+  `verify:file docs/features/input-port.md`
 - **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
   `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
   `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`

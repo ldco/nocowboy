@@ -4702,7 +4702,7 @@
     {
       "id": "input-port",
       "title": "InputPort/UI facade — контракт mouse/focus/selection",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p3-ui",
       "priority": "P2",
@@ -4711,7 +4711,7 @@
         "ux"
       ],
       "description": "Отдельный InputPort/UI facade для mouse/focus/selection с контрактом на button propagation и navigation. Не писать собственный парсер терминального mouse protocol без необходимости.",
-      "notes": "Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.",
+      "notes": "Pure input-port in packages/opencode/src/nocowboy/ui/input-port.ts: SCREEN_ORDER/SCREEN_LABELS, isClick (only left/0/undefined is a click; right/middle propagate), nextScreen/prevScreen/screenIndex (wrap-around, overridable order), ButtonPort + createButtonPort({screen,setScreen,order?}) with active/select/move/click -> {handled} (preventDefault only when handled). Wiring: nocowboy-bars.tsx BottomBar creates the port and renders port.order; Btn takes {port,screenKey} — per-button navigation no longer duplicated in the component. No custom mouse protocol (uses renderer JSX events).",
       "depends_on": [
         "nocowboy-ui-package"
       ],
@@ -4725,6 +4725,24 @@
           "check": "Контракт на button propagation и navigation покрыт тестами",
           "verify": "bun test test/nocowboy (input navigation)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/input-port.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/input-port.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/components/nocowboy-bars.tsx"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/input-port.md"
         }
       ]
     },
