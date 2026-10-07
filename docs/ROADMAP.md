@@ -16,8 +16,8 @@
   - CLI: tausik turso setup/sync/status
   - turso секция в NutausikConfig (url, authToken, syncInterval)
   `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ Vector store switcher UI
-  > Был в старом P2 роадмапе
+- 🚫 Vector store switcher UI
+  > BLOCKED (2026-10-07 autopilot). Требуется live-верификация + архитектурное изменение; prior attempt (dump 2026-10-06) был реализован и затем ОТКАЧЕН как небезопасный. Что нужно: (1) цепочка конфиг→переиндексация без рестарта (KiloIndexing.reload/onConfigUpdated + чистый детектор indexing-config-key + подписка на global.config.updated), корректность которой наблюдаема только на запущенном индексаторе; (2) БЕЗОПАСНАЯ очистка старого индекса: KiloIndexing.init() резолвится на track() до реальной сборки, а кэш держит один manager на ключ `${directory}\0${root}` — поэтому наивный clearIndexData после reload попадёт в НОВЫЙ manager (нарушает инвариант спеки №2 «старый индекс не удаляется до успешного построения нового»). Корректный дизайн требует захваченного дескриптора СТАРОГО стора (backend+identity) и удаления по нему, затем live end-to-end проверки. Риск потери данных при неверной проводке. Spec: .nocowboy/specs/vector-store-switcher.md.
   - Config→reindex chain без рестарта
   - Безопасная очистка старого backend после rebuild
   - Rollback-тест
