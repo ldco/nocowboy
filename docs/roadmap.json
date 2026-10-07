@@ -2085,9 +2085,9 @@
     {
       "id": "rc-performance-test",
       "title": "Performance testing — startup < 500ms, memory < 200MB",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
-      "notes": "Холодный старт: < 500ms. RSS: < 200MB",
+      "notes": "Холодный старт: < 500ms. RSS: < 200MB  BLOCKED (2026-10-07 autopilot): depends on `rc-user-testing-complete`, which is BLOCKED (needs real user RC testing/feedback — an external human input unavailable to an autonomous run). Cannot be completed honestly without it.",
       "phase": "rc",
       "priority": "P1",
       "depends_on": [
@@ -2126,7 +2126,7 @@
     {
       "id": "rc-docs-complete",
       "title": "Документация обновлена — CHANGELOG, ROADMAP, README",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0-rc",
       "verify": [
         {
@@ -2155,7 +2155,8 @@
         "generate-docs из JSON",
         "--check в pre-commit",
         "Убрать ложные roadmap-утверждения"
-      ]
+      ],
+      "notes": "BLOCKED (2026-10-07 autopilot): depends on `rc-user-testing-complete`, which is BLOCKED (needs real user RC testing/feedback — external human input). Cannot be completed honestly without it."
     },
     {
       "id": "release-beta-feedback-incorporated",
@@ -2209,7 +2210,7 @@
     {
       "id": "release-roadmap-verified",
       "title": "Roadmap verified — 100% DONE features pass verify",
-      "status": "planned",
+      "status": "blocked",
       "version": "v1.0.0",
       "verify": [
         {
@@ -2238,7 +2239,8 @@
         "Убрать | tail без pipefail из verify-roadmap",
         "Проверять exit code",
         "Полный прогон verify"
-      ]
+      ],
+      "notes": "BLOCKED (2026-10-07 autopilot): depends on `release-all-tests-green`, which is BLOCKED (depends on `rc-all-issues-resolved` -> `rc-user-testing-complete`, both BLOCKED). Cannot be completed honestly without unblocking the RC testing chain."
     },
     {
       "id": "release-published",

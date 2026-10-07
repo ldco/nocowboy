@@ -62,14 +62,15 @@
   > 5+ человек прогнали основные сценарии. Баги записаны.
   > **Блокер:** Внешние тестеры не запускались.
   `verify:agent`
-- ⬜ Performance testing — startup < 500ms, memory < 200MB
-  > Холодный старт: < 500ms. RSS: < 200MB
+- 🚫 Performance testing — startup < 500ms, memory < 200MB
+  > Холодный старт: < 500ms. RSS: < 200MB  BLOCKED (2026-10-07 autopilot): depends on `rc-user-testing-complete`, which is BLOCKED (needs real user RC testing/feedback — an external human input unavailable to an autonomous run). Cannot be completed honestly without it.
   - Починить benchmark (RSS/exit code)
   - Пороги 500ms/200MB
   - Fail при отсутствии зависимостей
 - 🚫 Все известные issues закрыты или имеют миграционный план
   > **Блокер:** Нет полного инвентаря issues и их закрытия.
-- ⬜ Документация обновлена — CHANGELOG, ROADMAP, README
+- 🚫 Документация обновлена — CHANGELOG, ROADMAP, README
+  > BLOCKED (2026-10-07 autopilot): depends on `rc-user-testing-complete`, which is BLOCKED (needs real user RC testing/feedback — external human input). Cannot be completed honestly without it.
   - generate-docs из JSON
   - --check в pre-commit
   - Убрать ложные roadmap-утверждения
@@ -85,7 +86,8 @@
 - 🚫 All tests green — 0 failures, 0 flaky
   > **Блокер:** Полный прогон тестов не продемонстрирован как релизный гейт.
   `verify:cmd bun run test 2>&1 | tail -5`
-- ⬜ Roadmap verified — 100% DONE features pass verify
+- 🚫 Roadmap verified — 100% DONE features pass verify
+  > BLOCKED (2026-10-07 autopilot): depends on `release-all-tests-green`, which is BLOCKED (depends on `rc-all-issues-resolved` -> `rc-user-testing-complete`, both BLOCKED). Cannot be completed honestly without unblocking the RC testing chain.
   - Убрать | tail без pipefail из verify-roadmap
   - Проверять exit code
   - Полный прогон verify
