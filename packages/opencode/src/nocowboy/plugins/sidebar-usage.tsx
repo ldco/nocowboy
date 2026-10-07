@@ -3,6 +3,7 @@ import { createMemo, Show } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { formatCount, getUsage } from "@tui/routes/session/usage"
 import { fmtAttemptCost, fmtScore } from "@/nocowboy/components/model-info-panel-utils"
+import { t } from "@tui/context/i18n"
 
 const id = "internal:kilo-sidebar-usage"
 
@@ -29,18 +30,18 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
     <box gap={1}>
       <box>
         <text fg={theme().text}>
-          <b>Token Usage</b>
+          <b>{t("sidebar.usage")}</b>
         </text>
         <box flexDirection="row" justifyContent="space-between">
-          <text fg={theme().textMuted}>Input</text>
+          <text fg={theme().textMuted}>{t("sidebar.usage.input")}</text>
           <text fg={theme().textMuted}>{usage().input}</text>
         </box>
         <box flexDirection="row" justifyContent="space-between">
-          <text fg={theme().textMuted}>Output</text>
+          <text fg={theme().textMuted}>{t("sidebar.usage.output")}</text>
           <text fg={theme().textMuted}>{usage().output}</text>
         </box>
         <box flexDirection="row" justifyContent="space-between">
-          <text fg={theme().textMuted}>Cached</text>
+          <text fg={theme().textMuted}>{t("sidebar.usage.cached")}</text>
           <text fg={theme().textMuted}>{usage().cached}</text>
         </box>
       </box>
@@ -48,14 +49,14 @@ function View(props: { api: TuiPluginApi; session_id: string }) {
         {(value) => (
           <box>
             <text fg={theme().text}>
-              <b>Terminal Bench 2.0</b>
+              <b>{t("sidebar.usage.terminalBench")}</b>
             </text>
             <box flexDirection="row" justifyContent="space-between">
-              <text fg={theme().textMuted}>Completion</text>
+              <text fg={theme().textMuted}>{t("sidebar.usage.completion")}</text>
               <text fg={theme().textMuted}>{fmtScore(value().overallScore)}</text>
             </box>
             <box flexDirection="row" justifyContent="space-between">
-              <text fg={theme().textMuted}>Cost / attempt</text>
+              <text fg={theme().textMuted}>{t("sidebar.usage.costPerAttempt")}</text>
               <text fg={theme().textMuted}>{fmtAttemptCost(value().avgAttemptCostUsd)}</text>
             </box>
           </box>

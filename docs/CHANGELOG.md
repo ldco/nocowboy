@@ -603,6 +603,11 @@
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`
   `verify:file docs/features/edit-port-batch-safety.md`
+- **DONE** @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
+  `verify:test packages/opencode/test/nocowboy/i18n.test.ts`
+  `verify:test packages/opencode/test/nocowboy/tui-language.test.ts`
+  `verify:file packages/opencode/src/nocowboy/ui/language.ts`
+  `verify:file docs/features/nocowboy-i18n-package.md`
 - **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
   `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
   `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`

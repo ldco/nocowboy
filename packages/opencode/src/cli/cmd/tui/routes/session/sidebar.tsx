@@ -519,8 +519,8 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
       {/* History Tab — session list / nocowboy_change start */}
       <Show when={tab() === "history"}>
         <box flexDirection="row" flexShrink={0} gap={2}>
-          <text fg={brand} onMouseDown={() => route.navigate({ type: "home" })}>[+ New Session]</text>
-          <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log.debug("share.click", { sessionID: s.id }); shareSession(s.id) } }}>[ Share ]</text>
+          <text fg={brand} onMouseDown={() => route.navigate({ type: "home" })}>[+ {t("sidebar.newSession")}]</text>
+          <text fg={theme.textMuted} onMouseDown={() => { const s = list()[selectedIdx()]; if (s) { log.debug("share.click", { sessionID: s.id }); shareSession(s.id) } }}>[ {t("sidebar.share")} ]</text>
         </box>
         <box height={1} flexShrink={0} />
         <Show when={!sessions.loading} fallback={<text fg={theme.textMuted}>Loading...</text>}>

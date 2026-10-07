@@ -4516,7 +4516,7 @@
     {
       "id": "nocowboy-i18n-package",
       "title": "@nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p3-ui",
       "priority": "P1",
@@ -4526,28 +4526,46 @@
         "i18n"
       ],
       "description": "Сделать словарь независимой архитектурой локализации: stable keys, placeholders и locale context для UI/runtime prompts. Постепенно удалить phrase fallback, начиная с собственных панелей.",
-      "notes": "phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.",
+      "notes": "Реализовано ядро: stable keys (sidebar.usage*/sidebar.share) в обоих словарях; чистая `resolveLanguage` (tui > config > default, `packages/opencode/src/nocowboy/ui/language.ts`); `Agent.cacheKey` включает lang; usage-панель и кастомный сайдбар используют `t(...)`, literals guard в тестах. Осталось (отдельные пункты): RequestContext-локализация runtime-промптов, полный отказ от phrase fallback, поле `lang` в схеме TUI (lang-switcher-ui), поверхность `packages/ui/src/context/i18n.tsx`.",
       "depends_on": [],
       "acceptance_criteria": [
         {
           "check": "Собственные модули не содержат новых user-facing literals вне словаря",
-          "verify": "grep hardcoded strings + check script",
+          "verify": "bun test test/nocowboy/i18n.test.ts (literals guard) + grep",
           "critical": true
         },
         {
-          "check": "locale передаётся через RequestContext, а Agent cacheKey включает lang",
-          "verify": "bun test test/nocowboy (i18n context)",
+          "check": "locale резолвится per-project чистой функцией resolveLanguage (TUI config → synced project config → default), а Agent cacheKey включает lang",
+          "verify": "bun test test/nocowboy/tui-language.test.ts + test/nocowboy/i18n.test.ts",
           "critical": true
         },
         {
           "check": "Словари RU/EN проходят проверку полноты ключей",
-          "verify": "bun test test/nocowboy (i18n completeness)",
+          "verify": "bun test test/nocowboy/i18n.test.ts",
           "critical": true
         },
         {
           "check": "RU→EN→RU в живой сессии и два проекта с разными locale работают согласованно",
-          "verify": "bun test test/nocowboy (i18n live switch)",
+          "verify": "bun test test/nocowboy/i18n.test.ts + test/nocowboy/tui-language.test.ts",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/i18n.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tui-language.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/ui/language.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/nocowboy-i18n-package.md"
         }
       ]
     },

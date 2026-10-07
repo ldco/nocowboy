@@ -155,6 +155,14 @@ export namespace I18n {
     | "mcp.needsClientId"
     | "home.welcome"
     | "chat.inputPlaceholder"
+    | "sidebar.usage"
+    | "sidebar.usage.input"
+    | "sidebar.usage.output"
+    | "sidebar.usage.cached"
+    | "sidebar.usage.terminalBench"
+    | "sidebar.usage.completion"
+    | "sidebar.usage.costPerAttempt"
+    | "sidebar.share"
 
   export type Strings = Record<Key, string>
 
@@ -308,6 +316,14 @@ export namespace I18n {
     "mcp.needsClientId": "Нужен client ID",
     "home.welcome": "Добро пожаловать в NoCowboy",
     "chat.inputPlaceholder": "Введите сообщение…",
+    "sidebar.usage": "Использование токенов",
+    "sidebar.usage.input": "Ввод",
+    "sidebar.usage.output": "Вывод",
+    "sidebar.usage.cached": "Из кэша",
+    "sidebar.usage.terminalBench": "Terminal Bench 2.0",
+    "sidebar.usage.completion": "Выполнение",
+    "sidebar.usage.costPerAttempt": "Стоимость / попытка",
+    "sidebar.share": "Поделиться",
   }
 
   const en: Strings = {
@@ -460,6 +476,14 @@ export namespace I18n {
     "status.disabled": "Disabled",
     "status.unknown": "Unknown",
     "chat.inputPlaceholder": "Type a message…",
+    "sidebar.usage": "Token Usage",
+    "sidebar.usage.input": "Input",
+    "sidebar.usage.output": "Output",
+    "sidebar.usage.cached": "Cached",
+    "sidebar.usage.terminalBench": "Terminal Bench 2.0",
+    "sidebar.usage.completion": "Completion",
+    "sidebar.usage.costPerAttempt": "Cost / attempt",
+    "sidebar.share": "Share",
   }
 
   export function getStrings(lang: string): Strings {

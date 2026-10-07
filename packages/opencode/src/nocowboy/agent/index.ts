@@ -251,6 +251,8 @@ export function cacheKey(cfg: Config.Info) {
     mcp: cfg.mcp,
     mode: cfg.mode,
     permission: cfg.permission,
+    // nocowboy_change - locale is part of the key so a language switch rebuilds agents
+    lang: cfg.lang,
   })
 }
 
