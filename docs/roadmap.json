@@ -4711,7 +4711,7 @@
     {
       "id": "provider-adapters-port",
       "title": "ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p4-provider",
       "priority": "P1",
@@ -4721,7 +4721,7 @@
         "architecture"
       ],
       "description": "Сохранить provider baseURL/proxy policy в ProviderAdapters; преобразовывать shared model schema на границе. Разделить capability metadata, billing currency/status и generation protocol.",
-      "notes": "`rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.",
+      "notes": "`rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway. Провязка: balance-фетчеры (DeepSeek/Kimi/OpenRouter) идут через `resolveProviderPort`/`requestInit`/`joinURL` (insecure TLS — только explicit opt-in); `loadModelsSnapshotFrom` конвертирует shared snapshot в `ModelDescriptor[]` на границе. Транспортная граница перенесена; `Balance`/ok/unknown — отдельный item `cost-balance-semantics`.",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4743,6 +4743,28 @@
           "check": "rejectUnauthorized:false не является дефолтным контрактом (только explicit opt-in)",
           "verify": "grep + test",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider/port.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider/models-snapshot.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/provider/port.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/provider-adapters-port.md"
         }
       ]
     },

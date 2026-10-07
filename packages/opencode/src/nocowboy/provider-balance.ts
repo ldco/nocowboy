@@ -2,6 +2,7 @@
 // Extracted from sidebar/context.tsx and subagent-footer.tsx to eliminate duplication.
 
 import { appendFileSync } from "node:fs"
+import { joinURL, requestInit, resolveProviderPort } from "./provider/port"
 
 const BLOG = "/tmp/nocowboy-balance.log"
 
@@ -52,24 +53,15 @@ export function getBalanceProviders(): readonly BalanceProviderDescriptor[] {
 // Built-in providers
 // ---------------------------------------------------------------------------
 
-function buildDeepSeekURL(baseURL: string | undefined, defaultHost: string, defaultPath: string): string {
-  if (baseURL && baseURL.trim().length > 0) {
-    return `${baseURL.replace(/\/+$/, "")}${defaultPath}`
-  }
-  return `${defaultHost}${defaultPath}`
-}
-
 registerBalanceProvider({
   id: "deepseek",
   match: (pid, mid) => pid === "deepseek" || mid.toLowerCase().includes("deepseek"),
   label: "DeepSeek",
   fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
     try {
-      const url = buildDeepSeekURL(baseURL, "https://api.deepseek.com", "/user/balance")
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const port = resolveProviderPort({ id: "deepseek", baseURL })
+      const url = joinURL(port.transport.baseURL, "https://api.deepseek.com", "/user/balance")
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} DEEPSEEK status=${res.status}\n`)
         return 0
@@ -102,12 +94,9 @@ registerBalanceProvider({
   label: "Kimi",
   fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
     try {
-      const host = baseURL?.trim() ? baseURL.replace(/\/+$/, "") : "https://api.moonshot.ai"
-      const url = `${host}/v1/users/me/balance`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const port = resolveProviderPort({ id: "kimi", baseURL })
+      const url = joinURL(port.transport.baseURL, "https://api.moonshot.ai", "/v1/users/me/balance")
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} KIMI status=${res.status}\n`)
         return 0
@@ -132,7 +121,8 @@ registerBalanceProvider({
   label: "OpenRouter",
   fetch: async (apiKey: string, baseURL?: string): Promise<number> => {
     try {
-      const base = baseURL?.trim() ? baseURL.replace(/\/+$/, "") : undefined
+      const port = resolveProviderPort({ id: "openrouter", baseURL })
+      const base = port.transport.baseURL
       // The OpenAI-compatible base is https://openrouter.ai/api/v1; tolerate a
       // custom base that already points at the API root.
       const url = base
@@ -140,10 +130,7 @@ registerBalanceProvider({
           ? `${base}/credits`
           : `${base}/api/v1/credits`
         : "https://openrouter.ai/api/v1/credits"
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-        tls: { rejectUnauthorized: false },
-      } as any)
+      const res = await fetch(url, requestInit(port, { Authorization: `Bearer ${apiKey}` }))
       if (!res.ok) {
         appendFileSync(BLOG, `${new Date().toISOString()} OPENROUTER status=${res.status}\n`)
         return 0

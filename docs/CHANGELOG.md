@@ -612,6 +612,12 @@
   `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
   `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`
   `verify:file docs/features/memory-adapter-unified.md`
+- **DONE** ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
+  `verify:test packages/opencode/test/nocowboy/provider/port.test.ts`
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:test packages/opencode/test/nocowboy/provider/models-snapshot.test.ts`
+  `verify:file packages/opencode/src/nocowboy/provider/port.ts`
+  `verify:file docs/features/provider-adapters-port.md`
 - **DONE** Ledger upstream-backport: SHA → потребность → контракт → adaptation diff → verify
   `verify:file packages/opencode/src/nocowboy/backport/ledger.ts`
   `verify:file backport-ledger.json`

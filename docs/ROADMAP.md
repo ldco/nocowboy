@@ -123,8 +123,6 @@
   > Обработчики onMouseDown/onMouseUp в app/prompt/sidebar/own buttons используют JSX events и renderer API (прямой зависимости от приватных OpenTUI методов не найдено). Главная связность — расположение handlers внутри крупных upstream-компонентов, порядок mount/propagation, focus и SDK/context types.
 - ⬜ Git/Balance — асинхронные сервисы, unknown ≠ 0
   > Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.
-- ⬜ ProviderPort/ProviderAdapters — baseURL/proxy и schema на границе
-  > `rejectUnauthorized:false` в own balance fetch — workaround транспорта, не нормальный контракт. Generic AI SDK + custom schemas/loaders + packages/core plugin + gateway.
 - ⬜ Семантика стоимости: usage-токены ≠ расчётная стоимость ≠ billing-баланс
 - ⬜ Backport: сохранение recent tail при compaction + token budgeting/pruning
 - ⬜ Backport: subagent depth limit + resume diagnostics

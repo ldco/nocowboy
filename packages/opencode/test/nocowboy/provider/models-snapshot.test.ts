@@ -114,14 +114,24 @@ describe("models snapshot preparation", () => {
 })
 
 describe("models snapshot runtime loader", () => {
-  test("loads the first valid snapshot file", async () => {
+  test("loads the first valid snapshot and converts it to domain descriptors", async () => {
     const root = await tmp()
     try {
       const missing = path.join(root, "missing.json")
       const file = path.join(root, "models-snapshot.json")
       await Bun.write(file, JSON.stringify(fixture))
 
-      await expect(loadModelsSnapshotFrom([missing, file])).resolves.toEqual(fixture)
+      await expect(loadModelsSnapshotFrom([missing, file])).resolves.toEqual([
+        {
+          id: "claude-test",
+          name: "Claude Test",
+          capabilities: { toolCall: true, reasoning: true, attachment: true, temperature: true },
+          protocol: "unknown",
+          billing: { currency: "USD", status: "unknown", reason: "no cost in shared schema" },
+          contextLimit: 200_000,
+          outputLimit: 8_192,
+        },
+      ])
     } finally {
       await fs.rm(root, { recursive: true, force: true })
     }
