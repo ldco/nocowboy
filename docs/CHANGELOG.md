@@ -691,3 +691,7 @@
   `verify:test packages/opencode/test/nocowboy/tool-capabilities.test.ts`
   `verify:test packages/opencode/test/tool/registry.test.ts`
   `verify:file docs/features/tool-capability-config.md`
+- **DONE** LLM-сводка архитектуры по AST-графу
+  `verify:test packages/opencode/test/nocowboy/knowledge-graph-summary.test.ts`
+  `verify:file packages/opencode/src/nocowboy/knowledge-graph/summary.ts`
+  `verify:file docs/features/knowledge-graph-llm-summary.md`

@@ -5250,7 +5250,7 @@
     {
       "id": "knowledge-graph-llm-summary",
       "title": "LLM-сводка архитектуры по AST-графу",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p2-runtime",
       "priority": "P3",
@@ -5265,8 +5265,21 @@
           "critical": true
         }
       ],
-      "notes": "Вынесено из knowledge-graph-ast-engine (2026-10-07): в описании была LLM-сводка, но AC её не требовали. Отслеживается отдельно, статус ast-engine не обещает её.",
-      "verify": null
+      "notes": "New packages/opencode/src/nocowboy/knowledge-graph/summary.ts: graphOutline (pure structural facts — files/symbols, edges by kind, files per layer, hubs by inbound degree), renderOutline (stable text/prompt), graphHash (order-independent structural hash), summarizeArchitecture(snapshot, {llm, cache?}) -> {summary, outline, cached} (builds the outline, uses the cache or calls the injected llm). The LLM is INJECTED — the module never touches a provider/model, so it is unit-tested with a stub. Test knowledge-graph-summary.test.ts 11/11.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/knowledge-graph-summary.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/knowledge-graph/summary.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/knowledge-graph-llm-summary.md"
+        }
+      ]
     }
   ]
 }
