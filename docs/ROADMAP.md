@@ -127,8 +127,6 @@
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
 - ⬜ Ownership-манифест: owned / adapted / generated
-- ⬜ Политика независимости модели reviewer
-  > `resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.
 - ⬜ Структурированный Handoff вместо текстового #route
   > `session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.
 - ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix

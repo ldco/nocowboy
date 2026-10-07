@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { parseCascadeModel, resolveReviewCascade, secondPhasePrompt } from "../../src/nocowboy/review/cascade"
+import {
+  diagnoseReviewIndependence,
+  parseCascadeModel,
+  resolveReviewCascade,
+  secondPhasePrompt,
+} from "../../src/nocowboy/review/cascade"
 
 const map = {
   deepseek: "openrouter/qwen3-max",
@@ -26,22 +31,23 @@ describe("resolveReviewCascade", () => {
     expect(resolveReviewCascade({ author: { providerID: "deepseek", modelID: "x" } })).toEqual({})
   })
 
-  test("deepseek author reviews with the mapped qwen model, then the author", () => {
+  test("deepseek author reviews with the mapped qwen model, with no implicit second phase", () => {
     const result = resolveReviewCascade({
       config: { enabled: true, map },
       author: { providerID: "deepseek", modelID: "deepseek-v4-flash" },
     })
     expect(result.primary).toEqual({ providerID: "openrouter", modelID: "qwen3-max" })
-    expect(result.secondary).toEqual({ providerID: "deepseek", modelID: "deepseek-v4-flash" })
+    // The author model is never reused implicitly in phase 2.
+    expect(result.secondary).toBeUndefined()
   })
 
-  test("qwen author reviews with the mapped deepseek model", () => {
+  test("qwen author reviews with the mapped deepseek model, no implicit second phase", () => {
     const result = resolveReviewCascade({
       config: { enabled: true, map },
       author: { providerID: "openrouter", modelID: "qwen/qwen3-max" },
     })
     expect(result.primary).toEqual({ providerID: "deepseek", modelID: "deepseek-v4-pro" })
-    expect(result.secondary).toEqual({ providerID: "openrouter", modelID: "qwen/qwen3-max" })
+    expect(result.secondary).toBeUndefined()
   })
 
   test("an explicit third model drives the second phase", () => {
@@ -101,5 +107,39 @@ describe("secondPhasePrompt", () => {
     expect(prompt).toContain("Review the diff")
     expect(prompt).toContain("Finding: bug at line 3")
     expect(prompt).toContain("First review")
+  })
+})
+
+describe("diagnoseReviewIndependence", () => {
+  test("flags a reviewer config that matches the author/worker", () => {
+    const author = { providerID: "deepseek", modelID: "deepseek-v4-pro" }
+    const diagnostics = diagnoseReviewIndependence({
+      author,
+      resolution: { primary: { providerID: "deepseek", modelID: "deepseek-v4-pro" } },
+    })
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0]!.code).toBe("reviewer-matches-author")
+    expect(diagnostics[0]!.severity).toBe("warning")
+  })
+
+  test("a different-family reviewer is clean", () => {
+    const diagnostics = diagnoseReviewIndependence({
+      author: { providerID: "deepseek", modelID: "deepseek-v4-pro" },
+      resolution: { primary: { providerID: "openrouter", modelID: "qwen3-max" } },
+    })
+    expect(diagnostics).toEqual([])
+  })
+
+  test("the second phase cannot reuse the author without explicit opt-in", () => {
+    const author = { providerID: "deepseek", modelID: "deepseek-v4-pro" }
+    // Default resolution never reuses the author.
+    const implicit = resolveReviewCascade({ config: { enabled: true, map }, author })
+    expect(implicit.secondary).toBeUndefined()
+
+    // Explicit opt-in does, and is reported as a warning.
+    const explicit = resolveReviewCascade({ config: { enabled: true, map, second_phase: "author" }, author })
+    expect(explicit.secondary).toEqual(author)
+    const diagnostics = diagnoseReviewIndependence({ author, resolution: explicit })
+    expect(diagnostics.some((d) => d.code === "second-phase-matches-author")).toBe(true)
   })
 })

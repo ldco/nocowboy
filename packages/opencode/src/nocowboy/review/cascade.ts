@@ -7,9 +7,10 @@
  *
  *   phase 1 — a reviewer model mapped from the author's model family
  *             (e.g. author deepseek -> reviewer qwen; author qwen -> reviewer deepseek)
- *   phase 2 — a second reviewer for the phase-1 findings. Defaults to the
- *             author's own model (the "previous" model), and can be pointed at a
- *             third model via config.
+ *   phase 2 — a second reviewer for the phase-1 findings. It is NEVER the author
+ *             implicitly: it is set only by explicit config (a third model, or the
+ *             literal `author` as an explicit opt-in). Without it there is no
+ *             second phase.
  *
  * Everything is configuration-driven (config `review.cascade`), never hardcoded.
  * The module is pure so it can be unit-tested without a provider registry.
@@ -23,8 +24,10 @@ export interface ReviewCascadeConfig {
    */
   map?: Record<string, string>
   /**
-   * Model for the second review phase: a `provider/model` id, or the literal
-   * `author` to reuse the model that wrote the code. Defaults to the author.
+   * Model for the second review phase: a `provider/model` id, the literal
+   * `author` to explicitly reuse the model that wrote the code (opt-in), or
+   * `off`/`none` to disable. Unset means no second phase — the author is never
+   * reused implicitly.
    */
   second_phase?: string | null
 }
@@ -84,10 +87,9 @@ export function resolveReviewCascade(input: {
   let secondary: CascadeModel | undefined
   if (!secondPhaseDisabled) {
     if (secondPhase.length > 0) {
+      // `author` is the only path back to the author's model, and it is
+      // explicit — never the default.
       secondary = secondPhaseLower === "author" ? author : parseCascadeModel(secondPhase)
-    } else if (primary) {
-      // Default: the previous model reviews the reviewer.
-      secondary = author
     }
   }
 
@@ -98,6 +100,47 @@ export function resolveReviewCascade(input: {
   }
 
   return { primary, secondary }
+}
+
+function sameModel(a: CascadeModel, b: CascadeModel): boolean {
+  return a.providerID === b.providerID && a.modelID === b.modelID
+}
+
+export interface IndependenceDiagnostic {
+  code: "reviewer-matches-author" | "second-phase-matches-author"
+  severity: "warning"
+  message: string
+}
+
+/**
+ * Turn review independence into a checkable policy: an independent review needs
+ * a reviewer whose model differs from the author's. This reports the two ways
+ * that can be broken — the phase-1 reviewer matching the author (coincidental
+ * config), and the second phase reusing the author (which must be an explicit
+ * opt-in, so it is reported as a warning rather than silently accepted).
+ */
+export function diagnoseReviewIndependence(input: {
+  author: CascadeModel
+  resolution: ReviewCascadeResolution
+}): IndependenceDiagnostic[] {
+  const diagnostics: IndependenceDiagnostic[] = []
+  const { primary, secondary } = input.resolution
+  const model = (m: CascadeModel) => `${m.providerID}/${m.modelID}`
+  if (primary && sameModel(primary, input.author)) {
+    diagnostics.push({
+      code: "reviewer-matches-author",
+      severity: "warning",
+      message: `Reviewer model ${model(primary)} matches the author; phase 1 is not independent. Configure review.cascade.map to a different family.`,
+    })
+  }
+  if (secondary && sameModel(secondary, input.author)) {
+    diagnostics.push({
+      code: "second-phase-matches-author",
+      severity: "warning",
+      message: `Second review phase reuses the author model ${model(secondary)} (explicit opt-in). Independence depends on a different model.`,
+    })
+  }
+  return diagnostics
 }
 
 /**

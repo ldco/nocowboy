@@ -9,7 +9,7 @@ import type { Session } from "../../session/session"
 import type { Agent } from "../../agent/agent"
 import type { Config } from "../../config/config"
 import { Provider } from "../../provider/provider"
-import { resolveReviewCascade } from "../review/cascade"
+import { diagnoseReviewIndependence, resolveReviewCascade } from "../review/cascade"
 import { spawnPolicy } from "@/nocowboy/engine-adapter"
 import z from "zod"
 
@@ -165,6 +165,13 @@ export namespace KiloTask {
       input.name === "reviewer"
         ? resolveReviewCascade({ config: input.config.review?.cascade, author: input.parent })
         : {}
+    // Reviewer independence is a checkable policy: warn when the reviewer or the
+    // second phase is not independent of the author.
+    if (input.name === "reviewer") {
+      for (const diagnostic of diagnoseReviewIndependence({ author: input.parent, resolution: cascade })) {
+        log.warn(diagnostic.message, { code: diagnostic.code })
+      }
+    }
     const cascadePrimary: Model | undefined = cascade.primary
       ? { providerID: ProviderID.make(cascade.primary.providerID), modelID: ModelID.make(cascade.primary.modelID) }
       : undefined

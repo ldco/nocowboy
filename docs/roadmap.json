@@ -4079,7 +4079,7 @@
     {
       "id": "review-model-independence",
       "title": "Политика независимости модели reviewer",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p0-contracts",
       "priority": "P1",
@@ -4089,7 +4089,7 @@
         "agents"
       ],
       "description": "Превратить независимость ревью в проверяемую политику: reviewer получает другую модель, вторая фаза cascade не может совпасть с автором без явного разрешения.",
-      "notes": "`resolveModel` предпочитает agent model, затем глобальную cfg.model — разные hardcoded fallback не гарантируют независимость. `review/cascade.ts` по умолчанию возвращает пустой результат, а вторая фаза может использовать автора.",
+      "notes": "Implemented 2026-10-06. Review independence is now a checkable policy in packages/opencode/src/nocowboy/review/cascade.ts: (1) the second phase no longer defaults to the author model — it is set only by explicit config (a third model, or the literal `second_phase: \"author\"` as opt-in); (2) `diagnoseReviewIndependence({author, resolution})` returns warnings `reviewer-matches-author` (phase-1 reviewer equals the worker — the coincidence AC1 targets) and `second-phase-matches-author`, and the reviewer spawn in nocowboy/tool/task.ts logs them. Two stale cascade tests that asserted the old implicit author default were updated to the new contract (intentional behavior change). Tests: review-cascade.test.ts (15).",
       "depends_on": [],
       "acceptance_criteria": [
         {
@@ -4101,6 +4101,16 @@
           "check": "Вторая фаза cascade не использует модель автора без explicit opt-in",
           "verify": "grep + unit test",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/review-cascade.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/review-model-independence.md"
         }
       ]
     },

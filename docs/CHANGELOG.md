@@ -560,6 +560,9 @@
   `verify:test packages/opencode/test/nocowboy/agent-catalog.test.ts`
   `verify:test packages/opencode/test/tool/task.test.ts`
   `verify:file docs/features/agent-catalog-spawn-policy.md`
+- **DONE** Политика независимости модели reviewer
+  `verify:test packages/opencode/test/nocowboy/review-cascade.test.ts`
+  `verify:file docs/features/review-model-independence.md`
 - **DONE** @nocowboy/runtime — портовое ядро (AgentCatalog/PolicyPort/SessionPort/EditPort/ModelPort/MemoryPort/TelemetryPort)
   `verify:test packages/opencode/test/nocowboy/runtime/ports.test.ts`
   `verify:test packages/opencode/test/nocowboy/runtime/agent-catalog.test.ts`
