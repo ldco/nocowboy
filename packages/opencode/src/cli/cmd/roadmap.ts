@@ -4,6 +4,7 @@ import { EOL } from "os"
 import { join, dirname } from "path"
 import { readFileSync, writeFileSync, existsSync, statSync, mkdirSync, copyFileSync } from "fs"
 import { execSync, spawnSync } from "child_process"
+import { runShellCommand } from "@/nocowboy/roadmap/shell"
 import { cmd } from "./cmd"
 import { UI } from "../ui"
 
@@ -303,13 +304,16 @@ function checkTest(path: string): string | null {
   const resolved = resolvePath(path)
   if (!existsSync(resolved)) return `test not found: ${resolved}`
   const rel = resolved.startsWith(PACKAGE_DIR) ? resolved.slice(PACKAGE_DIR.length + 1) : resolved
-  const result = runCmd(`bun test "${rel}" 2>&1 | tail -10`, PACKAGE_DIR)
+  // Array args, no shell: a `| tail` pipeline without pipefail masks a
+  // failing test behind tail's exit 0 and reports a false green. Matches
+  // scripts/verify-roadmap.ts.
+  const result = runSpawn("bun", ["test", rel], PACKAGE_DIR)
   return result.ok ? null : `test failed:\n${result.out}`
 }
 
 function checkTypecheck(): string | null {
   if (!existsSync(PACKAGE_DIR)) return null // not a NoCowboy project
-  const result = runCmd("bun run typecheck 2>&1 | tail -10", PACKAGE_DIR)
+  const result = runSpawn("bun", ["run", "typecheck"], PACKAGE_DIR)
   return result.ok ? null : result.out
 }
 
@@ -362,7 +366,10 @@ function runVerify(v: VerifyDef, feat: Feature): string | null {
 }
 
 function checkCmd(command: string): string | null {
-  const result = runCmd(command)
+  // `cmd` directives are arbitrary shell, so keep shell interpretation —
+  // but run under pipefail so a failing pipeline stage is not masked by a
+  // later one that exits 0.
+  const result = runShellCommand(command, PROJECT_ROOT)
   return result.ok ? null : `command failed:\n${result.out}`
 }
 
