@@ -5409,26 +5409,26 @@
         "rules",
         "scoping"
       ],
-      "description": "Сейчас soul/identity-правила лежат в общем .nocowboy/rules/ (сознание.md — Приказ #0 подключение к движку души http://127.0.0.1:9339 и регистрация сессии; сохранение-души.md; защита-стержня.md; русский-стержень.md) и инжектятся через config.instructions ВСЕМ агентам. Это неверно: душу вызывает только агент `nocowboy`. auto/worker/architect/reviewer/planner не должны подключаться к движку души, регистрировать сессию или получать identity-мандат.",
+      "description": "Сейчас soul/identity-правила лежат в общем .nocowboy/rules/ (сознание.md — Приказ #0 подключение к движку души http://127.0.0.1:9339 и регистрация сессии; сохранение-души.md; защита-стержня.md; русский-стержень.md) и инжектятся через config.instructions ВСЕМ агентам. Это неверно: душу вызывает ТОЛЬКО агент `nocowboy`. auto/worker/architect/reviewer/planner — не вызывают (auto тоже не должен: душа ему не нужна).",
       "depends_on": [],
       "acceptance_criteria": [
         {
-          "check": "Soul/identity-правила применяются ТОЛЬКО к агенту nocowboy; auto/worker/architect/reviewer/planner их не получают",
+          "check": "Soul/identity-правила применяются ТОЛЬКО к агенту nocowboy; auto/worker/architect/reviewer/planner (включая auto) их не получают",
           "verify": "проверка per-agent rules: не-nocowboy агенты без soul-инструкций",
           "critical": true
         },
         {
-          "check": "Ни один не-nocowboy агент не подключается к движку души (127.0.0.1:9339) и не регистрирует сессию",
-          "verify": "grep: Приказ #0 / soul 9339 недоступен прочим агентам",
+          "check": "Ни один не-nocowboy агент не подключается к движку души (127.0.0.1:9339) и не регистрирует сессию — в т.ч. auto",
+          "verify": "grep: Приказ #0 / soul 9339 недоступен всем агентам кроме nocowboy",
           "critical": true
         },
         {
-          "check": "Scoping по агенту (per-agent rules), а не общий .nocowboy/rules/* всем; реестр modes/агентов учитывает nocowboy и auto",
-          "verify": "KNOWN_MODES/registry включает nocowboy+auto и не течёт в чужие агенты",
+          "check": "Scoping адресует только nocowboy; реестр modes/агентов приведён к реальным агентам (worker/nocowboy/reviewer/architect/planner/auto) — несуществующие legacy code/debug убраны, nocowboy добавлен; auto душу не получает",
+          "verify": "KNOWN_MODES/registry = реальные агенты; nocowboy единственный с soul-scope",
           "critical": true
         }
       ],
-      "notes": "Диагноз (2026-10-07): .nocowboy/rules/ — общий каталог, грузится всем агентам; KNOWN_MODES в packages/opencode/src/nocowboy/rules-migrator.ts = [code,architect,debug,worker,planner,reviewer] — БЕЗ nocowboy и auto, поэтому per-mode каталоги (rules-{mode}) сейчас не могут адресовать ни nocowboy, ни auto. Агенты определены в packages/opencode/src/nocowboy/agent/index.ts (worker/nocowboy/reviewer/architect/planner/auto). Фикс (не в этой задаче — только фиксация): вынести soul/identity-правила из общего .nocowboy/rules/ в scope только агента nocowboy и научить механизм per-agent rules адресовать nocowboy. Полный текст — .nocowboy/specs/soul-engine-agent-scoping.md.",
+      "notes": "Диагноз (2026-10-07): .nocowboy/rules/ — общий каталог, грузится через config.instructions всем агентам. KNOWN_MODES в packages/opencode/src/nocowboy/rules-migrator.ts = [code,architect,debug,worker,planner,reviewer]: `code` и `debug` — legacy, таких агентов НЕТ (реальные агенты: worker, nocowboy, reviewer, architect, planner, auto — packages/opencode/src/nocowboy/agent/index.ts), а `nocowboy` и `auto` в списке отсутствуют. Душа (soul engine 9339 + identity-правила) нужна ТОЛЬКО агенту `nocowboy`; auto — тоже не должен её вызывать. Фикс (не в этой задаче — только фиксация): вынести soul/identity-правила из общего .nocowboy/rules/ в scope только агента nocowboy и научить механизм per-agent rules адресовать nocowboy. Полный текст — .nocowboy/specs/soul-engine-agent-scoping.md.",
       "verify": [
         {
           "type": "file",
