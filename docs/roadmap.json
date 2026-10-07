@@ -5108,7 +5108,7 @@
     {
       "id": "backport-subagent-depth-resume",
       "title": "Backport: subagent depth limit + resume diagnostics",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "backport",
       "priority": "P2",
@@ -5118,6 +5118,7 @@
         "reliability"
       ],
       "description": "Взять ограничение глубины subagents и resume diagnostics из upstream, согласовав с нашей depth policy и background/resume bridge.",
+      "notes": "Resume diagnostics: new pure `resumeDiagnostic` (packages/opencode/src/nocowboy/tool/resume.ts) — no task_id -> ok; unknown/expired id -> ok + warning surfaced in the tool output (resume-or-create preserved, never silent); id from a foreign parent -> hard error. Wired in packages/opencode/src/tool/task.ts via `withResumeNotice` on both foreground and background output paths. Depth policy (KiloTask.nestedTask() === false plus KiloTask.permissions() denying task/question) is verified by subagent-depth.test.ts (the policy already existed on master; this stage adds the test). The side branch's EngineAdapter/agentCatalog spawn-policy and missingSpecContractSections hunks were deliberately NOT ported — they belong to other items.",
       "depends_on": [
         "upstream-backport-ledger"
       ],
@@ -5131,6 +5132,28 @@
           "check": "Resume diagnostics помогают при неверном/просроченном resume",
           "verify": "bun test test/tool/task (resume diagnostics)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/resume-diagnostic.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/subagent-depth.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/tool/task.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/tool/resume.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/backport-subagent-depth-resume.md"
         }
       ]
     },

@@ -27,6 +27,7 @@ import {
 } from "../nocowboy/session/watchdog" // nocowboy_change
 import { errorMessage } from "@/util/error"
 import { secondPhasePrompt } from "@/nocowboy/review/cascade"
+import { resumeDiagnostic } from "@/nocowboy/tool/resume" // nocowboy_change - resume diagnostics
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { Cause, Duration, Effect, Exit, Option, Schema, Scope } from "effect"
 import { EffectBridge } from "@/effect/bridge"
@@ -182,9 +183,18 @@ export const TaskTool = Tool.define(
       const session = taskID
         ? yield* sessions.get(SessionID.make(taskID)).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
         : undefined
-      if (session && session.parentID !== ctx.sessionID) {
-        return yield* Effect.fail(new Error(`Cannot resume session ${taskID}: not a child of the current session`))
-      }
+      // nocowboy_change - resume diagnostics: a task_id that cannot be resumed
+      // (unknown/expired, or not a child of this session) fails with a clear
+      // reason instead of silently creating a fresh session.
+      const resume = resumeDiagnostic({
+        taskID,
+        found: !!session,
+        parentMatches: session ? session.parentID === ctx.sessionID : undefined,
+      })
+      if (!resume.ok) return yield* Effect.fail(new Error(resume.error))
+      // A stale task_id keeps the resume-or-create fallback, but the notice is
+      // surfaced in the output so the caller never believes it resumed a task.
+      const withResumeNotice = (text: string) => (resume.warning ? `${resume.warning}\n\n${text}` : text)
       const parent = yield* sessions.get(ctx.sessionID)
       const parentAgent = parent.agent
         ? yield* agent.get(parent.agent).pipe(Effect.catchCause(() => Effect.succeed(undefined)))
@@ -495,7 +505,7 @@ export const TaskTool = Tool.define(
             ...metadata,
             jobId: info.id,
           },
-          output: backgroundOutput(nextSession.id),
+          output: withResumeNotice(backgroundOutput(nextSession.id)),
         }
       }
 
@@ -516,7 +526,7 @@ export const TaskTool = Tool.define(
             return {
               title: params.description,
               metadata,
-              output: output(nextSession.id, text),
+              output: withResumeNotice(output(nextSession.id, text)),
             }
           }),
         (costBefore, exit) =>

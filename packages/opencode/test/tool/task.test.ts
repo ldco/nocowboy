@@ -424,6 +424,45 @@ describe("tool.task", () => {
     }),
   )
 
+  // kilocode_change start - resume diagnostics: a stale task_id must not be silent
+  it.instance("execute surfaces a resume notice when task_id is unknown", () =>
+    Effect.gen(function* () {
+      const sessions = yield* Session.Service
+      const { chat, assistant } = yield* seed()
+      const tool = yield* TaskTool
+      const def = yield* tool.init()
+      const promptOps = stubOps({ text: "created" })
+
+      const result = yield* def.execute(
+        {
+          description: "inspect bug",
+          prompt: "look into the cache key path",
+          subagent_type: "general",
+          task_id: "ses_missing",
+        },
+        {
+          sessionID: chat.id,
+          messageID: assistant.id,
+          agent: "build",
+          abort: new AbortController().signal,
+          extra: { promptOps },
+          messages: [],
+          metadata: () => Effect.void,
+          ask: () => Effect.void,
+        },
+      )
+
+      // resume-or-create is preserved: a fresh child is still created...
+      const kids = yield* sessions.children(chat.id)
+      expect(kids).toHaveLength(1)
+      expect(result.metadata.sessionId).not.toBe("ses_missing")
+      // ...but it is never silent: the stale id is reported in the output.
+      expect(result.output).toContain("ses_missing")
+      expect(result.output).toContain("not found")
+    }),
+  )
+  // kilocode_change end
+
   it.instance(
     "execute shapes child permissions for task, todowrite, and primary tools",
     () =>

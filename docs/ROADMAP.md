@@ -99,7 +99,6 @@
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
 
-- ⬜ Backport: subagent depth limit + resume diagnostics
 - ⬜ Backport: терпимость provider config к malformed model entry
 - ⬜ LLM-сводка архитектуры по AST-графу
   > Вынесено из knowledge-graph-ast-engine (2026-10-07): в описании была LLM-сводка, но AC её не требовали. Отслеживается отдельно, статус ast-engine не обещает её.

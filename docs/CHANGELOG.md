@@ -676,6 +676,12 @@
   `verify:test packages/opencode/test/nocowboy/compaction-payload-recovery.test.ts`
   `verify:file docs/features/backport-compaction-tail.md`
   `verify:test packages/opencode/test/nocowboy/contracts/07-compaction-goal.contract.test.ts`
+- **DONE** Backport: subagent depth limit + resume diagnostics
+  `verify:test packages/opencode/test/nocowboy/resume-diagnostic.test.ts`
+  `verify:test packages/opencode/test/nocowboy/subagent-depth.test.ts`
+  `verify:test packages/opencode/test/tool/task.test.ts`
+  `verify:file packages/opencode/src/nocowboy/tool/resume.ts`
+  `verify:file docs/features/backport-subagent-depth-resume.md`
 - **DONE** Capability-конфиг выбора инструментов вместо проверки имени модели
   `verify:test packages/opencode/test/nocowboy/tool-capabilities.test.ts`
   `verify:test packages/opencode/test/tool/registry.test.ts`
