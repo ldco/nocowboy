@@ -21,8 +21,8 @@
   - Config→reindex chain без рестарта
   - Безопасная очистка старого backend после rebuild
   - Rollback-тест
-- ⬜ Obsidian integration — connect NoCowboy to Obsidian vault via MCP
-  > Install obsidian-local-rest-api (2.6k★, MIT) plugin in Obsidian → add MCP entry in nocowboy.json. Plugin already has built-in MCP server at /mpc/. Analysis saved in NUTAUSIK memory #51.
+- 🚫 Obsidian integration — connect NoCowboy to Obsidian vault via MCP
+  > BLOCKED (2026-10-07 autopilot). Требуется manual/live Obsidian. Интеграция = установить плагин obsidian-local-rest-api (MIT, built-in MCP server) и добавить MCP-запись в nocowboy.json (анализ — NUTAUSIK memory #51). Репозиторного кода нет (audit 2026-10-06: 'planned — no code'). AC1 явно 'ручная проверка MCP' — без запущенного Obsidian vault + плагина неверифицируемо. AC2 (ошибка коннектора не блокирует остальные MCP) — свойство MCP fault-isolation (per-client catch в src/mcp/index.ts), отдельного теста нет. Что нужно: живой Obsidian + плагин для AC1; при желании — тест MCP-isolation для AC2.
   - MCP-запись в nocowboy.json
   - Коннектор list/read vault
   - Тест изоляции ошибок MCP
