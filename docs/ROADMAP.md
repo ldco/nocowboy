@@ -31,8 +31,8 @@
 
 ## v0.12.0 — Autonomous Agent Loop + Subagent Reliability — Goal Agent, Agent Teams, subagent watchdog, TUI polish
 
-- ⬜ SkillOpt Integration — Self-Evolving Agent Skills (Microsoft Research)
-  > Интеграция Microsoft SkillOpt (v0.2.0, MIT) в NoCowboy. SkillOpt-Sleep: nightly self-evolution агента через harvest NUTAUSIK сессий, bounded edits к SKILL.md, validation gate. MCP сервер (паттерн Copilot/Devin), NUTAUSIK Harvest Bridge, /sleep CLI команда, nocowboy backend. 22 задачи, ~92h, 5 фаз. Полный pipeline: init → dry-run → run → status → adopt → schedule.
+- 🚫 SkillOpt Integration — Self-Evolving Agent Skills (Microsoft Research)
+  > Интеграция Microsoft SkillOpt (v0.2.0, MIT) в NoCowboy. SkillOpt-Sleep: nightly self-evolution агента через harvest NUTAUSIK сессий, bounded edits к SKILL.md, validation gate. MCP сервер (паттерн Copilot/Devin), NUTAUSIK Harvest Bridge, /sleep CLI команда, nocowboy backend. 22 задачи, ~92h, 5 фаз. Полный pipeline: init → dry-run → run → status → adopt → schedule. BLOCKED (2026-10-07 autopilot): требуется ВНЕШНИЙ пакет Microsoft SkillOpt (v0.2.0) — отсутствует в репозитории/окружении; AC3 verify = 'ручная проверка'; AC4 требует внешнего раннера `python3 -m skillopt_sleep.experiments.run_experiment`. Mock-only pipeline без реального SkillOpt был бы не интеграцией. Что нужно: установленный/доступный SkillOpt-Sleep toolchain + человеческая валидация gate. Audit 2026-10-06: 'external package absent'; dump тоже держал его blocked.
   - MCP сервер (TypeScript wrapper вокруг python3 -m skillopt_sleep mcp)
   - NUTAUSIK Harvest Bridge (конвертация nocowboy сессий → TaskRecord JSON)
   - /sleep CLI команда в TUI (status/dry-run/run/adopt/schedule)
