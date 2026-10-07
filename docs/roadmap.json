@@ -1263,7 +1263,7 @@
     {
       "id": "deep-context-selection",
       "title": "Deep Context Selection — сигнал затронутых файлов для контекста",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "alpha-quality",
       "priority": "P1",
@@ -1273,7 +1273,7 @@
         "knowledge-graph"
       ],
       "description": "Выбирать в глубокий контекст только затронутые diff-ом файлы и их соседей, а не весь репозиторий. Сигнал берётся из diff + опционально knowledge-graph-stub (impacted), сам по себе граф не требуется.",
-      "notes": "Отделено от knowledge-graph: сначала проектируется сигнал затронутых файлов, потом интеграция.",
+      "notes": "Реализовано: чистый `selectDeepContext(changedFiles, provider?, depth?, maxFiles?)` в `src/nocowboy/session/deep-context-selection.ts` — changed-first + ближайшие импортёры из опционального GraphProvider (distance/confidence), diff-only при отсутствии/броске провайдера, `maxFiles` (40) сохраняет все changed, флаг `truncated`. Файлы и тесты — в verify. Интеграция в сборку запроса (repomap → файлы → память) — следующий шаг.",
       "depends_on": [],
       "subfeatures": [
         "Сигнал затронутых файлов из git diff",
@@ -1290,6 +1290,20 @@
           "check": "Без графа механизм деградирует до diff-only и не падает",
           "verify": "bun test test/nocowboy (deep context selection)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/deep-context-selection.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/deep-context-selection.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/deep-context-selection.md"
         }
       ]
     },

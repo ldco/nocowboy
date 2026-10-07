@@ -547,6 +547,10 @@
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md) (2026-10)
 
+- **DONE** Deep Context Selection — сигнал затронутых файлов для контекста
+  `verify:file packages/opencode/src/nocowboy/session/deep-context-selection.ts`
+  `verify:test packages/opencode/test/nocowboy/deep-context-selection.test.ts`
+  `verify:file docs/features/deep-context-selection.md`
 - **DONE** Knowledge Graph — стаб-контракт GraphProvider (in-memory fallback)
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/provider.ts`
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/memory.ts`

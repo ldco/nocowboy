@@ -114,11 +114,6 @@
 
 ## v1.1.0 — Engine Isolation & Fork Management — pinned core + selective backport, runtime/port isolation so the engine can be swapped while preserving measurable rights, lifecycle, edit methods and user scenarios (audit: docs/analysis/fork-management-audit-2026-10-05.md)
 
-- ⬜ Deep Context Selection — сигнал затронутых файлов для контекста
-  > Отделено от knowledge-graph: сначала проектируется сигнал затронутых файлов, потом интеграция.
-  - Сигнал затронутых файлов из git diff
-  - Ранжирование соседей через impacted() при наличии графа
-  - Fallback: только diff без графа
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
 - ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix
