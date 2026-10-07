@@ -16,11 +16,6 @@
   - CLI: tausik turso setup/sync/status
   - turso секция в NutausikConfig (url, authToken, syncInterval)
   `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ MCP Framework — merge plugin-registry в NUTAUSIK
-  > P2-C4. Решить судьбу first-party MCP серверов.
-  - Реестр first-party MCP серверов
-  - Приоритет запуска/дедуп имён
-  - Тест launcher precedence
 - ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
   > Было в старом ROADMAP как NOT DONE.
   - Описать prompt templates на стороне NUTAUSIK

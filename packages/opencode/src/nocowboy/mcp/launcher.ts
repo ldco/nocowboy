@@ -2,11 +2,16 @@ import * as os from "node:os"
 import * as path from "node:path"
 import * as fsp from "node:fs/promises"
 import { createRequire } from "node:module"
+import * as Log from "@nocowboy/core/util/log"
 
 const LAUNCH_FILE = path.join(os.homedir(), ".nocowboy", "mcp", "launch.json")
 
 const _require = createRequire(import.meta.url)
 
+/** First-party MCP servers are published as `@nocowboy/mcp-<name>` packages. */
+export const FIRST_PARTY_MCP_PREFIX = "@nocowboy/mcp-"
+
+/** Third-party convenience defaults (npx/uvx), opted into by name. */
 const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   context7: { command: "npx -y @upstash/context7-mcp" },
   sqlite: { command: "npx mcp-sqlite-server" },
@@ -17,26 +22,87 @@ const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   // via require.resolve when installed. No default entries needed.
 }
 
+/** True when a server name belongs to the first-party `@nocowboy/mcp-*` family. */
+export function isFirstPartyMcp(name: string): boolean {
+  return name.trim().length > 0 && !Object.hasOwn(DEFAULT_LAUNCHES, name)
+}
+
+/** Which tier resolved a server name. */
+export type LaunchSource = "launch-json" | "installed" | "default" | "none"
+
+export interface LaunchDeps {
+  /** The user's launch.json entry for `name` (command string, or null/undefined). */
+  launchJson?: (name: string) => string | null | undefined
+  /** The resolved `node <bin>` for an installed `@nocowboy/mcp-<name>`, or null. */
+  installedPackage?: (name: string) => string | null
+  /** Third-party npx/uvx defaults. */
+  defaults?: Record<string, { command: string } | null | undefined>
+  /** Called once with the winning source so the caller can log which tier resolved the name. */
+  onResolve?: (info: { name: string; source: LaunchSource; command: string | null }) => void
+}
+
+/**
+ * Pure launch precedence for an MCP server:
+ *   1. the user's launch.json entry;
+ *   2. an installed first-party `@nocowboy/mcp-<name>` package;
+ *   3. a third-party `npx`/`uvx` default;
+ *   4. null (no way to launch).
+ * An explicit `launch.json` null/`{command:undefined}` falls through — only a
+ * concrete command string wins. The winning tier is reported via `onResolve`
+ * exactly once, so a name conflict is resolved deterministically and logged.
+ */
+export function resolveCommand(name: string, deps: LaunchDeps): string | null {
+  const fromJson = deps.launchJson?.(name)
+  if (typeof fromJson === "string" && fromJson.length > 0) {
+    deps.onResolve?.({ name, source: "launch-json", command: fromJson })
+    return fromJson
+  }
+
+  const installed = deps.installedPackage?.(name)
+  if (installed) {
+    deps.onResolve?.({ name, source: "installed", command: installed })
+    return installed
+  }
+
+  const fromDefault = deps.defaults?.[name]?.command ?? null
+  deps.onResolve?.({ name, source: fromDefault ? "default" : "none", command: fromDefault })
+  return fromDefault
+}
+
 export namespace Launcher {
-  export async function command(name: string): Promise<string | null> {
-    // 1. User's launch.json takes priority
+  const log = Log.create({ service: "mcp.launcher" })
+
+  async function readLaunchJson(name: string): Promise<string | null | undefined> {
     try {
       const raw = await fsp.readFile(LAUNCH_FILE, "utf-8")
-      const map = JSON.parse(raw)
+      const map = JSON.parse(raw) as Record<string, { command?: string } | null | undefined>
       const entry = map[name]
-      if (entry && entry.command !== undefined) return entry.command
-    } catch { /* unreadable launch spec → fall back */ }
+      if (!entry) return undefined
+      return entry.command
+    } catch {
+      return undefined
+    }
+  }
 
-    // 2. Try installed @nocowboy/mcp-<name> packages
+  async function resolveInstalled(name: string): Promise<string | null> {
     try {
-      const pkg = `@nocowboy/mcp-${name}`
-      const bin = _require.resolve(`${pkg}/dist/index.js`)
+      const bin = _require.resolve(`${FIRST_PARTY_MCP_PREFIX}${name}/dist/index.js`)
       return `node ${bin}`
-    } catch { /* package not installed → fall back */ }
+    } catch {
+      return null
+    }
+  }
 
-    // 3. Defaults (npx-based third-party servers)
-    const entry = DEFAULT_LAUNCHES[name]
-    return entry?.command ?? null
+  export async function command(name: string): Promise<string | null> {
+    // Resolve the async sources first, then apply the pure precedence.
+    const fromJson = await readLaunchJson(name)
+    const installed = await resolveInstalled(name)
+    return resolveCommand(name, {
+      launchJson: () => fromJson,
+      installedPackage: () => installed,
+      defaults: DEFAULT_LAUNCHES,
+      onResolve: (info) => log.debug("mcp launch resolved", info),
+    })
   }
 
   export async function save(name: string, cmd: string | null): Promise<void> {

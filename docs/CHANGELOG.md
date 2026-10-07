@@ -272,6 +272,11 @@
   `verify:test packages/opencode/test/nocowboy/session/overflow.test.ts`
   `verify:file docs/features/deep-context-2m.md`
   `verify:test packages/opencode/test/nocowboy/config/config.test.ts`
+- **DONE** MCP Framework — merge plugin-registry в NUTAUSIK
+  `verify:test packages/opencode/test/nocowboy/mcp-launcher.test.ts`
+  `verify:file packages/opencode/src/nocowboy/mcp/launcher.ts`
+  `verify:file docs/reference/mcp-first-party.md`
+  `verify:file docs/features/mcp-framework-merge.md`
 - **DONE** Command deduplication (P2-C3)
   `verify:file docs/features/command-dedup.md`
 - **DONE** Goal judge — интегрировать в agent stop loop (Effect-native)
