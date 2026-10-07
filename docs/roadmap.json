@@ -4555,7 +4555,7 @@
     {
       "id": "plugin-hook-facade",
       "title": "Versioned facade + contract tests для experimental hooks",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p2-hooks",
       "priority": "P2",
@@ -4578,6 +4578,21 @@
           "check": "session.stop явно объявлен поддерживаемым adapter seam, а не предполагается в любом upstream",
           "verify": "grep + docs",
           "critical": true
+        }
+      ],
+      "notes": "Versioned facade (packages/plugin/src/facade.ts): HOOK_FACADE_VERSION 1.0.0, SUPPORTED_HOOKS (tool.definition, tool.execute.before/after, experimental.chat.system.transform, experimental.session.compacting, experimental.compaction.autocontinue, session.stop), ADAPTER_SEAM_HOOKS (session.stop), isSupportedHook. Contract test test/plugin/hook-facade.test.ts scans the engine (tool/registry.ts, session/prompt.ts, session/compaction.ts, agent/agent.ts, session/llm.ts) and proves every supported hook is dispatched. session.stop documented as an adapter seam (needs the harness half in nocowboy/session/stop-hooks).",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/plugin/hook-facade.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/plugin/src/facade.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/plugin-hook-facade.md"
         }
       ]
     },

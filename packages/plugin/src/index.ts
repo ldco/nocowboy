@@ -341,3 +341,5 @@ export interface Hooks {
     output: { continue: boolean; reason?: string },
   ) => Promise<void>
 }
+
+export * from "./facade.js"

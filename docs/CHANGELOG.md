@@ -622,6 +622,10 @@
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`
   `verify:file docs/features/edit-port-batch-safety.md`
+- **DONE** Versioned facade + contract tests для experimental hooks
+  `verify:test packages/opencode/test/plugin/hook-facade.test.ts`
+  `verify:file packages/plugin/src/facade.ts`
+  `verify:file docs/features/plugin-hook-facade.md`
 - **DONE** @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
   `verify:test packages/opencode/test/nocowboy/i18n.test.ts`
   `verify:test packages/opencode/test/nocowboy/tui-language.test.ts`
