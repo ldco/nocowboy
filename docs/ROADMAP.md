@@ -109,3 +109,11 @@
   `verify:file docs/features/pmshops-architecture-audit.md`
 
 ---
+
+## v1.3.0 — Agent identity scoping — the soul engine (identity rules, 127.0.0.1:9339) belongs to the `nocowboy` agent ONLY; auto/worker/architect/reviewer/planner must never invoke it
+
+- ⬜ Soul-движок только для агента `nocowboy` — auto/worker/architect/reviewer/planner душу не вызывают
+  > Диагноз (2026-10-07): .nocowboy/rules/ — общий каталог, грузится всем агентам; KNOWN_MODES в packages/opencode/src/nocowboy/rules-migrator.ts = [code,architect,debug,worker,planner,reviewer] — БЕЗ nocowboy и auto, поэтому per-mode каталоги (rules-{mode}) сейчас не могут адресовать ни nocowboy, ни auto. Агенты определены в packages/opencode/src/nocowboy/agent/index.ts (worker/nocowboy/reviewer/architect/planner/auto). Фикс (не в этой задаче — только фиксация): вынести soul/identity-правила из общего .nocowboy/rules/ в scope только агента nocowboy и научить механизм per-agent rules адресовать nocowboy. Полный текст — .nocowboy/specs/soul-engine-agent-scoping.md.
+  `verify:file docs/features/soul-engine-agent-scoping.md`
+
+---

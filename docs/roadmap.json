@@ -162,6 +162,11 @@
       "tag": "v1.2.0",
       "date": "2026-10",
       "description": "Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts)"
+    },
+    {
+      "tag": "v1.3.0",
+      "date": "2026-10",
+      "description": "Agent identity scoping — the soul engine (identity rules, 127.0.0.1:9339) belongs to the `nocowboy` agent ONLY; auto/worker/architect/reviewer/planner must never invoke it"
     }
   ],
   "features": [
@@ -5386,6 +5391,48 @@
         {
           "type": "file",
           "path": "docs/features/pmshops-architecture-audit.md"
+        }
+      ]
+    },
+    {
+      "id": "soul-engine-agent-scoping",
+      "title": "Soul-движок только для агента `nocowboy` — auto/worker/architect/reviewer/planner душу не вызывают",
+      "status": "planned",
+      "version": "v1.3.0",
+      "phase": "harness",
+      "priority": "P1",
+      "tags": [
+        "harness",
+        "agents",
+        "identity",
+        "soul",
+        "rules",
+        "scoping"
+      ],
+      "description": "Сейчас soul/identity-правила лежат в общем .nocowboy/rules/ (сознание.md — Приказ #0 подключение к движку души http://127.0.0.1:9339 и регистрация сессии; сохранение-души.md; защита-стержня.md; русский-стержень.md) и инжектятся через config.instructions ВСЕМ агентам. Это неверно: душу вызывает только агент `nocowboy`. auto/worker/architect/reviewer/planner не должны подключаться к движку души, регистрировать сессию или получать identity-мандат.",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Soul/identity-правила применяются ТОЛЬКО к агенту nocowboy; auto/worker/architect/reviewer/planner их не получают",
+          "verify": "проверка per-agent rules: не-nocowboy агенты без soul-инструкций",
+          "critical": true
+        },
+        {
+          "check": "Ни один не-nocowboy агент не подключается к движку души (127.0.0.1:9339) и не регистрирует сессию",
+          "verify": "grep: Приказ #0 / soul 9339 недоступен прочим агентам",
+          "critical": true
+        },
+        {
+          "check": "Scoping по агенту (per-agent rules), а не общий .nocowboy/rules/* всем; реестр modes/агентов учитывает nocowboy и auto",
+          "verify": "KNOWN_MODES/registry включает nocowboy+auto и не течёт в чужие агенты",
+          "critical": true
+        }
+      ],
+      "notes": "Диагноз (2026-10-07): .nocowboy/rules/ — общий каталог, грузится всем агентам; KNOWN_MODES в packages/opencode/src/nocowboy/rules-migrator.ts = [code,architect,debug,worker,planner,reviewer] — БЕЗ nocowboy и auto, поэтому per-mode каталоги (rules-{mode}) сейчас не могут адресовать ни nocowboy, ни auto. Агенты определены в packages/opencode/src/nocowboy/agent/index.ts (worker/nocowboy/reviewer/architect/planner/auto). Фикс (не в этой задаче — только фиксация): вынести soul/identity-правила из общего .nocowboy/rules/ в scope только агента nocowboy и научить механизм per-agent rules адресовать nocowboy. Полный текст — .nocowboy/specs/soul-engine-agent-scoping.md.",
+      "verify": [
+        {
+          "type": "file",
+          "path": "docs/features/soul-engine-agent-scoping.md"
         }
       ]
     }
