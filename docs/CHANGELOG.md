@@ -631,6 +631,12 @@
 - **DONE** Контрактные тесты миграции движка (минимальный набор сценариев)
   `verify:test packages/opencode/test/nocowboy/contracts`
   `verify:file docs/features/migration-contract-tests.md`
+- **DONE** Backport: сохранение recent tail при compaction + token budgeting/pruning
+  `verify:test packages/opencode/test/session/compaction.test.ts`
+  `verify:test packages/opencode/test/nocowboy/session-compaction-safety.test.ts`
+  `verify:test packages/opencode/test/nocowboy/compaction-payload-recovery.test.ts`
+  `verify:file docs/features/backport-compaction-tail.md`
+  `verify:test packages/opencode/test/nocowboy/contracts/07-compaction-goal.contract.test.ts`
 - **DONE** Capability-конфиг выбора инструментов вместо проверки имени модели
   `verify:test packages/opencode/test/nocowboy/tool-capabilities.test.ts`
   `verify:test packages/opencode/test/tool/registry.test.ts`

@@ -4910,7 +4910,7 @@
     {
       "id": "backport-compaction-tail",
       "title": "Backport: сохранение recent tail при compaction + token budgeting/pruning",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "backport",
       "priority": "P1",
@@ -4926,18 +4926,41 @@
       "acceptance_criteria": [
         {
           "check": "Recent tail сохраняется при compaction",
-          "verify": "bun test test/nocowboy (compaction tail)",
+          "verify": "bun test test/session/compaction.test.ts",
           "critical": true
         },
         {
           "check": "Token budget/pruning работают на границах cache invalidation",
-          "verify": "bun test test/nocowboy (compaction budget)",
+          "verify": "bun test test/session/compaction.test.ts",
           "critical": true
         },
         {
           "check": "Очередь prompts и checkpoint contract не теряются",
-          "verify": "bun test test/nocowboy (compaction queue)",
+          "verify": "bun test test/nocowboy/session-compaction-safety.test.ts + test/nocowboy/compaction-payload-recovery.test.ts + test/nocowboy/contracts/07-compaction-goal.contract.test.ts",
           "critical": true
+        }
+      ],
+      "notes": "Verify-only backport (2026-10-07): поведение УЖЕ присутствует в унаследованной компактификации (корневой коммит форка ca721a26f9), отдельного upstream-диффа для переноса нет. session/compaction.ts: select() оставляет хвост tail_turns (default 2) в пределах preserve_recent_tokens, пишет tail_start_id, суммирует только head; preserveRecentBudget() = compaction.preserve_recent_tokens либо clamp(usable*0.25,2000,8000); prune() защищает PRUNE_PROTECT токенов, эррайзит старые tool-вызовы и останавливается на part.state.time.compacted и на summary-сообщении. Конфиг: compaction.tail_turns/preserve_recent_tokens/prune (config.ts). Доказательства: test/session/compaction.test.ts 57/57, test/nocowboy/session-compaction-safety.test.ts 29/29, test/nocowboy/compaction-payload-recovery.test.ts 3/3.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/session/compaction.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session-compaction-safety.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/compaction-payload-recovery.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/backport-compaction-tail.md"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/contracts/07-compaction-goal.contract.test.ts"
         }
       ]
     },
