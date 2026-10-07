@@ -6,6 +6,7 @@ import { SessionID, MessageID } from "@/session/schema"
 import { Effect, Layer, Context, Schema } from "effect"
 import { Config } from "@/config/config"
 import { MCP } from "../mcp"
+import { renderPromptTemplate } from "../mcp/prompt-template"
 import { Skill } from "../skill"
 import { localReviewCommand, localReviewUncommittedCommand } from "@/nocowboy/review/command"
 import { autopilotCommand, roadmapCommand } from "@/nocowboy/autopilot/command" // nocowboy_change
@@ -148,11 +149,8 @@ export const layer = Layer.effect(
                     : {},
                 )
                 .pipe(
-                  Effect.map(
-                    (template) =>
-                      template?.messages
-                        .map((message) => (message.content.type === "text" ? message.content.text : ""))
-                        .join("\n") || "",
+                  Effect.map((template) =>
+                    renderPromptTemplate(template, { client: prompt.client, name: prompt.name }),
                   ),
                 ),
             )

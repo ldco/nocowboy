@@ -286,6 +286,10 @@
 - **DONE** Distill command — сканировать сессии → генерировать skills/commands
   `verify:file docs/features/distill-command.md`
 - **DONE** Self-Being Meta-Cognitive Architecture (P3-SELF)
+- **DONE** NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
+  `verify:test packages/opencode/test/mcp/prompt-template.test.ts`
+  `verify:test packages/opencode/test/mcp/lifecycle.test.ts`
+  `verify:file docs/features/mcp-prompt-support.md`
 - **DONE** Instruction Files Analysis (P2-C2): починить пути, смержить no-shortcuts
   `verify:file docs/features/instructions-analysis.md`
 - **DONE** Per-task cost tracking с леджером

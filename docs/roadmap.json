@@ -1431,21 +1431,21 @@
     {
       "id": "mcp-prompt-support",
       "title": "NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)",
-      "status": "planned",
-      "notes": "Было в старом ROADMAP как NOT DONE.",
+      "status": "done",
+      "notes": "Механизм универсален: prompt'ы подключённых MCP-серверов становятся командами (source=mcp); шаблоны NUTAUSIK приходят через этот же путь, их содержимое — на стороне сервера (внешний MCP). Добавлен чистый renderPromptTemplate: неизвестный prompt → явная ошибка, не пустой.",
       "version": "v0.11.0",
       "phase": "post-v1.0",
       "priority": "P3",
       "depends_on": [],
       "acceptance_criteria": [
         {
-          "check": "NUTAUSIK MCP отдаёт prompt templates (dream, memory, context_inject)",
-          "verify": "bun test test/nocowboy (mcp prompts)",
+          "check": "MCP-промпты подключённых серверов (в т.ч. NUTAUSIK, когда сервер их отдаёт через prompts/list; контент шаблонов — серверный, external @nocowboy/mcp-nutausik) перечисляются и становятся командами source:mcp",
+          "verify": "bun test test/mcp/prompt-template.test.ts + test/mcp/lifecycle.test.ts",
           "critical": true
         },
         {
           "check": "Неизвестный prompt → явная ошибка, не пустой ответ",
-          "verify": "bun test test/nocowboy (mcp prompts)",
+          "verify": "bun test test/mcp/prompt-template.test.ts + test/mcp/lifecycle.test.ts",
           "critical": false
         }
       ],
@@ -1453,6 +1453,20 @@
         "Описать prompt templates на стороне NUTAUSIK",
         "Прокинуть в MCP get/list",
         "Тест неизвестного prompt"
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/mcp/prompt-template.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/mcp/lifecycle.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-prompt-support.md"
+        }
       ]
     },
     {

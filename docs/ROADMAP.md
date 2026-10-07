@@ -16,11 +16,6 @@
   - CLI: tausik turso setup/sync/status
   - turso секция в NutausikConfig (url, authToken, syncInterval)
   `verify:file packages/opencode/src/sync/turso-sync.ts`
-- ⬜ NUTAUSIK MCP Prompt Support (dream, memory, context_inject prompt templates)
-  > Было в старом ROADMAP как NOT DONE.
-  - Описать prompt templates на стороне NUTAUSIK
-  - Прокинуть в MCP get/list
-  - Тест неизвестного prompt
 - ⬜ Vector store switcher UI
   > Был в старом P2 роадмапе
   - Config→reindex chain без рестарта
