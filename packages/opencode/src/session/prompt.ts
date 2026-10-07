@@ -17,7 +17,7 @@ import { StopHooks, STOP_HOOK_MAX } from "@/nocowboy/session/stop-hooks" // noco
 import { CommandTimeout } from "@/nocowboy/command-timeout"
 import { Suggestion } from "@/nocowboy/suggestion"
 import { Question } from "@/question"
-import { hasRouteDirective, parseRoute } from "./router"
+import { parseHandoffAny } from "./router" // nocowboy_change - structured Handoff (+ legacy #route adapter)
 import { zod } from "@nocowboy/core/effect-zod"
 import { withStatics } from "@nocowboy/core/schema"
 import { SessionID, MessageID, PartID } from "./schema"
@@ -1687,26 +1687,26 @@ export const layer = Layer.effect(
           .filter((p) => p.type === "text")
           .map((p) => (p as any).text ?? "")
           .join("\n")
-        if (hasRouteDirective(routeText) && !session.parentID) {
-          const route = parseRoute(routeText)
-          if (route) {
-            const exit = yield* Effect.exit(agents.get(route.agent))
-            const nextAgent: Agent.Info | undefined = exit._tag === "Success" ? exit.value : undefined
-            if (nextAgent && nextAgent.mode !== "subagent") {
-              const rebridge = yield* runner()
-              return yield* NoCowboySessionPromptQueue.enqueue(
-                input.sessionID,
-                loopResult.info.id,
-                rebridge.run(
-                  loop({
-                    sessionID: input.sessionID,
-                    agentOverride: route.agent,
-                    snapshotInitialization: undefined,
-                  }).pipe(Effect.orDie),
-                ),
-                rebridge.run(lastAssistant(input.sessionID)),
-              )
-            }
+        // nocowboy_change: the internal handoff is a structured Handoff; the
+        // textual `#route:` directive is supported through a compatibility adapter.
+        const handoff = parseHandoffAny(routeText)
+        if (handoff && !session.parentID) {
+          const exit = yield* Effect.exit(agents.get(handoff.target))
+          const nextAgent: Agent.Info | undefined = exit._tag === "Success" ? exit.value : undefined
+          if (nextAgent && nextAgent.mode !== "subagent") {
+            const rebridge = yield* runner()
+            return yield* NoCowboySessionPromptQueue.enqueue(
+              input.sessionID,
+              loopResult.info.id,
+              rebridge.run(
+                loop({
+                  sessionID: input.sessionID,
+                  agentOverride: handoff.target,
+                  snapshotInitialization: undefined,
+                }).pipe(Effect.orDie),
+              ),
+              rebridge.run(lastAssistant(input.sessionID)),
+            )
           }
         }
         return loopResult

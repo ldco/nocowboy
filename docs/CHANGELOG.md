@@ -578,6 +578,9 @@
   `verify:test packages/opencode/test/nocowboy/engine-adapter/binding.test.ts`
   `verify:test packages/opencode/test/tool/task.test.ts`
   `verify:file docs/features/engine-adapter-package.md`
+- **DONE** Структурированный Handoff вместо текстового #route
+  `verify:test packages/opencode/test/nocowboy/session-router.test.ts`
+  `verify:file docs/features/structured-handoff.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`

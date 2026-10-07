@@ -4275,7 +4275,7 @@
     {
       "id": "structured-handoff",
       "title": "Структурированный Handoff вместо текстового #route",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P1",
@@ -4285,7 +4285,7 @@
         "architecture"
       ],
       "description": "Заменить `#route:` внутренним структурированным `Handoff { target, reason, context, artifacts }`, сохранив textual parser как compatibility adapter.",
-      "notes": "`session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.",
+      "notes": "Shipped on master. session/router.ts now defines the typed `Handoff {target, reason, context, artifacts}` alongside the untouched legacy `#route:` parser, plus `normalizeHandoff`, `parseHandoff` (fenced ```handoff JSON block or inline `#handoff: {…}`; malformed/missing-target -> null, never throws), `renderHandoff` (round-trips), `routeToHandoff` (compatibility adapter) and `parseHandoffAny` (structured first, else legacy `#route:` adapted, else null). The session loop (session/prompt.ts) resolves the handoff via `parseHandoffAny(...)` and uses `handoff.target` as the agentOverride; legacy `#route:` behaviour is unchanged (target=agent, reason=description, context=prompt). Tests: test/nocowboy/session-router.test.ts (11 pass). Reviewer-verified (read-only) 2026-10-07.",
       "depends_on": [
         "engine-adapter-package"
       ],
@@ -4299,6 +4299,16 @@
           "check": "Legacy `#route:` продолжает работать как compatibility adapter",
           "verify": "bun test test/nocowboy/session-router",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/session-router.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/structured-handoff.md"
         }
       ]
     },

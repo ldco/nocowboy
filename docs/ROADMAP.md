@@ -126,8 +126,6 @@
   - Fallback: только diff без графа
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
-- ⬜ Структурированный Handoff вместо текстового #route
-  > `session/router.ts` распознаёт `#route:` в тексте assistant; `session/prompt.ts:1685` запускает следующий loop с agentOverride. Текстовый handoff надо сохранить и формализовать при миграции.
 - ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix
   > ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.
 - ⬜ Versioned facade + contract tests для experimental hooks
