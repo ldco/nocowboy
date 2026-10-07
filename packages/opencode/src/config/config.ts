@@ -38,6 +38,7 @@ import { ConfigPaths } from "./paths"
 import { ConfigPermission } from "./permission"
 import { ConfigPlugin } from "./plugin"
 import { ConfigProvider } from "./provider"
+import { sanitizeProviderConfig } from "@/nocowboy/config/provider-models" // nocowboy_change - tolerate malformed model entries
 import { ConfigReference } from "./reference"
 import { ConfigServer } from "./server"
 import { ConfigSkills } from "./skills"
@@ -73,6 +74,16 @@ function mergeConfigConcatArrays(target: Info, source: Info): Info {
 function normalizeLoadedConfig(data: unknown, source: string) {
   if (!isRecord(data)) return data
   const copy = NoCowboyConfig.retireIndexingFlag({ ...data }, source)
+  // nocowboy_change - a malformed provider model entry must not fail the whole
+  // config decode: drop the bad entry, keep the rest, report each drop.
+  for (const error of sanitizeProviderConfig(copy as Record<string, unknown>)) {
+    log.warn("provider model entry ignored — malformed", {
+      path: source,
+      provider: error.provider,
+      model: error.model,
+      message: error.message,
+    })
+  }
   const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
   if (!hadLegacy) return copy
   delete copy.theme

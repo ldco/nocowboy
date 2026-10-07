@@ -5160,7 +5160,7 @@
     {
       "id": "backport-provider-malformed-config",
       "title": "Backport: терпимость provider config к malformed model entry",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "backport",
       "priority": "P2",
@@ -5184,6 +5184,25 @@
           "check": "Ошибка сообщается структурно, остальные модели доступны",
           "verify": "bun test test/provider (malformed model entry)",
           "critical": true
+        }
+      ],
+      "notes": "New pure packages/opencode/src/nocowboy/config/provider-models.ts: sanitizeProviderModels (keeps valid entries + null markers, drops malformed with a reason) and sanitizeProviderConfig (walks provider[*].models, drops bad entries, returns {provider,model,message} per drop). Wired into config.ts normalizeLoadedConfig (pre-decode): each dropped entry logs log.warn('provider model entry ignored — malformed'). So one bad model no longer fails the whole config decode — the provider loads with the remaining models. Tests provider-models.test.ts (pure) + config.test.ts (integration: config with a bad model loads, good defined, bad absent).",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-models.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/config/config.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/config/provider-models.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/backport-provider-malformed-config.md"
         }
       ]
     },

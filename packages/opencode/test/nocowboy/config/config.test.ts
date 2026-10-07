@@ -614,3 +614,28 @@ describe("context_profile config", () => {
     expect(() => decode({ context_profile: "huge" })).toThrow()
   })
 })
+
+describe("provider model entry tolerance", () => {
+  test("a malformed provider model entry does not break config load", async () => {
+    await using tmp = await tmpdir({ git: true })
+    await writeConfig(tmp.path, {
+      provider: {
+        local: {
+          models: {
+            good: { name: "Good Model" },
+            bad: { cost: { input: "not-a-number" } },
+          },
+        },
+      },
+    })
+    await provideTestInstance({
+      directory: tmp.path,
+      fn: async () => {
+        const config = await load()
+        const models = (config.provider?.local as { models?: Record<string, unknown> } | undefined)?.models
+        expect(models?.good).toBeDefined()
+        expect(models?.bad).toBeUndefined()
+      },
+    })
+  })
+})

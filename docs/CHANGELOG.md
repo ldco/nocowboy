@@ -682,6 +682,11 @@
   `verify:test packages/opencode/test/tool/task.test.ts`
   `verify:file packages/opencode/src/nocowboy/tool/resume.ts`
   `verify:file docs/features/backport-subagent-depth-resume.md`
+- **DONE** Backport: терпимость provider config к malformed model entry
+  `verify:test packages/opencode/test/nocowboy/provider-models.test.ts`
+  `verify:test packages/opencode/test/nocowboy/config/config.test.ts`
+  `verify:file packages/opencode/src/nocowboy/config/provider-models.ts`
+  `verify:file docs/features/backport-provider-malformed-config.md`
 - **DONE** Capability-конфиг выбора инструментов вместо проверки имени модели
   `verify:test packages/opencode/test/nocowboy/tool-capabilities.test.ts`
   `verify:test packages/opencode/test/tool/registry.test.ts`
