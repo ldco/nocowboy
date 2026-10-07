@@ -16,6 +16,7 @@ import { Provider } from "@/provider/provider"
 import { KiloTask } from "../nocowboy/tool/task"
 import { KiloCostPropagation } from "../nocowboy/session/cost-propagation"
 import { NoCowboySessionProcessor } from "../nocowboy/session/processor"
+import * as SpecContract from "../nocowboy/spec/contract" // nocowboy_change - delegation contract warning
 import { NoCowboySession } from "../nocowboy/session"
 import { Activity } from "../nocowboy/session/activity" // nocowboy_change
 import {
@@ -33,6 +34,7 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import * as Log from "@nocowboy/core/util/log" // nocowboy_change
 
 const logWatchdog = Log.create({ service: "subagent.watchdog" }) // nocowboy_change
+const logContract = Log.create({ service: "task.contract" }) // nocowboy_change
 
 export interface TaskPromptOps {
   cancel(sessionID: SessionID): Effect.Effect<void>
@@ -146,6 +148,10 @@ export const TaskTool = Tool.define(
       ctx: Tool.Context,
     ) {
       const cfg = yield* config.get()
+      // A delegation without the five-part spec contract is a discipline gap, not
+      // a hard error: warn so it is visible, then proceed.
+      const contractWarning = SpecContract.contractWarning(params.prompt)
+      if (contractWarning) logContract.warn(contractWarning, { subagent_type: params.subagent_type })
       const runInBackground = params.background === true
       if (runInBackground && !flags.experimentalBackgroundSubagents) {
         return yield* Effect.fail(new Error("Background subagents require KILO_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true"))

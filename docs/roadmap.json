@@ -3060,7 +3060,7 @@
     {
       "id": "spec-contract-delegation",
       "title": "Spec Contract for Delegation — стандартизированный шаблон spec для делегации",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -3086,7 +3086,18 @@
         "renderSpecContract/validateSpecContract",
         "Предупреждение в task при отсутствии контракта",
         "Тест пустых частей"
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/spec-contract.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/spec-contract-delegation.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New module packages/opencode/src/nocowboy/spec/contract.ts — the five mandated parts (goal/constraints/acceptanceCriteria/filesToTouch/filesToNotTouch): `validateSpecContract` returns one problem per missing/empty part (an empty part must be the explicit word `none`, an empty string/array is missing); `renderSpecContract` renders a stable markdown block; `hasSpecContract`/`contractWarning` back a NON-blocking warning. The task tool (tool/task.ts) now logs that warning when a delegation prompt lacks a contract. The `/spec-contract` command (.nocowboy/command/spec-contract.md) assembles it. Tests: test/nocowboy/spec-contract.test.ts (9). NOTE: the subagent-discipline rule already referenced `renderSpecContract`/`validateSpecContract` and `/spec-contract`; those were missing — this makes them real."
     },
     {
       "id": "yagni-decision-ladder",
