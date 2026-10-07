@@ -2987,7 +2987,7 @@
     {
       "id": "arch-layer-detection",
       "title": "Architectural Layer Detection — авто-определение слоёв (API, Service, Data, UI)",
-      "status": "planned",
+      "status": "done",
       "priority": "P2",
       "phase": "knowledge-graph",
       "depends_on": [
@@ -3015,7 +3015,18 @@
           "verify": "bun test test/nocowboy (arch layer)",
           "critical": true
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/arch-layer-detection.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/arch-layer-detection.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New module packages/opencode/src/nocowboy/knowledge-graph/layers.ts: DEFAULT_LAYER_RULES (API/Service/Data/UI, ordered specific→general, segment-anchored so `src/rapid.ts` is not API), UNKNOWN_LAYER + LAYER_LEGEND (layer→color), `defaultLayerProvider` (InMemoryGraphProvider with the rules) and `groupByLayer(provider, files)` (groups in legend order, unknown last, each with its color). Builds on the existing GraphProvider.layer seam (knowledge-graph-stub): first match wins, unknown path -> null, no invented layer. Tests: test/nocowboy/arch-layer-detection.test.ts (9)."
     },
     {
       "id": "cost-routing-doctrine",
