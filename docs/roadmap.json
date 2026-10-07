@@ -2909,7 +2909,7 @@
     {
       "id": "diff-impact-analysis",
       "title": "Diff Impact Analysis — какие части системы затронуты изменениями",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "knowledge-graph",
       "depends_on": [
@@ -2942,7 +2942,22 @@
           "verify": "bun run src/cli/cmd/knowledge-graph.ts impact --changed <files>",
           "critical": false
         }
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/diff-impact-analysis.test.ts"
+        },
+        {
+          "type": "cmd",
+          "command": "bun run packages/opencode/src/cli/cmd/knowledge-graph.ts impact --changed"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/diff-impact-analysis.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New lightweight import-graph builder packages/opencode/src/nocowboy/knowledge-graph/importer.ts (`buildImportGraph`, `listSourceFiles`): scans source files, extracts import/export-from and dynamic-import specifiers, resolves RELATIVE ones to files (exact when a single candidate; heuristic when a specifier maps to several), drops bare/package imports; never throws. Over the existing GraphProvider (knowledge-graph-stub), `impacted` returns importers nearest-first with distance + confidence, unknown input -> []. New CLI packages/opencode/src/cli/cmd/knowledge-graph.ts: `impact --changed <files> [--root] [--depth]` prints the impacted files or `no impact` and never crashes on an empty graph. Tests: test/nocowboy/diff-impact-analysis.test.ts (10: builder edges/external-drop/ambiguity, impacted distance+confidence/unknown/depth, CLI parse + no-impact + real impact)."
     },
     {
       "id": "tree-sitter-parsing",
