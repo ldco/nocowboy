@@ -26,11 +26,6 @@
   - MCP-запись в nocowboy.json
   - Коннектор list/read vault
   - Тест изоляции ошибок MCP
-- ⬜ Lang switcher — переключатель ru/en в TUI Settings
-  > i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.
-  - lang в TuiConfig
-  - Кнопка Settings → Language
-  - Переключение на лету + тест ключей
 
 ---
 

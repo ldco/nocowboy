@@ -2411,9 +2411,9 @@
     {
       "id": "lang-switcher-ui",
       "title": "Lang switcher — переключатель ru/en в TUI Settings",
-      "status": "planned",
+      "status": "done",
       "version": "v0.11.0",
-      "notes": "i18n система есть (35 ключей), I18nProvider создан, но lang только в nocowboy.json. Нужно: добавить lang в TuiConfig, кнопку в Settings, переключение на лету.",
+      "notes": "Master already had LanguageRow (live switch writing lang to config + sync.set) and resolveLanguage. This item adds the TuiConfig level: `lang` in TuiInfo (tui-schema.ts), the i18n bridge resolves resolveLanguage({tui: useTuiConfig().lang, config: sync.data.config.lang}), and tui-language.test.ts covers the TuiInfo schema (accepts ru/en, rejects others).",
       "phase": "post-v1.0",
       "priority": "P2",
       "depends_on": [],
@@ -2433,6 +2433,20 @@
         "lang в TuiConfig",
         "Кнопка Settings → Language",
         "Переключение на лету + тест ключей"
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/tui-language.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/i18n.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/lang-switcher-ui.md"
+        }
       ]
     },
     {

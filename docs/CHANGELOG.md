@@ -322,6 +322,10 @@
   `verify:file docs/features/auto-dream-prog.md`
 - **DONE** UI для выбора модели каждого агента в Settings TUI
   `verify:file docs/features/agent-model-settings-ui.md`
+- **DONE** Lang switcher — переключатель ru/en в TUI Settings
+  `verify:test packages/opencode/test/nocowboy/tui-language.test.ts`
+  `verify:test packages/opencode/test/nocowboy/i18n.test.ts`
+  `verify:file docs/features/lang-switcher-ui.md`
 
 ### Quality — Verification Loop (check tool + auto-verify + prompt enforcement done)
 

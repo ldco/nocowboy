@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test"
+import { Schema } from "effect"
+import { TuiInfo } from "@/cli/cmd/tui/config/tui-schema"
 import { DEFAULT_LANGUAGE, isLanguage, LANGUAGES, resolveLanguage } from "@/nocowboy/ui/language"
 
 describe("resolveLanguage", () => {
@@ -33,5 +35,19 @@ describe("isLanguage", () => {
     expect(isLanguage("de")).toBe(false)
     expect(isLanguage(undefined)).toBe(false)
     expect(isLanguage(1)).toBe(false)
+  })
+})
+
+describe("TuiConfig lang", () => {
+  const decode = Schema.decodeUnknownSync(TuiInfo)
+
+  test("accepts ru and en", () => {
+    expect(decode({ lang: "ru" }).lang).toBe("ru")
+    expect(decode({ lang: "en" }).lang).toBe("en")
+    expect(decode({}).lang).toBeUndefined()
+  })
+
+  test("rejects an unsupported language", () => {
+    expect(() => decode({ lang: "de" })).toThrow()
   })
 })
