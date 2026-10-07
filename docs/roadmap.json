@@ -4749,7 +4749,7 @@
     {
       "id": "git-balance-async-services",
       "title": "Git/Balance — асинхронные сервисы, unknown ≠ 0",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p3-ui",
       "priority": "P2",
@@ -4759,7 +4759,7 @@
         "reliability"
       ],
       "description": "Вынести Git/balance polling из render-функций в асинхронные services. Ввести GitPort; состояние unknown/stale/error представлять отдельно от 0.",
-      "notes": "Git bar синхронно читает `.git/HEAD` и вызывает Git раз в 10 секунд — это polling, не event stream. Balance failure возвращает 0, поэтому zero не доказательство отсутствия средств.",
+      "notes": "New pure GitPort (packages/opencode/src/nocowboy/git/git-port.ts): GitState (ok|unknown|error), parseGitHead/parseGitStatus/findRepoRoot, createGitPort({run,exists,readFile}) (async, injectable; read() never throws: no repo -> unknown (not a fake clean tree), git-status failure or unreadable HEAD -> error with reason, missing upstream -> ahead/behind 0 but status ok), defaultGitPort (fs + async execFile). nocowboy-bars.tsx TopBar drops the sync execSync gitInfo() and reads defaultGitPort asynchronously (signal + 10s interval, outside render); branch/counters shown only when status ok. NutausikDot health now goes through hasNutausik() (MemoryAdapter) instead of a hardcoded endpoint. Balance unknown != 0 was shipped by cost-balance-semantics — re-verified by the provider-balance test.",
       "depends_on": [
         "nocowboy-ui-package"
       ],
@@ -4773,6 +4773,28 @@
           "check": "unknown/stale/error не отображаются как 0",
           "verify": "bun test test/nocowboy (balance status)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/git-port.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/provider-balance.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/git/git-port.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/components/nocowboy-bars.tsx"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/git-balance-async-services.md"
         }
       ]
     },

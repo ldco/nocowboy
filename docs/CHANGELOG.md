@@ -641,6 +641,12 @@
   `verify:file packages/opencode/src/nocowboy/ui/input-port.ts`
   `verify:file packages/opencode/src/nocowboy/components/nocowboy-bars.tsx`
   `verify:file docs/features/input-port.md`
+- **DONE** Git/Balance — асинхронные сервисы, unknown ≠ 0
+  `verify:test packages/opencode/test/nocowboy/git-port.test.ts`
+  `verify:test packages/opencode/test/nocowboy/provider-balance.test.ts`
+  `verify:file packages/opencode/src/nocowboy/git/git-port.ts`
+  `verify:file packages/opencode/src/nocowboy/components/nocowboy-bars.tsx`
+  `verify:file docs/features/git-balance-async-services.md`
 - **DONE** Единый MemoryAdapter — статусы, explicit namespace, shutdown flush
   `verify:test packages/opencode/test/nocowboy/memory-adapter.test.ts`
   `verify:test packages/opencode/test/nocowboy/nutausik-client.test.ts`
