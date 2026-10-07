@@ -3118,7 +3118,7 @@
     {
       "id": "over-engineering-review",
       "title": "Over-Engineering Review — /ponytail-review: анализ diff на переинжиниринг",
-      "status": "planned",
+      "status": "done",
       "priority": "P1",
       "phase": "alpha-quality",
       "tags": [
@@ -3144,7 +3144,18 @@
         "/ponytail-review команда",
         "parseFindings канонический формат",
         "Тест findings"
-      ]
+      ],
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/over-engineering-review.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/over-engineering-review.md"
+        }
+      ],
+      "notes": "Implemented 2026-10-06. New module packages/opencode/src/nocowboy/review/over-engineering.ts — `parseFindings` parses the canonical `- [<category>] <target> — <suggestion>` line (em dash, hyphen tolerated) and ignores non-canonical text; `splitFindings`/`reviewOverEngineering` separate actionable findings from protected safety invariants (trust-boundary/validation, data-loss, security/auth, error handling, accessibility, atomicity/rollback) so the review never proposes cutting safety (safety invariants не режутся). `/ponytail-review` command added (.nocowboy/command/ponytail-review.md). The lazy-senior rule already referenced `parseFindings` in src/nocowboy/review/over-engineering.ts; it now exists. Tests: test/nocowboy/over-engineering-review.test.ts (7)."
     },
     {
       "id": "subagent-hang-watchdog",

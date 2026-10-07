@@ -1,9 +1,15 @@
+// Heavy engine tests (prompt loops, temp git repos, multi-file git batches) can
+// take far longer than Bun's 5000ms default under CI load. bunfig.toml `[test]
+// timeout` is not honoured here, so raise the default explicitly for every test
+// file (this preload is applied globally via bunfig preload).
+setDefaultTimeout(60_000)
+
 // IMPORTANT: Set env vars BEFORE any imports from src/ directory
 // xdg-basedir reads env vars at import time, so we must set these first
 import os from "os"
 import path from "path"
 import fs from "fs/promises"
-import { afterAll } from "bun:test"
+import { afterAll, setDefaultTimeout } from "bun:test"
 import { remove as cleanup } from "./nocowboy/cleanup" // kilocode_change
 
 // Set XDG env vars FIRST, before any src/ imports
