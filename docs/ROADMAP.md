@@ -116,8 +116,6 @@
 
 - ⬜ Knowledge Graph AST engine — tree-sitter символы/call edges + LLM-сводка
   > Долгосрочный бэклог. Требует новый экспорт из @nocowboy/indexing, возвращающий структурные определения (текущий parseSourceCodeDefinitionsForFile отдаёт текстовый блоб), и языковые запросы для CALL edges.
-- ⬜ Детерминированный stage machine: design → plan → implement → verify → accept/fix
-  > ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.
 - ⬜ Versioned facade + contract tests для experimental hooks
 - ⬜ @nocowboy/i18n — стабильные ключи, locale context, отказ от phrase fallback
   > phrase lookup опирается на английский literal; в own sidebar остаются Token Usage/Input/Output/Cached, в custom sidebar — [+ New Session]/[ Share ]; environment/task reentry/autopilot/identityAnchor содержат английские строки; `NocowboyAgent.cacheKey` не включает lang; `packages/ui/src/context/i18n.tsx` — отдельная точка локализации.

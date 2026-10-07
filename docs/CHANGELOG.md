@@ -594,6 +594,11 @@
 - **DONE** Структурированный Handoff вместо текстового #route
   `verify:test packages/opencode/test/nocowboy/session-router.test.ts`
   `verify:file docs/features/structured-handoff.md`
+- **DONE** Детерминированный stage machine: design → plan → implement → verify → accept/fix
+  `verify:file packages/opencode/src/nocowboy/session/stage-machine.ts`
+  `verify:test packages/opencode/test/nocowboy/stage-machine.test.ts`
+  `verify:test packages/opencode/test/nocowboy/autopilot.test.ts`
+  `verify:file docs/features/stage-machine.md`
 - **DONE** EditPort — семантика match/batch/stale-read/partial-failure
   `verify:test packages/opencode/test/tool/search_replace.test.ts`
   `verify:test packages/opencode/test/nocowboy/edit-port.test.ts`

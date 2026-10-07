@@ -4387,7 +4387,7 @@
     {
       "id": "stage-machine",
       "title": "Детерминированный stage machine: design → plan → implement → verify → accept/fix",
-      "status": "planned",
+      "status": "done",
       "version": "v1.1.0",
       "phase": "p1-runtime",
       "priority": "P1",
@@ -4397,7 +4397,7 @@
         "orchestration"
       ],
       "description": "Если цепочка AC/review обязательна — реализовать stage machine с детерминированным gate, который проверяет результаты, а не наличие слов APPROVED/DONE. Prompt остаётся подсказкой, не барьером.",
-      "notes": "ACVerificationHook проверяет имя агента `goal`, которого patchAgents не создаёт; order-of-magnitude: специализированные роли реализованы, но обязательность цепочки не установлена. Согласуется с in_progress stop-hooks-turn-level и ac-verification-hook.",
+      "notes": "Реализовано в master 2026-10-07. Чистый модуль packages/opencode/src/nocowboy/session/stage-machine.ts: STAGES design→plan→implement→verify→accept; StageEvidence (design/plan/changed/verified/accepted) + EVIDENCE_FOR; stageSatisfied/missingEvidence; gate(stage,evidence) — стадия удовлетворяется только своим артефактом; advance(stage,evidence) — шаг только при наличии артефакта (advance(\"plan\", …) не входит в implement без evidence.plan); stopRequest(stage,evidence) — turn-level адаптер, называет недостающий артефакт; roadmapGate({hasFeatures,actionable,inProgress}) — детерминированный run-gate (design/plan/verify/accept) по статусам пунктов, не по тексту. Провязано в Autopilot: roadmapComplete → roadmapGate(...).complete, currentStage → roadmapGate(...).item — inline-гейт заменён одним протестированным модулем, поведение сохранено (autopilot.test.ts зелёный). Барьер — артефакт/результат (тест, diff, AC-evidence), не слова APPROVED/DONE; prompt остаётся подсказкой. Тесты test/nocowboy/stage-machine и test/nocowboy/autopilot.",
       "depends_on": [
         "structured-handoff"
       ],
@@ -4411,6 +4411,24 @@
           "check": "Stage machine не пропускает implement без plan, когда цепочка включена",
           "verify": "bun test test/nocowboy (stage transitions)",
           "critical": true
+        }
+      ],
+      "verify": [
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/session/stage-machine.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/stage-machine.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/autopilot.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/stage-machine.md"
         }
       ]
     },

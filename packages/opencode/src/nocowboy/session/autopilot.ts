@@ -15,6 +15,7 @@ import path from "path"
 import { MessageID, PartID, type SessionID } from "@/session/schema"
 import type { MessageV2 } from "@/session/message-v2"
 import type { Goal } from "./goal"
+import { roadmapGate } from "./stage-machine" // nocowboy_change - deterministic stage gate
 
 /**
  * Default cap on automatic continuations within one turn, used when a goal does
@@ -115,7 +116,11 @@ export namespace Autopilot {
    */
   export function currentStage(summary: RoadmapSummary): string | undefined {
     if (!summary.hasFeatures) return undefined
-    return summary.inProgress[0] ?? summary.actionable[0]
+    return roadmapGate({
+      hasFeatures: summary.hasFeatures,
+      actionable: summary.actionable,
+      inProgress: summary.inProgress,
+    }).item
   }
 
   /**
@@ -148,7 +153,11 @@ export namespace Autopilot {
 
   /** True when a readable roadmap has no actionable items left. */
   export function roadmapComplete(summary: RoadmapSummary): boolean {
-    return summary.hasFeatures && summary.actionable.length === 0
+    return roadmapGate({
+      hasFeatures: summary.hasFeatures,
+      actionable: summary.actionable,
+      inProgress: summary.inProgress,
+    }).complete
   }
 
   /**
