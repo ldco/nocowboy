@@ -30,6 +30,7 @@ import PROMPT_RU from "./prompt/nocowboy-ru.txt"
 import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
+import { SvelteRunes } from "../nocowboy/svelte-runes"
 import { fetchContext, fetchCoherenceCheck, fetchHandoff, fetchPmContext, hasNutausik } from "../nocowboy/nutausik-client"
 
 export function instructions() {
@@ -171,6 +172,11 @@ export const layer = Layer.effect(
 
         // 2. Repomap (dynamic but TTL-cached — stable within session)
         if (envParts.length > 1 && envParts[1]) lines.push(envParts[1])
+
+        // 3. Conditional Svelte 5 Runes directive — injected ONLY in a
+        // Svelte/SvelteKit workspace, never into a non-Svelte project's prompt.
+        const svelteDirective = SvelteRunes.directiveFor(ctx.directory || process.cwd())
+        if (svelteDirective) lines.push(svelteDirective)
 
         // 4. DYNAMIC BLOCK — varies per session/message, always at end
         const nutausikAlive = yield* Effect.promise(() => hasNutausik()).pipe(Effect.catch(() => Effect.succeed(false)))

@@ -98,11 +98,3 @@
   `verify:cmd npm view @nocowboy/nocowboy version 2>/dev/null`
 
 ---
-
-## v1.2.0 — Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts)
-
-- ⬜ Svelte 5 Runes conditional directive — запрет legacy Svelte 3/4 в Svelte/SvelteKit workspace
-  > Источник — директива CONDITIONAL DIRECTIVE: SVELTE & SVELTEKIT ENVIRONMENT (2026-10-07). Полный текст — в .nocowboy/specs/svelte5-runes-enforcement.md. Триггер: svelte.config.js / deps svelte|@sveltejs/kit / правки .svelte,+page.svelte,+layout.svelte,+server.ts. Реализация: conditional instruction injection (config-injector/system-prompt) + правилом .nocowboy/rules/svelte5.md; puppetmaster knowledge.ts уже несёт SVELTE 5 RUNES API для PM v3.
-  `verify:file docs/features/svelte5-runes-enforcement.md`
-
----

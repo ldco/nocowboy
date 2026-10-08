@@ -5296,7 +5296,7 @@
     {
       "id": "svelte5-runes-enforcement",
       "title": "Svelte 5 Runes conditional directive — запрет legacy Svelte 3/4 в Svelte/SvelteKit workspace",
-      "status": "planned",
+      "status": "done",
       "version": "v1.2.0",
       "phase": "frontend",
       "priority": "P2",
@@ -5329,6 +5329,19 @@
       ],
       "notes": "Источник — директива CONDITIONAL DIRECTIVE: SVELTE & SVELTEKIT ENVIRONMENT (2026-10-07). Полный текст — в .nocowboy/specs/svelte5-runes-enforcement.md. Триггер: svelte.config.js / deps svelte|@sveltejs/kit / правки .svelte,+page.svelte,+layout.svelte,+server.ts. Реализация: conditional instruction injection (config-injector/system-prompt) + правилом .nocowboy/rules/svelte5.md; puppetmaster knowledge.ts уже несёт SVELTE 5 RUNES API для PM v3.",
       "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/svelte-runes.test.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/svelte-runes.ts",
+          "pattern": "createEventDispatcher"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/svelte-runes.ts"
+        },
         {
           "type": "file",
           "path": "docs/features/svelte5-runes-enforcement.md"

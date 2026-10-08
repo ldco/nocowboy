@@ -698,6 +698,11 @@
 
 ## v1.2.0 — Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts) (2026-10)
 
+- **DONE** Svelte 5 Runes conditional directive — запрет legacy Svelte 3/4 в Svelte/SvelteKit workspace
+  `verify:test packages/opencode/test/nocowboy/svelte-runes.test.ts`
+  `verify:grep packages/opencode/src/nocowboy/svelte-runes.ts createEventDispatcher`
+  `verify:file packages/opencode/src/nocowboy/svelte-runes.ts`
+  `verify:file docs/features/svelte5-runes-enforcement.md`
 - **DONE** PMSHOPS архитектурный аудит — доменная изоляция, framework-agnostic зависимости, строгие границы (Drizzle↔zod)
   `verify:file docs/features/pmshops-architecture-audit.md`
 
