@@ -48,10 +48,11 @@ export namespace NoCowboyConfigInjector {
     }
 
     if (options.includeRules !== false) {
+      // Global instruction list only — agent-scoped rules (`rules-{agent}/`)
+      // are injected per agent by the instruction service, never here.
       const rulesMigration = await RulesMigrator.migrate({
         projectDir: options.projectDir,
         includeGlobal: !options.skipGlobalPaths,
-        includeModeSpecific: true,
       })
 
       warnings.push(...rulesMigration.warnings)

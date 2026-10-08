@@ -11,9 +11,11 @@ export namespace RulesMigrator {
   const KILO_RULES_DIRS = [".nocowboy/rules"]
   const globalRulesDirs = () => [path.join(home(), ".nocowboy", "rules")]
 
-  // Known modes for mode-specific rule discovery (current NoCowboy names +
-  // legacy aliases from the pre-simplification persona set)
-  const KNOWN_MODES = ["code", "architect", "debug", "worker", "planner", "reviewer"]
+  // The real agent set (packages/opencode/src/nocowboy/agent/index.ts). Rule
+  // directories `.nocowboy/rules-{agent}/` are discovered for these agents and
+  // applied to that agent ONLY — the stale legacy names `code`/`debug` had no
+  // agent behind them, so `rules-code/` could never reach anyone.
+  export const KNOWN_MODES = ["worker", "nocowboy", "reviewer", "architect", "planner", "auto"]
 
   export interface RuleFile {
     path: string
@@ -114,15 +116,31 @@ export namespace RulesMigrator {
     return rules
   }
 
+  /**
+   * Rules that apply to a single agent: the agent-scoped rules (`rules-{agent}/`
+   * or `.kilocoderules-{agent}`) whose mode equals `agent`. Unscoped rules are
+   * NOT included here — they reach every agent through the global instruction
+   * list and must not be duplicated.
+   */
+  export async function scopedRules(projectDir: string, agent: string): Promise<RuleFile[]> {
+    const rules = await discoverRules(projectDir)
+    return rules.filter((rule) => rule.mode === agent)
+  }
+
   export async function migrate(options: {
     projectDir: string
     includeGlobal?: boolean
-    includeModeSpecific?: boolean
+    /**
+     * When set, rules scoped to this agent are included in addition to the
+     * unscoped rules. Without it only unscoped rules are returned: agent-scoped
+     * rules must never leak into the global instruction list shared by every
+     * agent (that leak is what made the soul rules reach auto/worker/...).
+     */
+    agent?: string
   }): Promise<MigrationResult> {
     const warnings: string[] = []
     const instructions: string[] = []
     const includeGlobal = options.includeGlobal ?? true
-    const includeModeSpecific = options.includeModeSpecific ?? true
 
     const rules = await discoverRules(options.projectDir)
 
@@ -132,9 +150,10 @@ export namespace RulesMigrator {
         continue
       }
 
-      // Skip mode-specific if not requested
-      if (rule.mode && !includeModeSpecific) {
-        warnings.push(`Mode-specific rule '${path.basename(rule.path)}' skipped (mode: ${rule.mode})`)
+      // Agent-scoped rules apply to exactly one agent. Without a matching agent
+      // they are dropped from the global list (the previous behaviour appended
+      // every mode-specific rule to every agent's prompt).
+      if (rule.mode && rule.mode !== options.agent) {
         continue
       }
 

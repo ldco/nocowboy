@@ -1996,7 +1996,7 @@ export const layer = Layer.effect(
           const [skills, env, instructions] = yield* Effect.all([
             sys.skills(agent),
             sys.environment(model, lastUser.editorContext),
-            instruction.system().pipe(Effect.orDie),
+            instruction.system(agent.name).pipe(Effect.orDie),
           ])
           let modelMsgs = yield* MessageV2.toModelMessagesEffect(msgs, model)
           const size = Buffer.byteLength(JSON.stringify(modelMsgs))

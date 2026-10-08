@@ -5397,7 +5397,7 @@
     {
       "id": "soul-engine-agent-scoping",
       "title": "Soul-движок только для агента `nocowboy` — auto/worker/architect/reviewer/planner душу не вызывают",
-      "status": "planned",
+      "status": "done",
       "version": "v1.3.0",
       "phase": "harness",
       "priority": "P1",

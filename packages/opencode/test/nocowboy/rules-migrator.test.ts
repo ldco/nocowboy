@@ -88,8 +88,8 @@ describe("RulesMigrator", () => {
     test("discovers mode-specific directory rules", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await fs.mkdir(path.join(dir, ".nocowboy", "rules-code"), { recursive: true })
-          await Bun.write(path.join(dir, ".nocowboy", "rules-code", "style.md"), "# Code style")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules-worker"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules-worker", "style.md"), "# Worker style")
         },
       })
 
@@ -97,7 +97,7 @@ describe("RulesMigrator", () => {
 
       expect(rules).toHaveLength(1)
       expect(rules[0].source).toBe("project")
-      expect(rules[0].mode).toBe("code")
+      expect(rules[0].mode).toBe("worker")
     })
 
     test("discovers mode-specific legacy file", async () => {
@@ -147,7 +147,7 @@ describe("RulesMigrator", () => {
           await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
           await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Main rules")
           // Mode-specific
-          await Bun.write(path.join(dir, ".kilocoderules-code"), "# Code rules")
+          await Bun.write(path.join(dir, ".kilocoderules-worker"), "# Worker rules")
         },
       })
 
@@ -156,7 +156,32 @@ describe("RulesMigrator", () => {
       expect(rules).toHaveLength(3)
       expect(rules.some((r) => r.source === "legacy" && !r.mode)).toBe(true)
       expect(rules.some((r) => r.source === "project")).toBe(true)
-      expect(rules.some((r) => r.mode === "code")).toBe(true)
+      expect(rules.some((r) => r.mode === "worker")).toBe(true)
+    })
+
+    test("does not discover rules for the removed legacy modes", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules-code"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules-code", "style.md"), "# Code style")
+          await Bun.write(path.join(dir, ".kilocoderules-debug"), "# Debug rules")
+        },
+      })
+
+      const rules = await RulesMigrator.discoverRules(tmp.path)
+
+      expect(rules).toHaveLength(0)
+    })
+
+    test("known modes are the real agent set", () => {
+      expect(RulesMigrator.KNOWN_MODES).toEqual([
+        "worker",
+        "nocowboy",
+        "reviewer",
+        "architect",
+        "planner",
+        "auto",
+      ])
     })
 
     test("discovers global rules from ~/.nocowboy/rules/", async () => {
@@ -173,6 +198,26 @@ describe("RulesMigrator", () => {
       expect(
         rules.some((r) => r.source === "global" && r.path.includes(path.join(".nocowboy", "rules", "global.md"))),
       ).toBe(true)
+    })
+  })
+
+  describe("scopedRules", () => {
+    test("returns only the rules scoped to the given agent", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules-nocowboy"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules-nocowboy", "soul.md"), "# Soul")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "shared.md"), "# Shared")
+        },
+      })
+
+      const forNocowboy = await RulesMigrator.scopedRules(tmp.path, "nocowboy")
+      const forAuto = await RulesMigrator.scopedRules(tmp.path, "auto")
+
+      expect(forNocowboy).toHaveLength(1)
+      expect(forNocowboy[0].path).toContain("soul.md")
+      expect(forAuto).toHaveLength(0)
     })
   })
 
@@ -204,32 +249,30 @@ describe("RulesMigrator", () => {
       expect(result.warnings.some((w) => w.includes(".nocowboy/rules/"))).toBe(true)
     })
 
-    test("skips mode-specific rules when includeModeSpecific is false", async () => {
+    test("does not leak agent-scoped rules into the global instruction list", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules-code"), "# Code rules")
-        },
-      })
-
-      const result = await RulesMigrator.migrate({
-        projectDir: tmp.path,
-        includeModeSpecific: false,
-      })
-
-      expect(result.instructions).toHaveLength(0)
-      expect(result.warnings.some((w) => w.includes("skipped"))).toBe(true)
-    })
-
-    test("includes mode-specific rules by default", async () => {
-      await using tmp = await tmpdir({
-        init: async (dir) => {
-          await Bun.write(path.join(dir, ".kilocoderules-code"), "# Code rules")
+          await Bun.write(path.join(dir, ".kilocoderules-worker"), "# Worker rules")
         },
       })
 
       const result = await RulesMigrator.migrate({ projectDir: tmp.path })
 
+      expect(result.instructions).toHaveLength(0)
+    })
+
+    test("includes rules scoped to the requested agent", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await Bun.write(path.join(dir, ".kilocoderules-worker"), "# Worker rules")
+          await Bun.write(path.join(dir, ".kilocoderules-nocowboy"), "# Soul rules")
+        },
+      })
+
+      const result = await RulesMigrator.migrate({ projectDir: tmp.path, agent: "nocowboy" })
+
       expect(result.instructions).toHaveLength(1)
+      expect(result.instructions[0]).toContain("nocowboy")
     })
 
     test("returns empty result for project without rules", async () => {
@@ -241,7 +284,7 @@ describe("RulesMigrator", () => {
       expect(result.warnings).toHaveLength(0)
     })
 
-    test("combines all rule sources", async () => {
+    test("combines unscoped rule sources and keeps scoped rules out", async () => {
       await using tmp = await tmpdir({
         init: async (dir) => {
           await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy")
@@ -252,6 +295,21 @@ describe("RulesMigrator", () => {
       })
 
       const result = await RulesMigrator.migrate({ projectDir: tmp.path })
+
+      expect(result.instructions).toHaveLength(2)
+    })
+
+    test("combines unscoped rule sources and the requested agent's rules", async () => {
+      await using tmp = await tmpdir({
+        init: async (dir) => {
+          await Bun.write(path.join(dir, ".nocowboyrules"), "# Legacy")
+          await fs.mkdir(path.join(dir, ".nocowboy", "rules"), { recursive: true })
+          await Bun.write(path.join(dir, ".nocowboy", "rules", "main.md"), "# Main")
+          await Bun.write(path.join(dir, ".kilocoderules-architect"), "# Architect")
+        },
+      })
+
+      const result = await RulesMigrator.migrate({ projectDir: tmp.path, agent: "architect" })
 
       expect(result.instructions).toHaveLength(3)
     })

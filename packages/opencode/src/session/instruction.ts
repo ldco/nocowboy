@@ -9,6 +9,7 @@ import { AppFileSystem } from "@nocowboy/core/filesystem"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { Global } from "@nocowboy/core/global"
 import { KilocodeInstruction } from "@/nocowboy/session/instruction"
+import { RulesMigrator } from "@/nocowboy/rules-migrator"
 // nocowboy_change start - trust boundary for instruction-file substitution (upstream 032f3bb)
 import { ConfigProtection } from "@/nocowboy/permission/config-paths"
 // nocowboy_change end
@@ -40,8 +41,9 @@ function extract(messages: MessageV2.WithParts[]) {
 
 export interface Interface {
   readonly clear: (messageID: MessageID) => Effect.Effect<void>
-  readonly systemPaths: () => Effect.Effect<Set<string>, AppFileSystem.Error>
-  readonly system: () => Effect.Effect<string[], AppFileSystem.Error>
+  /** `agent` adds the rules scoped to that agent (`rules-{agent}/`); omitting it yields global rules only. */
+  readonly systemPaths: (agent?: string) => Effect.Effect<Set<string>, AppFileSystem.Error>
+  readonly system: (agent?: string) => Effect.Effect<string[], AppFileSystem.Error>
   readonly find: (dir: string) => Effect.Effect<string | undefined, AppFileSystem.Error>
   readonly resolve: (
     messages: MessageV2.WithParts[],
@@ -126,7 +128,19 @@ export const layer: Layer.Layer<
       s.claims.delete(messageID)
     })
 
-    const systemPaths = Effect.fn("Instruction.systemPaths")(function* () {
+    // Agent-scoped project rules (`.nocowboy/rules-{agent}/`). These are applied
+    // to exactly one agent — e.g. the soul/identity rules reach `nocowboy` and
+    // no other agent. Global `config.instructions` deliberately excludes them.
+    const agentScopedPaths = Effect.fnUntraced(function* (agent: string | undefined) {
+      if (!agent) return [] as string[]
+      const ctx = yield* InstanceState.context
+      const rules = yield* Effect.tryPromise(() => RulesMigrator.scopedRules(ctx.directory, agent)).pipe(
+        Effect.catch(() => Effect.succeed([] as RulesMigrator.RuleFile[])),
+      )
+      return rules.map((rule) => path.resolve(rule.path))
+    })
+
+    const systemPaths = Effect.fn("Instruction.systemPaths")(function* (agent?: string) {
       const config = yield* cfg.get()
       const ctx = yield* InstanceState.context
       const paths = new Set<string>()
@@ -168,12 +182,14 @@ export const layer: Layer.Layer<
         }
       }
 
+      for (const file of yield* agentScopedPaths(agent)) paths.add(file)
+
       return paths
     })
 
-    const system = Effect.fn("Instruction.system")(function* () {
+    const system = Effect.fn("Instruction.system")(function* (agent?: string) {
       const config = yield* cfg.get()
-      const paths = yield* systemPaths()
+      const paths = yield* systemPaths(agent)
       const urls = (config.instructions ?? []).filter(
         (item) => item.startsWith("https://") || item.startsWith("http://"),
       )

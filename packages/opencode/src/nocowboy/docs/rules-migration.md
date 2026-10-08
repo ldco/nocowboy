@@ -45,8 +45,8 @@ The migrator reads rules from these locations:
 |---|---|
 | `.kilocoderules` | Legacy single-file rules in project root |
 | `.nocowboy/rules/*.md` | Directory-based rules (multiple markdown files) |
-| `.kilocoderules-{mode}` | Mode-specific legacy rules (e.g., `.kilocoderules-code`) |
-| `.nocowboy/rules-{mode}/*.md` | Mode-specific rule directories |
+| `.kilocoderules-{agent}` | Agent-specific legacy rules (e.g., `.kilocoderules-worker`) |
+| `.nocowboy/rules-{agent}/*.md` | Agent-specific rule directories |
 
 ### Global Rules
 
@@ -59,9 +59,9 @@ The migrator reads rules from these locations:
 | Kilocode Location | Opencode Equivalent |
 |---|---|
 | `.kilocoderules` | `instructions: [".kilocoderules"]` |
-| `.kilocoderules-{mode}` | `instructions: [".kilocoderules-{mode}"]` |
+| `.kilocoderules-{agent}` | scoped instructions for that agent only |
 | `.nocowboy/rules/*.md` | `instructions: [".nocowboy/rules/file.md", ...]` |
-| `.nocowboy/rules-{mode}/*.md` | `instructions: [".nocowboy/rules-{mode}/file.md", ...]` |
+| `.nocowboy/rules-{agent}/*.md` | scoped instructions for that agent only |
 | `~/.nocowboy/rules/*.md` | `instructions: ["~/.nocowboy/rules/file.md", ...]` |
 
 ## AGENTS.md Compatibility
@@ -81,9 +81,19 @@ The following are **not** migrated:
 
 Only Kilocode-specific files (`.kilocoderules`, `.nocowboy/rules/`) are migrated.
 
-## Mode-Specific Rules
+## Agent-Scoped Rules
 
-Mode-specific rules (e.g., `.kilocoderules-code`, `.nocowboy/rules-architect/`) are included by default. All mode-specific rules are loaded regardless of the current mode.
+Rules under `.nocowboy/rules-{agent}/` (or `.kilocoderules-{agent}`) apply to **one
+agent only** — the agent whose name matches `{agent}`. They are resolved per agent
+by the instruction service and are **never** placed in the global
+`config.instructions` list, so they cannot leak to another agent.
+
+`{agent}` must be one of the real agents: `worker`, `nocowboy`, `reviewer`,
+`architect`, `planner`, `auto`. Unknown names (including the legacy `code` and
+`debug`) are not discovered. A rule meant for everyone belongs in the unscoped
+`.nocowboy/rules/` directory instead.
+
+Example: `.nocowboy/rules-nocowboy/soul.md` reaches only the `nocowboy` agent.
 
 ## Warnings
 
@@ -98,22 +108,26 @@ The migrator generates warnings for:
 ```
 project/
 ├── .kilocoderules           # Legacy rules
-├── .kilocoderules-code      # Code-mode specific
+├── .kilocoderules-worker    # Worker-specific legacy rules
 └── .nocowboy/
-    └── rules/
-        ├── coding.md        # Coding standards
-        └── testing.md       # Testing guidelines
+    ├── rules/
+    │   ├── coding.md        # Coding standards (all agents)
+    │   └── testing.md       # Testing guidelines (all agents)
+    └── rules-nocowboy/
+        └── soul.md          # Soul rules (nocowboy agent only)
 ```
 
 ### After (Opencode Config)
+
+The global instruction list carries the unscoped rules only. The `soul.md` rule is
+resolved at prompt time for the `nocowboy` agent and never appears here.
 
 ```json
 {
   "instructions": [
     "/path/to/project/.nocowboy/rules/coding.md",
     "/path/to/project/.nocowboy/rules/testing.md",
-    "/path/to/project/.kilocoderules",
-    "/path/to/project/.kilocoderules-code"
+    "/path/to/project/.kilocoderules"
   ]
 }
 ```
