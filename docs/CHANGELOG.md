@@ -696,6 +696,11 @@
   `verify:file packages/opencode/src/nocowboy/knowledge-graph/summary.ts`
   `verify:file docs/features/knowledge-graph-llm-summary.md`
 
+## v1.2.0 — Frontend harness — Svelte 5 Runes & SvelteKit conditional directive; PMSHOPS architecture audit (pure domain isolation, framework-agnostic dependencies, strict zod/drizzle boundary contracts) (2026-10)
+
+- **DONE** PMSHOPS архитектурный аудит — доменная изоляция, framework-agnostic зависимости, строгие границы (Drizzle↔zod)
+  `verify:file docs/features/pmshops-architecture-audit.md`
+
 ## v1.3.0 — Agent identity scoping — the soul engine (identity rules, 127.0.0.1:9339) belongs to the `nocowboy` agent ONLY; auto/worker/architect/reviewer/planner must never invoke it (2026-10)
 
 - **DONE** Soul-движок только для агента `nocowboy` — auto/worker/architect/reviewer/planner душу не вызывают

@@ -5338,7 +5338,7 @@
     {
       "id": "pmshops-architecture-audit",
       "title": "PMSHOPS архитектурный аудит — доменная изоляция, framework-agnostic зависимости, строгие границы (Drizzle↔zod)",
-      "status": "planned",
+      "status": "done",
       "version": "v1.2.0",
       "phase": "frontend",
       "priority": "P1",
