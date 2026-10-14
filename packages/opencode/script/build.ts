@@ -8,6 +8,7 @@ import { fileURLToPath } from "url"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import { createRequire } from "module" // nocowboy_change
 import { prepareModelsSnapshot } from "./nocowboy/models-snapshot" // nocowboy_change
+import { resolveBuildVersion } from "./nocowboy/build-version" // nocowboy_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -21,7 +22,7 @@ import { LanceDBRuntime } from "../src/nocowboy/lancedb" // nocowboy_change
 
 const Script = {
   channel: process.env.NOCOWBOY_CHANNEL ?? "dev",
-  version: process.env.NOCOWBOY_VERSION ?? pkg.version ?? "0.0.0",
+  version: resolveBuildVersion(pkg.version), // nocowboy_change
   preview: false,
   release: process.env.NOCOWBOY_RELEASE === "true",
 } // nocowboy_change

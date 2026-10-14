@@ -49,7 +49,7 @@ nocowboy mcp install constitution
 
 ```bash
 cd packages/opencode
-NOCOWBOY_VERSION=0.7.0 NOCOWBOY_RELEASE=true bun run script/build.ts
+NOCOWBOY_RELEASE=true bun run script/build.ts
 ```
 
 Outputs:
@@ -101,12 +101,12 @@ nocowboy mcp status   # → constitution running
 
 Update version in all places:
 - `packages/nocowboy-cli/package.json` — meta-package version
-- `packages/opencode/package.json` — source package (build script fallback)
+- `packages/opencode/package.json` — source package (build script source of truth)
 - `packages/core/src/installation/version.ts` — `NOCOWBOY_VERSION` fallback
 - `install.sh` — `VERSION` for direct-install script
 - All `packaging/mcp-servers/*/package.json` — MCP server versions
 
-Then build: `NOCOWBOY_VERSION=0.7.0 NOCOWBOY_RELEASE=true bun run script/build.ts`
+Then build: `NOCOWBOY_RELEASE=true bun run script/build.ts`
 
 Update the meta-package's `optionalDependencies` versions to match.
 

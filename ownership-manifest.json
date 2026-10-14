@@ -16,6 +16,7 @@
       "packages/opencode/test/kilocode/**",
       "packages/nocowboy-*/**",
       "scripts/**",
+      "packaging/**",
       ".nocowboy/**",
       "docs/**"
     ],

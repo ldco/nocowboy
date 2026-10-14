@@ -13,6 +13,7 @@ describe("classifyPath", () => {
     expect(classifyPath("packages/opencode/test/nocowboy/contracts/01.test.ts")).toBe("owned")
     expect(classifyPath("packages/nocowboy-runtime/src/index.ts")).toBe("owned")
     expect(classifyPath("scripts/engine-manifest.ts")).toBe("owned")
+    expect(classifyPath("packaging/publish.sh")).toBe("owned")
   })
 
   test("shared-core call sites are adapted — ownership is NOT only src/nocowboy", () => {

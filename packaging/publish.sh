@@ -5,11 +5,10 @@ cd "$(dirname "$0")/../packages/opencode"
 VERSION=$(node -p "require('./package.json').version")
 NAME=$(node -p "require('./package.json').name")
 
-# A release must be labelled with its own package.json version. Without this,
-# NOCOWBOY_VERSION inherited from the parent process (e.g. a running NoCowboy
-# TUI built from an older release) silently overrides script/build.ts and the
-# binary reports the parent's version.
-export NOCOWBOY_VERSION="$VERSION"
+# The build stamps its own version from packages/opencode/package.json. That file
+# is the single source of truth: script/build.ts resolves the version itself and
+# never reads NOCOWBOY_VERSION from the environment, so a stale value inherited
+# from a running TUI can no longer leak into a freshly built binary.
 
 # script/build.ts only stamps NOCOWBOY_BUILD_KIND='release', bundles the
 # distribution archives and refreshes ~/.nocowboy/bin/nocowboy inside the

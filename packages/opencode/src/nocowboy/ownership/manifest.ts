@@ -55,6 +55,7 @@ export const DEFAULT_OWNERSHIP_MANIFEST: OwnershipManifest = {
       "packages/opencode/test/kilocode/**",
       "packages/nocowboy-*/**",
       "scripts/**",
+      "packaging/**",
       ".nocowboy/**",
       "docs/**",
     ],

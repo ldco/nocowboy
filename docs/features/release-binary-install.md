@@ -43,3 +43,17 @@ The repo was at `0.14.0` while `nocowboy --version` still reported `0.13.1`. Two
 `bun run release` (i.e. `NOCOWBOY_VERSION=0.14.0 NOCOWBOY_RELEASE=true bun run script/build.ts
 --single`) deployed `0.14.0` to `~/.nocowboy/bin/nocowboy` while three NoCowboy TUI instances
 were running; `nocowboy --version` reports `0.14.0`.
+
+## Follow-up (2026-10-14) — the build version is the package version
+
+`script/build.ts` used to read `version: process.env.NOCOWBOY_VERSION ?? pkg.version`.
+Because a running TUI injects `NOCOWBOY_VERSION` into the shells it spawns, building
+inside that shell stamped the *parent* binary's version into a fresh one — a source
+tree at `1.3.0` produced a binary reporting `1.0.9-alpha`, and the TUI footer showed
+that stale number.
+
+The version now comes exclusively from `packages/opencode/package.json` via the pure
+helper `script/nocowboy/build-version.ts` (`resolveBuildVersion`). The environment is
+never consulted, and a missing version fails the build loudly instead of falling back
+to `0.0.0`. `packaging/publish.sh` no longer exports `NOCOWBOY_VERSION` — the
+workaround is gone, not layered on top.
