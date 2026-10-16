@@ -167,6 +167,11 @@
       "tag": "v1.3.0",
       "date": "2026-10",
       "description": "Agent identity scoping — the soul engine (identity rules, 127.0.0.1:9339) belongs to the `nocowboy` agent ONLY; auto/worker/architect/reviewer/planner must never invoke it"
+    },
+    {
+      "tag": "v1.3.1",
+      "date": "2026-10-14",
+      "description": "External patterns — senior review + sandbox orchestration"
     }
   ],
   "features": [
@@ -5446,6 +5451,125 @@
         {
           "type": "file",
           "path": "docs/features/soul-engine-agent-scoping.md"
+        }
+      ]
+    },
+    {
+      "id": "sandbox-merge-back-orchestration",
+      "title": "Sandbox orchestration — branch strategy + merge-back + iteration loop (идея Sandcastle)",
+      "status": "done",
+      "version": "v1.3.1",
+      "phase": "harness",
+      "priority": "P1",
+      "tags": [
+        "harness",
+        "orchestration",
+        "git",
+        "sandcastle",
+        "autopilot"
+      ],
+      "description": "Наша модель агентов in-process, поэтому из Sandcastle (оркестратор ВНЕШНИХ CLI-агентов) переносится только чистая git-идея: branch-strategy (head|branch|merge-to-head), запись базовой ветки при создании sandbox-а, merge-back и цикл из N итераций. Контейнерная изоляция — вне скоупа (решение пользователя).",
+      "depends_on": [],
+      "acceptance_criteria": [
+        {
+          "check": "Чистый planner: planStart планирует запись базовой ветки (branch.<name>.nocowboyBase), planMergeBack/planAbort возвращают git-шаги, parseMergeOutput разбирает конфликты по файлам",
+          "verify": "bun test test/nocowboy/orchestration.test.ts",
+          "critical": true
+        },
+        {
+          "check": "runIterations прогоняет N итераций и останавливается по done()",
+          "verify": "bun test test/nocowboy/orchestration.test.ts",
+          "critical": true
+        },
+        {
+          "check": "sandbox-diff использует planner и читает ЗАПИСАННУЮ базовую ветку (не branch.<name>.merge, который checkout -b не ставит)",
+          "verify": "grep planStart в sandbox-diff.ts",
+          "critical": false
+        }
+      ],
+      "notes": "Реализовано 2026-10-16 (анализ .nocowboy/plans/1792146644524-external-tools-analysis.md, поток P1). Новый чистый модуль packages/opencode/src/nocowboy/orchestration.ts: SANDBOX_BRANCH_PREFIX, makeSandboxBranch (санитайз id), planStart/planMergeBack/planAbort (GitStep[]), readBaseBranch (nocowboyBase → .merge → undefined), parseMergeOutput (merged|up-to-date|conflict|failed + список конфликтных файлов), runIterations (stop по done()). sandbox-diff.ts переписан на planner и теперь ЗАПИСЫВАЕТ базовую ветку при start() и читает её при diff/apply/abort — устранён баг, когда merge-back всегда падал на main (branch.<name>.merge существует только у tracking-ветки). Тесты test/nocowboy/orchestration.test.ts 19/19.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/orchestration.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/orchestration.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/sandbox-diff.ts",
+          "pattern": "planStart"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/sandbox-merge-back-orchestration.md"
+        }
+      ]
+    },
+    {
+      "id": "senior-review",
+      "title": "Senior Review v5 — /ponytail-review читает затронутый код, + /ponytail-audit и /ponytail-debt",
+      "status": "done",
+      "version": "v1.3.1",
+      "phase": "harness",
+      "priority": "P2",
+      "tags": [
+        "quality",
+        "review",
+        "ponytail",
+        "open-source-integration",
+        "debt"
+      ],
+      "description": "/ponytail-review был только про over-engineering (что удалить). Senior-ревью читает код, который изменение ЗАТРАГИВАЕТ (changed + nearest importers из knowledge-graph), и находит баги, security, нагрузку, рискованный код без теста, медленные пути — плюс что урезать. Находка несёт priority (must-fix|should-fix|nit). Добавлены /ponytail-audit (ранжированный whole-repo) и /ponytail-debt (ledger shortcut:-маркеров).",
+      "depends_on": [
+        "over-engineering-review",
+        "commitment-boundary-review"
+      ],
+      "acceptance_criteria": [
+        {
+          "check": "parseSeniorFindings понимает [priority:category] и выводит priority из категории; rankSeniorFindings сортирует must-fix→should-fix→nit",
+          "verify": "bun test test/nocowboy/senior-review.test.ts",
+          "critical": true
+        },
+        {
+          "check": "reviewScope добавляет importers изменённых файлов через GraphProvider и деградирует до diff-only без графа",
+          "verify": "bun test test/nocowboy/senior-review.test.ts",
+          "critical": true
+        },
+        {
+          "check": "extractShortcuts/formatDebtLedger собирают shortcut:-маркеры в ledger",
+          "verify": "bun test test/nocowboy/senior-review.test.ts",
+          "critical": true
+        }
+      ],
+      "notes": "Реализовано 2026-10-16 (анализ .nocowboy/plans/1792146644524-external-tools-analysis.md, поток P2). Новый чистый модуль packages/opencode/src/nocowboy/review/senior-review.ts: SENIOR_REVIEW_CATEGORIES (bug/security/correctness/performance/slow-path/missing-test/risk + over-engineering набор), parseSeniorFindings (переиспользует parseFindings из over-engineering.ts, сплитит [priority:category]), rankSeniorFindings/reviewAsSenior, reviewScope (тонкий сеам над selectDeepContext), extractShortcuts/formatDebtLedger. Команды: /ponytail-review расширена до senior-семантики; добавлены /ponytail-audit и /ponytail-debt. Тесты test/nocowboy/senior-review.test.ts 19/19.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/senior-review.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/review/senior-review.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packages/opencode/src/nocowboy/review/senior-review.ts",
+          "pattern": "extractShortcuts"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/ponytail-audit.md"
+        },
+        {
+          "type": "file",
+          "path": ".nocowboy/command/ponytail-debt.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/senior-review.md"
         }
       ]
     }

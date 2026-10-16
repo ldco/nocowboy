@@ -710,3 +710,18 @@
 
 - **DONE** Soul-движок только для агента `nocowboy` — auto/worker/architect/reviewer/planner душу не вызывают
   `verify:file docs/features/soul-engine-agent-scoping.md`
+
+## v1.3.1 — External patterns — senior review + sandbox orchestration (2026-10-14)
+
+- **DONE** Sandbox orchestration — branch strategy + merge-back + iteration loop (идея Sandcastle)
+  `verify:test packages/opencode/test/nocowboy/orchestration.test.ts`
+  `verify:file packages/opencode/src/nocowboy/orchestration.ts`
+  `verify:grep packages/opencode/src/nocowboy/sandbox-diff.ts planStart`
+  `verify:file docs/features/sandbox-merge-back-orchestration.md`
+- **DONE** Senior Review v5 — /ponytail-review читает затронутый код, + /ponytail-audit и /ponytail-debt
+  `verify:test packages/opencode/test/nocowboy/senior-review.test.ts`
+  `verify:file packages/opencode/src/nocowboy/review/senior-review.ts`
+  `verify:grep packages/opencode/src/nocowboy/review/senior-review.ts extractShortcuts`
+  `verify:file .nocowboy/command/ponytail-audit.md`
+  `verify:file .nocowboy/command/ponytail-debt.md`
+  `verify:file docs/features/senior-review.md`
