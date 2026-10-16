@@ -103,8 +103,9 @@ export namespace DiffSandbox {
 
   /**
    * Apply the sandbox: commit pending work, merge it back into the base branch,
-   * delete the sandbox branch. A conflict leaves the repository untouched and
-   * surfaces the conflicted files instead of silently dropping the work.
+   * delete the sandbox branch. A conflict returns the repository to the sandbox
+   * branch (base stays clean) and surfaces the conflicted files instead of
+   * silently dropping the work.
    */
   export function apply(): Effect.Effect<string, Error> {
     return Effect.gen(function* () {
@@ -137,7 +138,12 @@ export namespace DiffSandbox {
         if (isMerge) {
           mergeResult = parseMergeOutput({ exitCode: proc.code, stdout: proc.out, stderr: proc.err })
           if (mergeResult.status !== "merged" && mergeResult.status !== "up-to-date") {
-            return `Merge conflict in ${mergeResult.conflicts.join(", ") || "unknown files"}. Resolve and re-run /sandbox-apply, or /sandbox-abort.`
+            // Restore the pre-apply state so /sandbox-apply and /sandbox-abort
+            // stay usable: abort the half-finished merge and go back to the
+            // sandbox branch (the base branch is left clean).
+            yield* Effect.promise(() => Bun.$`git merge --abort`.cwd(cwd).quiet().nothrow())
+            yield* Effect.promise(() => Bun.$`git checkout ${branch}`.cwd(cwd).quiet().nothrow())
+            return `Merge conflict in ${mergeResult.conflicts.join(", ") || "unknown files"}. Merge \`${base}\` into the sandbox and resolve, then re-run /sandbox-apply.`
           }
         }
       }

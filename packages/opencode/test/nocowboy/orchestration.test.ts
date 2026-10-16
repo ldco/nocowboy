@@ -18,8 +18,16 @@ describe("sandbox branch identity", () => {
   })
 
   test("makeSandboxBranch sanitizes a hostile session id", () => {
-    expect(makeSandboxBranch("a b/../c", 42)).toBe("nocowboy-sandbox/a-b-..-c-42")
+    expect(makeSandboxBranch("a b/../c", 42)).toBe("nocowboy-sandbox/a-b-c-42")
     expect(makeSandboxBranch("   ", 1)).toBe("nocowboy-sandbox/session-1")
+  })
+
+  test("makeSandboxBranch never yields an invalid ref (no dots)", () => {
+    for (const id of ["..", "a..b", "../..", ".hidden"]) {
+      const branch = `refs/heads/${makeSandboxBranch(id, 7)}`
+      expect(branch).not.toContain("..")
+      expect(branch).not.toContain(".")
+    }
   })
 })
 

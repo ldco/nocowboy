@@ -44,11 +44,16 @@ export function isSandboxBranch(branch: string): boolean {
 }
 
 /**
- * A unique sandbox branch name. The session id is sanitized so a path-like or
- * space-containing id can never forge a nested or invalid ref.
+ * A unique sandbox branch name. The session id is sanitized to `[A-Za-z0-9_-]`
+ * only, so a path-like, `..`-containing or space-containing id can never forge
+ * a nested or invalid ref (`git check-ref-format` rejects `..`).
  */
 export function makeSandboxBranch(sessionID: string, stamp: number): string {
-  const safe = sessionID.trim().replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "session"
+  const safe =
+    sessionID
+      .trim()
+      .replace(/[^A-Za-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "session"
   return `${SANDBOX_BRANCH_PREFIX}${safe}-${stamp}`
 }
 
