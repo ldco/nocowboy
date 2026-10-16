@@ -1,28 +1,32 @@
-# Known Issues — NoCowboy v0.11.0 (alpha)
+# Known Issues
 
-Last updated: 2026-08-04
+Текущая версия: **1.3.1** (`packages/opencode/package.json`).
+Этот файл описывает состояние движка, а не историю релизов — историю см. в
+[CHANGELOG.md](CHANGELOG.md).
 
-## No Critical Bugs
+## Что считается здоровым состоянием
 
-All critical paths pass: tests (493/493), typecheck (0 errors), dev server starts.
+Правда о состоянии — только у гейтов. Прогони их сам, не верь числам в тексте:
 
-## Minor Issues
+```bash
+bun turbo typecheck                    # все пакеты
+bun run --cwd packages/opencode test   # тест-сьют (не `bun test` из корня)
+bun scripts/verify-roadmap.ts          # каждый DONE-пункт roadmap против кода
+bun run docs:check                     # сгенерированные доки в синхроне
+```
 
-| Issue | Severity | Workaround |
-|-------|----------|------------|
-| Node.js `HeadersInit` type not found in plugin SDK | Low | DOM lib not included — does not affect runtime |
-| 2 missing optional plugin packages (gitlab-auth, poe-auth) | Low | Stub declarations added — no runtime effect |
-| HttpApi SDK `serverPathParity` requires provider config on raw path | Low | Fixed in tests — default path works |
+## Известные ограничения
 
-## Post-Alpha
+Структурные, отслеживаются в [roadmap.json](roadmap.json) как `blocked`:
 
-| Area | Status |
-|------|--------|
-| Knowledge Graph | Planned (v0.13) |
-| Deep Context 2M | Planned (v0.13) |
-| Agent Teams UI | Planned (v0.13) |
-| Turso sync | Blocked (needs Turso production) |
+| Область | Статус | Причина |
+|---|---|---|
+| Turso — production SQLite для multi-machine sync | blocked | `drizzle-orm` не экспортирует `libsql` subpath, поэтому `@libsql/client` нельзя подключить через ORM. |
+| Vector store switcher UI | blocked | Нужен корректный rollback старого индекса + live-верификация; наивный reload нарушает инвариант «старый индекс не удаляется до успешной сборки нового». |
+| Obsidian MCP | blocked | Требуется живой Obsidian + плагин `obsidian-local-rest-api` для ручной проверки. |
 
-## Verdict
+## История
 
-**Ready for alpha release.** No critical bugs found.
+Предыдущая версия этого файла фиксировала снимок состояния `v0.11.0-alpha`
+(2026-08-04). Она устарела и заменена этим файлом — числа вида «тесты 493/493»
+намеренно не переносятся: единственный актуальный источник — вывод гейтов выше.

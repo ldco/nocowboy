@@ -1,39 +1,48 @@
 # NoCowboy Documentation
 
-## System
+## Система
 
 ```
 BACKLOG  →  ROADMAP  →  CHANGELOG
  идеи        план        свершившееся
 ```
 
+Единственный источник — `docs/roadmap.json`. Три `.md`-файла ниже генерируются из
+него (`bun run docs:gen`); вручную их не редактируют.
+
 | Документ | Что |
-|----------|-----|
-| [BACKLOG.md](BACKLOG.md) | Идеи на будущее. Свободный формат. |
-| [ROADMAP.md](ROADMAP.md) | План. DONE требует verify-директив. |
+|---|---|
+| [BACKLOG.md](BACKLOG.md) | Идеи на будущее. |
+| [ROADMAP.md](ROADMAP.md) | План (только не-`done`). DONE требует verify-директив. |
 | [CHANGELOG.md](CHANGELOG.md) | Релизы. Свершившиеся факты. |
-
-## Development
-
-- [dogfooding-workflow.md](dogfooding-workflow.md) — rebuild, install, dev mode
-
-## Plans
-
-- [roadmap-verification-system.md](plans/roadmap-verification-system.md) — **текущий план:** защита от false positive DONE
-
-## Reference
-
-- [competitive-analysis.md](reference/competitive-analysis.md) — 30+ TUIs compared
-- [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — deep reference manual
-- [turso-database-adoption.md](reference/turso-database-adoption.md) — ADR: Turso plan
-- [glossary.md](reference/glossary.md)
-- [known-test-failures.md](reference/known-test-failures.md)
+| [features/](features/) | Одна страница на каждую реализованную фичу. |
 
 ## Guides
 
-- [autopilot.md](guides/autopilot.md) — автопилот и roadmap: как пользоваться
-- [publish.md](guides/publish.md) — npm publishing
+- [autopilot.md](guides/autopilot.md) — автопилот и roadmap-прогон: как пользоваться.
+- [publish.md](guides/publish.md) — сборка и npm-публикация.
 
-## Archive
+## Проектирование и решения
 
-[archive/](archive/) — old plans, genesis, marketing, historical analysis
+- [adr/](adr/) — архитектурные решения (external patterns, upstream sync, release audit, NUTAUSIK, durable workflows, autopilot continuation).
+- [plans/](plans/) — планы в работе.
+- [analysis/](analysis/) — аудиты и разборы (fork management, token-cost, harness comparison, indexing).
+
+## Reference
+
+- [engine-manifest.md](reference/engine-manifest.md) — provenance движка (fork point, upstream, backports).
+- [kilocode-fork-playbook.md](reference/kilocode-fork-playbook.md) — справочник по форку и upstream-sync.
+- [competitive-analysis.md](reference/competitive-analysis.md) — сравнение TUI-харнессов.
+- [mcp-first-party.md](reference/mcp-first-party.md) — приоритет запуска MCP-серверов.
+- [tui-layout-architecture.md](reference/tui-layout-architecture.md) · [design-layout.md](reference/design-layout.md) · [design-session.md](reference/design-session.md) — устройство TUI.
+- [ownership-manifest.md](reference/ownership-manifest.md) — классы владения файлами.
+- [turso-database-adoption.md](reference/turso-database-adoption.md) — ADR: Turso (Phase 1 blocked).
+- [known-test-failures.md](reference/known-test-failures.md) · [glossary.md](reference/glossary.md).
+- [upstream-port-list.md](reference/upstream-port-list.md) · [upstream-sync-audit.md](upstream-sync-audit.md).
+
+## Прочее
+
+- [known-issues.md](known-issues.md) — известные проблемы текущего состояния.
+- [legal/152FZ-COMPLIANCE.md](legal/152FZ-COMPLIANCE.md) — 152-ФЗ.
+- [attestations/](attestations/) — reviewer-аттестации по релизам.
+- [archive/](archive/) — устаревшие планы, genesis, marketing, исторический анализ.
