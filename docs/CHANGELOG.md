@@ -725,3 +725,12 @@
   `verify:file .nocowboy/command/ponytail-audit.md`
   `verify:file .nocowboy/command/ponytail-debt.md`
   `verify:file docs/features/senior-review.md`
+
+## v1.4.0 — Documentation consolidation — code-verified English README, repaired docs index, refreshed known-issues (2026-10-16)
+
+- **DONE** Documentation consolidation — code-verified English README, repaired docs index, refreshed known-issues
+  `verify:file README.md`
+  `verify:file docs/README.md`
+  `verify:file docs/known-issues.md`
+  `verify:file docs/features/docs-overhaul.md`
+  `verify:file docs/releases/1.4.0.md`
