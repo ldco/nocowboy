@@ -734,3 +734,13 @@
   `verify:file docs/known-issues.md`
   `verify:file docs/features/docs-overhaul.md`
   `verify:file docs/releases/1.4.0.md`
+
+## v1.4.1 — MCP launch resilience — a launch.json command pointing at a moved repository is rejected with a warning instead of silently spawning a dead proxy (2026-10-21)
+
+### Reliability
+
+- **DONE** MCP launch resilience — stale launch.json paths fall through with a warning
+  `verify:test packages/opencode/test/nocowboy/mcp-launcher.test.ts`
+  `verify:file packages/opencode/src/nocowboy/mcp/launcher.ts`
+  `verify:file docs/features/mcp-launch-path-validation.md`
+  `verify:file docs/releases/1.4.1.md`

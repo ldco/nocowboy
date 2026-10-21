@@ -177,6 +177,11 @@
       "tag": "v1.4.0",
       "date": "2026-10-16",
       "description": "Documentation consolidation — code-verified English README, repaired docs index, refreshed known-issues"
+    },
+    {
+      "tag": "v1.4.1",
+      "date": "2026-10-21",
+      "description": "MCP launch resilience — a launch.json command pointing at a moved repository is rejected with a warning instead of silently spawning a dead proxy"
     }
   ],
   "features": [
@@ -5614,6 +5619,39 @@
         {
           "type": "file",
           "path": "docs/releases/1.4.0.md"
+        }
+      ]
+    },
+    {
+      "id": "mcp-launch-path-validation",
+      "title": "MCP launch resilience — stale launch.json paths fall through with a warning",
+      "status": "done",
+      "version": "v1.4.1",
+      "changelog": "Reliability",
+      "tags": [
+        "mcp",
+        "launch",
+        "diagnostics",
+        "reliability"
+      ],
+      "description": "launcher.command validates the absolute paths referenced by a launch.json command before spawning it. A command written for a repository that has since moved is no longer a candidate: it logs a warning and falls through to the installed/default tier. Previously the proxy bound its port, the child died with MODULE_NOT_FOUND inside ~/.nocowboy/mcp/<name>.log, and the MCP client failed once at instance start without retrying, so the server's tools were missing for the whole session.",
+      "notes": "Done 2026-10-21 after NUTAUSIK disappeared from every session: the nutausik-js checkout moved from NEW_ORDER/FABRICA22/ to NEW_ORDER/PROJECTS/SOFT/NoCowboy/ while ~/.nocowboy/mcp/launch.json kept the old absolute path. commandPaths/commandExists extract absolute path arguments (quoted paths included) and are covered by packages/opencode/test/nocowboy/mcp-launcher.test.ts.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/mcp-launcher.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/mcp/launcher.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/mcp-launch-path-validation.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/releases/1.4.1.md"
         }
       ]
     }
