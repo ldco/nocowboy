@@ -9,7 +9,7 @@ import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import { createRequire } from "module" // nocowboy_change
 import { prepareModelsSnapshot } from "./nocowboy/models-snapshot" // nocowboy_change
 import { resolveBuildVersion } from "./nocowboy/build-version" // nocowboy_change
-import { copyReleaseSidecars } from "./nocowboy/release-sidecars" // nocowboy_change
+import { copyReleaseSidecars, writeSidecarManifest } from "./nocowboy/release-sidecars" // nocowboy_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -441,6 +441,7 @@ if (Script.release) {
     await $`cp ${path.resolve(dir, "../../install.sh")} ${stagingDir}/` // nocowboy_change
     await $`cp -r ${path.resolve(dir, "../../packaging/config")} ${stagingDir}/config` // nocowboy_change
     await copyReleaseSidecars(path.resolve(binDir), path.resolve(stagingDir)) // nocowboy_change
+    await writeSidecarManifest(path.resolve(stagingDir)) // nocowboy_change
     if (key.includes("linux")) {
       const out = path.resolve("dist", `${archive}.tar.gz`) // nocowboy_change
       await $`tar -czf ${out} *`.cwd(stagingDir) // nocowboy_change
@@ -455,7 +456,23 @@ if (Script.release) {
     // Attempt to update the user's local binary
     if (key.includes("linux")) {
       const homeBin = path.join(process.env["HOME"]!, ".nocowboy", "bin", "nocowboy")
+      const homeDir = path.dirname(homeBin)
       const src = path.resolve(binDir, "nocowboy")
+      // Sidecars are replaced atomically and BEFORE the executable: if the copy
+      // fails, the old binary stays in place and still understands the sidecars
+      // it already had. The reverse order would leave a new binary without the
+      // tree-sitter WASMs it needs — the exact broken state this release fixes.
+      const sidecars = await copyReleaseSidecars(path.resolve(binDir), homeDir).then(
+        () => true,
+        (err) => {
+          console.error(`  ❌ Could not update release sidecars in ${homeDir}`)
+          console.error(`     ${err instanceof Error ? err.message : String(err)}`)
+          console.error(`     Skipping binary update; install manually: cp ${src} ${homeBin}`)
+          return false
+        },
+      )
+      if (!sidecars) continue
+      console.log(`  ✅ Updated release sidecars in ${homeDir}`)
       // A running NoCowboy TUI keeps the installed ELF mapped, so copying over it in
       // place fails with ETXTBSY. Stage the new binary next to the target and rename()
       // over it: rename(2) only swaps the directory entry, the live process keeps the
@@ -472,13 +489,6 @@ if (Script.release) {
         console.error(`  ❌ Could not update ${homeBin}`)
         console.error(`     ${err instanceof Error ? err.message : String(err)}`)
         console.error(`     Install manually: cp ${src} ${homeBin}`)
-      }
-      try {
-        await copyReleaseSidecars(path.resolve(binDir), path.dirname(homeBin))
-        console.log(`  Updated release sidecars in ${path.dirname(homeBin)}`)
-      } catch (err) {
-        console.error(`  Could not update release sidecars in ${path.dirname(homeBin)}`)
-        console.error(`     ${err instanceof Error ? err.message : String(err)}`)
       }
     }
   }

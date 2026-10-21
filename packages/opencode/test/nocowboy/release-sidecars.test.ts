@@ -2,7 +2,12 @@ import { afterEach, describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import os from "os"
 import path from "path"
-import { RELEASE_SIDECARS, copyReleaseSidecars } from "../../script/nocowboy/release-sidecars"
+import {
+  RELEASE_SIDECARS,
+  SIDECARS_MANIFEST,
+  copyReleaseSidecars,
+  writeSidecarManifest,
+} from "../../script/nocowboy/release-sidecars"
 
 const roots: string[] = []
 
@@ -60,5 +65,42 @@ describe("release sidecars", () => {
     await fs.rm(path.join(binDir, RELEASE_SIDECARS[0]), { recursive: true, force: true })
 
     await expect(copyReleaseSidecars(binDir, dest)).rejects.toThrow("Missing release sidecar")
+  })
+
+  test("leaves an installed copy untouched when a sidecar is missing", async () => {
+    const root = await tmp()
+    const binDir = path.join(root, "bin")
+    const dest = path.join(root, "install")
+    await writeSidecars(binDir)
+    await fs.mkdir(path.join(dest, "tree-sitter"), { recursive: true })
+    await fs.writeFile(path.join(dest, "tree-sitter", "tree-sitter.wasm"), "previous")
+    await fs.rm(path.join(binDir, "models-snapshot.json"))
+
+    await expect(copyReleaseSidecars(binDir, dest)).rejects.toThrow("Missing release sidecar")
+    expect(await fs.readFile(path.join(dest, "tree-sitter", "tree-sitter.wasm"), "utf8")).toBe("previous")
+  })
+
+  test("does not leave staging or backup artifacts behind", async () => {
+    const root = await tmp()
+    const binDir = path.join(root, "bin")
+    const dest = path.join(root, "install")
+    await writeSidecars(binDir)
+    await fs.mkdir(path.join(dest, "tree-sitter"), { recursive: true })
+    await fs.writeFile(path.join(dest, "tree-sitter", "tree-sitter.wasm"), "previous")
+
+    await copyReleaseSidecars(binDir, dest)
+
+    const entries = await fs.readdir(dest)
+    expect(entries.some((entry) => entry.includes(".new-") || entry.includes(".old-"))).toBe(false)
+    expect(entries.sort()).toEqual([...RELEASE_SIDECARS].sort())
+  })
+
+  test("writes the sidecar manifest install.sh reads", async () => {
+    const root = await tmp()
+    await writeSidecarManifest(root)
+
+    expect(await fs.readFile(path.join(root, SIDECARS_MANIFEST), "utf8")).toBe(
+      `${RELEASE_SIDECARS.join("\n")}\n`,
+    )
   })
 })

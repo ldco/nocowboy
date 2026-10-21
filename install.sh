@@ -31,28 +31,63 @@ EOF
 
 [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]] && usage
 
-# --- Binary ---
-if [[ -f "${SCRIPT_DIR}/nocowboy" ]]; then
-  mkdir -p "${INSTALL_DIR}"
-  cp "${SCRIPT_DIR}/nocowboy" "${INSTALL_DIR}/"
-  chmod 755 "${INSTALL_DIR}/nocowboy"
-  echo -e "${MUTED}Installed nocowboy to ${INSTALL_DIR}/nocowboy${NC}"
-
-  # --- Runtime sidecars ---
-  # The binary loads tree-sitter WASMs, the offline models snapshot and the MCP
-  # proxy from its own directory. Install them next to the binary; a lone
-  # binary starts with broken code indexing and MCP proxies.
-  for sidecar in tree-sitter models-snapshot.json proxy-standalone.mjs; do
-    if [[ -e "${SCRIPT_DIR}/${sidecar}" ]]; then
-      rm -rf "${INSTALL_DIR:?}/${sidecar}"
-      cp -r "${SCRIPT_DIR}/${sidecar}" "${INSTALL_DIR}/"
-    fi
-  done
-else
+# --- Binary + runtime sidecars ---
+if [[ ! -f "${SCRIPT_DIR}/nocowboy" ]]; then
   echo -e "${RED}Error: nocowboy binary not found alongside install.sh${NC}"
   echo "Extract the full archive and run install.sh from the extracted directory."
   exit 1
 fi
+
+# The archive carries the sidecar list produced by the build from
+# RELEASE_SIDECARS. Reading it avoids a second hard-coded copy drifting out of
+# sync with the build.
+MANIFEST="${SCRIPT_DIR}/sidecars.manifest"
+if [[ ! -f "${MANIFEST}" ]]; then
+  echo -e "${RED}Error: sidecars.manifest is missing from the archive${NC}"
+  echo "This archive is incomplete; extract a full release archive and rerun install.sh."
+  exit 1
+fi
+
+sidecars=()
+while IFS= read -r line || [[ -n "${line}" ]]; do
+  [[ -z "${line}" ]] && continue
+  sidecars+=("${line}")
+done < "${MANIFEST}"
+
+if [[ ${#sidecars[@]} -eq 0 ]]; then
+  echo -e "${RED}Error: sidecars.manifest lists no runtime sidecars${NC}"
+  exit 1
+fi
+
+for sidecar in "${sidecars[@]}"; do
+  if [[ ! -e "${SCRIPT_DIR}/${sidecar}" ]]; then
+    echo -e "${RED}Error: ${sidecar} is missing from the archive${NC}"
+    exit 1
+  fi
+done
+
+# Stage everything first so a failed copy never touches the installed version.
+mkdir -p "${INSTALL_DIR}"
+staging="${INSTALL_DIR}/.install-$$"
+rm -rf "${staging}"
+mkdir -p "${staging}"
+trap 'rm -rf "${staging}"' EXIT
+
+cp "${SCRIPT_DIR}/nocowboy" "${staging}/nocowboy"
+chmod 755 "${staging}/nocowboy"
+for sidecar in "${sidecars[@]}"; do
+  cp -r "${SCRIPT_DIR}/${sidecar}" "${staging}/${sidecar}"
+done
+
+# Swap sidecars first and the binary last: if the swap is interrupted, the
+# previous executable is still in place instead of a new binary without WASMs.
+for sidecar in "${sidecars[@]}"; do
+  rm -rf "${INSTALL_DIR:?}/${sidecar}"
+  mv "${staging}/${sidecar}" "${INSTALL_DIR}/${sidecar}"
+done
+mv "${staging}/nocowboy" "${INSTALL_DIR}/nocowboy"
+
+echo -e "${MUTED}Installed nocowboy to ${INSTALL_DIR}/nocowboy${NC}"
 
 # --- PATH ---
 case ":${PATH}:" in
