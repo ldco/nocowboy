@@ -2,7 +2,9 @@ import { describe, it, expect } from "bun:test"
 import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 
-const PROJECT_DIR = "/run/media/ldco/3734114f-7123-41f5-8f63-7f43c94879eb/NEW_ORDER/FABRICA22/NoCowboy/app"
+// Derived from the test file location, not an absolute machine path: the repo
+// must keep working after being moved or cloned anywhere.
+const PROJECT_DIR = resolve(import.meta.dir, "../../../../..")
 
 describe("NUTAUSIK initialization", () => {
   it("has .nutausik directory with database", () => {

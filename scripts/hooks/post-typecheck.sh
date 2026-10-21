@@ -6,7 +6,8 @@
 
 set -e
 
-PROJECT_DIR="/run/media/ldco/3734114f-7123-41f5-8f63-7f43c94879eb/NEW_ORDER/FABRICA22/NoCowboy/app/packages/opencode"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_DIR="$ROOT/packages/opencode"
 OUTPUT_FILE="/tmp/.last-typecheck.json"
 
 # Фоновый запуск typecheck (не блокирует инструмент)

@@ -88,8 +88,8 @@
     "vectorStore": "lancedb"
   },
   "instructions": [
-    "/home/ldco/.config/nocowboy/instructions/*.md",
-    "/home/ldco/.config/nocowboy/instructions/rules/*.md"
+    "{env:HOME}/.config/nocowboy/instructions/*.md",
+    "{env:HOME}/.config/nocowboy/instructions/rules/*.md"
   ],
   "compaction": {
     "auto": true,
