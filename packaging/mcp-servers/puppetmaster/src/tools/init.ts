@@ -1,21 +1,21 @@
 import type { PmTool } from './index.js'
-import { getProjectRoot, runCmd, fileExists } from './utils.js'
+import { getProjectRoot, fileExists, loadConfig, PM_CONFIG_FILE } from './utils.js'
 
 export const initTool: PmTool = {
   name: 'pm_init',
   description:
-    'Initialize a Puppet Master project. Checks dependencies, reads pmMode from config, and guides through setup (develop or build mode). Optionally starts the dev server.',
+    'Initialize / inspect a PuppetMaster 4 project. Verifies SvelteKit dependencies, reads PM_CONFIG.mode from src/project/pm.config.ts, and reports the framework setup steps.',
   inputSchema: {
     type: 'object',
     properties: {
       mode: {
         type: 'string',
         enum: ['develop', 'build', 'auto'],
-        description: 'Set pmMode: develop (framework dev, seeded DB), build (client project, empty DB), or auto (read existing config)',
+        description: 'Expected project mode: develop (framework dev, seeded DB) or build (client project). Reports the current PM_CONFIG.mode and does not rewrite the typed config.',
       },
       startDev: {
         type: 'boolean',
-        description: 'Start dev server after initialization',
+        description: 'Start the dev server after initialization',
       },
     },
   },
@@ -23,27 +23,34 @@ export const initTool: PmTool = {
     const root = getProjectRoot()
     const results: string[] = []
 
-    if (!fileExists('node_modules/.bin/nuxt')) {
+    // PM4 is SvelteKit + Vite; the old Nuxt binary check never exists here.
+    if (!fileExists('node_modules/.bin/svelte-kit') && !fileExists('node_modules/.bin/vite')) {
       results.push('Dependencies missing. Run: npm install')
       return results.join('\n')
     }
 
-    const configPath = 'project/puppet-master.config.ts'
-    const configRaw = fileExists(configPath)
-      ? await import(`${root}/project/puppet-master.config.ts`).then(m => m.default).catch(() => null)
-      : null
-
-    results.push(`Project root: ${root}`)
-    results.push(`Config exists: ${!!configRaw}`)
-
-    if (configRaw) {
-      results.push(`Current pmMode: ${configRaw.pmMode}`)
+    let project = null
+    let configError: string | null = null
+    try {
+      project = await loadConfig(root)
+    } catch (error) {
+      configError = error instanceof Error ? error.message : String(error)
     }
 
-    const mode = args.mode as string ?? 'auto'
+    results.push(`Project root: ${root}`)
+    results.push(`Config (${PM_CONFIG_FILE}) exists: ${project !== null}`)
+    if (configError) results.push(`Config read error: ${configError}`)
+    if (project) results.push(`Current mode: ${String(project.config.mode ?? 'unknown')}`)
+    if (project) results.push(`Modules from manifest: ${project.modules.filter((module) => module.moduleId).length}`)
+
+    const mode = (args.mode as string) ?? 'auto'
     results.push(`Requested mode: ${mode}`)
-    results.push('Next steps: verify config, run db:push, optionally db:seed, start dev server.')
+    results.push('Next steps: npm run db:push, optionally npm run db:seed, then pm_dev start (npm run dev runs predev bootstrap).')
     results.push('Use pm_status for full project status.')
+
+    if (args.startDev === true) {
+      results.push('Start the server with pm_dev action=start.')
+    }
 
     return results.join('\n')
   },

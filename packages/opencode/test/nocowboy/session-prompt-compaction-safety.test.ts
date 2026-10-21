@@ -88,6 +88,7 @@ const mcp = Layer.succeed(
     connect: () => Effect.void,
     disconnect: () => Effect.void,
     getPrompt: () => Effect.succeed(undefined),
+    call: () => Effect.succeed(undefined),
     readResource: () => Effect.succeed(undefined),
     startAuth: () => Effect.die("unexpected MCP auth in prompt safety tests"),
     authenticate: () => Effect.die("unexpected MCP auth in prompt safety tests"),

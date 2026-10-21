@@ -15,6 +15,7 @@ import { runAll as runStartupChecks } from "./startup-checks"
 import * as Log from "@nocowboy/core/util/log"
 import { Launcher } from "./mcp/launcher"
 import { McpLifecycle } from "./mcp/lifecycle"
+import { PuppetMaster } from "./puppetmaster"
 
 const log = Log.create({ service: "nutausik.auto-wire" })
 
@@ -110,17 +111,14 @@ export function onSessionCreated(sessionID: string, title: string, directory: st
 export function onSessionEnded(sessionID: string, directory: string): void {
   autoEndSession(sessionID, directory).catch(() => {})
 
-  // Auto-save PM project context as NUTAUSIK memory
+  // Auto-save PuppetMaster 4 project context as NUTAUSIK memory
   try {
-    const { existsSync } = require("node:fs")
-    const { join } = require("node:path")
-    const configPath = join(directory, "project", "puppet-master.config.ts")
-    if (existsSync(configPath)) {
+    if (PuppetMaster.isProject(directory)) {
       callTool("nutausik_memory_add", {
         type: "context",
         title: `PM session ${sessionID.slice(0, 8)}`,
-        content: `Session completed in PM v3 project at ${directory}. PM rules: Tailwind-only, clsx+twMerge, no global CSS, .dark {} class-based, $state/$derived.`,
-        tags: "pm,sveltekit,tailwind",
+        content: `Session completed in PuppetMaster 4 project at ${directory}. PM4: SvelteKit 2 + Svelte 5 runes + Vite 7 + Tailwind v4; typed config src/project/pm.config.ts; ModuleManifest src/lib/config/modules.ts is the single module source; AGENTS.md is authoritative; async libSQL via @libsql/client; Zod on all inputs.`,
+        tags: "pm4,sveltekit,tailwind,libsql",
       }, { projectDir: directory, sessionID }).then((r) => { if (!r.ok) log.warn("PM memory add failed", { code: r.error.code }) })
     }
   } catch {} // fire-and-forget

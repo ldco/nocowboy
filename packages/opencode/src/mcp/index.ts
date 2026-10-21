@@ -301,6 +301,12 @@ export interface Interface {
     name: string,
     args?: Record<string, string>,
   ) => Effect.Effect<Awaited<ReturnType<MCPClient["getPrompt"]>> | undefined>
+  readonly call: (
+    serverName: string,
+    toolName: string,
+    args: Record<string, unknown>,
+    timeout?: number,
+  ) => Effect.Effect<Awaited<ReturnType<MCPClient["callTool"]>> | undefined>
   readonly readResource: (
     clientName: string,
     resourceUri: string,
@@ -808,6 +814,24 @@ export const layer = Layer.effect(
       })
     })
 
+    const call = Effect.fn("MCP.call")(function* (
+      serverName: string,
+      toolName: string,
+      args: Record<string, unknown>,
+      timeout?: number,
+    ) {
+      return yield* withClient(
+        serverName,
+        (client) =>
+          client.callTool({ name: toolName, arguments: args }, CallToolResultSchema, {
+            timeout,
+            resetTimeoutOnProgress: true,
+          }),
+        "callTool",
+        { toolName },
+      )
+    })
+
     const readResource = Effect.fn("MCP.readResource")(function* (clientName: string, resourceUri: string) {
       return yield* withClient(clientName, (client) => client.readResource({ uri: resourceUri }), "readResource", {
         resourceUri,
@@ -1020,6 +1044,7 @@ export const layer = Layer.effect(
       connect,
       disconnect,
       getPrompt,
+      call,
       readResource,
       startAuth,
       authenticate,

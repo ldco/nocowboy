@@ -1,36 +1,36 @@
 # Puppet Master MCP Server — Machine-Readable Manifest
 version: "1.0.0"
 name: "pm-mcp-server"
-description: "26 MCP tools for Puppet Master framework operations (SvelteKit + Tailwind v4), review, knowledge, contributing, and git workflow"
+description: "PuppetMaster 4 MCP: typed config + ModuleManifest introspection, dev/db runners, knowledge, review, contributing, git workflow"
 
 tools:
   config:
     - name: pm_config_get
-      description: Read Puppet Master configuration values by dot-notation key
+      description: Read PM4 PM_CONFIG + ModuleManifest state by dot-notation key
       schema:
         key: string (optional, dot-notation)
 
     - name: pm_config_set
-      description: Modify a configuration value in puppet-master.config.ts
+      description: Set a scalar in src/project/pm.config.ts or toggle modules.<id>.enabled in the ModuleManifest
       schema:
         key: string (required, dot-notation)
         value: any (required)
 
   dev:
     - name: pm_init
-      description: Initialize a Puppet Master project (check deps, read config, guide setup)
+      description: Initialize/inspect a PM4 project (SvelteKit deps, PM_CONFIG.mode, setup steps)
       schema:
         mode: develop | build | auto
         startDev: boolean
 
     - name: pm_dev
-      description: Manage the PM development server (start/stop/restart/status)
+      description: Manage the PM4 Vite dev server (start uses npm run dev + predev)
       schema:
         action: start | stop | restart | status
-        port: number (default 3000)
+        port: number (default 5173)
 
     - name: pm_status
-      description: Display full project status (config, database, dev server, modules)
+      description: Display PM4 status (typed config, ModuleManifest, libSQL db, Vite dev server)
       schema:
         detail: summary | config | modules | db | full
 
@@ -90,12 +90,12 @@ tools:
 
   knowledge:
     - name: pm_knowledge
-      description: Load framework knowledge base (CSS: Tailwind v4 + tokens, Svelte components, state/actions, DB, API, config, RTL, rules)
+      description: Load PM4 framework knowledge (Tailwind v4 tokens, components, state, async libSQL, API, typed config + manifest, RTL, rules, security, compliance)
       schema:
-        topic: css | components | state | database | api | config | rtl | rules | all
+        topic: css | components | state | database | api | config | rtl | rules | security | compliance | all
 
     - name: pm_knowledge_entrypoint
-      description: Load greenfield or brownfield entrypoint documentation
+      description: Load a PM4 entrypoint document (overview | greenfield | brownfield)
       schema:
         mode: greenfield | brownfield | overview
 
@@ -153,7 +153,7 @@ tools:
         files: string (comma-separated, optional)
 
 meta:
-  runtime: Node.js 22+
+  runtime: Bun (required — PM4 config modules are TypeScript with tsconfig path aliases)
   transport: StdioServerTransport (JSON-RPC over stdio)
   dependencies:
     - "@modelcontextprotocol/sdk ^1.13.1"
@@ -163,5 +163,6 @@ meta:
     - "typescript ^5.9.3"
   registration:
     type: local
-    command: ["npx", "tsx", "<path>/src/index.ts"]
-    alternative: ["node", "<path>/dist/index.js"]
+    command: ["bun", "<path>/src/index.ts"]
+    alternative: ["bun", "<path>/dist/index.js"]
+    working_directory: "the PM4 project root, or set PM_PROJECT_ROOT"

@@ -1,10 +1,20 @@
 import type { PmTool } from './index.js'
-import { getProjectRoot, checkPort, fileExists, fileSize, loadConfig } from './utils.js'
+import { getProjectRoot, checkPort, fileExists, fileSize, loadConfig, PM_CONFIG_FILE, type PmProject } from './utils.js'
+
+const DEV_PORT = 5173
+
+function moduleState(project: PmProject): Record<string, unknown> {
+  return Object.fromEntries(
+    project.modules
+      .filter((module) => module.moduleId !== undefined)
+      .map((module) => [module.moduleId as string, { enabled: module.moduleEnabled ?? true, config: module.config ?? {} }]),
+  )
+}
 
 export const statusTool: PmTool = {
   name: 'pm_status',
   description:
-    'Display full Puppet Master project status: config mode, database state, dev server, enabled modules, features, and sections.',
+    'Display PuppetMaster 4 project status: typed config, module manifest, database file, and dev server (Vite on port 5173).',
   inputSchema: {
     type: 'object',
     properties: {
@@ -21,49 +31,45 @@ export const statusTool: PmTool = {
 
     const status: Record<string, unknown> = { projectRoot: root }
 
-    const config = await loadConfig(root)
-    status.configExists = config !== null
-    status.pmMode = config?.pmMode ?? 'unknown'
+    let project: PmProject | null = null
+    let configError: string | null = null
+    try {
+      project = await loadConfig(root)
+    } catch (error) {
+      configError = error instanceof Error ? error.message : String(error)
+    }
+
+    status.configExists = project !== null
+    status.configPath = PM_CONFIG_FILE
+    status.mode = project?.config.mode ?? 'unknown'
+    if (configError) status.configError = configError
+
+    const dbState = { exists: fileExists('data/sqlite.db'), path: 'data/sqlite.db', sizeBytes: fileSize('data/sqlite.db') }
+    const devRunning = checkPort(DEV_PORT)
 
     if (detail === 'summary') {
-      status.database = { exists: fileExists('data/sqlite.db') }
-      status.devServer = { running: checkPort(3000), port: 3000 }
-      const sections = config?.sections as string[] | undefined
-      status.activeSections = sections ?? []
+      status.database = dbState
+      status.devServer = { running: devRunning, port: DEV_PORT, url: devRunning ? `http://localhost:${DEV_PORT}` : null }
+      status.modules = project ? moduleState(project) : {}
       return JSON.stringify(status, null, 2)
     }
 
     if (detail === 'config' || detail === 'modules' || detail === 'full') {
-      status.aiWorkflow = config?.aiWorkflow ?? 'unknown'
-      status.entities = config?.entities ?? {}
-      status.features = config?.features ?? {}
-      status.modules = config?.modules ?? {}
-      status.locales = config?.locales ?? []
-      status.defaultLocale = config?.defaultLocale ?? 'unknown'
-      status.colors = config?.colors ?? {}
+      status.config = project?.config ?? null
+      status.site = project?.config.site ?? null
+      status.modules = project ? moduleState(project) : {}
+      status.moduleManifest = project?.modules ?? []
     }
 
     if (detail === 'db' || detail === 'full') {
-      status.database = {
-        exists: fileExists('data/sqlite.db'),
-        path: 'data/sqlite.db',
-        sizeBytes: fileSize('data/sqlite.db'),
-      }
-    }
-
-    if (detail === 'modules' || detail === 'full') {
-      if (config?.admin) {
-        status.admin = config.admin
-      }
-      const sections = config?.sections as string[] | undefined
-      status.activeSections = sections ?? []
+      status.database = dbState
     }
 
     if (detail === 'full') {
       status.devServer = {
-        running: checkPort(3000),
-        port: 3000,
-        url: checkPort(3000) ? 'http://localhost:3000' : null,
+        running: devRunning,
+        port: DEV_PORT,
+        url: devRunning ? `http://localhost:${DEV_PORT}` : null,
       }
     }
 

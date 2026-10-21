@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect"
+import { Context, Effect, Layer, Option } from "effect"
 
 import { InstanceState } from "@/effect/instance-state"
 
@@ -31,7 +31,9 @@ import type { EditorContext } from "../nocowboy/editor-context"
 import { NoCowboySystemPrompt } from "../nocowboy/system-prompt"
 import { isLing } from "../nocowboy/model-match"
 import { SvelteRunes } from "../nocowboy/svelte-runes"
-import { fetchContext, fetchCoherenceCheck, fetchHandoff, fetchPmContext, hasNutausik } from "../nocowboy/nutausik-client"
+import { fetchContext, fetchCoherenceCheck, fetchHandoff, hasNutausik } from "../nocowboy/nutausik-client"
+import { PuppetMaster } from "../nocowboy/puppetmaster"
+import { MCP } from "../mcp"
 
 export function instructions() {
   return PROMPT_CODEX.trim()
@@ -191,19 +193,23 @@ export const layer = Layer.effect(
           if (handoffText) lines.push(["## Previous Session Handoff", "", handoffText].join("\n"))
         }
 
-        // 5. PM context (dynamic) — lazy: only if PM config exists
-        const pmContext = yield* Effect.promise(async () => {
-          try {
-            const dir = ctx.directory || process.cwd()
-            const { existsSync } = await import("fs")
-            const { join } = await import("path")
-            const configPath = join(dir, "project", "puppet-master.config.ts")
-            if (!existsSync(configPath)) return ""
-            return await fetchPmContext(dir)
-          } catch { return "" }
-        }).pipe(Effect.catch(() => Effect.succeed("")))
-        if (pmContext) {
-          lines.push(["## PM v3 Project Context", "", pmContext].join("\n"))
+        // 5. PuppetMaster 4 context (dynamic) — only when the PM MCP server is
+        // connected for this workspace. The call goes through the MCP service
+        // (the same stdio process the agent's tools use), never a raw HTTP
+        // request to a proxy that may not be running.
+        const dir = ctx.directory || process.cwd()
+        const mcp = Option.getOrUndefined(yield* Effect.serviceOption(MCP.Service))
+        if (PuppetMaster.isProject(dir) && mcp) {
+          const mcpStatus = yield* mcp
+            .status()
+            .pipe(Effect.catch(() => Effect.succeed({} as Record<string, MCP.Status>)))
+          if (mcpStatus["puppetmaster"]?.status === "connected") {
+            const pmResult = yield* mcp
+              .call("puppetmaster", "pm_inject_context", { projectDir: dir })
+              .pipe(Effect.catch(() => Effect.succeed(undefined)))
+            const pmContext = PuppetMaster.promptBlock(mcpStatus["puppetmaster"]?.status, pmResult)
+            if (pmContext) lines.push(pmContext)
+          }
         }
 
         // Cache before returning
