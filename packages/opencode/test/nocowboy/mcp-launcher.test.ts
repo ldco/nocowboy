@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { isFirstPartyMcp, resolveCommand } from "@/nocowboy/mcp/launcher"
+import { commandExists, commandPaths, isFirstPartyMcp, resolveCommand } from "@/nocowboy/mcp/launcher"
 
 describe("resolveCommand — first-party MCP launch precedence", () => {
   test("launch.json wins over installed package and defaults", () => {
@@ -157,5 +157,25 @@ describe("isFirstPartyMcp", () => {
 
   test("an empty name is not first-party", () => {
     expect(isFirstPartyMcp("  ")).toBe(false)
+  })
+})
+
+describe("commandExists — stale launch.json paths", () => {
+  test("extracts absolute path arguments", () => {
+    expect(commandPaths("node /pkg/a.js --serve")).toEqual(["/pkg/a.js"])
+    expect(commandPaths('node "/pkg with space/a.js"')).toEqual(["/pkg with space/a.js"])
+    expect(commandPaths("npx -y @upstash/context7-mcp")).toEqual([])
+  })
+
+  test("a command whose absolute path exists is launchable", () => {
+    expect(commandExists(`node ${import.meta.path}`)).toBe(true)
+  })
+
+  test("a command pointing at a moved repository is not launchable", () => {
+    expect(commandExists("node /definitely/not/here/dist/index.js --serve")).toBe(false)
+  })
+
+  test("commands without absolute paths are assumed launchable", () => {
+    expect(commandExists("npx -y @upstash/context7-mcp")).toBe(true)
   })
 })

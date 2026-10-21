@@ -1,5 +1,6 @@
 import * as os from "node:os"
 import * as path from "node:path"
+import * as fs from "node:fs"
 import * as fsp from "node:fs/promises"
 import { createRequire } from "node:module"
 import * as Log from "@nocowboy/core/util/log"
@@ -20,6 +21,22 @@ const DEFAULT_LAUNCHES: Record<string, { command: string } | null> = {
   // First-party MCP servers (constitution, contract-guard, git, etc.) are published
   // as separate @nocowboy/mcp-<name> packages. They're auto-detected below
   // via require.resolve when installed. No default entries needed.
+}
+
+/** Absolute paths referenced by a launch command string (quoted paths included). */
+export function commandPaths(cmd: string): string[] {
+  const tokens = cmd.match(/"([^"]+)"|'([^']+)'|(\S+)/g) ?? []
+  return tokens.map((t) => t.replace(/^["']|["']$/g, "")).filter((t) => path.isAbsolute(t))
+}
+
+/**
+ * False when a command points at an absolute path that no longer exists — the
+ * usual symptom of a configuration written before a repository moved. Commands
+ * with no absolute paths (npx/uvx/installed binaries) cannot be checked here and
+ * are treated as launchable.
+ */
+export function commandExists(cmd: string): boolean {
+  return commandPaths(cmd).every((p) => fs.existsSync(p))
 }
 
 /** True when a server name belongs to the first-party `@nocowboy/mcp-*` family. */
@@ -96,9 +113,15 @@ export namespace Launcher {
   export async function command(name: string): Promise<string | null> {
     // Resolve the async sources first, then apply the pure precedence.
     const fromJson = await readLaunchJson(name)
+    // A launch.json entry written for a repository that has since moved is not a
+    // candidate at all: spawning it only produces MODULE_NOT_FOUND in the MCP log.
+    const launchJson = fromJson && commandExists(fromJson) ? fromJson : undefined
+    if (fromJson && !launchJson) {
+      log.warn("launch.json command points at a missing path, falling through", { name, command: fromJson })
+    }
     const installed = await resolveInstalled(name)
     return resolveCommand(name, {
-      launchJson: () => fromJson,
+      launchJson: () => launchJson,
       installedPackage: () => installed,
       defaults: DEFAULT_LAUNCHES,
       onResolve: (info) => log.debug("mcp launch resolved", info),
