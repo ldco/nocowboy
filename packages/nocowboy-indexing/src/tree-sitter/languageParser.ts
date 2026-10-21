@@ -152,13 +152,16 @@ export async function loadProjectLanguageParsers(
   if (!isParserInitialized) {
     try {
       const runtimeWasmPath = resolveCoreRuntimeWasmPath(sourceDirectory)
-      await (runtimeWasmPath
-        ? Parser.init({
-            locateFile() {
-              return runtimeWasmPath
-            },
-          })
-        : Parser.init())
+      if (!runtimeWasmPath) {
+        const searchedPaths = wasmDirectories(sourceDirectory)
+        log.error("Failed to resolve tree-sitter runtime WASM", { searchedPaths })
+        throw new Error(`Missing tree-sitter runtime WASM: tree-sitter.wasm (searched: ${searchedPaths.join(", ")})`)
+      }
+      await Parser.init({
+        locateFile() {
+          return runtimeWasmPath
+        },
+      })
       isParserInitialized = true
     } catch (error) {
       log.error("Failed to initialize tree-sitter parser", {
@@ -201,9 +204,20 @@ function extToQueryForLanguageName(langName: string): string | undefined {
   }
 }
 
+/**
+ * Resolve a module file to an absolute path that actually exists on disk.
+ *
+ * `require.resolve` inside a compiled Bun binary is not a filesystem probe: it
+ * returns the absolute path recorded when the binary was built, even after the
+ * source tree has been moved or deleted. Returning such a dead path here made
+ * tree-sitter resolve its runtime WASM to a directory that no longer existed and
+ * fail with an opaque ENOENT. Every candidate we hand out must exist.
+ */
 export function resolveModulePath(specifier: string): string | undefined {
   try {
-    return require.resolve(specifier)
+    const resolved = require.resolve(specifier)
+    if (!resolved || !existsSync(resolved)) return
+    return resolved
   } catch {
     return
   }
@@ -300,13 +314,16 @@ export async function loadRequiredLanguageParsers(filesToParse: string[], source
   if (!isParserInitialized) {
     try {
       const runtimeWasmPath = resolveCoreRuntimeWasmPath(sourceDirectory)
-      await (runtimeWasmPath
-        ? Parser.init({
-            locateFile() {
-              return runtimeWasmPath
-            },
-          })
-        : Parser.init())
+      if (!runtimeWasmPath) {
+        const searchedPaths = wasmDirectories(sourceDirectory)
+        log.error("Failed to resolve tree-sitter runtime WASM", { searchedPaths })
+        throw new Error(`Missing tree-sitter runtime WASM: tree-sitter.wasm (searched: ${searchedPaths.join(", ")})`)
+      }
+      await Parser.init({
+        locateFile() {
+          return runtimeWasmPath
+        },
+      })
       isParserInitialized = true
     } catch (error) {
       log.error("Failed to initialize tree-sitter parser", {

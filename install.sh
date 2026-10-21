@@ -11,7 +11,8 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Self-contained — this script lives inside the release archive.
-# The archive also contains: nocowboy (binary) + config/ directory
+# The archive also contains: nocowboy (binary), its runtime sidecars
+# (tree-sitter/, models-snapshot.json, proxy-standalone.mjs) and config/.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
@@ -36,6 +37,17 @@ if [[ -f "${SCRIPT_DIR}/nocowboy" ]]; then
   cp "${SCRIPT_DIR}/nocowboy" "${INSTALL_DIR}/"
   chmod 755 "${INSTALL_DIR}/nocowboy"
   echo -e "${MUTED}Installed nocowboy to ${INSTALL_DIR}/nocowboy${NC}"
+
+  # --- Runtime sidecars ---
+  # The binary loads tree-sitter WASMs, the offline models snapshot and the MCP
+  # proxy from its own directory. Install them next to the binary; a lone
+  # binary starts with broken code indexing and MCP proxies.
+  for sidecar in tree-sitter models-snapshot.json proxy-standalone.mjs; do
+    if [[ -e "${SCRIPT_DIR}/${sidecar}" ]]; then
+      rm -rf "${INSTALL_DIR:?}/${sidecar}"
+      cp -r "${SCRIPT_DIR}/${sidecar}" "${INSTALL_DIR}/"
+    fi
+  done
 else
   echo -e "${RED}Error: nocowboy binary not found alongside install.sh${NC}"
   echo "Extract the full archive and run install.sh from the extracted directory."

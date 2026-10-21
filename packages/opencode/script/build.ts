@@ -9,6 +9,7 @@ import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import { createRequire } from "module" // nocowboy_change
 import { prepareModelsSnapshot } from "./nocowboy/models-snapshot" // nocowboy_change
 import { resolveBuildVersion } from "./nocowboy/build-version" // nocowboy_change
+import { copyReleaseSidecars } from "./nocowboy/release-sidecars" // nocowboy_change
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -439,6 +440,7 @@ if (Script.release) {
     await $`cp ${binDir}/nocowboy ${stagingDir}/` // nocowboy_change
     await $`cp ${path.resolve(dir, "../../install.sh")} ${stagingDir}/` // nocowboy_change
     await $`cp -r ${path.resolve(dir, "../../packaging/config")} ${stagingDir}/config` // nocowboy_change
+    await copyReleaseSidecars(path.resolve(binDir), path.resolve(stagingDir)) // nocowboy_change
     if (key.includes("linux")) {
       const out = path.resolve("dist", `${archive}.tar.gz`) // nocowboy_change
       await $`tar -czf ${out} *`.cwd(stagingDir) // nocowboy_change
@@ -470,6 +472,13 @@ if (Script.release) {
         console.error(`  ❌ Could not update ${homeBin}`)
         console.error(`     ${err instanceof Error ? err.message : String(err)}`)
         console.error(`     Install manually: cp ${src} ${homeBin}`)
+      }
+      try {
+        await copyReleaseSidecars(path.resolve(binDir), path.dirname(homeBin))
+        console.log(`  Updated release sidecars in ${path.dirname(homeBin)}`)
+      } catch (err) {
+        console.error(`  Could not update release sidecars in ${path.dirname(homeBin)}`)
+        console.error(`     ${err instanceof Error ? err.message : String(err)}`)
       }
     }
   }

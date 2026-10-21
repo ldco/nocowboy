@@ -83,6 +83,7 @@ export const DEFAULT_OWNERSHIP_MANIFEST: OwnershipManifest = {
       ".gitattributes",
       "AGENTS.md",
       "README.md",
+      "install.sh",
       "*.md",
     ],
   },
