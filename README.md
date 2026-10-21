@@ -137,7 +137,7 @@ bun run release
 ```bash
 cd packages/opencode
 bun link               # exposes the `nocowboy` bin globally
-nocowboy --version     # 1.4.1
+nocowboy --version     # 1.4.2
 ```
 
 On Linux, `bun run release` also installs the freshly built binary to `~/.nocowboy/bin`; other platforms build into `dist/` only.
@@ -366,7 +366,7 @@ Add MCP servers in the `mcp` config key (or `nocowboy mcp add`). Each server is 
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) · [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · [`docs/BACKLOG.md`](docs/BACKLOG.md) — generated from `docs/roadmap.json`.
 - [`docs/features/`](docs/features) — one page per shipped feature.
 - [`docs/reference/`](docs/reference) — fork playbook, engine manifest, glossary, architecture notes.
-- [`docs/releases/1.4.1.md`](docs/releases/1.4.1.md) — latest release notes.
+- [`docs/releases/1.4.2.md`](docs/releases/1.4.2.md) — latest release notes.
 - [`docs/guides/autopilot.md`](docs/guides/autopilot.md) — autonomous runs (`/goal`, `/roadmap`).
 
 ---

@@ -438,7 +438,14 @@ if (Script.release) {
     const stagingDir = `dist/${key}/staging` // nocowboy_change
     await $`mkdir -p ${stagingDir}` // nocowboy_change
     await $`cp ${binDir}/nocowboy ${stagingDir}/` // nocowboy_change
-    await $`cp ${path.resolve(dir, "../../install.sh")} ${stagingDir}/` // nocowboy_change
+    // Stamp the installer with the version being released: a hardcoded
+    // VERSION inside install.sh drifts silently (it shipped 0.7.3 in the 1.4.x
+    // archives). packages/opencode/package.json is the source of truth.
+    const installScript = await Bun.file(path.resolve(dir, "../../install.sh")).text() // nocowboy_change
+    await Bun.write( // nocowboy_change
+      path.resolve(stagingDir, "install.sh"), // nocowboy_change
+      installScript.replace(/^VERSION="[^"]*"$/m, `VERSION="${Script.version}"`), // nocowboy_change
+    ) // nocowboy_change
     await $`cp -r ${path.resolve(dir, "../../packaging/config")} ${stagingDir}/config` // nocowboy_change
     await copyReleaseSidecars(path.resolve(binDir), path.resolve(stagingDir)) // nocowboy_change
     await writeSidecarManifest(path.resolve(stagingDir)) // nocowboy_change

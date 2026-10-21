@@ -744,3 +744,15 @@
   `verify:file packages/opencode/src/nocowboy/mcp/launcher.ts`
   `verify:file docs/features/mcp-launch-path-validation.md`
   `verify:file docs/releases/1.4.1.md`
+
+## v1.4.2 — PuppetMaster MCP aligned with PuppetMaster 4 — one detection point, typed config, project-scoped enable (2026-10-21)
+
+### Fixes
+
+- **DONE** PuppetMaster MCP alignment — PM4 detection, typed config tools and project-scoped enable
+  `verify:test packages/opencode/test/nocowboy/puppetmaster-detect.test.ts`
+  `verify:test packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts`
+  `verify:file packages/opencode/src/nocowboy/puppetmaster.ts`
+  `verify:file packaging/mcp-servers/puppetmaster/src/tools/config.ts`
+  `verify:file docs/features/puppetmaster-mcp-pm4-alignment.md`
+  `verify:file docs/releases/1.4.2.md`

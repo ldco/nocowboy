@@ -182,6 +182,11 @@
       "tag": "v1.4.1",
       "date": "2026-10-21",
       "description": "MCP launch resilience — a launch.json command pointing at a moved repository is rejected with a warning instead of silently spawning a dead proxy"
+    },
+    {
+      "tag": "v1.4.2",
+      "date": "2026-10-21",
+      "description": "PuppetMaster MCP aligned with PuppetMaster 4 — one detection point, typed config, project-scoped enable"
     }
   ],
   "features": [
@@ -5652,6 +5657,48 @@
         {
           "type": "file",
           "path": "docs/releases/1.4.1.md"
+        }
+      ]
+    },
+    {
+      "id": "puppetmaster-mcp-pm4-alignment",
+      "title": "PuppetMaster MCP alignment — PM4 detection, typed config tools and project-scoped enable",
+      "status": "done",
+      "version": "v1.4.2",
+      "changelog": "Fixes",
+      "tags": [
+        "mcp",
+        "puppetmaster",
+        "pm4",
+        "config",
+        "detection"
+      ],
+      "description": "The puppetmaster MCP and NoCowboy's PM detection were hardcoded to the deleted PM v2/v3 layout (project/puppet-master.config.ts), so PM4 projects were never detected and the MCP injected v3 paths, v3 modules and a 'SQLite same as v2' database description. Detection now lives in one module (src/project/pm.config.ts or src/lib/config/modules.ts, or package name puppetmaster-4); the MCP reads PM4's typed PM_CONFIG and ModuleManifest; pm_config_set only rewrites unique scalar leaves in the PM_CONFIG block, validates through a temp import and replaces the file atomically; pm_knowledge was rewritten for async libSQL, the ui/ layer and the ADR-04 module manifest. PM context reaches the system prompt through MCP.Service.call instead of a raw HTTP request to the 9201 proxy.",
+      "notes": "Done 2026-10-21. Project-scoped enable lives in PuppetMaster4/.nocowboy/nocowboy.jsonc (puppetmaster enabled + PM_PROJECT_ROOT + bun src/index.ts). packaging/mcp-servers/puppetmaster/src/prompts.ts was force-added because the root `mcp-servers` ignore pattern had left it untracked, which broke a fresh-clone launch. Tests: puppetmaster-detect.test.ts, puppetmaster-mcp.test.ts. Reviewer PASS.",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/puppetmaster-detect.test.ts"
+        },
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packages/opencode/src/nocowboy/puppetmaster.ts"
+        },
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/puppetmaster/src/tools/config.ts"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/puppetmaster-mcp-pm4-alignment.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/releases/1.4.2.md"
         }
       ]
     }
