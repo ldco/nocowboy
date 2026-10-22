@@ -216,6 +216,9 @@ describe("pm_knowledge / pm_inject_context", () => {
     expect(result).toContain("src/lib/config/modules.ts")
     expect(result).not.toContain("project/puppet-master.config.ts")
     expect(result).not.toContain("PM v3 RULES")
+    expect(result).toContain("validate:pm4")
+    expect(result).not.toContain("validate:pm3")
+    expect(result).not.toContain("pm-v3")
   })
 
   test("database topic describes async libSQL, not 'SQLite as in v2'", async () => {
@@ -233,7 +236,10 @@ describe("pm_knowledge / pm_inject_context", () => {
     expect(result).toContain("PM4 PROJECT")
     expect(result).toContain("MODULES: faq=ON, team=OFF")
     expect(result).toContain("PROJECT: Fixture mode=build")
+    expect(result).toContain("validate:pm4")
+    expect(result).not.toContain("validate:pm3")
     expect(result).not.toContain("PM v3")
+    expect(result).not.toContain("pm-v3")
   })
 
   test("injects nothing for a non-PM4 directory", async () => {

@@ -10,6 +10,11 @@ function moduleLines(project: PmProject | null): string[] {
   return [`MODULES: ${modules.map((module) => `${module.moduleId}=${(module.moduleEnabled ?? true) ? 'ON' : 'OFF'}`).join(', ')}`]
 }
 
+// Self-check names track the PM4 project rename: `validate:pm3` → `validate:pm4`.
+// The PM4 package keeps a deprecated `validate:pm3` shim, so an older checkout
+// still answers the legacy name; a checkout that predates the rename does not
+// know `validate:pm4` — update the PM4 project in step with this MCP when the
+// self-check instructions fail with "missing script".
 const TOPICS: Record<string, string[]> = {
   css: [
     'CSS SYSTEM: Tailwind CSS v4 via @tailwindcss/vite; the design system is PM4-owned, not Tailwind stock.',
@@ -90,7 +95,7 @@ const TOPICS: Record<string, string[]> = {
     'Nav/locale switching lives in the header; isNavItemEnabled gates module nav items in header, sheet and footer.',
   ],
   rules: [
-    'PM4 RULES — SvelteKit 2 + Svelte 5 runes + Tailwind v4. AGENTS.md is authoritative; canonical rulebook: docs/contributing/pm-v3-style-rules.md.',
+    'PM4 RULES — SvelteKit 2 + Svelte 5 runes + Tailwind v4. AGENTS.md is authoritative; canonical rulebook: docs/contributing/pm4-style-rules.md.',
     '1. NO literal design values in markup — token-reference brackets [var(--token)] only; consult docs/design-tokens.md before inventing a token.',
     '2. NO BEM/global component classes and NO <style> blocks; reusable patterns are components.',
     '3. MANDATORY primitive contract: use canonical ui/ primitives (import from ui/index.ts) and the class prop + twMerge(clsx(...)).',
@@ -103,7 +108,7 @@ const TOPICS: Record<string, string[]> = {
     '10. i18n: every user-facing string via t(); literal UI strings fail validator check #10.',
     '11. Every exported component has JSDoc description + @props + @example.',
     '12. Translations: every join filters by locale; content entities use *_translations tables.',
-    '13. Self-check: npm run check → 0 errors; npm run validate:pm3; npm run lint; npm test.',
+    '13. Self-check: npm run check → 0 errors; npm run validate:pm4; npm run lint; npm test.',
   ],
   security: [
     'HTTP Security Headers: CSP, X-Frame-Options: DENY, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP, CORS allowlist (docs/architecture/security-headers.md).',
@@ -154,7 +159,7 @@ function compressedRules(project: PmProject | null): string {
     '6. Zod on ALL inputs; errors { success: false, error: { code, message } }; CSRF header on public mutations.',
     '7. i18n: every user-facing string via t(); joins filter by locale.',
     '8. Strict TS: no any, no @ts-ignore/!, no empty catch.',
-    '9. Self-check: npm run check, npm run validate:pm3, npm run lint, npm test.',
+    '9. Self-check: npm run check, npm run validate:pm4, npm run lint, npm test.',
   ]
   if (project) {
     const mode = String(project.config.mode ?? 'unknown')

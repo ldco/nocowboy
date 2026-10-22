@@ -756,3 +756,14 @@
   `verify:file packaging/mcp-servers/puppetmaster/src/tools/config.ts`
   `verify:file docs/features/puppetmaster-mcp-pm4-alignment.md`
   `verify:file docs/releases/1.4.2.md`
+
+## v1.4.3 — PM3 validator names purged — PM4 validator, canonical rulebook and knowledge cache aligned (2026-10-22)
+
+### Fixes
+
+- **DONE** Purge legacy PM3 names — PM4 validator, rulebook and knowledge cache
+  `verify:test packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts`
+  `verify:file packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts`
+  `verify:grep packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts validate:pm4`
+  `verify:file docs/features/purge-pm3-validator-names.md`
+  `verify:file docs/releases/1.4.3.md`
