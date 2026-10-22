@@ -187,6 +187,11 @@
       "tag": "v1.4.2",
       "date": "2026-10-21",
       "description": "PuppetMaster MCP aligned with PuppetMaster 4 — one detection point, typed config, project-scoped enable"
+    },
+    {
+      "tag": "v1.4.3",
+      "date": "2026-10-22",
+      "description": "PM3 validator names purged — PM4 validator, canonical rulebook and knowledge cache aligned"
     }
   ],
   "features": [
@@ -5699,6 +5704,45 @@
         {
           "type": "file",
           "path": "docs/releases/1.4.2.md"
+        }
+      ]
+    },
+    {
+      "id": "purge-pm3-validator-names",
+      "title": "Purge legacy PM3 names — PM4 validator, rulebook and knowledge cache",
+      "status": "done",
+      "version": "v1.4.3",
+      "changelog": "Fixes",
+      "tags": [
+        "mcp",
+        "puppetmaster",
+        "pm4",
+        "validator",
+        "cleanup"
+      ],
+      "description": "The puppetmaster MCP knowledge cache described the canonical rulebook as docs/contributing/pm-v3-style-rules.md and the self-check as npm run validate:pm3, while the same block was labelled PM4 RULES; the source of truth (PuppetMaster4, package name puppetmaster-4) still carried inherited PM3 names. knowledge.ts now points at pm4-style-rules.md and validate:pm4, the tsc dist is rebuilt, and the regression test asserts validate:pm4 and the absence of validate:pm3/pm-v3. PuppetMaster4 renames scripts/pm3-validator.mjs to pm4-validator.mjs (PM3_DB_PATH to PM4_DB_PATH), adds validate:pm4/validate:pm4:strict with a deprecated validate:pm3 shim, renames the rulebook to pm4-style-rules.md and the token mapping to v2-v4-token-mapping.md, and updates active references across AGENTS.md, README, eslint config, CI and docs. Historical docs/features, docs/design-system/evidence, docs/legacy and plans are left untouched.",
+      "notes": "Done 2026-10-22. NoCowboy: knowledge.ts (3 lines) + version-coupling comment, dist rebuilt; puppetmaster-mcp.test.ts strengthened. PuppetMaster4: 4 git mv, 63 active files updated, deprecated shim keeps validate:pm3 working during rollout. Verification: NoCowboy typecheck 0, ratchet 0, targeted tests 28 pass; full test/nocowboy has 16 pre-existing flaky failures (pristine run identical, affected files pass in isolation). PuppetMaster4: validate:pm4 OK, shim OK, check 0/0, lint OK, full vitest 229/229 files 1650 pass. validate:pm4:strict fails pre-existing on src/project/site-config.ts baseline (not in CI).",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts",
+          "pattern": "validate:pm4"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/purge-pm3-validator-names.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/releases/1.4.3.md"
         }
       ]
     }
