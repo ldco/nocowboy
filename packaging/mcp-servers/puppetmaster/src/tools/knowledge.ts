@@ -3,8 +3,7 @@ import { getProjectRoot, loadConfig, PM_CONFIG_FILE, type PmProject } from './ut
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-function moduleLines(project: PmProject | null): string[] {
-  if (!project) return ['MODULES: unavailable (pm.config.ts was not loaded)']
+function moduleLines(project: PmProject): string[] {
   const modules = project.modules.filter((module) => module.moduleId !== undefined)
   if (modules.length === 0) return ['MODULES: none declared in the ModuleManifest']
   return [`MODULES: ${modules.map((module) => `${module.moduleId}=${(module.moduleEnabled ?? true) ? 'ON' : 'OFF'}`).join(', ')}`]
@@ -50,7 +49,7 @@ const TOPICS: Record<string, string[]> = {
     'Public forms: Zod schema → $state fields → CSRF header → POST /api/<entity>/submit; submit button gates on createFormValidity (ADR-1).',
     'Theme: class-based .dark on <html>, bootstrapped before paint (docs/architecture/theme-and-startup.md); no FOUC.',
     'Overlay history/Back contract lives in src/lib/utils/overlay-history.svelte.ts; scroll/focus owners are shared utils.',
-    'Module gates: FEATURES/MODULES from $lib/config/site; a module switch must gate admin page + public route + every nav link together.',
+    'Module gates: FEATURES/MODULES are defined in src/project/site-config.ts ($lib/config/site only re-exports them); a module switch must gate admin page + public route + every nav link together.',
     'There is NO customer account domain (removed with commerce): no /account, customers or customer_sessions.',
   ],
   database: [
@@ -102,7 +101,7 @@ const TOPICS: Record<string, string[]> = {
     '4. NO any, @ts-ignore/@ts-expect-error/@ts-nocheck, non-null assertions (!) or eslint-disable of @typescript-eslint rules.',
     '5. NO empty catches: log, rethrow with context, or return a typed error.',
     '6. Dark mode: class-based .dark + light-dark() derivations; never light-dark() inside component classes.',
-    '7. Config-driven: FEATURES/MODULES from $lib/config/site; module state from the ModuleManifest (src/lib/config/modules.ts); one switch gates admin + route + nav.',
+    '7. Config-driven: FEATURES/MODULES are defined in src/project/site-config.ts ($lib/config/site re-exports); module state from the ModuleManifest (src/lib/config/modules.ts); one switch gates admin + route + nav.',
     '8. Database: async libSQL only; routes import services, never $lib/server/db; Drizzle ORM only, no raw SQL.',
     '9. Zod on ALL inputs; error envelope { success: false, error: { code, message } }.',
     '10. i18n: every user-facing string via t(); literal UI strings fail validator check #10.',
@@ -148,30 +147,23 @@ const TOPICS: Record<string, string[]> = {
   ],
 }
 
-function compressedRules(project: PmProject | null): string {
-  const lines = [
-    'PM4 PROJECT — SvelteKit 2 + Svelte 5 runes + Tailwind v4. AGENTS.md is authoritative; this is a cached rule set.',
-    '1. NO literal design values in markup; use [var(--token)] refs (docs/design-tokens.md first).',
-    '2. Use canonical ui/ primitives from $lib/components/ui (barrel) with class + twMerge(clsx(...)); no <style>, no BEM.',
-    '3. Class-based .dark + light-dark() derivations; components use bg-pm-*/text-pm-* tokens.',
-    '4. FEATURES/MODULES from $lib/config/site; ModuleManifest (src/lib/config/modules.ts) is the single module source; one switch gates admin + route + nav.',
-    '5. DB is async libSQL (@libsql/client); routes import $lib/server/services/*, never $lib/server/db; Drizzle only, no raw SQL.',
-    '6. Zod on ALL inputs; errors { success: false, error: { code, message } }; CSRF header on public mutations.',
-    '7. i18n: every user-facing string via t(); joins filter by locale.',
-    '8. Strict TS: no any, no @ts-ignore/!, no empty catch.',
-    '9. Self-check: npm run check, npm run validate:pm4, npm run lint, npm test.',
-  ]
-  if (project) {
-    const mode = String(project.config.mode ?? 'unknown')
-    const site = project.config.site as Record<string, unknown> | undefined
-    const name = typeof site?.name === 'string' ? site.name : 'unknown'
-    const siteMode = typeof site?.defaultLocale === 'string' ? `defaultLocale=${site.defaultLocale}` : ''
-    lines.push(`PROJECT: ${name} mode=${mode} ${siteMode}`.trim())
-    lines.push(...moduleLines(project))
-  } else {
-    lines.push('CONFIG: src/project/pm.config.ts was not readable; rely on AGENTS.md.')
-  }
-  return lines.join('\n')
+/**
+ * The automatic `pm_inject_context` payload: runtime facts that a static
+ * AGENTS.md cannot carry. Framework rules are deliberately NOT included — the
+ * project's AGENTS.md is the single authoritative rule set and NoCowboy already
+ * loads it, so injecting a second, condensed copy made agents "fix" documented
+ * exceptions and break working code.
+ */
+function projectState(project: PmProject): string {
+  const mode = String(project.config.mode ?? 'unknown')
+  const site = project.config.site as Record<string, unknown> | undefined
+  const name = typeof site?.name === 'string' ? site.name : 'unknown'
+  const locale = typeof site?.defaultLocale === 'string' ? ` defaultLocale=${site.defaultLocale}` : ''
+  return [
+    'PuppetMaster 4 project detected — AGENTS.md is authoritative for framework rules.',
+    `PROJECT: ${name} mode=${mode}${locale}`,
+    ...moduleLines(project),
+  ].join('\n')
 }
 
 export const knowledgeTools: PmTool[] = [
@@ -284,7 +276,7 @@ export const knowledgeTools: PmTool[] = [
   {
     name: 'pm_inject_context',
     description:
-      'Inject PuppetMaster 4 rules and the project config (typed PM_CONFIG + ModuleManifest state) into the agent context. Called automatically by NoCowboy when a PM4 project is detected.',
+      'Inject the PuppetMaster 4 project state (site name, mode, ModuleManifest switches) into the agent context. Rules are not injected: the project AGENTS.md is authoritative. Called automatically by NoCowboy when a PM4 project is detected.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -305,7 +297,7 @@ export const knowledgeTools: PmTool[] = [
       }
       if (!project) return ''
 
-      return compressedRules(project)
+      return projectState(project)
     },
   },
 ]

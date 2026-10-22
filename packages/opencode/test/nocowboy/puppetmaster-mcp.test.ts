@@ -230,16 +230,20 @@ describe("pm_knowledge / pm_inject_context", () => {
     expect(result).not.toContain("page/CMS")
   })
 
-  test("injects PM4 rules plus the typed module state", async () => {
+  test("injects PM4 project state, never cached rules", async () => {
     const inject = tool(knowledgeTools, "pm_inject_context") as (typeof knowledgeTools)[number]
     const result = await inject.handler({ projectDir: root })
-    expect(result).toContain("PM4 PROJECT")
-    expect(result).toContain("MODULES: faq=ON, team=OFF")
+    expect(result).toContain("PuppetMaster 4 project detected")
     expect(result).toContain("PROJECT: Fixture mode=build")
-    expect(result).toContain("validate:pm4")
-    expect(result).not.toContain("validate:pm3")
-    expect(result).not.toContain("PM v3")
-    expect(result).not.toContain("pm-v3")
+    expect(result).toContain("defaultLocale=ru")
+    expect(result).toContain("MODULES: faq=ON, team=OFF")
+    // The project AGENTS.md is the only rule authority; a condensed second copy
+    // drifted from it and made agents "fix" documented exceptions.
+    expect(result).not.toContain("Self-check")
+    expect(result).not.toContain("canonical ui/")
+    expect(result).not.toContain("NO literal")
+    expect(result).not.toContain("validate:pm4")
+    expect(result).not.toContain("PM4 PROJECT")
   })
 
   test("injects nothing for a non-PM4 directory", async () => {

@@ -192,6 +192,11 @@
       "tag": "v1.4.3",
       "date": "2026-10-22",
       "description": "PM3 validator names purged — PM4 validator, canonical rulebook and knowledge cache aligned"
+    },
+    {
+      "tag": "v1.4.4",
+      "date": "2026-10-22",
+      "description": "PuppetMaster MCP stops injecting a drifting rule cache — the PM4 system prompt carries only project name, mode and module switches; AGENTS.md is the sole rule authority"
     }
   ],
   "features": [
@@ -5743,6 +5748,45 @@
         {
           "type": "file",
           "path": "docs/releases/1.4.3.md"
+        }
+      ]
+    },
+    {
+      "id": "puppetmaster-mcp-no-rule-injection",
+      "title": "Stop injecting the drifting PM4 rule cache — automatic context is state only",
+      "status": "done",
+      "version": "v1.4.4",
+      "changelog": "Fixes",
+      "tags": [
+        "mcp",
+        "puppetmaster",
+        "pm4",
+        "context",
+        "agents"
+      ],
+      "description": "v1.4.2 started injecting pm_inject_context into the system prompt of every PM4 session. That tool returned a hardcoded 9-rule digest of AGENTS.md. The digest had already drifted from the project: it told agents to edit $lib/config/site for FEATURES/MODULES (the customization point is src/project/site-config.ts) and reduced a 284-line AGENTS.md with allowlists, native owners and documented exceptions to blunt absolutes. Agents dutifully 'fixed' legitimate exceptions and broke working code. pm_inject_context now returns only runtime state a static AGENTS.md cannot carry: a one-line pointer that AGENTS.md is authoritative, PROJECT: <name> mode=<mode> defaultLocale=<locale>, and MODULES: <id>=ON|OFF. Rules are no longer injected at all; pm_knowledge topic=rules remains available for explicit requests.",
+      "notes": "Done 2026-10-22. The plan proposed changing the database topic from 39 to 38 tables; verified against PuppetMaster4/src/lib/server/db/schema.ts — there are 39 distinct sqliteTable definitions, so the count was already correct and was left alone. The two knowledge strings that pointed at $lib/config/site now name src/project/site-config.ts as the definition/editing site (site.ts only re-exports). dist/ rebuilt with tsc. Targeted tests: 28 pass (puppetmaster-mcp + puppetmaster-detect).",
+      "verify": [
+        {
+          "type": "test",
+          "path": "packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts"
+        },
+        {
+          "type": "file",
+          "path": "packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts"
+        },
+        {
+          "type": "grep",
+          "path": "packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts",
+          "pattern": "function projectState"
+        },
+        {
+          "type": "file",
+          "path": "docs/features/puppetmaster-mcp-no-rule-injection.md"
+        },
+        {
+          "type": "file",
+          "path": "docs/releases/1.4.4.md"
         }
       ]
     }

@@ -767,3 +767,14 @@
   `verify:grep packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts validate:pm4`
   `verify:file docs/features/purge-pm3-validator-names.md`
   `verify:file docs/releases/1.4.3.md`
+
+## v1.4.4 — PuppetMaster MCP stops injecting a drifting rule cache — the PM4 system prompt carries only project name, mode and module switches; AGENTS.md is the sole rule authority (2026-10-22)
+
+### Fixes
+
+- **DONE** Stop injecting the drifting PM4 rule cache — automatic context is state only
+  `verify:test packages/opencode/test/nocowboy/puppetmaster-mcp.test.ts`
+  `verify:file packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts`
+  `verify:grep packaging/mcp-servers/puppetmaster/src/tools/knowledge.ts function projectState`
+  `verify:file docs/features/puppetmaster-mcp-no-rule-injection.md`
+  `verify:file docs/releases/1.4.4.md`
